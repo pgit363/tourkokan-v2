@@ -2,17 +2,32 @@
 import React, { useEffect } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { createDrawerNavigator } from '@react-navigation/drawer';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { View, StyleSheet } from 'react-native';
 
 import UserList from './src/components/UserList';
 import AddUser from './src/components/AddUser';
-import { createUserTable } from './src/models/UserModel';
 import EditUser from './src/components/EditUser';
+import { createUserTable } from './src/models/UserModel';
+
+import RootNavigator from './src/navigation/RootNavigator';
 
 const Stack = createNativeStackNavigator();
+// const Drawer = createDrawerNavigator();
+
+function UserStackNavigator() {
+  return (
+    <Stack.Navigator initialRouteName="UserList">
+      <Stack.Screen name="UserList" component={UserList} />
+      <Stack.Screen name="AddUser" component={AddUser} />
+      <Stack.Screen name="EditUser" component={EditUser} />
+    </Stack.Navigator>
+  );
+}
 
 export default function App() {
   useEffect(() => {
-    // Initialize DB tables
     const initDB = async () => {
       try {
         await createUserTable();
@@ -25,12 +40,13 @@ export default function App() {
   }, []);
 
   return (
-    <NavigationContainer>
-      <Stack.Navigator initialRouteName="UserList">
-        <Stack.Screen name="UserList" component={UserList} />
-        <Stack.Screen name="AddUser" component={AddUser} />
-        <Stack.Screen name="EditUser" component={EditUser} />
-      </Stack.Navigator>
-    </NavigationContainer>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <NavigationContainer>
+        <RootNavigator/>
+        {/* <Drawer.Navigator initialRouteName="Users">
+          <Drawer.Screen name="Users" component={UserStackNavigator} />
+        </Drawer.Navigator> */}
+      </NavigationContainer>
+    </GestureHandlerRootView>
   );
 }
