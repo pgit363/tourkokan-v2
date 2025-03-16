@@ -1,126 +1,176 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, PermissionsAndroid, Platform } from 'react-native';
-import MapView, { Marker } from 'react-native-maps';
-import Geolocation from '@react-native-community/geolocation';
+import React, {useEffect, useRef, useState} from 'react';
+import {ScrollView, View, RefreshControl} from 'react-native';
+import MapView, {Marker} from 'react-native-maps';
+import styles from './Styles';
+import {comnPost, dataSync} from '../Services/Api/CommonServices';
+import {connect} from 'react-redux';
+import {setLoader} from '../Reducers/CommonActions';
+import Loader from '../Components/Customs/Loader';
+import {checkLogin, goBackHandler} from '../Services/CommonMethods';
+import NetInfo from '@react-native-community/netinfo';
+import {useTranslation} from 'react-i18next';
+import CheckNet from '../Components/Common/CheckNet';
+import DIMENSIONS from '../Services/Constants/DIMENSIONS';
+import GlobalText from '../Components/Customs/Text';
 
-export default function MapScreen() {
-  const [region, setRegion] = useState({
-    latitude: 17.1426,
-     longitude: 73.2645,
-    latitudeDelta: 1.0, // Increased zoom out to show both markers
-    longitudeDelta: 1.0,
-  });
-  const [locationGranted, setLocationGranted] = useState(false);
-  const [loading, setLoading] = useState(true);
+const MapScreen = ({navigation, ...props}) => {
+  const {t} = useTranslation();
+  const mapRef = useRef(null);
 
-  const markers = [
-    {
-      id: '1',
-      title: 'Ganpatipule Beach',
-      description: 'Beautiful beach in Ratnagiri',
-      coordinate: { latitude: 17.1426, longitude: 73.2645 },
-    },
-    {
-      id: '2',
-      title: 'Sindhudurg Fort',
-      description: 'Historical fort in Malvan',
-      coordinate: { latitude: 16.0573, longitude: 73.4656 },
-    },
-  ];
+  const [cities, setCities] = useState([]);
+  const [offline, setOffline] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
 
-  const requestLocationPermission = async () => {
-    try {
-      if (Platform.OS === 'android') {
-        const granted = await PermissionsAndroid.request(
-          PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION
-        );
-        if (granted === PermissionsAndroid.RESULTS.GRANTED) {
-          setLocationGranted(true);
-          getCurrentLocation();
-        } else {
-          console.log('Location permission denied');
-          setLoading(false); // Allow map to show even without permission
-        }
-      } else {
-        setLocationGranted(true);
-        getCurrentLocation();
-      }
-    } catch (err) {
-      console.warn(err);
-      setLoading(false);
+  useEffect(() => {
+    props.setLoader(true);
+    const backHandler = goBackHandler(navigation);
+    checkLogin(navigation);
+
+    const unsubscribe = NetInfo.addEventListener(state => {
+      setOffline(false);
+
+      dataSync(t('STORAGE.CITIES_RESPONSE'), getCities(), props.mode).then(
+        resp => {
+          if (resp) {
+            let res = JSON.parse(resp);
+            setCities(res);
+            if (mapRef.current) {
+              const coordinates = res.map(marker => {
+                return {
+                  latitude: parseFloat(marker.latitude),
+                  longitude: parseFloat(marker.longitude),
+                };
+              });
+              mapRef.current.fitToCoordinates(coordinates, {
+                edgePadding: {
+                  top: 40,
+                  right: 40,
+                  bottom: 40,
+                  left: 40,
+                },
+                animated: true,
+              });
+            }
+          } else if (resp) {
+            setOffline(true);
+          }
+          props.setLoader(false);
+        },
+      );
+    });
+
+    return () => {
+      backHandler.remove();
+      unsubscribe();
+    };
+  }, []);
+
+  const getCities = () => {
+    if (props.mode) {
+      props.setLoader(true);
+      let data = {
+        apitype: 'list',
+        category: 'City',
+      };
+      comnPost(`v2/sites`, data, navigation)
+        .then(async res => {
+          if (res && res.data.data) setCities(res.data.data.data);
+          props.setLoader(false);
+          setRefreshing(false);
+          if (mapRef.current) {
+            const coordinates = res.data.data.data.map(marker => {
+              return {
+                latitude: parseFloat(marker.latitude),
+                longitude: parseFloat(marker.longitude),
+              };
+            });
+            mapRef.current.fitToCoordinates(coordinates, {
+              edgePadding: {
+                top: 40,
+                right: 40,
+                bottom: 40,
+                left: 40,
+              },
+              animated: true,
+            });
+          }
+        })
+        .catch(error => {
+          props.setLoader(false);
+          setRefreshing(false);
+        });
     }
   };
 
-  const getCurrentLocation = () => {
-    Geolocation.getCurrentPosition(
-      position => {
-        console.log('Current Location:', position.coords);
-        setRegion({
-          latitude: position.coords.latitude,
-          longitude: position.coords.longitude,
-          latitudeDelta: 1.0,
-          longitudeDelta: 1.0,
-        });
-        setLoading(false);
-      },
-      error => {
-        console.log('Location Error:', error.message);
-        setLoading(false);
-      },
-      { enableHighAccuracy: true, timeout: 15000, maximumAge: 10000 }
-    );
-  };
-
-  useEffect(() => {
-    requestLocationPermission();
-  }, []);
-
   return (
-    <View style={styles.container}>
-      {loading ? (
-        <Text style={styles.loadingText}>Loading Map...</Text>
+    <>
+      <Loader />
+      <CheckNet isOff={offline} />
+      {offline ? (
+        <View
+          style={{
+            height: DIMENSIONS.screenHeight,
+            alignItems: 'center',
+            padding: 50,
+          }}>
+          <GlobalText
+            style={{fontWeight: 'bold'}}
+            text={
+              offline
+                ? t('NO_INTERNET_MAP')
+                : !props.isLoading
+                ? t('NO_DATA')
+                : ''
+            }
+          />
+        </View>
       ) : (
-        <MapView
-          provider="google"
-          style={styles.map}
-          initialRegion={region}
-          showsUserLocation={true}
-          showsMyLocationButton={true}
-        >
-          {markers.length > 0 ? (
-            markers.map(marker => (
-              <Marker
-                key={marker.id}
-                coordinate={marker.coordinate}
-                title={marker.title}
-                description={marker.description}
-              />
-            ))
-          ) : (
-            <Marker
-              coordinate={{ latitude: 17.1426, longitude: 73.2645 }}
-              title="Test Marker"
-              description="Test location"
-            />
-          )}
-        </MapView>
+        cities[0] && (
+          <View style={styles.mapContainer}>
+            <MapView
+              ref={mapRef}
+              style={styles.map}
+              initialRegion={{
+                latitude: parseFloat(cities[3].latitude),
+                longitude: parseFloat(cities[3].longitude),
+                latitudeDelta: 0.7,
+                longitudeDelta: 0.7,
+              }}
+              scrollEnabled={false}
+              zoomEnabled={false}>
+              {cities.map(marker => (
+                <Marker
+                  key={marker.id}
+                  coordinate={{
+                    latitude: parseFloat(marker.latitude),
+                    longitude: parseFloat(marker.longitude),
+                  }}
+                  title={marker.name}
+                  description={marker.name}
+                />
+              ))}
+            </MapView>
+          </View>
+        )
       )}
-    </View>
+    </>
   );
-}
+};
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  map: {
-    flex: 1,
-  },
-  loadingText: {
-    flex: 1,
-    textAlign: 'center',
-    textAlignVertical: 'center',
-    fontSize: 16,
-    color: '#555',
-  },
-});
+const mapStateToProps = state => {
+  return {
+    access_token: state.commonState.access_token,
+    mode: state.commonState.mode,
+    isLoading: state.commonState.isLoading,
+  };
+};
+
+const mapDispatchToProps = dispatch => {
+  return {
+    setLoader: data => {
+      dispatch(setLoader(data));
+    },
+  };
+};
+
+export default connect(mapStateToProps, mapDispatchToProps)(MapScreen);

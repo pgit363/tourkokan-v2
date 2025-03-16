@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "941471956439",
+    "project_id": "tourkokan-658d1",
+    "storage_bucket": "tourkokan-658d1.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:941471956439:android:24306c81153b4a533c5f92",
+        "android_client_info": {
+          "package_name": "com.tourkokan"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDT01wLV3kMfc6OuQwK5f1UwAeZGOFviR4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:941471956439:android:4cf8c4034ab622003c5f92",
+        "android_client_info": {
+          "package_name": "tourkokan.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDT01wLV3kMfc6OuQwK5f1UwAeZGOFviR4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
