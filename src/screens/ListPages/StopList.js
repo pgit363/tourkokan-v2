@@ -1,20 +1,20 @@
-import React, {useState, useEffect} from 'react';
-import {View, ScrollView, Image} from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, ScrollView, Image } from 'react-native';
 import SmallCard from '../../Components/Customs/SmallCard';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import COLOR from '../../Services/Constants/COLORS';
 import DIMENSIONS from '../../Services/Constants/DIMENSIONS';
-import {connect} from 'react-redux';
+import { connect } from 'react-redux';
 import Loader from '../../Components/Customs/Loader';
 import Header from '../../Components/Common/Header';
-import {setLoader} from '../../Reducers/CommonActions';
-import {backPage, navigateTo} from '../../Services/CommonMethods';
+import { setLoader } from '../../Reducers/CommonActions';
+import { backPage, navigateTo } from '../../Services/CommonMethods';
 import styles from './Styles';
 import Path from '../../Services/Api/BaseUrl';
-import {useTranslation} from 'react-i18next';
+import { useTranslation } from 'react-i18next';
 
-const StopList = ({navigation, ...props}) => {
-  const {t} = useTranslation();
+const StopList = ({ navigation, ...props }) => {
+  const { t } = useTranslation();
 
   const [stops, setStops] = useState([]); // State to store stops
   const [error, setError] = useState(null); // State to store error message
@@ -33,12 +33,12 @@ const StopList = ({navigation, ...props}) => {
   }, []);
 
   const handleSmallCardClick = id => {
-    navigateTo(navigation, t('SCREEN.PLACE_DETAILS'), {id});
+    navigateTo(navigation, t('SCREEN.PLACE_DETAILS'), { id });
   };
 
   return (
     <ScrollView>
-      <View style={{flex: 1, alignItems: 'center'}}>
+      <View style={{ flex: 1, alignItems: 'center' }}>
         <Loader />
         <Header
           name={t('HEADER.STOPS')}
@@ -52,13 +52,13 @@ const StopList = ({navigation, ...props}) => {
           }
         />
         <View style={styles.cardsWrap}>
-          {stops.map((stop, index) => (
+          {stops.map((stop) => (
             <SmallCard
               style={styles.stopsCard}
-              key={index}
+              key={stop.id} // ✅ better than index
               Icon={
                 <Image
-                  source={{uri: Path.API_PATH + stop.icon}}
+                  source={{ uri: Path.API_PATH + stop.icon }}
                   color={COLOR.yellow}
                   size={DIMENSIONS.iconSize}
                 />

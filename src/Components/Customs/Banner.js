@@ -22,9 +22,16 @@ class AnimationStyle extends Component {
     }).start();
   };
 
-  onLoadError = error => {
-    console.error('Image load error:', error.nativeEvent.error);
+  onLoadError = (error) => {
+    const errorMessage = error?.nativeEvent?.error;
+  
+    if (errorMessage && errorMessage.includes('404')) {
+      console.warn('⚠️ Image not found (404).');
+    } else {
+      console.warn('⚠️ Image failed to load:', errorMessage);
+    }
   };
+  
 
   render() {
     return (

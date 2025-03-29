@@ -76,10 +76,13 @@ const CityDetails = ({navigation, route, offline, ...props}) => {
   }, [cityId]);
 
   useFocusEffect(
-    React.useCallback(async () => {
-      setCityDetails();
-    }, [route.params.city.id]),
-  );
+    React.useCallback(() => {
+      const fetchData = async () => {
+        await setCityDetails(); // if setCityDetails is async
+      };
+      fetchData();
+    }, [route?.params?.city?.id])
+  );  
 
   const setCityDetails = () => {
     setLoader(true);

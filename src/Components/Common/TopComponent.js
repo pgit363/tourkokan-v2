@@ -34,12 +34,15 @@ const TopComponent = ({
   const [isOnline, setIsOnline] = useState(mode);
   const [profilePhoto, setProfilePhoto] = useState(null);
 
-  useEffect(async () => {
-    let picture = JSON.parse(
-      await getFromStorage(t('STORAGE.PROFILE_PICTURE')),
-    );
-    setProfilePhoto(picture);
-  }, []);
+  useEffect(() => {
+    const fetchProfilePhoto = async () => {
+      let picture = JSON.parse(
+        await getFromStorage(t('STORAGE.PROFILE_PICTURE'))
+      );
+      setProfilePhoto(picture);
+    };
+    fetchProfilePhoto();
+  }, []);  
 
   const openDrawer = () => {
     navigation.openDrawer();

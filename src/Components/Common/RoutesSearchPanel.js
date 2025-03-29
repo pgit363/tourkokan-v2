@@ -1,11 +1,11 @@
-import React, {useEffect, useState} from 'react';
-import {View} from 'react-native';
-import {SrcDest} from '../../Services/Constants/FIELDS';
+import React, { useEffect, useState } from 'react';
+import { View } from 'react-native';
+import { SrcDest } from '../../Services/Constants/FIELDS';
 import TextButton from '../Customs/Buttons/TextButton';
 import TextField from '../Customs/TextField';
 import styles from './Styles';
-import {connect} from 'react-redux';
-import {comnPost} from '../../Services/Api/CommonServices';
+import { connect } from 'react-redux';
+import { comnPost } from '../../Services/Api/CommonServices';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import COLOR from '../../Services/Constants/COLORS';
@@ -17,10 +17,10 @@ import {
 } from '../../Reducers/CommonActions';
 import GlobalText from '../Customs/Text';
 import SearchDropdown from './SearchDropdown';
-import {useTranslation} from 'react-i18next';
+import { useTranslation } from 'react-i18next';
 import STRING from '../../Services/Constants/STRINGS';
-import {navigateTo} from '../../Services/CommonMethods';
-import {useFocusEffect} from '@react-navigation/native';
+import { navigateTo } from '../../Services/CommonMethods';
+import { useFocusEffect } from '@react-navigation/native';
 
 const RoutesSearchPanel = ({
   mySource,
@@ -33,7 +33,7 @@ const RoutesSearchPanel = ({
   searchRoutes,
   ...props
 }) => {
-  const {t} = useTranslation();
+  const { t } = useTranslation();
 
   const [isValid, setIsValid] = useState(false);
   const [errorText, setErrorText] = useState('');
@@ -52,11 +52,14 @@ const RoutesSearchPanel = ({
   }, [props]);
 
   useFocusEffect(
-    React.useCallback(async () => {
-      setSource(props.source || '');
-      setDestination(props.destination || '');
-      checkIsValid();
-    }, [props.source, props.destination]),
+    React.useCallback(() => {
+      const init = async () => {
+        setSource(props.source || '');
+        setDestination(props.destination || '');
+        checkIsValid();
+      };
+      init();
+    }, [props.source, props.destination])
   );
 
   const setValue = (v, i, index, type) => {
@@ -195,18 +198,19 @@ const RoutesSearchPanel = ({
   const closeDropdown = () => {
     setPlacesList([]);
     if (fieldType == STRING.LABEL.SOURCE) {
-      setSource({name: ''});
+      setSource({ name: '' });
     } else {
-      setDestination({name: ''});
+      setDestination({ name: '' });
     }
   };
 
   return (
-    <View style={{marginBottom: 20}}>
+    <View style={{ marginBottom: 20 }}>
       <View style={styles.routesFieldsView}>
         {SrcDest.map((field, index) => {
           return (
             <TextField
+              key={field.name || index} // 🔑 Add this line
               onPress={() => pressed(field.name)}
               name={field.name}
               label={field.name}
@@ -214,9 +218,7 @@ const RoutesSearchPanel = ({
               fieldType={field.type}
               length={field.length}
               required={field.required}
-              disabled={
-                index == 1 && (source?.name == '' || source?.name == null)
-              }
+              disabled={index == 1 && (source?.name == '' || source?.name == null)}
               value={getValue(index)}
               setChild={(val, i) => setValue(val, i, index, field.name)}
               style={styles.searchPanelField}
@@ -225,6 +227,7 @@ const RoutesSearchPanel = ({
             />
           );
         })}
+
         <View style={styles.pannelIcons}>
           <MaterialIcons
             style={styles.routesSwapIcon}
@@ -243,7 +246,7 @@ const RoutesSearchPanel = ({
         </View>
       </View>
 
-      <View style={{minHeight: 20}}>
+      <View style={{ minHeight: 20 }}>
         {!isValid && <GlobalText text={errorText} style={styles.errorText} />}
       </View>
       <TextButton

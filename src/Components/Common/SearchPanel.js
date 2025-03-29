@@ -1,16 +1,16 @@
-import React, {useEffect, useState} from 'react';
-import {KeyboardAvoidingView, ScrollView, View} from 'react-native';
-import {SrcDest} from '../../Services/Constants/FIELDS';
+import React, { useEffect, useState } from 'react';
+import { KeyboardAvoidingView, ScrollView, View } from 'react-native';
+import { SrcDest } from '../../Services/Constants/FIELDS';
 import TextButton from '../Customs/Buttons/TextButton';
 import TextField from '../Customs/TextField';
 import styles from './Styles';
-import {connect} from 'react-redux';
-import {comnPost, getFromStorage} from '../../Services/Api/CommonServices';
+import { connect } from 'react-redux';
+import { comnPost, getFromStorage } from '../../Services/Api/CommonServices';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import COLOR from '../../Services/Constants/COLORS';
 import DIMENSIONS from '../../Services/Constants/DIMENSIONS';
-import {navigateTo} from '../../Services/CommonMethods';
+import { navigateTo } from '../../Services/CommonMethods';
 import {
   setDestination,
   setLoader,
@@ -18,14 +18,14 @@ import {
 } from '../../Reducers/CommonActions';
 import GlobalText from '../Customs/Text';
 import SearchDropdown from './SearchDropdown';
-import {useTranslation} from 'react-i18next';
+import { useTranslation } from 'react-i18next';
 import STRING from '../../Services/Constants/STRINGS';
 import Popup from './Popup';
-import {useFocusEffect} from '@react-navigation/native';
+import { useFocusEffect } from '@react-navigation/native';
 import NetInfo from '@react-native-community/netinfo';
 
-const SearchPanel = ({navigation, from, onSwap, ...props}) => {
-  const {t} = useTranslation();
+const SearchPanel = ({ navigation, from, onSwap, ...props }) => {
+  const { t } = useTranslation();
 
   const [isValid, setIsValid] = useState(false);
   const [errorText, setErrorText] = useState('');
@@ -60,12 +60,15 @@ const SearchPanel = ({navigation, from, onSwap, ...props}) => {
   };
 
   useFocusEffect(
-    React.useCallback(async () => {
+    React.useCallback(() => {
       setSource(props.source || '');
       setDestination(props.destination || '');
       checkIsValid();
-    }, [props.source, props.destination]),
+
+      return () => { };
+    }, [props.source, props.destination])
   );
+
 
   const getValue = i => {
     switch (i) {
@@ -103,10 +106,10 @@ const SearchPanel = ({navigation, from, onSwap, ...props}) => {
         !isConnected && !mode
           ? t('ALERT.NETWORK') // Alert: Network is available but mode is offline
           : !isConnected && mode
-          ? t('ALERT.NO_INTERNET_AVAILABLE_MODE_ONLINE') // Alert: Mode is offline, you need to set it to online
-          : isConnected && !mode
-          ? t('ALERT.INTERNET_AVAILABLE_MODE_OFFLINE') // Alert: No internet available but mode is online
-          : '', // Default case (optional), if none of the conditions match
+            ? t('ALERT.NO_INTERNET_AVAILABLE_MODE_ONLINE') // Alert: Mode is offline, you need to set it to online
+            : isConnected && !mode
+              ? t('ALERT.INTERNET_AVAILABLE_MODE_OFFLINE') // Alert: No internet available but mode is online
+              : '', // Default case (optional), if none of the conditions match
       );
 
       return;
@@ -217,9 +220,9 @@ const SearchPanel = ({navigation, from, onSwap, ...props}) => {
   const closeDropdown = () => {
     setPlacesList([]);
     if (fieldType == STRING.LABEL.SOURCE) {
-      setSource({name: ''});
+      setSource({ name: '' });
     } else {
-      setDestination({name: ''});
+      setDestination({ name: '' });
     }
   };
 
@@ -231,12 +234,13 @@ const SearchPanel = ({navigation, from, onSwap, ...props}) => {
     <KeyboardAvoidingView
       enabled
       behavior="position"
-      style={{marginVertical: 20, zIndex: 50}}>
+      style={{ marginVertical: 20, zIndex: 50 }}>
       <View style={styles.fieldsView}>
         <GlobalText text={t('UNCOVER')} style={styles.instructionText} />
         {SrcDest.map((field, index) => {
           return (
             <TextField
+              key={field?.name || index} // <-- this fixes the warning
               onPress={() => pressed(field.name)}
               name={field.name}
               label={field.name}
@@ -244,26 +248,16 @@ const SearchPanel = ({navigation, from, onSwap, ...props}) => {
               fieldType={field.type}
               length={field.length}
               required={field.required}
-              disabled={
-                index == 1 && (source?.name == '' || source?.name == null)
-              }
+              disabled={index == 1 && (source?.name == '' || source?.name == null)}
               value={getValue(index)}
               setChild={(val, i) => setValue(val, i, index, field.name)}
               style={styles.searchPanelField}
               containerStyle={styles.textContainerStyle}
               inputContainerStyle={styles.inputContainerStyle}
-              // leftIcon={
-              //   <Ionicons
-              //     style={styles.inputBusIcon}
-              //     name="bus"
-              //     color={COLOR.grey}
-              //     size={DIMENSIONS.iconBig}
-              //     onPress={isValid ? swap : null}
-              //   />
-              // }
             />
           );
         })}
+
         <View style={styles.pannelIcons}>
           <MaterialIcons
             style={styles.swapIcon}

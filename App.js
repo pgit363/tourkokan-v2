@@ -1,10 +1,10 @@
 import 'react-native-gesture-handler';
-import {StatusBar} from 'expo-status-bar';
-import React, {useEffect, useState} from 'react';
-import {NavigationContainer} from '@react-navigation/native';
-import {createNativeStackNavigator} from '@react-navigation/native-stack';
-import {SafeAreaProvider} from 'react-native-safe-area-context';
-import {Provider} from 'react-redux';
+import { StatusBar } from 'expo-status-bar';
+import React, { useEffect, useState } from 'react';
+import { NavigationContainer } from '@react-navigation/native';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { Provider } from 'react-redux';
 import store from './Store';
 import {
   Image,
@@ -43,13 +43,13 @@ import {
   getFromStorage,
   saveToStorage,
 } from './src/Services/Api/CommonServices';
-import {useTranslation} from 'react-i18next';
-import {Dropdown} from 'react-native-element-dropdown';
+import { useTranslation } from 'react-i18next';
+import { Dropdown } from 'react-native-element-dropdown';
 import Geolocation from '@react-native-community/geolocation';
 import DeviceInfo from 'react-native-device-info';
-import {navigateTo} from './src/Services/CommonMethods';
+import { navigateTo } from './src/Services/CommonMethods';
 import TextField from './src/Components/Customs/TextField';
-import {CheckBox, Switch} from '@rneui/themed';
+import { CheckBox, Switch } from '@rneui/themed';
 import PrivacyPolicy from './src/Components/Common/PrivacyPolicy';
 // import LocationEnabler from 'react-native-android-location-enabler';
 import {
@@ -57,14 +57,23 @@ import {
   requestResolutionSettings,
 } from 'react-native-android-location-enabler';
 import * as LocationEnabler from 'react-native-android-location-enabler';
+import { initializeApp, getApps } from 'firebase/app';
 
 // LogBox.ignoreAllLogs();
 // LogBox.ignoreLogs(['Warning: ...', 'Possible Unhandled Promise Rejection']);
 const Stack = createNativeStackNavigator();
 
-// Initialize Firebase
-if (!firebase.apps.length) {
-  firebase.initializeApp();
+const firebaseConfig = {
+  apiKey: 'AIzaSyDT01wLV3kMfc6OuQwK5f1UwAeZGOFviR4',
+  authDomain: 'tourkokan-658d1.firebaseapp.com',
+  projectId: 'tourkokan-658d1',
+  storageBucket: 'tourkokan-658d1.appspot.com',
+  // messagingSenderId: 'YOUR_SENDER_ID',
+  appId: '1:941471956439:android:24306c81153b4a533c5f92',
+};
+
+if (!getApps().length) {
+  initializeApp(firebaseConfig);
 }
 
 analytics().setAnalyticsCollectionEnabled(true);
@@ -127,8 +136,8 @@ export default function App() {
   const [isPrivacyChecked, setIsPrivacyChecked] = useState(false);
   const [isKeyboardVisible, setKeyboardVisible] = useState(false);
   const languagesList = [
-    {label: 'English', value: 'en'},
-    {label: 'मराठी', value: 'mr'},
+    { label: 'English', value: 'en' },
+    { label: 'मराठी', value: 'mr' },
   ];
   const [isLoading, setIsLoading] = useState(false); // State to manage loading spinner
   const [locationStatus, setLocationStatus] = useState('Share Location');
@@ -176,7 +185,7 @@ export default function App() {
   }, []);
 
   const handleInputChange = (key, value) => {
-    setTextValues(prev => ({...prev, [key]: value}));
+    setTextValues(prev => ({ ...prev, [key]: value }));
   };
 
   // const handleNextButton = () => {
@@ -233,13 +242,13 @@ export default function App() {
 
   const callAPI = () => {
     dataSync(STRING.STORAGE.LANDING_RESPONSE, callLandingPageAPI, true).then(
-      resp => {},
+      resp => { },
     );
   };
 
   const callLandingPageAPI = async site_id => {
     try {
-      let data = {site_id};
+      let data = { site_id };
       const res = await comnPost('v2/landingpage', data);
       if (res && res.data.data) {
         setOfflineData(res.data.data);
@@ -363,17 +372,17 @@ export default function App() {
 
   const privacyClicked = () => {
     setIsPrivacyChecked(!isPrivacyChecked);
-    setTextValues({...textValues, 4: !textValues[4]});
+    setTextValues({ ...textValues, 4: !textValues[4] });
   };
 
-  const renderItem = ({item}) => {
+  const renderItem = ({ item }) => {
     return (
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={{flex: 1}}
+        style={{ flex: 1 }}
         keyboardVerticalOffset={Platform.OS === 'ios' ? 60 : 0}>
-        <ScrollView contentContainerStyle={{flexGrow: 1}}>
-          <View style={[styles.slide, {backgroundColor: item.backgroundColor}]}>
+        <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
+          <View style={[styles.slide, { backgroundColor: item.backgroundColor }]}>
             {item.image && <Image source={item.image} style={styles.image} />}
 
             <View style={styles.bottomFields}>
@@ -419,7 +428,7 @@ export default function App() {
                     } // Show spinner instead of text when loading
                     buttonView={[
                       styles.locButtonView,
-                      {backgroundColor: buttonColor},
+                      { backgroundColor: buttonColor },
                     ]}
                     isDisabled={isButtonDisabled}
                     raised={true}
@@ -441,7 +450,7 @@ export default function App() {
                     title={STRING.ACCEPT_TNC}
                     onPress={() => privacyClicked()}
                     checked={isPrivacyChecked}
-                    textStyle={{fontSize: 12.5}}
+                    textStyle={{ fontSize: 12.5 }}
                   />
                 </View>
               ) : null}
@@ -581,8 +590,8 @@ export default function App() {
         renderNextButton={renderNextButton}
         // renderPrevButton={renderPrevButton}
         onSlideChange={onSlideChange}
-        // scrollEnabled={false}
-        // dotClickEnabled={false}
+      // scrollEnabled={false}
+      // dotClickEnabled={false}
       />
       {currentIndex > 0 && renderNewButton()}
     </>

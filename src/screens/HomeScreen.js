@@ -313,26 +313,28 @@ const HomeScreen = ({navigation, route, ...props}) => {
     }
     setRefreshing(false);
   };
-
   useFocusEffect(
-    React.useCallback(async () => {
-      const isUpdated = await AsyncStorage.getItem('isUpdated');
-      checkToken();
-      if (isUpdated === 'true' && props.mode) {
-        // setIsInitialLoad(false); // Update state to indicate that the initial load has occurred
-
-        // Your existing logic
-        setCities([]);
-        // setRoutes([]);
-        // setBannerObject([]);
-        props.setLoader(true);
-        callLandingPageAPI();
-        const mode = JSON.parse(await getFromStorage(t('STORAGE.MODE')));
-        setMode(mode);
-      }
-      checkForUpdate();
-    }, [props.mode, isInitialLoad]), // Dependencies include props.mode and isInitialLoad
+    React.useCallback(() => {
+      const fetchData = async () => {
+        const isUpdated = await AsyncStorage.getItem('isUpdated');
+        checkToken();
+        if (isUpdated === 'true' && props.mode) {
+          setCities([]);
+          props.setLoader(true);
+          await callLandingPageAPI(); // make sure to `await` this if it’s async
+          const mode = JSON.parse(await getFromStorage(t('STORAGE.MODE')));
+          setMode(mode);
+        }
+        checkForUpdate();
+      };
+  
+      fetchData();
+  
+      // Optional cleanup function (if needed)
+      return () => {};
+    }, [props.mode, isInitialLoad])
   );
+  
 
   const callLandingPageAPI = async site_id => {
     try {

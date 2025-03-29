@@ -140,34 +140,58 @@ export const removeFromStorage = async name => {
   }
 };
 
-export const dataSync = async (name, callBack, online) => {
-  console.log(
-    ' = = = ',
-    (await isOffline()) || !online,
-    '  ',
-    await isOffline(),
-    '  ',
-    !online,
-  );
+// export const dataSync = async (name, callBack, online) => {
+//   console.log(
+//     ' = = = ',
+//     (await isOffline()) || !online,
+//     '  ',
+//     await isOffline(),
+//     '  ',
+//     !online,
+//   );
 
-  if ((await isOffline()) || !online) {
+//   if ((await isOffline()) || !online) {
+//     console.log('name, ', name);
+//     const storedData = await getFromStorage(name);
+//     if (storedData) {
+//       return storedData;
+//     } else {
+//       return await isOffline();
+//     }
+//   } else {
+//     // Check if callBack is a function before calling it
+//     if (typeof callBack === 'function') {
+//       try {
+//         callBack();
+//       } catch (err) {
+//         console.error('Error in callBack execution: ', err);
+//       }
+//     } else {
+//       console.error('Error: callBack is not a function');
+//     }
+//   }
+// };
+
+
+export const dataSync = async (name, callBack = () => {}, online) => {
+  const offline = await isOffline();
+  console.log(' = = = ', offline || !online, '  ', offline, '  ', !online);
+
+  if (offline || !online) {
     console.log('name, ', name);
     const storedData = await getFromStorage(name);
-    if (storedData) {
-      return storedData;
-    } else {
-      return await isOffline();
-    }
+    return storedData || offline;
   } else {
-    // Check if callBack is a function before calling it
     if (typeof callBack === 'function') {
       try {
-        callBack();
+        return await callBack();
       } catch (err) {
         console.error('Error in callBack execution: ', err);
+        return null;
       }
     } else {
       console.error('Error: callBack is not a function');
+      return null;
     }
   }
 };

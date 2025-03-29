@@ -80,13 +80,17 @@ const AllRoutesSearch = ({navigation, route, ...props}) => {
   }, []);
 
   useFocusEffect(
-    React.useCallback(async () => {
-      if ((await AsyncStorage.getItem('isLangChanged')) == 'true') {
-        searchRoute();
-      }
-    }),
+    React.useCallback(() => {
+      const checkLangChange = async () => {
+        const isLangChanged = await AsyncStorage.getItem('isLangChanged');
+        if (isLangChanged === 'true') {
+          searchRoute();
+        }
+      };
+      checkLangChange();
+    }, [])
   );
-
+  
   const getRoutesList = item => {
     navigateTo(navigation, t('SCREEN.ROUTES_LIST'), {item});
   };

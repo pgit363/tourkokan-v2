@@ -1,4 +1,4 @@
-import React, {useEffect, useState, useCallback} from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import {
   View,
   TouchableOpacity,
@@ -8,7 +8,7 @@ import {
   Dimensions,
   Text,
 } from 'react-native';
-import {ResponsiveGrid} from 'react-native-flexible-grid';
+import { ResponsiveGrid } from 'react-native-flexible-grid';
 import ProgressImage from 'react-native-image-progress';
 import * as Progress from 'react-native-progress';
 import ImageViewing from 'react-native-image-viewing';
@@ -21,10 +21,10 @@ import {
   getFromStorage,
 } from '../../Services/Api/CommonServices';
 import Loader from '../../Components/Customs/Loader';
-import {checkLogin, goBackHandler} from '../../Services/CommonMethods';
+import { checkLogin, goBackHandler } from '../../Services/CommonMethods';
 import CheckNet from '../../Components/Common/CheckNet';
 import NetInfo from '@react-native-community/netinfo';
-import {connect} from 'react-redux';
+import { connect } from 'react-redux';
 import {
   setDestination,
   setLoader,
@@ -32,19 +32,19 @@ import {
 } from '../../Reducers/CommonActions';
 import Header from '../../Components/Common/Header';
 import Search from '../../Components/Customs/Search';
-import {useTranslation} from 'react-i18next';
+import { useTranslation } from 'react-i18next';
 import GlobalText from '../../Components/Customs/Text';
 import DIMENSIONS from '../../Services/Constants/DIMENSIONS';
 import ExploreGridSkeleton from './ExploreGridSkeleton';
 import ComingSoon from '../../Components/Common/ComingSoon';
 import Popup from '../../Components/Common/Popup';
-import {FTP_PATH} from '@env';
-import {useFocusEffect} from '@react-navigation/native';
+import { FTP_PATH } from '@env';
+import { useFocusEffect } from '@react-navigation/native';
 
-const {height: screenHeight} = Dimensions.get('window');
+const { height: screenHeight } = Dimensions.get('window');
 
-const ExploreGrid = ({route, navigation, ...props}) => {
-  const {t} = useTranslation();
+const ExploreGrid = ({ route, navigation, ...props }) => {
+  const { t } = useTranslation();
   const [gallery, setGallery] = useState([]);
   const [offline, setOffline] = useState(false);
   const [searchValue, setSearchValue] = useState('');
@@ -92,9 +92,12 @@ const ExploreGrid = ({route, navigation, ...props}) => {
   }, [searchValue]);
 
   useFocusEffect(
-    React.useCallback(async () => {
-      setSearchValue(route.params.cityName || '');
-    }, [route?.params?.cityName]),
+    React.useCallback(() => {
+      const setValue = async () => {
+        setSearchValue(route?.params?.cityName || '');
+      };
+      setValue();
+    }, [route?.params?.cityName])
   );
 
   const fetchData = async (page, reset = false) => {
@@ -181,7 +184,7 @@ const ExploreGrid = ({route, navigation, ...props}) => {
     setIsAlert(false);
   };
 
-  const renderItem = ({item}) => {
+  const renderItem = ({ item }) => {
     const imageUri = FTP_PATH + item.path;
     return (
       <TouchableOpacity
@@ -190,7 +193,7 @@ const ExploreGrid = ({route, navigation, ...props}) => {
         activeOpacity={0.7}>
         <View>
           <ProgressImage
-            source={{uri: imageUri}}
+            source={{ uri: imageUri }}
             style={styles.imageGridBox}
             indicator={Progress.Circle}
             indicatorProps={{
@@ -210,7 +213,7 @@ const ExploreGrid = ({route, navigation, ...props}) => {
   const renderFooter = () => {
     if (!loading || !hasMore) return null;
     return (
-      <View style={{paddingVertical: 20}}>
+      <View style={{ paddingVertical: 20 }}>
         <ActivityIndicator size="small" color={COLOR.primary} />
       </View>
     );
@@ -230,8 +233,8 @@ const ExploreGrid = ({route, navigation, ...props}) => {
           />
         }
       />
-      <ScrollView
-        style={{flex: 1}}
+      {/* <ScrollView
+        style={{ flex: 1 }}
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }
@@ -246,7 +249,7 @@ const ExploreGrid = ({route, navigation, ...props}) => {
             data={gallery}
             renderItem={renderItem}
             showScrollIndicator={false}
-            style={{padding: 5, marginBottom: 70}}
+            style={{ padding: 5, marginBottom: 70 }}
             keyExtractor={item => item.id.toString()}
             ListFooterComponent={renderFooter}
           />
@@ -260,7 +263,7 @@ const ExploreGrid = ({route, navigation, ...props}) => {
             }}>
             {offline ? (
               <GlobalText
-                style={{fontWeight: 'bold'}}
+                style={{ fontWeight: 'bold' }}
                 text={t('NO_INTERNET')}
               />
             ) : (
@@ -289,7 +292,73 @@ const ExploreGrid = ({route, navigation, ...props}) => {
           toggleOverlay={() => setShowOnlineMode(false)}
         />
         <Popup message={alertMessage} onPress={closePopup} visible={isAlert} />
-      </ScrollView>
+      </ScrollView> */}
+      <>
+        <Header
+          Component={
+            <Search
+              style={styles.homeSearchBar}
+              placeholder={t('Search')}
+              value={searchValue}
+              onChangeText={handleSearch}
+            />
+          }
+        />
+        {loading && !gallery.length ? (
+          <ExploreGridSkeleton />
+        ) : gallery.length ? (
+          <ResponsiveGrid
+            maxItemsPerColumn={3}
+            data={gallery}
+            renderItem={renderItem}
+            keyExtractor={item => item.id.toString()}
+            showScrollIndicator={false}
+            style={{ padding: 5, marginBottom: 70 }}
+            ListFooterComponent={renderFooter}
+            refreshControl={
+              <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+            }
+            onEndReached={loadMoreData}
+            onEndReachedThreshold={0.5}
+          />
+        ) : (
+          <View
+            style={{
+              height: screenHeight,
+              justifyContent: 'center',
+              alignItems: 'center',
+              padding: 10,
+            }}>
+            {offline ? (
+              <GlobalText style={{ fontWeight: 'bold' }} text={t('NO_INTERNET')} />
+            ) : (
+              <ExploreGridSkeleton />
+            )}
+          </View>
+        )}
+
+        {selectedImage && (
+          <ImageViewing
+            images={gallery.map(image => ({ uri: FTP_PATH + image.path }))}
+            imageIndex={imageIndex}
+            visible={isModalVisible}
+            onRequestClose={closeImageViewer}
+          />
+        )}
+        <CheckNet isOff={offline} />
+        <ComingSoon
+          message={t('ONLINE_MODE')}
+          visible={showOnlineMode}
+          toggleOverlay={() => setShowOnlineMode(false)}
+        />
+        <ComingSoon
+          message={errorMessage}
+          visible={showOnlineMode}
+          toggleOverlay={() => setShowOnlineMode(false)}
+        />
+        <Popup message={alertMessage} onPress={closePopup} visible={isAlert} />
+      </>
+
     </>
   );
 };
