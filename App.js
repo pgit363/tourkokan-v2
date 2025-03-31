@@ -59,6 +59,14 @@ import {
 import * as LocationEnabler from 'react-native-android-location-enabler';
 import { initializeApp, getApps } from 'firebase/app';
 
+import SQLite from 'react-native-sqlite-storage';
+import RNFS from 'react-native-fs';
+import Papa from 'papaparse';
+import { Platform } from 'react-native';
+
+const db = SQLite.openDatabase({ name: 'routesDB.db', location: 'default' });
+
+
 // LogBox.ignoreAllLogs();
 // LogBox.ignoreLogs(['Warning: ...', 'Possible Unhandled Promise Rejection']);
 const Stack = createNativeStackNavigator();
@@ -165,6 +173,26 @@ export default function App() {
   }, []);
 
   useEffect(() => {
+
+    const initApp = async () => {
+      const isImported = await AsyncStorage.getItem('data_imported');
+
+      // if (!isImported) {
+      console.log('Starting CSV import...');
+      await copyFileToStorage(); // Copy CSV
+      await createTable(); // Create table
+      await importCSVToSQLite(); // Import data
+      await AsyncStorage.setItem('data_imported', 'true'); // Mark as imported
+      console.log('CSV import completed.');
+      // } else {
+      //   console.log('Data already imported.');
+      // }
+
+      setLoading(false);
+    };
+
+    initApp();
+
     const checkFirstTime = async () => {
       const isFirstTimeValue = await getFromStorage(
         STRING.STORAGE.IS_FIRST_TIME,
@@ -173,6 +201,7 @@ export default function App() {
       setLoading(false);
     };
     checkFirstTime();
+
     const apiCalling = async () => {
       const access_token = await getFromStorage(STRING.STORAGE.ACCESS_TOKEN);
 
@@ -183,6 +212,109 @@ export default function App() {
 
     apiCalling();
   }, []);
+
+
+
+  const copyFileToStorage = async () => {
+    const destPath = `${RNFS.DocumentDirectoryPath}/routes.csv`;
+  
+    try {
+      console.log('📂 Destination Path:', destPath);
+  
+      if (Platform.OS === 'android') {
+        console.log('📌 Running on Android...');
+        const assetsPath = 'routes.csv';
+  
+        console.log('🔍 Checking if file exists in assets:', assetsPath);
+        const fileContent = await RNFS.readFileAssets(assetsPath, 'utf8'); // Read from assets
+        console.log('✅ File read successfully from assets');
+  
+        await RNFS.writeFile(destPath, fileContent, 'utf8'); // Write to storage
+        console.log('✅ CSV File copied successfully to:', destPath);
+      } else {
+        console.log('📌 Running on iOS...');
+        const sourcePath = `${RNFS.MainBundlePath}/routes.csv`;
+        console.log('🔍 Checking source path:', sourcePath);
+  
+        await RNFS.copyFile(sourcePath, destPath);
+        console.log('✅ CSV File copied successfully to:', destPath);
+      }
+  
+      // 🔍 Verify the copied file
+      const fileExists = await RNFS.exists(destPath);
+      console.log('📂 File exists after copy:', fileExists);
+  
+      if (!fileExists) {
+        console.log('❌ File copy failed!');
+      }
+    } catch (error) {
+      console.log('❌ Error copying file:', error);
+    }
+  };
+
+
+  // 🟢 Create SQLite Table
+  const createTable = () => {
+    db.transaction(tx => {
+      tx.executeSql(
+        `CREATE TABLE IF NOT EXISTS routes (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        route_no TEXT,
+        route_name TEXT,
+        from_stop TEXT,
+        till_stop TEXT,
+        via_stop TEXT,
+        route_type TEXT,
+        bstop_id TEXT,
+        bstop_name TEXT,
+        dist_km REAL,
+        in_active TEXT,
+        dtl_in_active TEXT
+      );`,
+        [],
+        () => console.log('Table created successfully'),
+        error => console.log('Error creating table:', error)
+      );
+    });
+  };
+
+  // 🟢 Parse CSV and Insert into SQLite
+  const importCSVToSQLite = async () => {
+    const filePath = `${RNFS.DocumentDirectoryPath}/routes.csv`;
+
+    try {
+      const fileContent = await RNFS.readFile(filePath, 'utf8');
+      const results = Papa.parse(fileContent, { header: true, skipEmptyLines: true });
+
+      db.transaction(tx => {
+        results.data.forEach(row => {
+          tx.executeSql(
+            `INSERT INTO routes 
+            (route_no, route_name, from_stop, till_stop, via_stop, route_type, bstop_id, bstop_name, dist_km, in_active, dtl_in_active) 
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+            [
+              row["Route No"],
+              row["Route Name"],
+              row["From Stop Name"],
+              row["Till Stop Name"],
+              row["Via Stop Name"],
+              row["Route Type"],
+              row["Bstop ID"],
+              row["Bstop Name"],
+              parseFloat(row["DIST KM"]) || 0, // Convert to number
+              row["IN ACTIVE"],
+              row["DTL IN ACTIVE"]
+            ]
+          );
+        });
+
+        console.log('Data inserted successfully');
+      });
+
+    } catch (error) {
+      console.log('Error reading CSV:', error);
+    }
+  };
 
   const handleInputChange = (key, value) => {
     setTextValues(prev => ({ ...prev, [key]: value }));
