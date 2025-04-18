@@ -4,8 +4,8 @@ import { createDrawerNavigator, DrawerContentScrollView, DrawerItemList } from '
 import Ionicons from 'react-native-vector-icons/Ionicons';
 
 import TabNavigator from './TabNavigator';
-import EmergencyScreen from '../screens/EmergencyScreen';
-import ReachUsScreen from '../screens/ReachUsScreen';
+import EmergencyScreen from '../Screens/EmergencyScreen';
+import ReachUsScreen from '../Screens/ReachUsScreen';
 
 
 const Drawer = createDrawerNavigator();

@@ -1,7 +1,7 @@
 import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import DrawerNavigator from './DrawerNavigator';
-import ModalScreen from '../screens/ModalScreen';
+import ModalScreen from '../Screens/ModalScreen';
 
 const RootStack = createNativeStackNavigator();
 
