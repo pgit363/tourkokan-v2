@@ -381,82 +381,80 @@ export default function App() {
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={{ flex: 1 }}
         keyboardVerticalOffset={Platform.OS === 'ios' ? 60 : 0}>
-        <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
-          <View style={[styles.slide, { backgroundColor: item.backgroundColor }]}>
-            {item.image && <Image source={item.image} style={styles.image} />}
+        <View style={[styles.slide, { backgroundColor: item.backgroundColor }]}>
+          {item.image && <Image source={item.image} style={styles.image} />}
 
-            <View style={styles.bottomFields}>
-              {item.type === 'language' ? (
-                <Dropdown
-                  style={styles.dropdown}
-                  selectedTextStyle={styles.selectedTextStyle}
-                  itemTextStyle={styles.itemTextStyle}
-                  dropdownTextStyle={styles.dropdownText}
-                  data={languagesList}
-                  labelField="label"
-                  valueField="value"
-                  placeholder="Select Language"
-                  value={language}
-                  onChange={item => setLanguage(item.value)}
-                />
-              ) : item.type === 'referral' ? (
-                <TextField
-                  fieldType={'text'}
-                  style={[
-                    styles.searchPanelFieldNew,
-                    {
-                      marginTop: isKeyboardVisible ? -400 : 0,
-                      borderWidth: isKeyboardVisible ? 3 : 1,
-                      textAlign: 'center',
-                    },
+          <View style={styles.bottomFields}>
+            {item.type === 'language' ? (
+              <Dropdown
+                style={styles.dropdown}
+                selectedTextStyle={styles.selectedTextStyle}
+                itemTextStyle={styles.itemTextStyle}
+                dropdownTextStyle={styles.dropdownText}
+                data={languagesList}
+                labelField="label"
+                valueField="value"
+                placeholder="Select Language"
+                value={language}
+                onChange={item => setLanguage(item.value)}
+              />
+            ) : item.type === 'referral' ? (
+              <TextField
+                fieldType={'text'}
+                style={[
+                  styles.searchPanelFieldNew,
+                  {
+                    marginTop: isKeyboardVisible ? -400 : 0,
+                    borderWidth: isKeyboardVisible ? 3 : 1,
+                    textAlign: 'center',
+                  },
+                ]}
+                inputContainerStyle={styles.inputContainerStyle}
+                placeholder="Enter Referral Code"
+                placeholderTextColor="#000"
+                value={referral}
+                setChild={(v, i) => setReferral(v)}
+              />
+            ) : item.type === 'location' ? (
+              <View>
+                <TextButton
+                  title={
+                    isLoading ? (
+                      <ActivityIndicator size="small" color="#fff" />
+                    ) : (
+                      locationStatus
+                    )
+                  } // Show spinner instead of text when loading
+                  buttonView={[
+                    styles.locButtonView,
+                    { backgroundColor: buttonColor },
                   ]}
-                  inputContainerStyle={styles.inputContainerStyle}
-                  placeholder="Enter Referral Code"
-                  placeholderTextColor="#000"
-                  value={referral}
-                  setChild={(v, i) => setReferral(v)}
+                  isDisabled={isButtonDisabled}
+                  raised={true}
+                  onPress={enableLocationService}></TextButton>
+              </View>
+            ) : item.type === 'terms' ? (
+              <View>
+                {/* <TextInput
+              style={styles.checkbox}
+              placeholder="Accept Terms and Conditions"
+              value={textValues[item.key]}
+              onChangeText={text => handleInputChange(item.key, text)}
+            /> */}
+                <PrivacyPolicy
+                // acceptClick={acceptClick}
+                // cancelClick={closePopup}
                 />
-              ) : item.type === 'location' ? (
-                <View>
-                  <TextButton
-                    title={
-                      isLoading ? (
-                        <ActivityIndicator size="small" color="#fff" />
-                      ) : (
-                        locationStatus
-                      )
-                    } // Show spinner instead of text when loading
-                    buttonView={[
-                      styles.locButtonView,
-                      { backgroundColor: buttonColor },
-                    ]}
-                    isDisabled={isButtonDisabled}
-                    raised={true}
-                    onPress={enableLocationService}></TextButton>
-                </View>
-              ) : item.type === 'terms' ? (
-                <View>
-                  {/* <TextInput
-                style={styles.checkbox}
-                placeholder="Accept Terms and Conditions"
-                value={textValues[item.key]}
-                onChangeText={text => handleInputChange(item.key, text)}
-              /> */}
-                  <PrivacyPolicy
-                  // acceptClick={acceptClick}
-                  // cancelClick={closePopup}
-                  />
-                  <CheckBox
-                    title={STRING.ACCEPT_TNC}
-                    onPress={() => privacyClicked()}
-                    checked={isPrivacyChecked}
-                    textStyle={{ fontSize: 12.5 }}
-                  />
-                </View>
-              ) : null}
-            </View>
+                <CheckBox
+                  title={STRING.ACCEPT_TNC}
+                  onPress={() => privacyClicked()}
+                  checked={isPrivacyChecked}
+                  textStyle={{ fontSize: 12.5 }}
+                />
+              </View>
+            ) : null}
           </View>
-        </ScrollView>
+        </View>
       </KeyboardAvoidingView>
     );
   };

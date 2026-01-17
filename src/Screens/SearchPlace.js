@@ -98,6 +98,7 @@ const SearchPlace = ({navigation, route, ...props}) => {
   const renderItem = ({item}) => {
     return (
       <TouchableOpacity
+        key={item.id}
         onPress={() => setPlace(item)}
         style={styles.listItem}
         activeOpacity={0.3} // Set the opacity when the item is pressed

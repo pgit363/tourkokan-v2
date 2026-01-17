@@ -71,7 +71,10 @@ const CityPlaceSearch = ({navigation, route, ...props}) => {
 
   const renderItem = ({item}) => {
     return (
-      <ListItem bottomDivider onPress={() => onListItemClick(item.id)}>
+      <ListItem
+        key={item.id}
+        bottomDivider
+        onPress={() => onListItemClick(item.id)}>
         <ListItem.Content>
           <ListItem.Title>{item.name}</ListItem.Title>
         </ListItem.Content>

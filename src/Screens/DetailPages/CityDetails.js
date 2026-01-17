@@ -555,25 +555,23 @@ const CityDetails = ({navigation, route, offline, ...props}) => {
                   </View>
                 ) : null}
               </View>
-              <View style={{marginLeft: -5}}>
+              <View style={{ marginLeft: -5 }}>
                 {isLoading ? (
                   <View>
-                    <FlatList
-                      keyExtractor={item => item.id}
-                      data={city.sites}
-                      renderItem={() => (
-                        <PackageCardSkeleton cardType={'long'} />
-                      )}
-                    />
+                    {(city?.sites ?? []).map((item, index) => (
+                      <PackageCardSkeleton key={index} cardType={'long'} />
+                    ))}
                   </View>
-                ) : city.sites[0] ? (
-                  <FlatList
-                    keyExtractor={item => item.id}
-                    data={city.sites}
-                    renderItem={renderItem}
-                  />
+                ) : (city?.sites?.length ?? 0) > 0 ? (
+                  <View>
+                    {city.sites.map((item, index) => (
+                      <View key={item.id || index}>
+                        {renderItem({ item, index })}
+                      </View>
+                    ))}
+                  </View>
                 ) : (
-                  <View style={{marginTop: 20}}>
+                  <View style={{ marginTop: 20 }}>
                     <GlobalText text={t('ADDED')} style={styles.boldText} />
                   </View>
                 )}

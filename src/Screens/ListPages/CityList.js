@@ -4,7 +4,6 @@ import {
   FlatList,
   TouchableOpacity,
   ActivityIndicator,
-  ScrollView,
   RefreshControl,
 } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
@@ -237,32 +236,17 @@ const CityList = ({navigation, route, ...props}) => {
           />
         }
       />
-      <ScrollView
-        style={{backgroundColor: COLOR.white, marginTop: -19}}
+      <FlatList
+        data={cities}
+        keyExtractor={item => item.id?.toString()}
+        renderItem={renderItem}
+        onEndReached={loadMoreCities}
+        onEndReachedThreshold={0.5}
+        ListFooterComponent={renderFooter}
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-        }>
-        <CheckNet isOff={showOffline || offline} />
-        <Loader />
-        {cities.length > 0 ? (
-          <View
-            style={{
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              marginBottom: 150,
-            }}>
-            <FlatList
-              data={cities}
-              numColumns={1}
-              keyExtractor={item => item.id?.toString()}
-              renderItem={renderItem}
-              onEndReached={loadMoreCities}
-              onEndReachedThreshold={0.5}
-              // ListFooterComponent={loading ? <Loader /> : null}
-              ListFooterComponent={renderFooter}
-            />
-          </View>
-        ) : (
+        }
+        ListEmptyComponent={
           <View
             style={{
               height: DIMENSIONS.screenHeight,
@@ -283,14 +267,14 @@ const CityList = ({navigation, route, ...props}) => {
               }
             />
           </View>
-        )}
-        <Popup message={alertMessage} onPress={closePopup} visible={isAlert} />
-        <ComingSoon
-          message={t('ONLINE_MODE')}
-          visible={showOnlineMode}
-          toggleOverlay={() => setShowOnlineMode(false)}
-        />
-      </ScrollView>
+        }
+      />
+      <Popup message={alertMessage} onPress={closePopup} visible={isAlert} />
+      <ComingSoon
+        message={t('ONLINE_MODE')}
+        visible={showOnlineMode}
+        toggleOverlay={() => setShowOnlineMode(false)}
+      />
     </>
   );
 };

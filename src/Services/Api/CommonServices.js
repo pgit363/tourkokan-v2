@@ -186,11 +186,11 @@ export const dataSync = async (name, callBack = () => {}, online) => {
       try {
         return await callBack();
       } catch (err) {
-        console.error('Error in callBack execution: ', err);
+        console.warn('Error in callBack execution: ', err);
         return null;
       }
     } else {
-      console.error('Error: callBack is not a function');
+      console.warn('Error: callBack is not a function');
       return null;
     }
   }

@@ -63,7 +63,10 @@ const LocationSheet = ({
 
   const renderItem = ({item}) => {
     return (
-      <ListItem bottomDivider onPress={() => onListItemClick(item.name)}>
+      <ListItem
+        key={item.id || item.name}
+        bottomDivider
+        onPress={() => onListItemClick(item.name)}>
         <ListItem.Content>
           <ListItem.Title>{item.name}</ListItem.Title>
         </ListItem.Content>

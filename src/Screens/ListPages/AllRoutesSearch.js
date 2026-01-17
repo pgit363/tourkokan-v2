@@ -197,7 +197,7 @@ const AllRoutesSearch = ({navigation, route, ...props}) => {
       // </ListItem>
       <View style={styles.sectionView}>
         {list.map((route, index) => (
-          <View style={styles.cardsWrap}>
+          <View key={route.id || index} style={styles.cardsWrap}>
             <RouteHeadCard
               data={route}
               cardClick={() => getRoutesList(route)}

@@ -92,9 +92,9 @@ const Banner = ({style, bannerImages}) => {
                 source={{uri: imageUri}}
                 style={styles.bannerImage}
                 onLoad={() => console.log(`Image ${imageUri} loaded`)}
-                onError={error =>
-                  console.error(`Image ${imageUri} failed to load`, error)
-                }
+                onError={error => {
+                  console.error(`Image ${imageUri} failed to load`, error);
+                }}
               />
             </TouchableOpacity>
           );

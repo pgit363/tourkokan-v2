@@ -209,8 +209,8 @@ const styles = StyleSheet.create({
   },
   columnWrapper: {},
   catCardIcon: {
-    height: DIMENSIONS.iconX,
-    width: DIMENSIONS.iconX,
+    height: DIMENSIONS.iconXL,
+    width: DIMENSIONS.iconXL,
     borderRadius: DIMENSIONS.borderRadiusLarge,
     resizeMode: 'cover',
     borderColor: COLOR.grey,

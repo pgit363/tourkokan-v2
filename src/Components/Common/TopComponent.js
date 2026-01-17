@@ -13,6 +13,7 @@ import {Switch} from '@rneui/themed';
 import {connect} from 'react-redux';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {getFromStorage, saveToStorage} from '../../Services/Api/CommonServices';
+import { FTP_PATH } from '@env';
 
 StatusBar.setBarStyle('dark-content');
 
@@ -125,7 +126,7 @@ const TopComponent = ({
             source={{
               uri: `${
                 profilePhoto
-                  ? profilePhoto
+                  ? FTP_PATH + profilePhoto
                   : 'https://api-private.atlassian.com/users/2143ab39b9c73bcab4fe6562fff8d23d/avatar'
               }`,
             }}

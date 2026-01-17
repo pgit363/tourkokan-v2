@@ -4,7 +4,6 @@ import {
   View,
   Linking,
   ActivityIndicator,
-  ScrollView,
   RefreshControl,
   TouchableOpacity,
   BackHandler,
@@ -187,7 +186,7 @@ const QueriesList = ({navigation, route, ...props}) => {
 
   const renderItem = ({item}) => {
     return (
-      <ListItem bottomDivider>
+      <ListItem key={item.id} bottomDivider>
         <ListItem.Content
           style={{
             flexDirection: 'row',
@@ -259,51 +258,38 @@ const QueriesList = ({navigation, route, ...props}) => {
           )
         }
       />
-      <ScrollView
-        style={{flex: 1, marginTop: -19}}
+      <FlatList
+        keyExtractor={(item, index) =>
+          item.id ? item.id.toString() : `key-${index}`
+        }
+        data={step === 0 ? data : []}
+        renderItem={renderItem}
+        onEndReached={loadMoreData}
+        onEndReachedThreshold={0.5}
+        ListFooterComponent={renderFooter}
+        ListEmptyComponent={
+          <View
+            style={{
+              height: DIMENSIONS.screenHeight,
+              alignItems: 'center',
+              padding: 50,
+            }}>
+            <GlobalText
+              style={{fontWeight: 'bold'}}
+              text={offline ? t('NO_INTERNET') : ''}
+            />
+          </View>
+        }
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-        }>
-        <Loader />
-        <CheckNet isOff={offline} />
-        {step === 0 ? (
-          data.length > 0 ? (
-            <FlatList
-              keyExtractor={item => item.id?.toString()}
-              data={data}
-              renderItem={renderItem}
-              onEndReached={loadMoreData}
-              onEndReachedThreshold={0.5}
-              ListFooterComponent={renderFooter}
-              style={{marginBottom: 30}}
-            />
-          ) : (
-            <View
-              style={{
-                height: DIMENSIONS.screenHeight,
-                alignItems: 'center',
-                padding: 50,
-              }}>
-              <GlobalText
-                style={{fontWeight: 'bold'}}
-                text={offline ? t('NO_INTERNET') : ''}
-              />
-            </View>
-          )
-        ) : (
-          <ContactUs
-            route_id={route.params?.route_id}
-            step={step}
-            setStep={setStep}
-            offline={offline}
-          />
-        )}
-        <ComingSoon
-          message={errorMessage}
-          visible={showOnlineMode}
-          toggleOverlay={() => setShowOnlineMode(false)}
-        />
-      </ScrollView>
+        }
+        style={{flex: 1, marginTop: -19}}
+      />
+      <ComingSoon
+        message={errorMessage}
+        visible={showOnlineMode}
+        toggleOverlay={() => setShowOnlineMode(false)}
+      />
     </>
   );
 };

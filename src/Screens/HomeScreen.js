@@ -62,6 +62,7 @@ import {APP_URL} from '@env';
 import VersionCheck from 'react-native-version-check';
 import PackageCard from '../Components/Cards/PackageCard';
 import PackageCardSkeleton from '../Components/Cards/PackageCardSkeleton';
+import ProjectCard from '../Components/Cards/ProjectCard';
 
 // SplashScreen.preventAutoHideAsync();
 
@@ -236,7 +237,7 @@ const HomeScreen = ({navigation, route, ...props}) => {
           setIsLoading(false); // No loading if offline
         }
 
-        dataSync(t('STORAGE.LANDING_RESPONSE'), callLandingPageAPI, mode).then(
+        dataSync(t('STORAGE.LANDING_RESPONSE'), () => callLandingPageAPI(), mode).then(
           resp => {
             try {
               if (resp) {
@@ -244,6 +245,9 @@ const HomeScreen = ({navigation, route, ...props}) => {
                 if (res && res.cities) {
                   setCities(res.cities);
                   setRoutes(res.routes);
+                  console.log('Routes data:', res.routes);
+                  console.log('Routes structure sample:', res.routes[0]);
+                  
                   setBannerObject(res.banners);
                   setIsFetching(false);
                   setIsLoading(false);
@@ -356,17 +360,21 @@ const HomeScreen = ({navigation, route, ...props}) => {
         props.setLoader(true);
 
         const res = await comnPost('v2/landingpage', data, navigation);
-
+        
         if (res && res.data.data) {
+          console.log(res.data.data);
+          
           setOfflineData(res.data.data);
           i18n.changeLanguage(res.data.language);
           setCities(res.data.data.cities);
+          // setProjects(res.data.data.projects);
           setRoutes(res.data.data.routes);
           setBannerObject(res.data.data.banners);
           setIsFetching(false);
           setIsLoading(false);
           props.setLoader(false);
           setRefreshing(false);
+console.log(projects);
 
           if (t('APP_VERSION') < res.data.data.version.version_number) {
             setUpdateApp(true);
@@ -551,9 +559,10 @@ const HomeScreen = ({navigation, route, ...props}) => {
     }
   };
 
+  
   return (
     <>
-      {isLoading || routes.length === 0 ? (
+      {isLoading ? (
         <TopComponentSkeleton />
       ) : (
         <TopComponent
@@ -581,7 +590,7 @@ const HomeScreen = ({navigation, route, ...props}) => {
         {/* <MyAnimatedLoader isVisible={isLoading} /> */}
         {!isLoading && <Loader />}
         <View style={{flex: 1, alignItems: 'center'}}>
-          {isLoading || routes.length === 0 ? (
+          {isLoading ? (
             <BannerSkeleton />
           ) : bannerObject[0] ? (
             <Banner bannerImages={bannerObject} />
@@ -602,7 +611,7 @@ const HomeScreen = ({navigation, route, ...props}) => {
             style={{marginTop: 25, zIndex: 10}}
             behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
             keyboardVerticalOffset={keyboardOffset}>
-            {isLoading || routes.length === 0 ? (
+            {isLoading ? (
               <SearchPanelSkeleton />
             ) : (
               <SearchPanel
@@ -614,7 +623,7 @@ const HomeScreen = ({navigation, route, ...props}) => {
           </KeyboardAvoidingView>
           <View style={styles.headerContainer}>
             <View>
-              {isLoading || routes.length === 0 ? (
+              {isLoading ? (
                 <View style={styles.flexAroundSkeleton}>
                   <Skeleton
                     animation="pulse"
@@ -640,30 +649,45 @@ const HomeScreen = ({navigation, route, ...props}) => {
               )}
             </View>
             <View style={styles.cardsWrap}>
-              {isLoading || routes.length === 0 ? (
-                // Show skeleton loader when loading or when there are no routes
+              {isLoading ? (
+                // Show skeleton loader when loading
                 <>
-                  <RouteHeadCardSkeleton />
-                  <RouteHeadCardSkeleton />
-                  <RouteHeadCardSkeleton />
+                  <RouteHeadCardSkeleton key="route-skeleton-1" />
+                  <RouteHeadCardSkeleton key="route-skeleton-2" />
+                  <RouteHeadCardSkeleton key="route-skeleton-3" />
                 </>
-              ) : (
+              ) : routes.length > 0 ? (
                 // Show routes if available
                 routes.map(
                   (route, index) =>
                     route && (
                       <RouteHeadCard
-                        key={index} // Add key for list items
+                        key={route?.id || index}
                         data={route}
                         bus={'Hirkani'}
                         cardClick={() => getRoutesList(route)}
                       />
                     ),
                 )
+              ) : (
+                // Show "No Routes" message or card when routes are empty
+                <View style={styles.noRoutesContainer}>
+                  <GlobalText text="No Routes Available" style={styles.noRoutesText} />
+                </View>
               )}
             </View>
           </View>
+ <View>
+            {
+              projects.map((project, index) => (
+                <ProjectCard
+                  key={project.id ? `project-${project.id}` : `project-index-${index}`}
+                  project={project}
+                />
+              ))
+            }
 
+            </View>
           <View style={styles.sectionView}>
             <View style={{marginTop: 20}}>
               {isLoading ? (
@@ -689,15 +713,15 @@ const HomeScreen = ({navigation, route, ...props}) => {
               {isLoading || cities.length === 0 ? (
                 // Show skeleton loader when loading or when there are no cities
                 <>
-                  <PackageCardSkeleton cardType={'small'} />
-                  <PackageCardSkeleton cardType={'small'} />
-                  <PackageCardSkeleton cardType={'small'} />
+                  <PackageCardSkeleton key="city-skeleton-1" cardType={'small'} />
+                  <PackageCardSkeleton key="city-skeleton-2" cardType={'small'} />
+                  <PackageCardSkeleton key="city-skeleton-3" cardType={'small'} />
                 </>
               ) : (
                 // Show cities if available
                 cities.map((city, index) => (
                   <PackageCard
-                    key={index} // Add key for list items
+                    key={city.id || index}
                     data={city}
                     reload={() => {
                       callLandingPageAPI();

@@ -203,7 +203,7 @@ const ExploreGrid = ({ route, navigation, ...props }) => {
               unfilledColor: 'rgba(200, 200, 200, 0.2)',
             }}
             resizeMode="cover"
-            onError={error => console.error('Image load error:', error)}
+            onError={error => console.warn('Image load error for', imageUri, ':', error)}
           />
         </View>
       </TouchableOpacity>
@@ -223,16 +223,7 @@ const ExploreGrid = ({ route, navigation, ...props }) => {
 
   return (
     <>
-      <Header
-        Component={
-          <Search
-            style={styles.homeSearchBar}
-            placeholder={t('Search')}
-            value={searchValue}
-            onChangeText={handleSearch}
-          />
-        }
-      />
+      
       {/* <ScrollView
         style={{ flex: 1 }}
         refreshControl={

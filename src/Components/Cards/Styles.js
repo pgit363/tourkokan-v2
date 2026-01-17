@@ -323,7 +323,7 @@ const styles = StyleSheet.create({
     color: COLOR.greyDark,
     textAlign: 'left',
     width: DIMENSIONS.halfWidth - 90,
-    fontSize: DIMENSIONS.textSize,
+    fontSize: DIMENSIONS.textSizeSmall,
   },
   greyTextLong: {
     color: COLOR.greyDark,
@@ -402,7 +402,8 @@ const styles = StyleSheet.create({
     marginRight: 3,
   },
   packageCardSmall: {
-    margin: 5,
+    marginTop: 15,
+    marginLeft: 12,
     elevation: 10,
     backgroundColor: COLOR.white,
     padding: 5,

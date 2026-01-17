@@ -3,7 +3,6 @@ import {
   FlatList,
   View,
   SafeAreaView,
-  ScrollView,
   TouchableOpacity,
 } from 'react-native';
 import { ListItem, Overlay } from '@rneui/themed';
@@ -29,34 +28,38 @@ import TextButton from '../../Components/Customs/Buttons/TextButton';
 const RoutesList = ({ navigation, route }) => {
   const { t } = useTranslation();
 
-  const [list, setList] = useState(route.params.item.route_stops);
+  const stops = route?.params?.item?.route_stops ?? []; // Safe fallback
+  const [list] = useState(stops);
   const [isShow, setIsShow] = useState(true);
 
   useEffect(() => {
+    console.log('RoutesList route params:', route?.params?.item);
+    console.log('Route stops data:', stops);
+    console.log('First stop structure:', stops[0]);
+    
     const backHandler = goBackHandler(navigation);
     checkLogin(navigation);
-    return () => {
-      backHandler.remove();
-    };
+    return () => backHandler.remove();
   }, []);
 
-  const closePopup = () => {
-    setIsShow(false);
-  };
+  const closePopup = () => setIsShow(false);
 
   const renderItem = ({ item, index }) => {
-    let isFirst = index === 0;
-    let isLast = index === list.length - 1;
+    const isFirst = index === 0;
+    const isLast = index === list.length - 1;
 
     return (
-      <ListItem bottomDivider style={{ paddingTop: isFirst ? 20 : 0 }}>
+      <ListItem
+        key={`route-stop-${item?.id || item?.site?.id || index}`}
+        bottomDivider
+        style={{ paddingTop: isFirst ? 20 : 0 }}>
         <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-          {/* Distance Block with Fixed Width */}
+          {/* Distance */}
           <View style={{ width: 70, alignItems: 'flex-start' }}>
-            <GlobalText text={`${item.distance ? item.distance : 0} Km`} />
+            <GlobalText text={`${item?.distance ?? 0} Km`} />
           </View>
 
-          {/* Line Component */}
+          {/* Route Line */}
           {isFirst ? (
             <RouteLineFirst />
           ) : isLast ? (
@@ -68,19 +71,21 @@ const RoutesList = ({ navigation, route }) => {
 
         <ListItem.Content>
           <ListItem.Title>
-            <View
-              style={isFirst || isLast ? styles.listItem : styles.listItemMid}>
-              <View>
-                <GlobalText
-                  text={item.site.name}
-                  style={{
-                    color: isFirst || isLast ? COLOR.themeBlue : COLOR.black,
-                  }}
-                />
-              </View>
+            <View style={isFirst || isLast ? styles.listItem : styles.listItemMid}>
+              <GlobalText
+                text={item?.site?.name ?? ''}
+                style={{
+                  color: isFirst || isLast ? COLOR.themeBlue : COLOR.black,
+                }}
+              />
             </View>
           </ListItem.Title>
         </ListItem.Content>
+
+        {/* Arrival Time */}
+        <View style={{ width: 70, alignItems: 'flex-start' }}>
+          <GlobalText text={`${item?.arr_time ?? ''}`} />
+        </View>
       </ListItem>
     );
   };
@@ -88,11 +93,13 @@ const RoutesList = ({ navigation, route }) => {
   return (
     <SafeAreaView style={{ flex: 1 }}>
       <FlatList
-        keyExtractor={(item, index) => item?.id?.toString() || index.toString()}
         data={list}
         renderItem={renderItem}
+        keyExtractor={(item, index) =>
+          item?.id?.toString() || index.toString()
+        }
         ListHeaderComponent={
-          <>
+          <View>
             <Header
               name={t('HEADER.ROUTE')}
               goBack={() => backPage(navigation)}
@@ -106,25 +113,26 @@ const RoutesList = ({ navigation, route }) => {
               }
               endIcon={
                 <TouchableOpacity
-                  onPress={() => {
+                  onPress={() =>
                     navigateTo(navigation, t('SCREEN.QUERIES_LIST'), {
                       step: 1,
-                      route_id: route.params?.item?.id,
-                    });
-                  }}>
+                      route_id: route?.params?.item?.id,
+                    })
+                  }
+                >
                   <GlobalText text={t('BUTTON.CONTACT')} />
                 </TouchableOpacity>
               }
             />
+
             <View style={{ marginVertical: -15 }}>
               <RouteHeadCard
-                data={route.params.item}
-                cardClick={() => console.log('')}
+                data={route?.params?.item}
+                cardClick={() => {}}
               />
             </View>
-          </>
+          </View>
         }
-        contentContainerStyle={styles.flatListContainer}
       />
 
       <Overlay style={styles.locationModal} isVisible={isShow}>
@@ -136,8 +144,7 @@ const RoutesList = ({ navigation, route }) => {
           title={t('BUTTON.OK')}
           buttonView={styles.logoutButtonStyle}
           titleStyle={styles.locButtonTitle}
-          raised={false}
-          onPress={() => closePopup()}
+          onPress={closePopup}
         />
       </Overlay>
     </SafeAreaView>

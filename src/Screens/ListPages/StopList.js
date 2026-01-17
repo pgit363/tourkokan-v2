@@ -16,19 +16,20 @@ import { useTranslation } from 'react-i18next';
 const StopList = ({ navigation, ...props }) => {
   const { t } = useTranslation();
 
-  const [stops, setStops] = useState([]); // State to store stops
-  const [error, setError] = useState(null); // State to store error message
+  const [stops, setStops] = useState([]);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     props.setLoader(true);
+
     comnPost('v2/stops', props.access_token)
       .then(res => {
-        setStops(res.data.data.data); // Update stops state with response data
+        setStops(res.data.data.data);
         props.setLoader(false);
       })
       .catch(error => {
         props.setLoader(false);
-        setError(error.message); // Update error state with error message
+        setError(error.message);
       });
   }, []);
 
@@ -39,7 +40,9 @@ const StopList = ({ navigation, ...props }) => {
   return (
     <ScrollView>
       <View style={{ flex: 1, alignItems: 'center' }}>
+        
         <Loader />
+
         <Header
           name={t('HEADER.STOPS')}
           startIcon={
@@ -51,16 +54,17 @@ const StopList = ({ navigation, ...props }) => {
             />
           }
         />
+
         <View style={styles.cardsWrap}>
           {stops.map((stop) => (
             <SmallCard
+              key={stop.id?.toString()}    // ✅ FIXED HERE
               style={styles.stopsCard}
-              key={stop.id} // ✅ better than index
               Icon={
                 <Image
                   source={{ uri: Path.API_PATH + stop.icon }}
-                  color={COLOR.yellow}
-                  size={DIMENSIONS.iconSize}
+                  style={{ width: 40, height: 40 }} // ✅ Image requires style
+                  resizeMode="contain"
                 />
               }
               title={stop.name}
@@ -68,23 +72,18 @@ const StopList = ({ navigation, ...props }) => {
             />
           ))}
         </View>
+
       </View>
     </ScrollView>
   );
 };
 
-const mapStateToProps = state => {
-  return {
-    access_token: state.commonState.access_token,
-  };
-};
+const mapStateToProps = state => ({
+  access_token: state.commonState.access_token,
+});
 
-const mapDispatchToProps = dispatch => {
-  return {
-    setLoader: data => {
-      dispatch(setLoader(data));
-    },
-  };
-};
+const mapDispatchToProps = dispatch => ({
+  setLoader: data => dispatch(setLoader(data)),
+});
 
 export default connect(mapStateToProps, mapDispatchToProps)(StopList);

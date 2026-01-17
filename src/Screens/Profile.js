@@ -245,6 +245,7 @@ const Profile = ({navigation, ...props}) => {
             {ProfileFields.map((field, index) => {
               return (
                 <TextField
+                  key={field.name || index}
                   name={field.name}
                   label={field.name}
                   placeholder={field.placeholder}

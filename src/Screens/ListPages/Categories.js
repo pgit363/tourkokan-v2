@@ -104,6 +104,9 @@ const Categories = ({route, navigation, ...props}) => {
     setIsLoading(false);
     props.setLoader(false);
     setRefreshing(false);
+
+    console.log(categories);
+    
     return cats;
   };
 

@@ -73,6 +73,16 @@ def enableProguardInReleaseBuilds = false
  */
 def jscFlavor = 'io.github.react-native-community:jsc-android:2026004.+'
 
+
+task setEnv {
+    doFirst {
+        def envFile = project.hasProperty('env') ? project.getProperty('env') : 'development'
+        println "Building with environment: $envFile"
+        project.ext.set('ENV_FILE', envFile)
+    }
+}
+preBuild.dependsOn setEnv
+
 android {
     ndkVersion rootProject.ext.ndkVersion
     buildToolsVersion rootProject.ext.buildToolsVersion
@@ -83,8 +93,8 @@ android {
         applicationId "com.tourkokan"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 1
-        versionName "1.0"
+        versionCode 35
+        versionName "1.0.0"
     }
     signingConfigs {
         debug {
@@ -93,17 +103,27 @@ android {
             keyAlias 'androiddebugkey'
             keyPassword 'android'
         }
+        release {
+            // storeFile file('/Users/balkrushnawalke/Documents/malvani/react_native/More_Latest/tourkokan/tourkokan-release.keystore')
+            // storeFile file('/var/www/html/latestpackages/android/app/keystore/tourkokan-release.keystore')
+            storeFile file('/home/pranav/tourkokan-v2/android/app/tourkokan-release.keystore')
+            storePassword 'tourkokan'
+            keyAlias 'my-key-alias'
+            keyPassword 'tourkokan'
+        }
     }
     buildTypes {
         debug {
             signingConfig signingConfigs.debug
+            buildConfigField "String", "ENV_FILE", "\"${project.hasProperty('ENV_FILE') ? project.ENV_FILE : 'development'}\""
         }
         release {
-            // Caution! In production, you need to generate your own keystore file.
-            // see https://reactnative.dev/docs/signed-apk-android.
-            signingConfig signingConfigs.debug
+            signingConfig signingConfigs.release
             minifyEnabled enableProguardInReleaseBuilds
+            minifyEnabled true
+            shrinkResources true
             proguardFiles getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro"
+            buildConfigField "String", "ENV_FILE", "\"${project.hasProperty('ENV_FILE') ? project.ENV_FILE : 'development'}\""
         }
     }
 }
@@ -111,6 +131,7 @@ android {
 dependencies {
     // The version of react-native is set by the React Native Gradle Plugin
     implementation("com.facebook.react:react-android")
+    implementation 'com.google.android.gms:play-services-auth:20.5.0'
 
     if (hermesEnabled.toBoolean()) {
         implementation("com.facebook.react:hermes-android")
@@ -120,4 +141,4 @@ dependencies {
 }
 
 apply plugin: 'com.google.gms.google-services'
-apply from: project(':react-native-config').projectDir.getPath() + "/dotenv.gradle"
+// apply from: project(':react-native-config').projectDir.getPath() + "/dotenv.gradle"

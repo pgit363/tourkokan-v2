@@ -126,6 +126,7 @@ const UpdateProfile = ({
       {ProfileFields.map((field, index) => {
         return (
           <TextField
+            key={field.id}
             name={field.name}
             label={field.name}
             placeholder={field.placeholder}

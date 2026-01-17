@@ -4,7 +4,6 @@ import {
   View,
   Linking,
   ActivityIndicator,
-  ScrollView,
   RefreshControl,
 } from 'react-native';
 import {ListItem} from '@rneui/themed';
@@ -169,7 +168,7 @@ const Emergency = ({navigation, route, ...props}) => {
 
   const renderItem = ({item}) => {
     return (
-      <ListItem bottomDivider>
+      <ListItem key={item.id} bottomDivider>
         <ListItem.Content style={{flexDirection: 'row', alignItems: 'center'}}>
           <ListItem.Title>{item.name}</ListItem.Title>
           <ListItem.Content
@@ -223,24 +222,23 @@ const Emergency = ({navigation, route, ...props}) => {
         }
         endIcon={<></>}
       />
-      <ScrollView
-        style={{flex: 1, marginTop: -19}}
+      <FlatList
+        keyExtractor={item => item.id?.toString()}
+        data={data}
+        renderItem={renderItem}
+        onEndReached={loadMoreData}
+        onEndReachedThreshold={0.5}
+        ListFooterComponent={renderFooter}
+        ListHeaderComponent={
+          <>
+            <Loader />
+            <CheckNet isOff={offline} />
+          </>
+        }
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-        }>
-        <Loader />
-        <CheckNet isOff={offline} />
-        {data[0] ? (
-          <FlatList
-            keyExtractor={item => item.id?.toString()}
-            data={data}
-            renderItem={renderItem}
-            onEndReached={loadMoreData}
-            onEndReachedThreshold={0.5}
-            ListFooterComponent={renderFooter}
-            style={{marginBottom: 30}}
-          />
-        ) : (
+        }
+        ListEmptyComponent={
           <View
             style={{
               height: DIMENSIONS.screenHeight,
@@ -249,16 +247,17 @@ const Emergency = ({navigation, route, ...props}) => {
             }}>
             <GlobalText
               style={{fontWeight: 'bold'}}
-              text={offline ? t('NO_INTERNET') : ''}
+              text={offline ? t('NO_INTERNET') : t('NO_DATA_AVAILABLE')}
             />
           </View>
-        )}
-        <ComingSoon
-          message={errorMessage}
-          visible={showOnlineMode}
-          toggleOverlay={() => setShowOnlineMode(false)}
-        />
-      </ScrollView>
+        }
+        style={{flex: 1, marginTop: -19}}
+      />
+      <ComingSoon
+        message={errorMessage}
+        visible={showOnlineMode}
+        toggleOverlay={() => setShowOnlineMode(false)}
+      />
     </>
   );
 };

@@ -192,7 +192,7 @@ const ContactUs = ({
         }}>
         {ContactUsFields.map((field, index) => {
           return (
-            <View key={index}>
+            <View>
               <GlobalText text={field.placeholder} style={styles.fieldTitle} />
               <TextField
                 name={field.name}

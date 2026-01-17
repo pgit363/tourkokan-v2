@@ -48,6 +48,7 @@ import DIMENSIONS from '../Services/Constants/DIMENSIONS';
 import ComingSoon from '../Components/Common/ComingSoon';
 import {GoogleSignin} from '@react-native-google-signin/google-signin';
 import {DevSettings} from 'react-native';
+import { FTP_PATH } from '@env';
 
 const ProfileView = ({navigation, route, ...props}) => {
   const {t, i18n} = useTranslation();
@@ -228,27 +229,39 @@ const ProfileView = ({navigation, route, ...props}) => {
 
   const getUserProfile = () => {
     if (props.mode) {
+      console.log('Fetching user profile...');
+      console.log('Access Token:', props.access_token);
+
       comnPost('v2/user-profile', props.access_token, navigation)
         .then(res => {
-          if (res && res.data.data)
+          console.log('API Response:', res);
+
+          if (res && res.data.data) {
             saveToStorage(
               t('STORAGE.PROFILE_RESPONSE'),
               JSON.stringify(res.data.data),
             );
-          setProfile(res.data.data); // Update places state with response data
-          setOption(0);
-          setLocationMap(
-            res.data.data.addresses[0].latitude,
-            res.data.data.addresses[0].longitude,
-          );
+            setProfile(res.data.data); // Update places state with response data
+            setOption(0);
+            setLocationMap(
+              res.data.data.addresses[0].latitude,
+              res.data.data.addresses[0].longitude,
+            );
+          } else {
+            console.warn('No profile data found in response.');
+          }
+
           props.setLoader(false);
           setRefreshing(false);
         })
         .catch(error => {
+          console.error('Error fetching user profile:', error.message); // Log any errors
           setError(error.message); // Update error state with error message
           props.setLoader(false);
           setRefreshing(false);
         });
+    } else {
+      console.warn('App is in offline mode. Cannot fetch user profile.');
     }
   };
 
@@ -325,8 +338,7 @@ const ProfileView = ({navigation, route, ...props}) => {
             {
               text: 'OK',
               onPress: () => {
-                // DevSettings.reload();
-                BackHandler.exitApp();
+                navigateTo(navigation, t('SCREEN.HOME'));
               },
             },
           ],
@@ -432,7 +444,7 @@ const ProfileView = ({navigation, route, ...props}) => {
             source={{
               uri: `${
                 profile.profile_picture
-                  ? profile.profile_picture
+                  ? FTP_PATH + profile.profile_picture
                   : 'https://api-private.atlassian.com/users/2143ab39b9c73bcab4fe6562fff8d23d/avatar'
               }`,
             }}

@@ -25,6 +25,14 @@ const Accordion = ({data, navigation}) => {
     }
   }, []);
 
+  useEffect(() => {
+    data.forEach((item) => {
+      if (item.icon && typeof item.icon === 'string' && item.icon !== '0') {
+        console.log('Icon:', FTP_PATH + item.icon); // Log only once per item
+      }
+    });
+  }, [data]);
+
   const toggleExpanded = index => {
     setExpandedIndex(prevIndex => {
       const newIndex = prevIndex === index ? null : index;
@@ -40,15 +48,15 @@ const Accordion = ({data, navigation}) => {
 
   // Render subcategories in 3 columns
   const renderSubCategories = subCategories => (
-    <FlatList
-      data={subCategories}
-      keyExtractor={item => item.id.toString()}
-      renderItem={({item}) => (
-        <SubCatCard data={item} onClick={() => goToSubCats(item)} />
-      )}
-      numColumns={3} // Display 3 columns
-      columnWrapperStyle={styles.columnWrapper} // Add custom styling for alignment
-    />
+    <View style={{flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center'}}>
+      {subCategories.map((item) => (
+        <SubCatCard 
+          key={item.id.toString()}
+          data={item} 
+          onClick={() => goToSubCats(item)} 
+        />
+      ))}
+    </View>
   );
 
   const goToSubCats = subCat => {
@@ -56,43 +64,49 @@ const Accordion = ({data, navigation}) => {
   };
 
   // Accordion item with centered title and subcategories in 3 columns
-  const AccordionItem = ({item, index}) => (
-    <List.Accordion
-      title={item.name}
-      titleStyle={styles.titleStyle} // Apply title styles here
-      expanded={expandedIndex === index}
-      onPress={() => toggleExpanded(index)}
-      left={() => (
-        <Image
-          source={
-            item.icon && typeof item.icon === 'string' && item.icon !== '0'
-              ? {uri: item.icon}
-              : require('../../Assets/Icons/1-PNG.png') // Fallback image
-          }
-          style={[
-            styles.catCardIcon,
-            expandedIndex === index && styles.selectedIcon,
-          ]}
-        />
-      )}
-      right={() => (
-        <Ionicons
-          name={expandedIndex === index ? 'chevron-up' : 'chevron-down'}
-          color={COLOR.black}
-          size={DIMENSIONS.iconMedium}
-        />
-      )}
-      contentStyle={styles.accordContent} // Ensure the accordion content is centered
-      style={[
-        styles.accordHeader,
-        expandedIndex === index && styles.selectedHeader,
-      ]} // Highlight selected item
-    >
-      <View style={styles.accordContent}>
-        {renderSubCategories(item.sub_categories)}
-      </View>
-    </List.Accordion>
-  );
+  const AccordionItem = ({item, index}) => {
+    return (
+      <List.Accordion
+        title={item.name}
+        titleStyle={styles.titleStyle} // Apply title styles here
+        expanded={expandedIndex === index}
+        onPress={() => toggleExpanded(index)}
+        left={() => (
+          <View style={styles.catCardIconContainer}>
+            <Image
+              source={
+                item.icon && typeof item.icon === 'string' && item.icon !== '0'
+                  ? (item.icon.endsWith('.svg')
+                      ? require('../../Assets/Images/no-image.png') // Fallback for unsupported SVG
+                      : {uri: FTP_PATH + item.icon})
+                  : require('../../Assets/Images/no-image.png') // Fallback image
+              }
+              style={[
+                styles.catCardIcon,
+                expandedIndex === index && styles.selectedIcon,
+              ]}
+            />
+          </View>
+        )}
+        right={() => (
+          <Ionicons
+            name={expandedIndex === index ? 'chevron-up' : 'chevron-down'}
+            color={COLOR.black}
+            size={DIMENSIONS.iconMedium}
+          />
+        )}
+        contentStyle={styles.accordContent} // Ensure the accordion content is centered
+        style={[
+          styles.accordHeader,
+          expandedIndex === index && styles.selectedHeader,
+        ]} // Highlight selected item
+      >
+        <View style={styles.accordContent}>
+          {renderSubCategories(item.sub_categories)}
+        </View>
+      </List.Accordion>
+    );
+  };
 
   return (
     <ScrollView ref={scrollViewRef}>
