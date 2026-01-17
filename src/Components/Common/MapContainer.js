@@ -4,17 +4,29 @@ import MapView, {Marker} from 'react-native-maps';
 import styles from './Styles';
 
 const MapContainer = ({initialRegion, currentLatitude, currentLongitude}) => {
+  const lat = parseFloat(currentLatitude);
+  const lng = parseFloat(currentLongitude);
+
+  if (isNaN(lat) || isNaN(lng)) return null;
+
   return (
     <View style={styles.profileMapView}>
       <MapView
+        key={`${lat}_${lng}`}
         style={styles.map}
-        initialRegion={initialRegion}
+        initialRegion={{
+          latitude: lat,
+          longitude: lng,
+          latitudeDelta: initialRegion?.latitudeDelta || 0.01,
+          longitudeDelta: initialRegion?.longitudeDelta || 0.01,
+        }}
         scrollEnabled={false}
         zoomEnabled={false}>
         <Marker
+          key={`${lat}_${lng}`}
           coordinate={{
-            latitude: currentLatitude,
-            longitude: currentLongitude,
+            latitude: lat,
+            longitude: lng,
           }}
         />
       </MapView>

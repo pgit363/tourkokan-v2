@@ -34,23 +34,6 @@ const MapScreen = ({navigation, ...props}) => {
           if (resp) {
             let res = JSON.parse(resp);
             setCities(res);
-            if (mapRef.current) {
-              const coordinates = res.map(marker => {
-                return {
-                  latitude: parseFloat(marker.latitude),
-                  longitude: parseFloat(marker.longitude),
-                };
-              });
-              mapRef.current.fitToCoordinates(coordinates, {
-                edgePadding: {
-                  top: 40,
-                  right: 40,
-                  bottom: 40,
-                  left: 40,
-                },
-                animated: true,
-              });
-            }
           } else if (resp) {
             setOffline(true);
           }
@@ -65,6 +48,37 @@ const MapScreen = ({navigation, ...props}) => {
     };
   }, []);
 
+  const fitMap = () => {
+    if (cities.length > 0 && mapRef.current) {
+      const coordinates = cities
+        .map(marker => ({
+          latitude: parseFloat(marker.latitude),
+          longitude: parseFloat(marker.longitude),
+        }))
+        .filter(coord => !isNaN(coord.latitude) && !isNaN(coord.longitude));
+
+      if (coordinates.length > 0) {
+        setTimeout(() => {
+          if (mapRef.current) {
+            mapRef.current.fitToCoordinates(coordinates, {
+              edgePadding: {
+                top: 50,
+                right: 50,
+                bottom: 50,
+                left: 50,
+              },
+              animated: true,
+            });
+          }
+        }, 1000);
+      }
+    }
+  };
+
+  useEffect(() => {
+    fitMap();
+  }, [cities]);
+
   const getCities = () => {
     if (props.mode) {
       props.setLoader(true);
@@ -77,23 +91,6 @@ const MapScreen = ({navigation, ...props}) => {
           if (res && res.data.data) setCities(res.data.data.data);
           props.setLoader(false);
           setRefreshing(false);
-          if (mapRef.current) {
-            const coordinates = res.data.data.data.map(marker => {
-              return {
-                latitude: parseFloat(marker.latitude),
-                longitude: parseFloat(marker.longitude),
-              };
-            });
-            mapRef.current.fitToCoordinates(coordinates, {
-              edgePadding: {
-                top: 40,
-                right: 40,
-                bottom: 40,
-                left: 40,
-              },
-              animated: true,
-            });
-          }
         })
         .catch(error => {
           props.setLoader(false);
@@ -125,30 +122,40 @@ const MapScreen = ({navigation, ...props}) => {
           />
         </View>
       ) : (
-        cities[0] && (
+        cities.length > 0 && (
           <View style={styles.mapContainer}>
             <MapView
               ref={mapRef}
               style={styles.map}
               initialRegion={{
-                latitude: parseFloat(cities[3].latitude),
-                longitude: parseFloat(cities[3].longitude),
+                latitude: parseFloat(cities[0].latitude) || 16.6956,
+                longitude: parseFloat(cities[0].longitude) || 73.4660,
                 latitudeDelta: 0.7,
                 longitudeDelta: 0.7,
               }}
+              onMapReady={fitMap}
               scrollEnabled={false}
-              zoomEnabled={false}>
-              {cities.map(marker => (
-                <Marker
-                  key={marker.id}
-                  coordinate={{
-                    latitude: parseFloat(marker.latitude),
-                    longitude: parseFloat(marker.longitude),
-                  }}
-                  title={marker.name}
-                  description={marker.name}
-                />
-              ))}
+              zoomEnabled={false}
+              pitchEnabled={false}
+              rotateEnabled={false}
+              zoomTapEnabled={false}
+              zoomControlEnabled={false}>
+              {cities.map(marker => {
+                const lat = parseFloat(marker.latitude);
+                const lng = parseFloat(marker.longitude);
+                if (isNaN(lat) || isNaN(lng)) return null;
+                return (
+                  <Marker
+                    key={marker.id}
+                    coordinate={{
+                      latitude: lat,
+                      longitude: lng,
+                    }}
+                    title={marker.name}
+                    description={marker.name}
+                  />
+                );
+              })}
             </MapView>
           </View>
         )

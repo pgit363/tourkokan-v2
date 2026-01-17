@@ -123,6 +123,8 @@ const HomeScreen = ({navigation, route, ...props}) => {
   const [alertMessage, setAlertMessage] = useState('');
   const [scaleValue] = useState(new Animated.Value(1));
   const [mode, setMode] = useState(true);
+  const [trending, setTrending] = useState({});
+  const [activeTab, setActiveTab] = useState(null);
 
   useEffect(() => {
     const backHandler = BackHandler.addEventListener(
@@ -237,37 +239,44 @@ const HomeScreen = ({navigation, route, ...props}) => {
           setIsLoading(false); // No loading if offline
         }
 
-        dataSync(t('STORAGE.LANDING_RESPONSE'), () => callLandingPageAPI(), mode).then(
-          resp => {
-            try {
-              if (resp) {
-                const res = JSON.parse(resp);
-                if (res && res.cities) {
-                  setCities(res.cities);
-                  setRoutes(res.routes);
-                  console.log('Routes data:', res.routes);
-                  console.log('Routes structure sample:', res.routes[0]);
-                  
-                  setBannerObject(res.banners);
-                  setIsFetching(false);
-                  setIsLoading(false);
-                  props.setLoader(false);
+        dataSync(
+          t('STORAGE.LANDING_RESPONSE'),
+          () => callLandingPageAPI(),
+          mode,
+        ).then(resp => {
+          try {
+            if (resp) {
+              const res = JSON.parse(resp);
+              if (res && res.cities) {
+                setCities(res.cities);
+                setRoutes(res.routes);
+                console.log('Routes data:', res.routes);
+                console.log('Routes structure sample:', res.routes[0]);
+
+                setBannerObject(res.banners);
+                if (res.trending) {
+                  setTrending(res.trending);
+                  if (Object.keys(res.trending).length > 0)
+                    setActiveTab(Object.keys(res.trending)[0]);
                 }
-              } else {
-                setOffline(true);
                 setIsFetching(false);
                 setIsLoading(false);
+                props.setLoader(false);
               }
-            } catch (error) {
-              console.error('Error parsing response:', error);
+            } else {
+              setOffline(true);
               setIsFetching(false);
               setIsLoading(false);
-              setOffline(true);
             }
+          } catch (error) {
+            console.error('Error parsing response:', error);
+            setIsFetching(false);
+            setIsLoading(false);
+            setOffline(true);
+          }
 
-            props.setLoader(false);
-          },
-        );
+          props.setLoader(false);
+        });
       });
 
       return () => {
@@ -331,14 +340,13 @@ const HomeScreen = ({navigation, route, ...props}) => {
         }
         checkForUpdate();
       };
-  
+
       fetchData();
-  
+
       // Optional cleanup function (if needed)
       return () => {};
-    }, [props.mode, isInitialLoad])
+    }, [props.mode, isInitialLoad]),
   );
-  
 
   const callLandingPageAPI = async site_id => {
     try {
@@ -360,21 +368,26 @@ const HomeScreen = ({navigation, route, ...props}) => {
         props.setLoader(true);
 
         const res = await comnPost('v2/landingpage', data, navigation);
-        
+
         if (res && res.data.data) {
           console.log(res.data.data);
-          
+
           setOfflineData(res.data.data);
           i18n.changeLanguage(res.data.language);
           setCities(res.data.data.cities);
           // setProjects(res.data.data.projects);
           setRoutes(res.data.data.routes);
           setBannerObject(res.data.data.banners);
+          if (res.data.data.trending) {
+            setTrending(res.data.data.trending);
+            if (Object.keys(res.data.data.trending).length > 0)
+              setActiveTab(Object.keys(res.data.data.trending)[0]);
+          }
           setIsFetching(false);
           setIsLoading(false);
           props.setLoader(false);
           setRefreshing(false);
-console.log(projects);
+          console.log(projects);
 
           if (t('APP_VERSION') < res.data.data.version.version_number) {
             setUpdateApp(true);
@@ -559,7 +572,31 @@ console.log(projects);
     }
   };
 
-  
+  const getTabIcon = key => {
+    let iconName = '';
+    switch (key.toLowerCase()) {
+      case 'hotels':
+        iconName = 'hotel';
+        break;
+      case 'restaurants':
+        iconName = 'utensils';
+        break;
+      case 'resorts':
+        iconName = 'umbrella-beach';
+        break;
+      default:
+        return null;
+    }
+    return (
+      <FontAwesome5Icon
+        name={iconName}
+        size={14}
+        color={activeTab === key ? COLOR.themeBlue : '#666'}
+        style={{marginRight: 8}}
+      />
+    );
+  };
+
   return (
     <>
       {isLoading ? (
@@ -597,6 +634,59 @@ console.log(projects);
           ) : (
             <Banner bannerImages={bannerImages} />
           )}
+          <View style={{marginTop: 30, width: '100%'}}>
+            {trending && Object.keys(trending).length > 0 && (
+              <View style={{width: '100%'}}>
+                <ScrollView
+                  horizontal
+                  showsHorizontalScrollIndicator={false}
+                  contentContainerStyle={{paddingHorizontal: 10}}
+                  style={{marginBottom: 10}}>
+                  {Object.keys(trending).map((key, index) => (
+                    <TouchableOpacity
+                      key={index}
+                      onPress={() => setActiveTab(key)}
+                      style={{
+                        paddingVertical: 10,
+                        paddingHorizontal: 15,
+                        marginRight: 5,
+                        borderBottomWidth: activeTab === key ? 2 : 0,
+                        borderBottomColor:
+                          activeTab === key ? COLOR.themeBlue : 'transparent',
+                        flexDirection: 'row',
+                        alignItems: 'center',
+                      }}>
+                      {getTabIcon(key)}
+                      <GlobalText
+                        text={key.charAt(0).toUpperCase() + key.slice(1)}
+                        style={{
+                          color: activeTab === key ? COLOR.themeBlue : '#666',
+                          fontWeight: activeTab === key ? 'bold' : 'normal',
+                          fontSize: 14,
+                        }}
+                      />
+                    </TouchableOpacity>
+                  ))}
+                </ScrollView>
+                <ScrollView
+                  horizontal
+                  showsHorizontalScrollIndicator={false}
+                  contentContainerStyle={{paddingHorizontal: 5, paddingBottom: 10}}>
+                  {activeTab &&
+                    trending[activeTab] &&
+                    trending[activeTab].map((item, index) => (
+                      <PackageCard
+                        key={item.id || index}
+                        data={item}
+                        navigation={navigation}
+                        isConnected={offline}
+                        cardType={'small'}
+                      />
+                    ))}
+                </ScrollView>
+              </View>
+            )}
+          </View>
           {/* {CityName.map((field, index) => {
                             return (
                                 <SearchBar
@@ -672,22 +762,26 @@ console.log(projects);
               ) : (
                 // Show "No Routes" message or card when routes are empty
                 <View style={styles.noRoutesContainer}>
-                  <GlobalText text="No Routes Available" style={styles.noRoutesText} />
+                  <GlobalText
+                    text="No Routes Available"
+                    style={styles.noRoutesText}
+                  />
                 </View>
               )}
             </View>
           </View>
- <View>
-            {
-              projects.map((project, index) => (
-                <ProjectCard
-                  key={project.id ? `project-${project.id}` : `project-index-${index}`}
-                  project={project}
-                />
-              ))
-            }
-
-            </View>
+          <View>
+            {projects.map((project, index) => (
+              <ProjectCard
+                key={
+                  project.id
+                    ? `project-${project.id}`
+                    : `project-index-${index}`
+                }
+                project={project}
+              />
+            ))}
+          </View>
           <View style={styles.sectionView}>
             <View style={{marginTop: 20}}>
               {isLoading ? (
@@ -713,9 +807,18 @@ console.log(projects);
               {isLoading || cities.length === 0 ? (
                 // Show skeleton loader when loading or when there are no cities
                 <>
-                  <PackageCardSkeleton key="city-skeleton-1" cardType={'small'} />
-                  <PackageCardSkeleton key="city-skeleton-2" cardType={'small'} />
-                  <PackageCardSkeleton key="city-skeleton-3" cardType={'small'} />
+                  <PackageCardSkeleton
+                    key="city-skeleton-1"
+                    cardType={'small'}
+                  />
+                  <PackageCardSkeleton
+                    key="city-skeleton-2"
+                    cardType={'small'}
+                  />
+                  <PackageCardSkeleton
+                    key="city-skeleton-3"
+                    cardType={'small'}
+                  />
                 </>
               ) : (
                 // Show cities if available
