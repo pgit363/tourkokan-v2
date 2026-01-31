@@ -78,12 +78,15 @@ const Banner = ({style, bannerImages}) => {
       <Carousel
         loop
         width={DIMENSIONS.windowWidth}
-        height={DIMENSIONS.windowWidth / 2}
+        height={style?.height || DIMENSIONS.windowWidth / 2}
         autoPlay={true}
         data={bannerImages}
         scrollAnimationDuration={3000}
         renderItem={({index}) => {
-          const imageUri = `${FTP_PATH}${bannerImages[index].image}`;
+          const image = bannerImages[index].image;
+          const imageUri = image.startsWith('http')
+            ? image
+            : `${FTP_PATH}${image}`;
           const url = `${bannerImages[index].meta_data?.url}`;
 
           return (

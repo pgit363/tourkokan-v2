@@ -122,6 +122,8 @@ const ExploreGrid = ({ route, navigation, ...props }) => {
           if (res.data.success) {
             props.setLoader(false);
             const newGallery = res.data.data.data;
+            console.log(newGallery);
+            
             if (reset) {
               setGallery(newGallery);
               saveToStorage(t('STORAGE.GALLERY'), JSON.stringify(newGallery));
@@ -205,6 +207,30 @@ const ExploreGrid = ({ route, navigation, ...props }) => {
             resizeMode="cover"
             onError={error => console.warn('Image load error for', imageUri, ':', error)}
           />
+          {item.galleryable?.name && (
+            <View
+              style={{
+                position: 'absolute',
+                bottom: 0,
+                left: 0,
+                right: 0,
+                backgroundColor: 'rgba(0, 0, 0, 0.5)',
+                padding: 4,
+                borderBottomLeftRadius: 5,
+                borderBottomRightRadius: 5,
+              }}>
+              <GlobalText
+                text={item.galleryable.name}
+                style={{
+                  color: 'white',
+                  fontSize: 10,
+                  textAlign: 'center',
+                  fontWeight: 'bold',
+                }}
+                numberOfLines={1}
+              />
+            </View>
+          )}
         </View>
       </TouchableOpacity>
     );

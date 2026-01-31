@@ -12,6 +12,7 @@ import {
   Animated,
   TouchableOpacity,
   Alert,
+  Image,
 } from 'react-native';
 import SearchPanel from '../Components/Common/SearchPanel';
 import TopComponent from '../Components/Common/TopComponent';
@@ -58,7 +59,7 @@ import DIMENSIONS from '../Services/Constants/DIMENSIONS';
 import ComingSoon from '../Components/Common/ComingSoon';
 import Popup from '../Components/Common/Popup';
 import FontAwesome5Icon from 'react-native-vector-icons/FontAwesome5';
-import {APP_URL} from '@env';
+import {APP_URL, FTP_PATH} from '@env';
 import VersionCheck from 'react-native-version-check';
 import PackageCard from '../Components/Cards/PackageCard';
 import PackageCardSkeleton from '../Components/Cards/PackageCardSkeleton';
@@ -109,7 +110,10 @@ const HomeScreen = ({navigation, route, ...props}) => {
       image: 'https://4kwallpapers.com/images/walls/thumbs_3t/912.jpg',
     },
   ]);
-  const [bannerObject, setBannerObject] = useState([]);
+  const [bannerObject, setBannerObject] = useState({});
+  const [showSplash, setShowSplash] = useState(false);
+  const [splashBanner, setSplashBanner] = useState([]);
+  const splashShownRef = useRef(false);
   const [currentCity, setCurrentCity] = useState(null);
   const [sindhudurg, setSindh] = useState({});
   const [refreshing, setRefreshing] = useState(false);
@@ -371,13 +375,22 @@ const HomeScreen = ({navigation, route, ...props}) => {
 
         if (res && res.data.data) {
           console.log(res.data.data);
-
           setOfflineData(res.data.data);
           i18n.changeLanguage(res.data.language);
           setCities(res.data.data.cities);
           // setProjects(res.data.data.projects);
           setRoutes(res.data.data.routes);
           setBannerObject(res.data.data.banners);
+
+          if (
+            res.data.data.banners?.APP_SPLASH?.length > 0 &&
+            !splashShownRef.current
+          ) {
+            setSplashBanner(res.data.data.banners.APP_SPLASH);
+            setShowSplash(true);
+            splashShownRef.current = true;
+          }
+
           if (res.data.data.trending) {
             setTrending(res.data.data.trending);
             if (Object.keys(res.data.data.trending).length > 0)
@@ -629,8 +642,8 @@ const HomeScreen = ({navigation, route, ...props}) => {
         <View style={{flex: 1, alignItems: 'center'}}>
           {isLoading ? (
             <BannerSkeleton />
-          ) : bannerObject[0] ? (
-            <Banner bannerImages={bannerObject} />
+          ) : bannerObject?.HOME_HERO && bannerObject.HOME_HERO.length > 0 ? (
+            <Banner bannerImages={bannerObject.HOME_HERO} />
           ) : (
             <Banner bannerImages={bannerImages} />
           )}
@@ -770,7 +783,16 @@ const HomeScreen = ({navigation, route, ...props}) => {
               )}
             </View>
           </View>
-          <View>
+          <View style={styles.sectionView}>
+              {!isLoading &&
+                  bannerObject?.HOME_MIDDLE &&
+                  bannerObject.HOME_MIDDLE.length > 0 && (
+                    <View style={{marginTop: 20, width: '100%'}}>
+                      <Banner bannerImages={bannerObject.HOME_MIDDLE} />
+                    </View>
+              )}
+          </View>
+          {/* <View>
             {projects.map((project, index) => (
               <ProjectCard
                 key={
@@ -781,64 +803,78 @@ const HomeScreen = ({navigation, route, ...props}) => {
                 project={project}
               />
             ))}
-          </View>
-          <View style={styles.sectionView}>
-            <View style={{marginTop: 20}}>
-              {isLoading ? (
-                <Skeleton
-                  animation="pulse"
-                  variant="text"
-                  style={styles.buttonSkeleton}
-                />
-              ) : (
-                <View style={styles.flexAround}>
-                  <GlobalText text={t('CITIES')} style={styles.sectionTitle} />
-                  {/* <TextButton
-                    title={t('BUTTON.SEE_ALL')}
-                    onPress={() => showMore(t('SCREEN.CITY_LIST'), 'city')}
-                    buttonView={styles.buttonView}
-                    titleStyle={styles.titleStyle}
-                  /> */}
+          </View> */}
+          <View style={[styles.sectionView, {paddingBottom: 25}]}>
+            <View
+              style={{
+                flexDirection: 'row',
+                alignItems: 'center',
+                marginTop: 20,
+                width: '100%',
+              }}>
+              {!isLoading && (
+                <View
+                  style={{
+                    width: 40,
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                  }}>
+                  <GlobalText
+                    text={t('CITIES')}
+                    style={[
+                      styles.sectionTitle,
+                      {
+                        transform: [{rotate: '-90deg'}],
+                        width: 150,
+                        textAlign: 'center',
+                      },
+                    ]}
+                  />
                 </View>
               )}
+              <View style={{flex: 1}}>
+                <ScrollView
+                  horizontal
+                  style={{marginLeft: 5}}
+                  showsHorizontalScrollIndicator={false}
+                  contentContainerStyle={{paddingBottom: 25, paddingRight: 10}}>
+                  {isLoading || cities.length === 0 ? (
+                    // Show skeleton loader when loading or when there are no cities
+                    <>
+                      <PackageCardSkeleton
+                        key="city-skeleton-1"
+                        cardType={'small'}
+                      />
+                      <PackageCardSkeleton
+                        key="city-skeleton-2"
+                        cardType={'small'}
+                      />
+                      <PackageCardSkeleton
+                        key="city-skeleton-3"
+                        cardType={'small'}
+                      />
+                    </>
+                  ) : (
+                    // Show cities if available
+                    cities.map((city, index) => (
+                      <PackageCard
+                        key={city.id || index}
+                        data={city}
+                        reload={() => {
+                          callLandingPageAPI();
+                        }}
+                        navigation={navigation}
+                        onClick={() => getCityDetails(city)}
+                        isConnected={offline}
+                        cardType={'small'}
+                      />
+                    ))
+                  )}
+                </ScrollView>
+              </View>
             </View>
 
-            <ScrollView horizontal style={{marginLeft: 5}}>
-              {isLoading || cities.length === 0 ? (
-                // Show skeleton loader when loading or when there are no cities
-                <>
-                  <PackageCardSkeleton
-                    key="city-skeleton-1"
-                    cardType={'small'}
-                  />
-                  <PackageCardSkeleton
-                    key="city-skeleton-2"
-                    cardType={'small'}
-                  />
-                  <PackageCardSkeleton
-                    key="city-skeleton-3"
-                    cardType={'small'}
-                  />
-                </>
-              ) : (
-                // Show cities if available
-                cities.map((city, index) => (
-                  <PackageCard
-                    key={city.id || index}
-                    data={city}
-                    reload={() => {
-                      callLandingPageAPI();
-                    }}
-                    navigation={navigation}
-                    onClick={() => getCityDetails(city)}
-                    isConnected={offline}
-                    cardType={'small'}
-                  />
-                ))
-              )}
-            </ScrollView>
-
-            {isLoading || cities.length === 0 ? (
+            {/* {isLoading || cities.length === 0 ? (
               <Skeleton
                 animation="pulse"
                 variant="text"
@@ -860,7 +896,7 @@ const HomeScreen = ({navigation, route, ...props}) => {
                   />
                 }
               />
-            )}
+            )} */}
           </View>
         </View>
         <BottomSheet
@@ -957,7 +993,58 @@ const HomeScreen = ({navigation, route, ...props}) => {
           visible={showOnlineMode}
           toggleOverlay={() => setShowOnlineMode(false)}
         />
+        {!isLoading &&
+          bannerObject?.HOME_FOOTER &&
+          bannerObject.HOME_FOOTER.length > 0 && (
+            <View style={{marginBottom: 40, width: '100%'}}>
+              <Banner bannerImages={bannerObject.HOME_FOOTER} />
+            </View>
+          )}
       </KeyboardAwareScrollView>
+      <Overlay
+        isVisible={showSplash}
+        onBackdropPress={() => setShowSplash(false)}
+        overlayStyle={{
+          padding: 0,
+          backgroundColor: 'transparent',
+          elevation: 0,
+        }}>
+        <View
+          style={{
+            width: DIMENSIONS.screenWidth * 0.85,
+            height: DIMENSIONS.screenHeight * 0.7,
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}>
+          <TouchableOpacity
+            onPress={() => setShowSplash(false)}
+            style={{
+              position: 'absolute',
+              top: -15,
+              right: -15,
+              zIndex: 10,
+              backgroundColor: 'white',
+              borderRadius: 20,
+            }}>
+            <Feather name="x-circle" size={30} color="black" />
+          </TouchableOpacity>
+          {splashBanner[0] && (
+            <Image
+              source={{
+                uri: splashBanner[0].image.startsWith('http')
+                  ? splashBanner[0].image
+                  : FTP_PATH + splashBanner[0].image,
+              }}
+              style={{
+                width: '100%',
+                height: '100%',
+                borderRadius: 10,
+                resizeMode: 'cover',
+              }}
+            />
+          )}
+        </View>
+      </Overlay>
     </>
   );
 };

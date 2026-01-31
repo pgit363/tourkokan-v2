@@ -32,6 +32,7 @@ import {useFocusEffect} from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import ComingSoon from '../../Components/Common/ComingSoon';
 import Popup from '../../Components/Common/Popup';
+import Banner from '../../Components/Customs/Banner';
 
 const AllRoutesSearch = ({navigation, route, ...props}) => {
   const {t} = useTranslation();
@@ -48,6 +49,7 @@ const AllRoutesSearch = ({navigation, route, ...props}) => {
   const [showOffline, setShowOffline] = useState(false);
   const [isAlert, setIsAlert] = useState(false);
   const [alertMessage, setAlertMessage] = useState('');
+  const [bannerObject, setBannerObject] = useState({});
 
   useEffect(() => {
     props.setLoader(true);
@@ -77,6 +79,19 @@ const AllRoutesSearch = ({navigation, route, ...props}) => {
       backHandler.remove();
       unsubscribe();
     };
+  }, []);
+
+  useEffect(() => {
+    const getBanners = async () => {
+      const landingData = await getFromStorage(t('STORAGE.LANDING_RESPONSE'));
+      if (landingData) {
+        const parsedData = JSON.parse(landingData);
+        if (parsedData?.banners) {
+          setBannerObject(parsedData.banners);
+        }
+      }
+    };
+    getBanners();
   }, []);
 
   useFocusEffect(
@@ -209,9 +224,13 @@ const AllRoutesSearch = ({navigation, route, ...props}) => {
   };
 
   return (
-    <View style={{backgroundColor: COLOR.white}}>
+    <View style={{backgroundColor: COLOR.white, flex: 1}}>
       <CheckNet isOff={offline} />
-      {!isFirstTime && <Loader />}
+      {!isFirstTime && (
+        <View style={{position: 'absolute', width: 0, height: 0}}>
+          <Loader />
+        </View>
+      )}
       <Header
         name={t('HEADER.ROUTES')}
         goBack={() => backPage(navigation)}
@@ -244,7 +263,13 @@ const AllRoutesSearch = ({navigation, route, ...props}) => {
       </View>
       <SafeAreaView
         style={{
-          height: DIMENSIONS.halfHeight + DIMENSIONS.headerSpace - 30,
+          flex: 1,
+          marginBottom:
+            !isLoading &&
+            bannerObject?.ROUTE_LIST_FOOTER &&
+            bannerObject.ROUTE_LIST_FOOTER.length > 0
+              ? 120
+              : 0,
         }}>
         {isFirstTime && isLoading ? (
           <>
@@ -261,6 +286,19 @@ const AllRoutesSearch = ({navigation, route, ...props}) => {
             onEndReached={() => loadMoreRoutes()}
             style={{marginBottom: 40}}
             onEndReachedThreshold={0.5}
+            ListHeaderComponent={
+              // !isLoading &&
+              // bannerObject?.ROUTE_LIST_MIDDLE &&
+              // bannerObject.ROUTE_LIST_MIDDLE.length > 0 ? (
+              //   <View style={{marginTop: 10, marginBottom: 10, width: '100%'}}>
+              //     <Banner
+              //       bannerImages={bannerObject.ROUTE_LIST_MIDDLE}
+              //     />
+              //   </View>
+              // ) : null
+              null
+            }
+            ListFooterComponent={null}
             renderItem={({item}) => (
               <RouteHeadCard
                 data={item}
@@ -284,6 +322,15 @@ const AllRoutesSearch = ({navigation, route, ...props}) => {
           </View>
         )}
       </SafeAreaView>
+      {!isLoading &&
+        bannerObject?.ROUTE_LIST_FOOTER &&
+        bannerObject.ROUTE_LIST_FOOTER.length > 0 && (
+          <View style={{position: 'absolute', bottom: 10, width: '100%'}}>
+            <Banner
+              bannerImages={bannerObject.ROUTE_LIST_FOOTER}
+            />
+          </View>
+        )}
       <Popup message={alertMessage} onPress={closePopup} visible={isAlert} />
       <ComingSoon
         message={t('GET_MORE_DATA')}

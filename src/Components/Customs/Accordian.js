@@ -78,7 +78,7 @@ const Accordion = ({data, navigation}) => {
                 item.icon && typeof item.icon === 'string' && item.icon !== '0'
                   ? (item.icon.endsWith('.svg')
                       ? require('../../Assets/Images/no-image.png') // Fallback for unsupported SVG
-                      : {uri: FTP_PATH + item.icon})
+                      : {uri: item.icon})
                   : require('../../Assets/Images/no-image.png') // Fallback image
               }
               style={[

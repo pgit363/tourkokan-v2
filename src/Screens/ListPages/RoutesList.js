@@ -24,6 +24,8 @@ import RouteHeadCard from '../../Components/Cards/RouteHeadCard';
 import styles from './Styles';
 import { useTranslation } from 'react-i18next';
 import TextButton from '../../Components/Customs/Buttons/TextButton';
+import Banner from '../../Components/Customs/Banner';
+import { getFromStorage } from '../../Services/Api/CommonServices';
 
 const RoutesList = ({ navigation, route }) => {
   const { t } = useTranslation();
@@ -31,6 +33,7 @@ const RoutesList = ({ navigation, route }) => {
   const stops = route?.params?.item?.route_stops ?? []; // Safe fallback
   const [list] = useState(stops);
   const [isShow, setIsShow] = useState(true);
+  const [bannerObject, setBannerObject] = useState({});
 
   useEffect(() => {
     console.log('RoutesList route params:', route?.params?.item);
@@ -39,6 +42,18 @@ const RoutesList = ({ navigation, route }) => {
     
     const backHandler = goBackHandler(navigation);
     checkLogin(navigation);
+
+    const getBanners = async () => {
+      const landingData = await getFromStorage(t('STORAGE.LANDING_RESPONSE'));
+      if (landingData) {
+        const parsedData = JSON.parse(landingData);
+        if (parsedData?.banners) {
+          setBannerObject(parsedData.banners);
+        }
+      }
+    };
+    getBanners();
+
     return () => backHandler.remove();
   }, []);
 
@@ -92,7 +107,17 @@ const RoutesList = ({ navigation, route }) => {
 
   return (
     <SafeAreaView style={{ flex: 1 }}>
+      <View
+        style={{
+          flex: 1,
+          marginBottom:
+            bannerObject?.ROUTE_DETAIL_FOOTER &&
+            bannerObject.ROUTE_DETAIL_FOOTER.length > 0
+              ? 120
+              : 0,
+        }}>
       <FlatList
+        contentContainerStyle={{paddingBottom: 20}}
         data={list}
         renderItem={renderItem}
         keyExtractor={(item, index) =>
@@ -131,9 +156,27 @@ const RoutesList = ({ navigation, route }) => {
                 cardClick={() => {}}
               />
             </View>
+            {/* {bannerObject?.ROUTE_DETAIL_MIDDLE &&
+              bannerObject.ROUTE_DETAIL_MIDDLE.length > 0 && (
+                <View style={{marginTop: 10, marginBottom: 10, width: '100%'}}>
+                  <Banner
+                    bannerImages={bannerObject.ROUTE_DETAIL_MIDDLE}
+                    style={{height: 150}}
+                  />
+                </View>
+              )} */}
           </View>
         }
       />
+      </View>
+      {bannerObject?.ROUTE_DETAIL_FOOTER &&
+        bannerObject.ROUTE_DETAIL_FOOTER.length > 0 && (
+          <View style={{position: 'absolute', bottom: 0, width: '100%'}}>
+            <Banner
+              bannerImages={bannerObject.ROUTE_DETAIL_FOOTER}
+            />
+          </View>
+        )}
 
       <Overlay style={styles.locationModal} isVisible={isShow}>
         <GlobalText

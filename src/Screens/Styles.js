@@ -20,6 +20,18 @@ const styles = StyleSheet.create({
     marginTop: 25,
     zIndex: 10,
   },
+  homeSection: {
+    marginTop: 20,
+    width: '100%',
+    alignItems: 'center',
+  },
+  sectionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    width: DIMENSIONS.bannerWidth,
+    marginBottom: 10,
+  },
   routeHeadCard: {
     marginVertical: 10,
   },

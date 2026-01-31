@@ -45,6 +45,7 @@ import {FTP_PATH} from '@env';
 import {useFocusEffect} from '@react-navigation/native';
 import PackageCard from '../../Components/Cards/PackageCard';
 import PackageCardSkeleton from '../../Components/Cards/PackageCardSkeleton';
+import Banner from '../../Components/Customs/Banner';
 
 const CityDetails = ({navigation, route, offline, ...props}) => {
   const {t} = useTranslation();
@@ -62,6 +63,7 @@ const CityDetails = ({navigation, route, offline, ...props}) => {
   const [currentLongitude, setCurrentLongitude] = useState();
   const [errorMessage, setErrorMessage] = useState('');
   const [showOnlineMode, setShowOnlineMode] = useState(false);
+  const [bannerObject, setBannerObject] = useState({});
 
   const [isAlert, setIsAlert] = useState(false);
   const [alertMessage, setAlertMessage] = useState('');
@@ -74,6 +76,19 @@ const CityDetails = ({navigation, route, offline, ...props}) => {
       backHandler.remove();
     };
   }, [cityId]);
+
+  useEffect(() => {
+    const getBanners = async () => {
+      const landingData = await getFromStorage(t('STORAGE.LANDING_RESPONSE'));
+      if (landingData) {
+        const parsedData = JSON.parse(landingData);
+        if (parsedData?.banners) {
+          setBannerObject(parsedData.banners);
+        }
+      }
+    };
+    getBanners();
+  }, []);
 
   useFocusEffect(
     React.useCallback(() => {
@@ -521,6 +536,16 @@ const CityDetails = ({navigation, route, offline, ...props}) => {
                 ) : null}
               </View>
 
+              {!isLoading &&
+                bannerObject?.CITY_MIDDLE &&
+                bannerObject.CITY_MIDDLE.length > 0 && (
+                  <View style={{marginLeft: -10, marginBottom: 20, width: '100%'}}>
+                    <Banner
+                      bannerImages={bannerObject.CITY_MIDDLE} 
+                    />
+                  </View>
+                )}
+
               <View
                 style={{
                   flexDirection: 'row',
@@ -579,6 +604,15 @@ const CityDetails = ({navigation, route, offline, ...props}) => {
             </View>
           </View>
         )}
+        {!isLoading &&
+          bannerObject?.CITY_FOOTER &&
+          bannerObject.CITY_FOOTER.length > 0 && (
+            <View style={{marginTop: 20, marginBottom: 80, width: '100%'}}>
+              <Banner
+                bannerImages={bannerObject.CITY_FOOTER}
+              />
+            </View>
+          )}
         <BottomSheet
           refRBSheet={refRBSheet}
           height={DIMENSIONS.halfHeight + 50}
