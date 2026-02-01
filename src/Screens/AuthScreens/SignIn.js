@@ -18,7 +18,7 @@ import Loader from '../../Components/Customs/Loader';
 import {exitApp, navigateTo} from '../../Services/CommonMethods';
 import GlobalText from '../../Components/Customs/Text';
 import Popup from '../../Components/Common/Popup';
-import AppLogo from '../../Assets/Images/tourKokan.png';
+import AppLogo from '../../Assets/Images/Logos/tourkokan-logo.png';
 import {useTranslation} from 'react-i18next';
 
 const SignIn = ({navigation, ...props}) => {

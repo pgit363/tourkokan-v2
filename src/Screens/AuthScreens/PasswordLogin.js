@@ -20,7 +20,7 @@ import COLOR from '../../Services/Constants/COLORS';
 import {navigateTo} from '../../Services/CommonMethods';
 import GlobalText from '../../Components/Customs/Text';
 import Popup from '../../Components/Common/Popup';
-import AppLogo from '../../Assets/Images/tourKokan.png';
+import AppLogo from '../../Assets/Images/Logos/tourkokan-logo.png';
 import Feather from 'react-native-vector-icons/Feather';
 import {CommonActions} from '@react-navigation/native';
 import {useTranslation} from 'react-i18next';

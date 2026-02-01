@@ -87,7 +87,8 @@ const Banner = ({style, bannerImages}) => {
           const imageUri = image.startsWith('http')
             ? image
             : `${FTP_PATH}${image}`;
-          const url = `${bannerImages[index].meta_data?.url}`;
+          const item = bannerImages[index];
+          const url = item.redirect_url || item.meta_data?.url;
 
           return (
             <TouchableOpacity onPress={() => (url ? bannerClick(url) : null)}>

@@ -1,8 +1,10 @@
+import {API_PATH, API_PATH_ADMIN, FTP_PATH, FTP_PATH1} from '@env';
+
 const Path = {
-  API_PATH: 'https://tourkokan.com/api/',
-  API_PATH_ADMIN: 'https://tourkokan.com/admin/',
-  FTP_PATH: 'https://ftp.prod.tourkokan.com/',
-  FTP_PATH1: 'https://tourkokan.com',
+  API_PATH: API_PATH,
+  API_PATH_ADMIN: API_PATH_ADMIN,
+  FTP_PATH: FTP_PATH,
+  FTP_PATH1: FTP_PATH1,
 };
 
 export default Path;

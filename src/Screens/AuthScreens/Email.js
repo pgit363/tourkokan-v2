@@ -41,7 +41,6 @@ import {
 import AntDesign from 'react-native-vector-icons/AntDesign';
 import DIMENSIONS from '../../Services/Constants/DIMENSIONS';
 import LottieView from 'lottie-react-native';
-import {Logo} from '../../Assets/Images/Logos/tourkokan.png';
 import {GOOGLE_WEB_CLIENT_ID} from '@env';
 
 const Email = ({navigation, route, ...props}) => {
@@ -310,7 +309,7 @@ const Email = ({navigation, route, ...props}) => {
         <GlobalText text={''} style={styles.boldKokan} />
         <View style={styles.loginLogoView}>
           <Image
-            source={require('../../Assets/Images/Logos/tourkokan_logo.png')}
+            source={require('../../Assets/Images/Logos/tourkokan-logo.png')}
             style={styles.loginLogo}
           />
         </View>

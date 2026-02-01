@@ -93,19 +93,19 @@ const HomeScreen = ({navigation, route, ...props}) => {
         'https://c4.wallpaperflare.com/wallpaper/766/970/409/cities-city-building-cityscape-wallpaper-preview.jpg',
     },
     {
-      id: 1,
+      id: 2,
       name: 'Angnewadi Yatra 2024',
       image:
         'https://c4.wallpaperflare.com/wallpaper/631/683/713/nature-bridge-sky-city-wallpaper-preview.jpg',
     },
     {
-      id: 1,
+      id: 3,
       name: 'Angnewadi Yatra 2024',
       image:
         'https://c4.wallpaperflare.com/wallpaper/977/138/381/tbilisi-georgia-wallpaper-preview.jpg',
     },
     {
-      id: 1,
+      id: 4,
       name: 'Angnewadi Yatra 2024',
       image: 'https://4kwallpapers.com/images/walls/thumbs_3t/912.jpg',
     },
@@ -657,7 +657,7 @@ const HomeScreen = ({navigation, route, ...props}) => {
                   style={{marginBottom: 10}}>
                   {Object.keys(trending).map((key, index) => (
                     <TouchableOpacity
-                      key={index}
+                      key={key}
                       onPress={() => setActiveTab(key)}
                       style={{
                         paddingVertical: 10,
@@ -689,7 +689,7 @@ const HomeScreen = ({navigation, route, ...props}) => {
                     trending[activeTab] &&
                     trending[activeTab].map((item, index) => (
                       <PackageCard
-                        key={item.id || index}
+                        key={`${item.id}_${index}`}
                         data={item}
                         navigation={navigation}
                         isConnected={offline}
@@ -765,7 +765,7 @@ const HomeScreen = ({navigation, route, ...props}) => {
                   (route, index) =>
                     route && (
                       <RouteHeadCard
-                        key={route?.id || index}
+                        key={`${route?.id}_${index}`}
                         data={route}
                         bus={'Hirkani'}
                         cardClick={() => getRoutesList(route)}
@@ -858,7 +858,7 @@ const HomeScreen = ({navigation, route, ...props}) => {
                     // Show cities if available
                     cities.map((city, index) => (
                       <PackageCard
-                        key={city.id || index}
+                        key={`${city.id}_${index}`}
                         data={city}
                         reload={() => {
                           callLandingPageAPI();
@@ -1029,6 +1029,15 @@ const HomeScreen = ({navigation, route, ...props}) => {
             <Feather name="x-circle" size={30} color="black" />
           </TouchableOpacity>
           {splashBanner[0] && (
+            <TouchableOpacity
+              activeOpacity={1}
+              onPress={() => {
+                if (splashBanner[0].redirect_url) {
+                  Linking.openURL(splashBanner[0].redirect_url);
+                  setShowSplash(false);
+                }
+              }}
+              style={{width: '100%', height: '100%'}}>
             <Image
               source={{
                 uri: splashBanner[0].image.startsWith('http')
@@ -1042,6 +1051,7 @@ const HomeScreen = ({navigation, route, ...props}) => {
                 resizeMode: 'cover',
               }}
             />
+            </TouchableOpacity>
           )}
         </View>
       </Overlay>
