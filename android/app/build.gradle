@@ -77,7 +77,8 @@ def jscFlavor = 'io.github.react-native-community:jsc-android:2026004.+'
 
 task setEnv {
     doFirst {
-        def envFile = System.getenv("APP_ENV") ?: (project.hasProperty('env') ? project.getProperty('env') : 'development')
+        def envMap = project.hasProperty('env') ? project.getProperty('env') : null
+        def envFile = System.getenv("APP_ENV") ?: (envMap instanceof Map ? envMap.get("ENV") : 'development')
         println "Building with environment: $envFile"
         project.ext.set('ENV_FILE', envFile)
     }
@@ -94,8 +95,8 @@ android {
         applicationId "com.tourkokan"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 35
-        versionName "1.0.0"
+        versionCode 36
+        versionName "2.0.0"
     }
     signingConfigs {
         debug {
