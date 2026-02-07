@@ -56,7 +56,10 @@
     "OFFLINE_MODE": "Offline Mode",
     "LOCATION": "Location",
     "ADD_QUERY": "Add Query",
-    "CONTACT": "Contact"
+    "CONTACT": "Contact",
+    "UPDATE_NOW": "Update Now",
+    "LATER": "Later",
+    "CLOSE_APP": "Close App"
   },
   "SCREEN": {
     "ROOT": "Root",
@@ -196,7 +199,8 @@
     "ENTER_REFERRAL": "Enter Referral Code",
     "ACCEPT_TERMS": "Accept Terms and Conditions",
     "SELECT_MODE": "Select Online/Offline Mode",
-    "PLEASE_CONTACT": "Data may not be perfect. If you find any false/wrong data here, please Contact Us by clicking on top corner. Arrival timimgs will be added soon."
+    "PLEASE_CONTACT": "Data may not be perfect. If you find any false/wrong data here, please Contact Us by clicking on top corner. Arrival timimgs will be added soon.",
+    "MAJOR_UPDATE": "Major update available. Please update to continue."
   },
   "TABLE": {
     "CITY": "City",

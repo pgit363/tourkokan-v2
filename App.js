@@ -22,6 +22,8 @@ import {
   KeyboardAvoidingView,
   ScrollView,
   Keyboard,
+  BackHandler,
+  Linking,
 } from 'react-native';
 import StackNavigator from './src/Navigators/StackNavigator';
 import COLOR from './src/Services/Constants/COLORS';
@@ -49,7 +51,7 @@ import Geolocation from '@react-native-community/geolocation';
 import DeviceInfo from 'react-native-device-info';
 import { navigateTo } from './src/Services/CommonMethods';
 import TextField from './src/Components/Customs/TextField';
-import { CheckBox, Switch } from '@rneui/themed';
+import { CheckBox, Switch, Overlay } from '@rneui/themed';
 import PrivacyPolicy from './src/Components/Common/PrivacyPolicy';
 // import LocationEnabler from 'react-native-android-location-enabler';
 import {
@@ -58,6 +60,10 @@ import {
 } from 'react-native-android-location-enabler';
 import * as LocationEnabler from 'react-native-android-location-enabler';
 import { initializeApp, getApps } from 'firebase/app';
+import { setupAxiosInterceptors } from './src/Services/Api/AxiosInterceptor';
+import VersionCheck from 'react-native-version-check';
+import { APP_URL } from '@env';
+import { UpdateContext } from './src/Context/UpdateContext';
 
 // LogBox.ignoreAllLogs();
 // LogBox.ignoreLogs(['Warning: ...', 'Possible Unhandled Promise Rejection']);
@@ -117,7 +123,7 @@ const slides = [
 ];
 
 export default function App() {
-  // const { i18n } = useTranslation();
+  const { t } = useTranslation();
   const sliderRef = React.useRef(null);
 
   const [isFirstTime, setIsFirstTime] = useState(null);
@@ -144,6 +150,8 @@ export default function App() {
   const [buttonColor, setButtonColor] = useState(COLOR.themeBlue);
   const [isButtonDisabled, setIsButtonDisabled] = useState(false);
   const [referral, setReferral] = useState('');
+  const [updateApp, setUpdateApp] = useState(false);
+  const [isForceUpdate, setIsForceUpdate] = useState(false);
 
   useEffect(() => {
     const keyboardDidShowListener = Keyboard.addListener(
@@ -173,6 +181,7 @@ export default function App() {
       setLoading(false);
     };
     checkFirstTime();
+    setupAxiosInterceptors(); // Initialize Global Interceptor
     const apiCalling = async () => {
       const access_token = await getFromStorage(STRING.STORAGE.ACCESS_TOKEN);
 
@@ -246,12 +255,58 @@ export default function App() {
     );
   };
 
+  const needUpdate = (current, latest) => {
+    if (!current || !latest) return false;
+    const v1 = current.split('.').map(Number);
+    const v2 = latest.split('.').map(Number);
+    
+    for (let i = 0; i < Math.max(v1.length, v2.length); i++) {
+      const num1 = v1[i] || 0;
+      const num2 = v2[i] || 0;
+      if (num1 < num2) return true;
+      if (num1 > num2) return false;
+    }
+    return false;
+  };
+
+  const exitUpdate = () => {
+    if (isForceUpdate) {
+      BackHandler.exitApp();
+    } else {
+      setUpdateApp(false);
+    }
+  };
+
+  const continueUpdate = () => {
+    setUpdateApp(false);
+    Linking.openURL(APP_URL);
+  };
+
   const callLandingPageAPI = async site_id => {
     try {
       let data = { site_id };
       const res = await comnPost('v2/landingpage', data);
-      if (res && res.data.data) {
+      if (res && res.data && res.data.data) {
         setOfflineData(res.data.data);
+
+        if (res.data.data.version) {
+          const currentVersion = VersionCheck.getCurrentVersion();
+          const latestVersion = res.data.data.version.version_number;
+          const minSupportedVersion = res.data.data.version.min_supported_version;
+
+          if (needUpdate(currentVersion, latestVersion)) {
+            let shouldForce = false;
+            if (minSupportedVersion) {
+              shouldForce = needUpdate(currentVersion, minSupportedVersion);
+            } else {
+              const v1 = currentVersion.split('.').map(Number);
+              const v2 = latestVersion.split('.').map(Number);
+              shouldForce = v2[0] > v1[0];
+            }
+            setIsForceUpdate(shouldForce);
+            setUpdateApp(true);
+          }
+        }
       }
     } catch (error) {
       console.log(error);
@@ -544,6 +599,31 @@ export default function App() {
     checkValidation(index);
   };
 
+  const UpdateOverlay = () => (
+    <Overlay style={styles.locationModal} isVisible={updateApp} onBackdropPress={() => !isForceUpdate && setUpdateApp(false)}>
+      <GlobalText
+        text={isForceUpdate ? (t('ALERT.MAJOR_UPDATE') || 'Major update available. Please update to continue.') : t('ALERT.APP_VERSION')}
+        style={styles.locationModal}
+      />
+      <View style={styles.flexRow}>
+        <TextButton
+          title={isForceUpdate ? (t('BUTTON.CLOSE_APP') || 'Close App') : (t('BUTTON.LATER') || 'Later')}
+          buttonView={styles.logoutButtonStyle}
+          titleStyle={styles.locButtonTitle}
+          raised={false}
+          onPress={() => exitUpdate()}
+        />
+        <TextButton
+          title={t('BUTTON.UPDATE_NOW') || 'Update Now'}
+          buttonView={styles.logoutButtonStyle}
+          titleStyle={styles.locButtonTitle}
+          raised={false}
+          onPress={() => continueUpdate()}
+        />
+      </View>
+    </Overlay>
+  );
+
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
@@ -555,9 +635,12 @@ export default function App() {
   if (isFirstTime === 'false') {
     return (
       <Provider store={store}>
-        <SafeAreaProvider>
-          <StackNavigator />
-        </SafeAreaProvider>
+        <UpdateContext.Provider value={{ isUpdatePending: updateApp }}>
+          <SafeAreaProvider>
+            <StackNavigator />
+            <UpdateOverlay />
+          </SafeAreaProvider>
+        </UpdateContext.Provider>
       </Provider>
     );
   }
@@ -592,6 +675,7 @@ export default function App() {
       // dotClickEnabled={false}
       />
       {currentIndex > 0 && renderNewButton()}
+      <UpdateOverlay />
     </>
   );
 }

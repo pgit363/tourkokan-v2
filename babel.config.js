@@ -5,7 +5,7 @@ module.exports = {
       'module:react-native-dotenv',
       {
         moduleName: '@env',
-        path: `.env.${process.env.ENV_FILE || 'development'}`, // Use 'development' by default
+        path: `.env.${process.env.APP_ENV || 'development'}`, // Use 'development' by default
       },
     ],
     'react-native-reanimated/plugin',

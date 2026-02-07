@@ -87,30 +87,28 @@ const Email = ({navigation, route, ...props}) => {
       };
 
       const res = await comnPost('v2/auth/googleAuth', $payload);
-      {
-        if (res.data.success) {
-          AsyncStorage.setItem(
-            t('STORAGE.ACCESS_TOKEN'),
-            res.data.data.access_token,
-          );
-          AsyncStorage.setItem(
-            t('STORAGE.USER_ID'),
-            JSON.stringify(res.data.data.user.id),
-          );
-          // props.saveAccess_token(res.data.data.access_token);
-          props.setLoader(false);
-          AsyncStorage.setItem(
-            t('STORAGE.IS_FIRST_TIME'),
-            JSON.stringify(true),
-          );
-          saveToStorage(t('STORAGE.MODE'), JSON.stringify(true));
-          props.setMode(true);
-          navigateTo(navigation, t('SCREEN.HOME'));
-        } else {
-          setIsAlert(true);
-          setAlertMessage(res.data.message?.otp || res.data.message);
-          props.setLoader(false);
-        }
+      if (res.data.success) {
+        AsyncStorage.setItem(
+          t('STORAGE.ACCESS_TOKEN'),
+          res.data.data.access_token,
+        );
+        AsyncStorage.setItem(
+          t('STORAGE.USER_ID'),
+          JSON.stringify(res.data.data.user.id),
+        );
+        // props.saveAccess_token(res.data.data.access_token);
+        props.setLoader(false);
+        AsyncStorage.setItem(
+          t('STORAGE.IS_FIRST_TIME'),
+          JSON.stringify(true),
+        );
+        saveToStorage(t('STORAGE.MODE'), JSON.stringify(true));
+        props.setMode(true);
+        navigateTo(navigation, t('SCREEN.HOME'));
+      } else {
+        setIsAlert(true);
+        setAlertMessage(res.data.message?.otp || res.data.message);
+        props.setLoader(false);
       }
     } catch (error) {
       setIsAlert(true);

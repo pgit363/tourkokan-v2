@@ -1,4 +1,4 @@
-import React, {useEffect, useState, useRef} from 'react';
+import React, {useEffect, useState, useRef, useContext} from 'react';
 import {
   View,
   ScrollView,
@@ -59,11 +59,11 @@ import DIMENSIONS from '../Services/Constants/DIMENSIONS';
 import ComingSoon from '../Components/Common/ComingSoon';
 import Popup from '../Components/Common/Popup';
 import FontAwesome5Icon from 'react-native-vector-icons/FontAwesome5';
-import {APP_URL, FTP_PATH} from '@env';
-import VersionCheck from 'react-native-version-check';
+import {FTP_PATH} from '@env';
 import PackageCard from '../Components/Cards/PackageCard';
 import PackageCardSkeleton from '../Components/Cards/PackageCardSkeleton';
 import ProjectCard from '../Components/Cards/ProjectCard';
+import { UpdateContext } from '../Context/UpdateContext';
 
 // SplashScreen.preventAutoHideAsync();
 
@@ -121,7 +121,6 @@ const HomeScreen = ({navigation, route, ...props}) => {
   const [modePopup, setModePopup] = useState(false);
   const [showOffline, setShowOffline] = useState(false);
   const [showOnlineMode, setShowOnlineMode] = useState(false);
-  const [updateApp, setUpdateApp] = useState(false);
   const [isInitialLoad, setIsInitialLoad] = useState(true);
   const [isAlert, setIsAlert] = useState(false);
   const [alertMessage, setAlertMessage] = useState('');
@@ -129,6 +128,22 @@ const HomeScreen = ({navigation, route, ...props}) => {
   const [mode, setMode] = useState(true);
   const [trending, setTrending] = useState({});
   const [activeTab, setActiveTab] = useState(null);
+  
+  const { isUpdatePending } = useContext(UpdateContext);
+  const isUpdatePendingRef = useRef(isUpdatePending);
+
+  const validTrendingKeys = trending ? Object.keys(trending).filter(key => trending[key] && trending[key].length > 0) : [];
+
+  useEffect(() => {
+    isUpdatePendingRef.current = isUpdatePending;
+    if (isUpdatePending) {
+      setShowSplash(false);
+      setModePopup(false);
+      setIsAlert(false);
+      setShowOffline(false);
+      setShowOnlineMode(false);
+    }
+  }, [isUpdatePending]);
 
   useEffect(() => {
     const backHandler = BackHandler.addEventListener(
@@ -260,8 +275,9 @@ const HomeScreen = ({navigation, route, ...props}) => {
                 setBannerObject(res.banners);
                 if (res.trending) {
                   setTrending(res.trending);
-                  if (Object.keys(res.trending).length > 0)
-                    setActiveTab(Object.keys(res.trending)[0]);
+                  const validKeys = Object.keys(res.trending).filter(k => res.trending[k]?.length > 0);
+                  if (validKeys.length > 0)
+                    setActiveTab(validKeys[0]);
                 }
                 setIsFetching(false);
                 setIsLoading(false);
@@ -294,31 +310,6 @@ const HomeScreen = ({navigation, route, ...props}) => {
     init();
   }, [props.access_token]);
 
-  const checkForUpdate = async () => {
-    const latestVersion = await VersionCheck.getLatestVersion();
-    const currentVersion = await VersionCheck.getCurrentVersion();
-
-    if (latestVersion !== currentVersion) {
-      promptUpdate();
-    }
-  };
-
-  const promptUpdate = () => {
-    Alert.alert(
-      'Update Available',
-      'A new version of the app is available. Please update to continue.',
-      [
-        {text: 'Cancel', style: 'cancel'},
-        {
-          text: 'Update',
-          onPress: async () => {
-            Linking.openURL(await VersionCheck.getStoreUrl());
-          },
-        },
-      ],
-    );
-  };
-
   const onRefresh = () => {
     props.setSource('');
     props.setDestination('');
@@ -342,7 +333,6 @@ const HomeScreen = ({navigation, route, ...props}) => {
           const mode = JSON.parse(await getFromStorage(t('STORAGE.MODE')));
           setMode(mode);
         }
-        checkForUpdate();
       };
 
       fetchData();
@@ -384,7 +374,8 @@ const HomeScreen = ({navigation, route, ...props}) => {
 
           if (
             res.data.data.banners?.APP_SPLASH?.length > 0 &&
-            !splashShownRef.current
+            !splashShownRef.current &&
+            !isUpdatePendingRef.current
           ) {
             setSplashBanner(res.data.data.banners.APP_SPLASH);
             setShowSplash(true);
@@ -393,8 +384,9 @@ const HomeScreen = ({navigation, route, ...props}) => {
 
           if (res.data.data.trending) {
             setTrending(res.data.data.trending);
-            if (Object.keys(res.data.data.trending).length > 0)
-              setActiveTab(Object.keys(res.data.data.trending)[0]);
+            const validKeys = Object.keys(res.data.data.trending).filter(k => res.data.data.trending[k]?.length > 0);
+            if (validKeys.length > 0)
+              setActiveTab(validKeys[0]);
           }
           setIsFetching(false);
           setIsLoading(false);
@@ -402,11 +394,7 @@ const HomeScreen = ({navigation, route, ...props}) => {
           setRefreshing(false);
           console.log(projects);
 
-          if (t('APP_VERSION') < res.data.data.version.version_number) {
-            setUpdateApp(true);
-          }
-
-          if (isFirstTime == 'true') {
+          if (isFirstTime == 'true' && !isUpdatePendingRef.current) {
             // refRBSheet.current.open()
             setModePopup(true);
             await AsyncStorage.setItem(
@@ -509,7 +497,7 @@ const HomeScreen = ({navigation, route, ...props}) => {
     if (
       (isConnected && !mode) || // Case 1: Internet is available but mode is offline
       (!isConnected && !mode) || // Case 2: Internet is not available and mode is offline
-      (!isConnected && mode) // Case 3: Internet is not available but mode is online
+      (!isConnected && mode) && !isUpdatePendingRef.current // Case 3: Internet is not available but mode is online
     ) {
       // Alert the user based on their mode and connectivity status
       setIsAlert(true);
@@ -549,16 +537,6 @@ const HomeScreen = ({navigation, route, ...props}) => {
     props.setMode(false);
     setModePopup(false);
     setShowOffline(true);
-  };
-
-  const exitUpdate = () => {
-    setUpdateApp(false);
-    BackHandler.exitApp();
-  };
-
-  const continueUpdate = () => {
-    setUpdateApp(false);
-    Linking.openURL(APP_URL);
   };
 
   const closePopup = () => {
@@ -648,14 +626,14 @@ const HomeScreen = ({navigation, route, ...props}) => {
             <Banner bannerImages={bannerImages} />
           )}
           <View style={{marginTop: 30, width: '100%'}}>
-            {trending && Object.keys(trending).length > 0 && (
+            {trending && validTrendingKeys.length > 0 && (
               <View style={{width: '100%'}}>
                 <ScrollView
                   horizontal
                   showsHorizontalScrollIndicator={false}
                   contentContainerStyle={{paddingHorizontal: 10}}
                   style={{marginBottom: 10}}>
-                  {Object.keys(trending).map((key, index) => (
+                  {validTrendingKeys.map((key, index) => (
                     <TouchableOpacity
                       key={key}
                       onPress={() => setActiveTab(key)}
@@ -687,6 +665,7 @@ const HomeScreen = ({navigation, route, ...props}) => {
                   contentContainerStyle={{paddingHorizontal: 5, paddingBottom: 10}}>
                   {activeTab &&
                     trending[activeTab] &&
+                    trending[activeTab].length > 0 &&
                     trending[activeTab].map((item, index) => (
                       <PackageCard
                         key={`${item.id}_${index}`}
@@ -961,28 +940,6 @@ const HomeScreen = ({navigation, route, ...props}) => {
           </View>
         </Overlay>
 
-        <Overlay style={styles.locationModal} isVisible={updateApp}>
-          <GlobalText
-            text={t('ALERT.APP_VERSION')}
-            style={styles.locationModal}
-          />
-          <View style={styles.flexRow}>
-            <TextButton
-              title={t('BUTTON.NO')}
-              buttonView={styles.logoutButtonStyle}
-              titleStyle={styles.locButtonTitle}
-              raised={false}
-              onPress={() => exitUpdate()}
-            />
-            <TextButton
-              title={t('BUTTON.CONTINUE')}
-              buttonView={styles.logoutButtonStyle}
-              titleStyle={styles.locButtonTitle}
-              raised={false}
-              onPress={() => continueUpdate()}
-            />
-          </View>
-        </Overlay>
         <ComingSoon
           message={t('OFFLINE_MODE')}
           visible={showOffline}

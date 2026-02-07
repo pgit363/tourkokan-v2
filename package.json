@@ -4,8 +4,8 @@
   "private": true,
   "scripts": {
     "android": "react-native run-android",
-    "android:prod": "ENVFILE=.env.production APP_ENV=production react-native run-android",
-    "android:release": "ENVFILE=.env.production APP_ENV=production react-native run-android --mode=release",
+    "android:prod": "cd android && ./gradlew clean && cd .. && ENVFILE=.env.production APP_ENV=production react-native run-android",
+    "android:release": "cd android && ./gradlew clean && cd .. && ENVFILE=.env.production APP_ENV=production react-native run-android --mode=release",
     "ios": "react-native run-ios",
     "lint": "eslint .",
     "start": "react-native start",
