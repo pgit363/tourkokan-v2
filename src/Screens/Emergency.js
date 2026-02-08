@@ -168,10 +168,11 @@ const Emergency = ({navigation, route, ...props}) => {
 
   const renderItem = ({item}) => {
     return (
-      <ListItem key={item.id} bottomDivider>
-        <ListItem.Content style={{flexDirection: 'row', alignItems: 'center'}}>
-          <ListItem.Title>{item.name}</ListItem.Title>
-          <ListItem.Content
+      <ListItem bottomDivider>
+        <ListItem.Content>
+          <View style={{flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', width: '100%'}}>
+            <ListItem.Title>{item.name}</ListItem.Title>
+            <View
             style={{
               flexDirection: 'row',
               justifyContent: 'flex-end',
@@ -192,7 +193,8 @@ const Emergency = ({navigation, route, ...props}) => {
                 <MaterialIcons name="email" size={24} color={COLOR.themeBlue} />
               }
             />
-          </ListItem.Content>
+            </View>
+          </View>
         </ListItem.Content>
       </ListItem>
     );

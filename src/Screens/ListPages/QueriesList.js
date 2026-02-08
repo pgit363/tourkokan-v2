@@ -184,41 +184,47 @@ const QueriesList = ({navigation, route, ...props}) => {
     }
   }, [props.mode, loading, hasMore, fetchData, nextPage, t]);
 
+  if (step === 1) {
+    return (
+      <ContactUs
+        navigation={navigation}
+        step={step}
+        setStep={setStep}
+        route_id={route.params?.route_id}
+      />
+    );
+  }
+
   const renderItem = ({item}) => {
     return (
-      <ListItem key={item.id} bottomDivider>
-        <ListItem.Content
-          style={{
-            flexDirection: 'row',
-            justifyContent: 'flex-start',
-            minWidth: DIMENSIONS.halfWidth + 50,
-          }}>
-          <ListItem.Title>{item.message}</ListItem.Title>
-        </ListItem.Content>
-        <ListItem.Content
-          style={{
-            flexDirection: 'row',
-            justifyContent: 'flex-end',
-          }}>
-          {item.status === 'unread' ? (
-            <Entypo
-              name="check"
-              color={COLOR.grey}
-              size={DIMENSIONS.iconSize}
-            />
-          ) : item.status === 'read' ? (
-            <Entypo
-              name="check"
-              color={COLOR.themeComicBlue}
-              size={DIMENSIONS.iconSize}
-            />
-          ) : (
-            <Feather
-              name="check-circle"
-              color={COLOR.yellow}
-              size={DIMENSIONS.iconSize}
-            />
-          )}
+      <ListItem bottomDivider>
+        <ListItem.Content>
+          <View style={{flexDirection: 'row', width: '100%', alignItems: 'center', justifyContent: 'space-between'}}>
+            <View style={{flex: 1, paddingRight: 10}}>
+              <ListItem.Title>{item.message}</ListItem.Title>
+            </View>
+            <View>
+              {item.status === 'unread' ? (
+                <Entypo
+                  name="check"
+                  color={COLOR.grey}
+                  size={DIMENSIONS.iconSize}
+                />
+              ) : item.status === 'read' ? (
+                <Entypo
+                  name="check"
+                  color={COLOR.themeComicBlue}
+                  size={DIMENSIONS.iconSize}
+                />
+              ) : (
+                <Feather
+                  name="check-circle"
+                  color={COLOR.yellow}
+                  size={DIMENSIONS.iconSize}
+                />
+              )}
+            </View>
+          </View>
         </ListItem.Content>
       </ListItem>
     );
@@ -296,6 +302,7 @@ const QueriesList = ({navigation, route, ...props}) => {
 
 const mapStateToProps = state => {
   return {
+    access_token: state.commonState.access_token,
     mode: state.commonState.mode,
     isLoading: state.commonState.isLoading,
   };

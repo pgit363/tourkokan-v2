@@ -60,6 +60,7 @@ class AnimationStyle extends Component {
             unfilledColor: 'rgba(200, 200, 200, 0.2)',
           }}
           resizeMode="stretch"
+          imageStyle={{ width: '100%', height: '100%' }}
           onLoad={this.onLoad}
           onError={this.onLoadError}
         />
@@ -76,10 +77,10 @@ const Banner = ({style, bannerImages}) => {
   return (
     <View style={[styles.banner, style]}>
       <Carousel
-        loop
+        loop={bannerImages.length > 1}
         width={DIMENSIONS.windowWidth}
         height={style?.height || DIMENSIONS.windowWidth / 2}
-        autoPlay={true}
+        autoPlay={bannerImages.length > 1}
         data={bannerImages}
         scrollAnimationDuration={3000}
         renderItem={({index}) => {
@@ -91,10 +92,12 @@ const Banner = ({style, bannerImages}) => {
           const url = item.redirect_url || item.meta_data?.url;
 
           return (
-            <TouchableOpacity onPress={() => (url ? bannerClick(url) : null)}>
+            <TouchableOpacity
+              style={{ width: '100%', height: '100%' }}
+              onPress={() => (url ? bannerClick(url) : null)}>
               <AnimationStyle
                 source={{uri: imageUri}}
-                style={styles.bannerImage}
+                style={[styles.bannerImage, { width: '100%', height: '100%', resizeMode: 'stretch' }]}
                 onLoad={() => console.log(`Image ${imageUri} loaded`)}
                 onError={error => {
                   console.error(`Image ${imageUri} failed to load`, error);

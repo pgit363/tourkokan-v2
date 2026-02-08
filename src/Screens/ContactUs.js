@@ -1,5 +1,5 @@
 import React, {useEffect, useState, useRef} from 'react';
-import {BackHandler, View} from 'react-native';
+import {BackHandler, View, ScrollView} from 'react-native';
 import Header from '../Components/Common/Header';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import COLOR from '../Services/Constants/COLORS';
@@ -42,28 +42,28 @@ const ContactUs = ({
   const isMounted = useRef(true); // Initialize ref to track component mount state
 
   useEffect(() => {
-    let backHandler = BackHandler.addEventListener(
+    const backHandler = BackHandler.addEventListener(
       STRING.EVENT.HARDWARE_BACK_PRESS,
-      () => goBackStep(),
+      () => {
+        goBackStep();
+        return true;
+      },
     );
     const init = async () => {
-      setEmail(await AsyncStorage.getItem(t('STORAGE.USER_EMAIL')));
-      checkLogin(navigation);
-
-      return () => {
-        isMounted.current = false; // Update ref to false on component unmount
-        backHandler.remove();
-      };
+      const userEmail = await AsyncStorage.getItem(t('STORAGE.USER_EMAIL'));
+      if (isMounted.current) setEmail(userEmail);
+      // checkLogin(navigation);
     };
     init();
 
     return () => {
       isMounted.current = false; // Ensure ref is set to false on component unmount
+      backHandler.remove();
     };
   }, []);
 
   const goBackStep = () => {
-    if (step == 0) {
+    if (step == 0 || !setStep) {
       backPage(navigation);
     } else {
       setStep(0);
@@ -183,16 +183,27 @@ const ContactUs = ({
   // };
 
   return (
-    <View style={{backgroundColor: COLOR.white}}>
-      <View
-        style={{
+    <View style={{backgroundColor: COLOR.white, flex: 1}}>
+      <Header
+        name={t('HEADER.CONTACT_US')}
+        startIcon={
+          <Ionicons
+            name="chevron-back-outline"
+            size={24}
+            onPress={() => goBackStep()}
+            color={COLOR.black}
+          />
+        }
+      />
+      <Loader />
+      <ScrollView
+        contentContainerStyle={{
           alignItems: 'center',
-          height: DIMENSIONS.screenHeight,
-          backgroundColor: COLOR.white,
+          paddingBottom: 50,
         }}>
         {ContactUsFields.map((field, index) => {
           return (
-            <View>
+            <View key={field.name || index} style={{width: DIMENSIONS.bannerWidth}}>
               <GlobalText text={field.placeholder} style={styles.fieldTitle} />
               <TextField
                 name={field.name}
@@ -217,14 +228,16 @@ const ContactUs = ({
           titleStyle={styles.buttonTitleStyle}
           onPress={submit}
         />
-      </View>
+      </ScrollView>
       <Popup message={alertMessage} onPress={closePopup} visible={isAlert} />
     </View>
   );
 };
 
 const mapStateToProps = state => {
-  return {};
+  return {
+    access_token: state.commonState.access_token,
+  };
 };
 
 const mapDispatchToProps = dispatch => {

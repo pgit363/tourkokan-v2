@@ -268,7 +268,7 @@ const AllRoutesSearch = ({navigation, route, ...props}) => {
             !isLoading &&
             bannerObject?.ROUTE_LIST_FOOTER &&
             bannerObject.ROUTE_LIST_FOOTER.length > 0
-              ? 120
+              ? DIMENSIONS.windowWidth / 3
               : 0,
         }}>
         {isFirstTime && isLoading ? (
@@ -284,7 +284,7 @@ const AllRoutesSearch = ({navigation, route, ...props}) => {
             keyExtractor={item => item.id}
             data={list}
             onEndReached={() => loadMoreRoutes()}
-            style={{marginBottom: 40}}
+            contentContainerStyle={{paddingBottom: 20}}
             onEndReachedThreshold={0.5}
             ListHeaderComponent={
               // !isLoading &&
@@ -325,9 +325,10 @@ const AllRoutesSearch = ({navigation, route, ...props}) => {
       {!isLoading &&
         bannerObject?.ROUTE_LIST_FOOTER &&
         bannerObject.ROUTE_LIST_FOOTER.length > 0 && (
-          <View style={{position: 'absolute', bottom: 10, width: '100%'}}>
+          <View style={{position: 'absolute', bottom: 0, width: '100%'}}>
             <Banner
               bannerImages={bannerObject.ROUTE_LIST_FOOTER}
+              style={{height: DIMENSIONS.windowWidth / 3, marginBottom: 0}}
             />
           </View>
         )}

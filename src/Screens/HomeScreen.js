@@ -64,6 +64,7 @@ import PackageCard from '../Components/Cards/PackageCard';
 import PackageCardSkeleton from '../Components/Cards/PackageCardSkeleton';
 import ProjectCard from '../Components/Cards/ProjectCard';
 import { UpdateContext } from '../Context/UpdateContext';
+import TrendingSkeleton from '../Components/Customs/TrendingSkeleton';
 
 // SplashScreen.preventAutoHideAsync();
 
@@ -269,9 +270,6 @@ const HomeScreen = ({navigation, route, ...props}) => {
               if (res && res.cities) {
                 setCities(res.cities);
                 setRoutes(res.routes);
-                console.log('Routes data:', res.routes);
-                console.log('Routes structure sample:', res.routes[0]);
-
                 setBannerObject(res.banners);
                 if (res.trending) {
                   setTrending(res.trending);
@@ -364,7 +362,6 @@ const HomeScreen = ({navigation, route, ...props}) => {
         const res = await comnPost('v2/landingpage', data, navigation);
 
         if (res && res.data.data) {
-          console.log(res.data.data);
           setOfflineData(res.data.data);
           i18n.changeLanguage(res.data.language);
           setCities(res.data.data.cities);
@@ -392,7 +389,6 @@ const HomeScreen = ({navigation, route, ...props}) => {
           setIsLoading(false);
           props.setLoader(false);
           setRefreshing(false);
-          console.log(projects);
 
           if (isFirstTime == 'true' && !isUpdatePendingRef.current) {
             // refRBSheet.current.open()
@@ -621,12 +617,20 @@ const HomeScreen = ({navigation, route, ...props}) => {
           {isLoading ? (
             <BannerSkeleton />
           ) : bannerObject?.HOME_HERO && bannerObject.HOME_HERO.length > 0 ? (
-            <Banner bannerImages={bannerObject.HOME_HERO} />
+            <Banner
+              bannerImages={bannerObject.HOME_HERO}
+              style={{height: DIMENSIONS.windowWidth / 1.5}}
+            />
           ) : (
-            <Banner bannerImages={bannerImages} />
+            <Banner
+              bannerImages={bannerImages}
+              style={{height: DIMENSIONS.windowWidth / 1.5}}
+            />
           )}
           <View style={{marginTop: 30, width: '100%'}}>
-            {trending && validTrendingKeys.length > 0 && (
+            {isLoading ? (
+              <TrendingSkeleton />
+            ) : trending && validTrendingKeys.length > 0 ? (
               <View style={{width: '100%'}}>
                 <ScrollView
                   horizontal
@@ -677,7 +681,7 @@ const HomeScreen = ({navigation, route, ...props}) => {
                     ))}
                 </ScrollView>
               </View>
-            )}
+            ) : null}
           </View>
           {/* {CityName.map((field, index) => {
                             return (
@@ -690,7 +694,7 @@ const HomeScreen = ({navigation, route, ...props}) => {
                             );
                         })} */}
           <KeyboardAvoidingView
-            style={{marginTop: 25, zIndex: 10}}
+            style={{zIndex: 10}}
             behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
             keyboardVerticalOffset={keyboardOffset}>
             {isLoading ? (
@@ -767,7 +771,10 @@ const HomeScreen = ({navigation, route, ...props}) => {
                   bannerObject?.HOME_MIDDLE &&
                   bannerObject.HOME_MIDDLE.length > 0 && (
                     <View style={{marginTop: 20, width: '100%'}}>
-                      <Banner bannerImages={bannerObject.HOME_MIDDLE} />
+                      <Banner
+                        bannerImages={bannerObject.HOME_MIDDLE}
+                        style={{height: DIMENSIONS.windowWidth / 3, marginBottom: 0}}
+                      />
                     </View>
               )}
           </View>
@@ -953,8 +960,11 @@ const HomeScreen = ({navigation, route, ...props}) => {
         {!isLoading &&
           bannerObject?.HOME_FOOTER &&
           bannerObject.HOME_FOOTER.length > 0 && (
-            <View style={{marginBottom: 40, width: '100%'}}>
-              <Banner bannerImages={bannerObject.HOME_FOOTER} />
+            <View style={{width: '100%'}}>
+              <Banner
+                bannerImages={bannerObject.HOME_FOOTER}
+                style={{height: DIMENSIONS.windowWidth / 3, marginBottom: 0}}
+              />
             </View>
           )}
       </KeyboardAwareScrollView>

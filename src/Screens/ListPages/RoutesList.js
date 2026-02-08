@@ -48,8 +48,11 @@ const RoutesList = ({ navigation, route }) => {
       if (landingData) {
         const parsedData = JSON.parse(landingData);
         if (parsedData?.banners) {
+          console.log('ROUTE_DETAIL_FOOTER:', parsedData.banners?.ROUTE_DETAIL_FOOTER);
           setBannerObject(parsedData.banners);
         }
+        console.log(bannerObject);
+        
       }
     };
     getBanners();
@@ -68,38 +71,39 @@ const RoutesList = ({ navigation, route }) => {
         key={`route-stop-${item?.id || item?.site?.id || index}`}
         bottomDivider
         style={{ paddingTop: isFirst ? 20 : 0 }}>
-        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-          {/* Distance */}
-          <View style={{ width: 70, alignItems: 'flex-start' }}>
-            <GlobalText text={`${item?.distance ?? 0} Km`} />
+        <View style={{ flexDirection: 'row', width: '100%', alignItems: 'center' }}>
+          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+            {/* Distance */}
+            <View style={{ width: 70, alignItems: 'flex-start' }}>
+              <GlobalText text={`${item?.distance ?? 0} Km`} />
+            </View>
+
+            {/* Route Line */}
+            {isFirst ? (
+              <RouteLineFirst />
+            ) : isLast ? (
+              <RouteLineLast />
+            ) : (
+              <RouteLine />
+            )}
           </View>
 
-          {/* Route Line */}
-          {isFirst ? (
-            <RouteLineFirst />
-          ) : isLast ? (
-            <RouteLineLast />
-          ) : (
-            <RouteLine />
-          )}
-        </View>
-
-        <ListItem.Content>
-          <ListItem.Title>
-            <View style={isFirst || isLast ? styles.listItem : styles.listItemMid}>
+          <ListItem.Content style={{ flex: 1 }}>
+            <View style={{ width: '100%', alignItems: 'flex-start', justifyContent: 'center', paddingLeft: 25 }}>
               <GlobalText
                 text={item?.site?.name ?? ''}
                 style={{
                   color: isFirst || isLast ? COLOR.themeBlue : COLOR.black,
+                  textAlign: 'left',
                 }}
               />
             </View>
-          </ListItem.Title>
-        </ListItem.Content>
+          </ListItem.Content>
 
-        {/* Arrival Time */}
-        <View style={{ width: 70, alignItems: 'flex-start' }}>
-          <GlobalText text={`${item?.arr_time ?? ''}`} />
+          {/* Arrival Time */}
+          <View style={{ width: 70, alignItems: 'flex-start' }}>
+            <GlobalText text={`${item?.arr_time ?? ''}`} />
+          </View>
         </View>
       </ListItem>
     );
@@ -113,7 +117,7 @@ const RoutesList = ({ navigation, route }) => {
           marginBottom:
             bannerObject?.ROUTE_DETAIL_FOOTER &&
             bannerObject.ROUTE_DETAIL_FOOTER.length > 0
-              ? 120
+              ? DIMENSIONS.windowWidth / 3
               : 0,
         }}>
       <FlatList
@@ -174,6 +178,7 @@ const RoutesList = ({ navigation, route }) => {
           <View style={{position: 'absolute', bottom: 0, width: '100%'}}>
             <Banner
               bannerImages={bannerObject.ROUTE_DETAIL_FOOTER}
+              style={{height: DIMENSIONS.windowWidth / 3, marginBottom: 0}}
             />
           </View>
         )}

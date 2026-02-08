@@ -542,6 +542,7 @@ const CityDetails = ({navigation, route, offline, ...props}) => {
                   <View style={{marginLeft: -10, marginBottom: 20, width: '100%'}}>
                     <Banner
                       bannerImages={bannerObject.CITY_MIDDLE} 
+                      style={{height: DIMENSIONS.windowWidth / 3, marginBottom: 0}}
                     />
                   </View>
                 )}
@@ -610,6 +611,7 @@ const CityDetails = ({navigation, route, offline, ...props}) => {
             <View style={{marginTop: 20, marginBottom: 80, width: '100%'}}>
               <Banner
                 bannerImages={bannerObject.CITY_FOOTER}
+                style={{height: DIMENSIONS.windowWidth / 3, marginBottom: 0}}
               />
             </View>
           )}
