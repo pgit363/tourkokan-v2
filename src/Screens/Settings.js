@@ -3,6 +3,8 @@ import {View} from 'react-native';
 import TopComponent from '../Components/Common/TopComponent';
 import Loader from '../Components/Customs/Loader';
 import {checkLogin, goBackHandler} from '../Services/CommonMethods';
+import {SafeAreaView} from 'react-native-safe-area-context';
+import COLOR from '../Services/Constants/COLORS';
 
 const Settings = ({navigation, ...props}) => {
   useEffect(() => {
@@ -14,10 +16,10 @@ const Settings = ({navigation, ...props}) => {
   }, []);
 
   return (
-    <View>
+    <SafeAreaView edges={['top']} style={{flex: 1, backgroundColor: COLOR.white}}>
       <Loader />
       <TopComponent navigation={navigation} />
-    </View>
+    </SafeAreaView>
   );
 };
 

@@ -1,5 +1,5 @@
 import React, {useEffect, useState} from 'react';
-import {FlatList, View, Text, SafeAreaView} from 'react-native';
+import {FlatList, View, Text} from 'react-native';
 import Header from '../../Components/Common/Header';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import COLOR from '../../Services/Constants/COLORS';
@@ -33,6 +33,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import ComingSoon from '../../Components/Common/ComingSoon';
 import Popup from '../../Components/Common/Popup';
 import Banner from '../../Components/Customs/Banner';
+import {SafeAreaView} from 'react-native-safe-area-context';
 
 const AllRoutesSearch = ({navigation, route, ...props}) => {
   const {t} = useTranslation();
@@ -224,7 +225,7 @@ const AllRoutesSearch = ({navigation, route, ...props}) => {
   };
 
   return (
-    <View style={{backgroundColor: COLOR.white, flex: 1}}>
+    <SafeAreaView edges={['top']} style={{backgroundColor: COLOR.white, flex: 1}}>
       <CheckNet isOff={offline} />
       {!isFirstTime && (
         <View style={{position: 'absolute', width: 0, height: 0}}>
@@ -261,7 +262,7 @@ const AllRoutesSearch = ({navigation, route, ...props}) => {
           />
         )}
       </View>
-      <SafeAreaView
+      <View
         style={{
           flex: 1,
           marginBottom:
@@ -321,7 +322,7 @@ const AllRoutesSearch = ({navigation, route, ...props}) => {
             />
           </View>
         )}
-      </SafeAreaView>
+      </View>
       {!isLoading &&
         bannerObject?.ROUTE_LIST_FOOTER &&
         bannerObject.ROUTE_LIST_FOOTER.length > 0 && (
@@ -338,7 +339,7 @@ const AllRoutesSearch = ({navigation, route, ...props}) => {
         visible={showOffline}
         toggleOverlay={() => setShowOffline(false)}
       />
-    </View>
+    </SafeAreaView>
   );
 };
 

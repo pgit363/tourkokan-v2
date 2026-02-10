@@ -29,6 +29,7 @@ import NetInfo from '@react-native-community/netinfo';
 import DIMENSIONS from '../Services/Constants/DIMENSIONS';
 import GlobalText from '../Components/Customs/Text';
 import ComingSoon from '../Components/Common/ComingSoon';
+import {SafeAreaView} from 'react-native-safe-area-context';
 
 const Emergency = ({navigation, route, ...props}) => {
   const {t} = useTranslation();
@@ -210,7 +211,7 @@ const Emergency = ({navigation, route, ...props}) => {
   };
 
   return (
-    <>
+    <SafeAreaView edges={['top']} style={{flex: 1, backgroundColor: COLOR.white}}>
       <Header
         name={t('HEADER.EMERGENCY')}
         goBack={() => backPage(navigation)}
@@ -260,7 +261,7 @@ const Emergency = ({navigation, route, ...props}) => {
         visible={showOnlineMode}
         toggleOverlay={() => setShowOnlineMode(false)}
       />
-    </>
+    </SafeAreaView>
   );
 };
 

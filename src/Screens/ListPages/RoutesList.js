@@ -2,7 +2,6 @@ import React, { useEffect, useState } from 'react';
 import {
   FlatList,
   View,
-  SafeAreaView,
   TouchableOpacity,
 } from 'react-native';
 import { ListItem, Overlay } from '@rneui/themed';
@@ -26,6 +25,7 @@ import { useTranslation } from 'react-i18next';
 import TextButton from '../../Components/Customs/Buttons/TextButton';
 import Banner from '../../Components/Customs/Banner';
 import { getFromStorage } from '../../Services/Api/CommonServices';
+import {SafeAreaView} from 'react-native-safe-area-context';
 
 const RoutesList = ({ navigation, route }) => {
   const { t } = useTranslation();
@@ -110,7 +110,7 @@ const RoutesList = ({ navigation, route }) => {
   };
 
   return (
-    <SafeAreaView style={{ flex: 1 }}>
+    <SafeAreaView edges={['top']} style={{ flex: 1, backgroundColor: COLOR.white }}>
       <View
         style={{
           flex: 1,

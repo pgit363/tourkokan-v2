@@ -49,6 +49,7 @@ import ComingSoon from '../Components/Common/ComingSoon';
 import {GoogleSignin} from '@react-native-google-signin/google-signin';
 import {DevSettings} from 'react-native';
 import { FTP_PATH } from '@env';
+import {SafeAreaView} from 'react-native-safe-area-context';
 
 const ProfileView = ({navigation, route, ...props}) => {
   const {t, i18n} = useTranslation();
@@ -406,6 +407,7 @@ const ProfileView = ({navigation, route, ...props}) => {
   };
 
   return (
+    <SafeAreaView edges={['top']} style={{flex: 1, backgroundColor: COLOR.white}}>
     <ScrollView
       style={styles.container}
       key={option}
@@ -575,6 +577,7 @@ const ProfileView = ({navigation, route, ...props}) => {
         toggleOverlay={() => setShowOnlineMode(false)}
       />
     </ScrollView>
+    </SafeAreaView>
   );
 };
 

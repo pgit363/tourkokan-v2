@@ -20,6 +20,7 @@ import GlobalText from '../Components/Customs/Text';
 // import DocumentPicker from 'react-native-document-picker';
 import STRING from '../Services/Constants/STRINGS';
 import NetInfo from '@react-native-community/netinfo';
+import {SafeAreaView} from 'react-native-safe-area-context';
 
 const ContactUs = ({
   navigation,
@@ -183,7 +184,7 @@ const ContactUs = ({
   // };
 
   return (
-    <View style={{backgroundColor: COLOR.white, flex: 1}}>
+    <SafeAreaView edges={['top']} style={{backgroundColor: COLOR.white, flex: 1}}>
       <Header
         name={t('HEADER.CONTACT_US')}
         startIcon={
@@ -230,7 +231,7 @@ const ContactUs = ({
         />
       </ScrollView>
       <Popup message={alertMessage} onPress={closePopup} visible={isAlert} />
-    </View>
+    </SafeAreaView>
   );
 };
 

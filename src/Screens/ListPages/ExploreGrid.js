@@ -40,6 +40,8 @@ import ComingSoon from '../../Components/Common/ComingSoon';
 import Popup from '../../Components/Common/Popup';
 import { FTP_PATH } from '@env';
 import { useFocusEffect } from '@react-navigation/native';
+import {SafeAreaView} from 'react-native-safe-area-context';
+import COLOR from '../../Services/Constants/COLORS';
 
 const { height: screenHeight } = Dimensions.get('window');
 
@@ -248,7 +250,7 @@ const ExploreGrid = ({ route, navigation, ...props }) => {
   const imageIndex = gallery.findIndex(img => img.id === selectedImage?.id);
 
   return (
-    <>
+    <SafeAreaView edges={['top']} style={{flex: 1, backgroundColor: COLOR.white}}>
       
       {/* <ScrollView
         style={{ flex: 1 }}
@@ -376,7 +378,7 @@ const ExploreGrid = ({ route, navigation, ...props }) => {
         <Popup message={alertMessage} onPress={closePopup} visible={isAlert} />
       </>
 
-    </>
+    </SafeAreaView>
   );
 };
 

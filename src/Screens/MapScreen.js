@@ -12,6 +12,8 @@ import {useTranslation} from 'react-i18next';
 import CheckNet from '../Components/Common/CheckNet';
 import DIMENSIONS from '../Services/Constants/DIMENSIONS';
 import GlobalText from '../Components/Customs/Text';
+import {SafeAreaView} from 'react-native-safe-area-context';
+import COLOR from '../Services/Constants/COLORS';
 
 const MapScreen = ({navigation, ...props}) => {
   const {t} = useTranslation();
@@ -100,7 +102,7 @@ const MapScreen = ({navigation, ...props}) => {
   };
 
   return (
-    <>
+    <SafeAreaView edges={['top']} style={{flex: 1, backgroundColor: COLOR.white}}>
       <Loader />
       <CheckNet isOff={offline} />
       {offline ? (
@@ -160,7 +162,7 @@ const MapScreen = ({navigation, ...props}) => {
           </View>
         )
       )}
-    </>
+    </SafeAreaView>
   );
 };
 

@@ -33,6 +33,7 @@ import Feather from 'react-native-vector-icons/Feather';
 import {useTranslation} from 'react-i18next';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {FTP_PATH} from '@env';
+import {SafeAreaView} from 'react-native-safe-area-context';
 
 const Profile = ({navigation, ...props}) => {
   const {t} = useTranslation();
@@ -197,7 +198,7 @@ const Profile = ({navigation, ...props}) => {
   };
 
   return (
-    <View>
+    <SafeAreaView edges={['top']} style={{flex: 1, backgroundColor: COLOR.white}}>
       <ScrollView>
         <CheckNet isOff={offline} />
         <Header
@@ -290,7 +291,7 @@ const Profile = ({navigation, ...props}) => {
       </ScrollView>
 
       <Popup message={alertMessage} visible={isAlert} onPress={closePopup} />
-    </View>
+    </SafeAreaView>
   );
 };
 

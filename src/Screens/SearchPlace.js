@@ -12,6 +12,8 @@ import {checkLogin, goBackHandler, navigateTo} from '../Services/CommonMethods';
 import {useTranslation} from 'react-i18next';
 import STRING from '../Services/Constants/STRINGS';
 import {TouchableOpacity} from 'react-native';
+import {SafeAreaView} from 'react-native-safe-area-context';
+import COLOR from '../Services/Constants/COLORS';
 
 const SearchPlace = ({navigation, route, ...props}) => {
   const {t} = useTranslation();
@@ -113,7 +115,7 @@ const SearchPlace = ({navigation, route, ...props}) => {
   };
 
   return (
-    <View>
+    <SafeAreaView edges={['top']} style={{flex: 1, backgroundColor: COLOR.white}}>
       <Loader />
       <Header
         Component={
@@ -135,7 +137,7 @@ const SearchPlace = ({navigation, route, ...props}) => {
         style={{marginBottom: 30}}
       />
       {/* </ScrollView> */}
-    </View>
+    </SafeAreaView>
   );
 };
 

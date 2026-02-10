@@ -19,6 +19,7 @@ import ProjectCard from '../Components/Cards/ProjectCard';
 import GlobalText from '../Components/Customs/Text';
 import {useTranslation} from 'react-i18next';
 import {FTP_PATH} from '@env';
+import {SafeAreaView} from 'react-native-safe-area-context';
 
 const CategoryProjects = ({navigation, route, ...props}) => {
   const {t} = useTranslation();
@@ -54,6 +55,7 @@ const CategoryProjects = ({navigation, route, ...props}) => {
   };
 
   return (
+    <SafeAreaView edges={['top']} style={{flex: 1, backgroundColor: COLOR.white}}>
     <ScrollView>
       <View style={{flex: 1, alignItems: 'center'}}>
         <Loader />
@@ -102,6 +104,7 @@ const CategoryProjects = ({navigation, route, ...props}) => {
         )}
       </View>
     </ScrollView>
+    </SafeAreaView>
   );
 };
 

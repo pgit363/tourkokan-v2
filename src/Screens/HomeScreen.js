@@ -14,6 +14,7 @@ import {
   Alert,
   Image,
 } from 'react-native';
+import {SafeAreaView} from 'react-native-safe-area-context';
 import SearchPanel from '../Components/Common/SearchPanel';
 import TopComponent from '../Components/Common/TopComponent';
 import Banner from '../Components/Customs/Banner';
@@ -586,20 +587,22 @@ const HomeScreen = ({navigation, route, ...props}) => {
 
   return (
     <>
-      {isLoading ? (
-        <TopComponentSkeleton />
-      ) : (
-        <TopComponent
-          mode={mode}
-          setMode={v => setMode(v)}
-          cities={[sindhudurg, ...cities]}
-          currentCity={currentCity}
-          setCurrentCity={v => onCitySelect(v)}
-          navigation={navigation}
-          openLocationSheet={() => openLocationSheet()}
-          gotoProfile={() => openProfile()}
-        />
-      )}
+      <SafeAreaView edges={['top']} style={{backgroundColor: COLOR.white}}>
+        {isLoading ? (
+          <TopComponentSkeleton />
+        ) : (
+          <TopComponent
+            mode={mode}
+            setMode={v => setMode(v)}
+            cities={[sindhudurg, ...cities]}
+            currentCity={currentCity}
+            setCurrentCity={v => onCitySelect(v)}
+            navigation={navigation}
+            openLocationSheet={() => openLocationSheet()}
+            gotoProfile={() => openProfile()}
+          />
+        )}
+      </SafeAreaView>
       <Popup message={alertMessage} onPress={closePopup} visible={isAlert} />
 
       <KeyboardAwareScrollView

@@ -8,6 +8,7 @@ import GlobalText from '../Components/Customs/Text';
 import styles from './Styles';
 import TextButton from '../Components/Customs/Buttons/TextButton';
 import {useTranslation} from 'react-i18next';
+import {SafeAreaView} from 'react-native-safe-area-context';
 
 const Pricing = ({navigation, ...props}) => {
   const {t} = useTranslation();
@@ -25,6 +26,7 @@ const Pricing = ({navigation, ...props}) => {
   };
 
   return (
+    <SafeAreaView edges={['top']} style={{flex: 1, backgroundColor: COLOR.white}}>
     <ScrollView stickyHeaderIndices={[0]}>
       <Header
         name={t('HEADER.PRICING')}
@@ -126,6 +128,7 @@ const Pricing = ({navigation, ...props}) => {
         </View>
       </View>
     </ScrollView>
+    </SafeAreaView>
   );
 };
 
