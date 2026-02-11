@@ -637,6 +637,7 @@ export default function App() {
       <Provider store={store}>
         <UpdateContext.Provider value={{ isUpdatePending: updateApp }}>
           <SafeAreaProvider>
+            <StatusBar style="dark" backgroundColor="transparent" translucent={true} />
             <StackNavigator />
             <UpdateOverlay />
           </SafeAreaProvider>
@@ -647,7 +648,7 @@ export default function App() {
 
   return (
     <>
-      <StatusBar backgroundColor={COLOR.loginImageBlue} />
+      <StatusBar style="dark" backgroundColor="transparent" translucent={true} />
       <AppIntroSlider
         ref={sliderRef}
         nextButtonTextColor={'#000'}
