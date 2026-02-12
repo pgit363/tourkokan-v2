@@ -184,18 +184,20 @@ const ContactUs = ({
   // };
 
   return (
-    <SafeAreaView edges={['top']} style={{backgroundColor: COLOR.white, flex: 1}}>
-      <Header
-        name={t('HEADER.CONTACT_US')}
-        startIcon={
-          <Ionicons
-            name="chevron-back-outline"
-            size={24}
-            onPress={() => goBackStep()}
-            color={COLOR.black}
-          />
-        }
-      />
+    <View style={{backgroundColor: COLOR.white, flex: 1}}>
+      <SafeAreaView edges={['top']} style={{backgroundColor: COLOR.white}}>
+        <Header
+          name={t('HEADER.CONTACT_US')}
+          startIcon={
+            <Ionicons
+              name="chevron-back-outline"
+              size={24}
+              onPress={() => goBackStep()}
+              color={COLOR.black}
+            />
+          }
+        />
+      </SafeAreaView>
       <Loader />
       <ScrollView
         contentContainerStyle={{
@@ -231,7 +233,7 @@ const ContactUs = ({
         />
       </ScrollView>
       <Popup message={alertMessage} onPress={closePopup} visible={isAlert} />
-    </SafeAreaView>
+    </View>
   );
 };
 

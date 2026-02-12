@@ -9,6 +9,7 @@ import {
   BackHandler,
 } from 'react-native';
 import {ListItem} from '@rneui/themed';
+import {SafeAreaView} from 'react-native-safe-area-context';
 import Header from '../../Components/Common/Header';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import Feather from 'react-native-vector-icons/Feather';
@@ -241,29 +242,31 @@ const QueriesList = ({navigation, route, ...props}) => {
 
   return (
     <>
-      <Header
-        name={t('HEADER.CONTACT_US')}
-        goBack={() => backPage()}
-        startIcon={
-          <Ionicons
-            name="chevron-back-outline"
-            size={24}
-            onPress={() => backPage(navigation)}
-            color={COLOR.black}
-          />
-        }
-        endIcon={
-          step === 0 && (
-            <TouchableOpacity
-              onPress={() => {
-                setStep(1);
-                setLoading(false);
-              }}>
-              <GlobalText text={t('BUTTON.ADD_QUERY')} />
-            </TouchableOpacity>
-          )
-        }
-      />
+      <SafeAreaView edges={['top']} style={{backgroundColor: COLOR.white}}>
+        <Header
+          name={t('HEADER.CONTACT_US')}
+          goBack={() => backPage()}
+          startIcon={
+            <Ionicons
+              name="chevron-back-outline"
+              size={24}
+              onPress={() => backPage(navigation)}
+              color={COLOR.black}
+            />
+          }
+          endIcon={
+            step === 0 && (
+              <TouchableOpacity
+                onPress={() => {
+                  setStep(1);
+                  setLoading(false);
+                }}>
+                <GlobalText text={t('BUTTON.ADD_QUERY')} />
+              </TouchableOpacity>
+            )
+          }
+        />
+      </SafeAreaView>
       <FlatList
         keyExtractor={(item, index) =>
           item.id ? item.id.toString() : `key-${index}`
