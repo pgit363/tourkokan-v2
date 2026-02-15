@@ -434,14 +434,16 @@ const HomeScreen = ({navigation, route, ...props}) => {
     saveToStorage(t('STORAGE.EMERGENCY'), JSON.stringify(resp.emergencies));
     saveToStorage(t('STORAGE.QUERIES'), JSON.stringify(resp.queries));
     saveToStorage(t('STORAGE.GALLERY'), JSON.stringify(resp.gallery));
-    saveToStorage(t('STORAGE.PROFILE_RESPONSE'), JSON.stringify(resp.user));
-    saveToStorage(
-      t('STORAGE.PROFILE_PICTURE'),
-      JSON.stringify(resp.user.profile_picture),
-    );
-    AsyncStorage.setItem(t('STORAGE.USER_NAME'), resp.user.name);
-    AsyncStorage.setItem(t('STORAGE.USER_ID'), JSON.stringify(resp.user.id));
-    AsyncStorage.setItem(t('STORAGE.USER_EMAIL'), resp.user.email);
+    if (resp.user) {
+      saveToStorage(t('STORAGE.PROFILE_RESPONSE'), JSON.stringify(resp.user));
+      saveToStorage(
+        t('STORAGE.PROFILE_PICTURE'),
+        JSON.stringify(resp.user.profile_picture || ''),
+      );
+      AsyncStorage.setItem(t('STORAGE.USER_NAME'), `${resp.user.name || ''}`);
+      AsyncStorage.setItem(t('STORAGE.USER_ID'), JSON.stringify(resp.user.id || ''));
+      AsyncStorage.setItem(t('STORAGE.USER_EMAIL'), `${resp.user.email || ''}`);
+    }
   };
 
   const getRoutesList = item => {
@@ -587,7 +589,7 @@ const HomeScreen = ({navigation, route, ...props}) => {
 
   return (
     <>
-      <SafeAreaView edges={['top']} style={{backgroundColor: COLOR.white}}>
+      <SafeAreaView edges={['top']} style={{backgroundColor: COLOR.white, zIndex: 1000, elevation: 1000}}>
         {isLoading ? (
           <TopComponentSkeleton />
         ) : (

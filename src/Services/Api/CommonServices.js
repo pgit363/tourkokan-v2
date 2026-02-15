@@ -113,6 +113,9 @@ export const isOffline = async () => {
 
 export const saveToStorage = async (name, data) => {
   try {
+    if (data === null || data === undefined) {
+      return false;
+    }
     await AsyncStorage.setItem(name, data);
     return true;
   } catch (err) {

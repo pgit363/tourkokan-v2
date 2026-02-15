@@ -13,7 +13,6 @@ const styles = StyleSheet.create({
     right: 0,
     zIndex: 1000,
     width: DIMENSIONS.windowWidth,
-    zIndex: 10,
   },
   userIcon: {
     margin: 10,
@@ -329,7 +328,8 @@ const styles = StyleSheet.create({
     backgroundColor: COLOR.greyDark,
   },
   citiesDropdown: {
-    zIndex: 10,
+    zIndex: 2000,
+    elevation: 2000,
     top: 0.5,
     left: 20,
     borderWidth: 2,

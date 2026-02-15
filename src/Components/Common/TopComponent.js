@@ -136,15 +136,13 @@ const TopComponent = ({
       </View>
 
       {showCities && (
-        <View>
-          <SearchDropdown
-            placesList={cities}
-            style={styles.citiesDropdown}
-            setPlace={v => setCity(v)}
-            closeDropdown={() => toggleCityDropdown()}
-            height={500}
-          />
-        </View>
+        <SearchDropdown
+          placesList={cities}
+          style={styles.citiesDropdown}
+          setPlace={v => setCity(v)}
+          closeDropdown={() => toggleCityDropdown()}
+          height={500}
+        />
       )}
     </View>
   );
