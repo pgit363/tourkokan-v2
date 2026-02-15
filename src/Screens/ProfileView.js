@@ -223,9 +223,11 @@ const ProfileView = ({navigation, route, ...props}) => {
   };
 
   const setLocationMap = (lat, long) => {
-    setInitialLocation(lat, long);
-    setCurrentLatitude(parseFloat(lat));
-    setCurrentLongitude(parseFloat(long));
+    if (lat && long) {
+      setInitialLocation(lat, long);
+      setCurrentLatitude(parseFloat(lat));
+      setCurrentLongitude(parseFloat(long));
+    }
   };
 
   const getUserProfile = () => {
@@ -244,10 +246,12 @@ const ProfileView = ({navigation, route, ...props}) => {
             );
             setProfile(res.data.data); // Update places state with response data
             setOption(0);
-            setLocationMap(
-              res.data.data.addresses[0].latitude,
-              res.data.data.addresses[0].longitude,
-            );
+            if (res.data.data.addresses && res.data.data.addresses.length > 0) {
+              setLocationMap(
+                res.data.data.addresses[0].latitude,
+                res.data.data.addresses[0].longitude,
+              );
+            }
           } else {
             console.warn('No profile data found in response.');
           }
@@ -339,7 +343,10 @@ const ProfileView = ({navigation, route, ...props}) => {
             {
               text: 'OK',
               onPress: () => {
-                navigateTo(navigation, t('SCREEN.HOME'));
+                navigation.reset({
+                  index: 0,
+                  routes: [{name: t('SCREEN.EMAIL')}],
+                });
               },
             },
           ],
@@ -467,19 +474,26 @@ const ProfileView = ({navigation, route, ...props}) => {
 
       <View style={styles.headerContainer}>
         <GlobalText text={t('ADDRESS')} />
-        {initialRegion && initialRegion.latitude && currentLatitude ? (
-          <MapContainer
-            initialRegion={initialRegion}
-            currentLatitude={currentLatitude}
-            currentLongitude={currentLongitude}
-          />
+        {profile && profile.id ? (
+          initialRegion && initialRegion.latitude && currentLatitude ? (
+            <MapContainer
+              initialRegion={initialRegion}
+              currentLatitude={currentLatitude}
+              currentLongitude={currentLongitude}
+            />
+          ) : (
+            <View style={{height: 150, width: '90%', justifyContent: 'center', alignItems: 'center', backgroundColor: COLOR.lightGrey, borderRadius: 10, marginVertical: 10}}>
+              <Ionicons name="location-outline" size={40} color={COLOR.grey} />
+              <GlobalText text={t('NO_LOCATION_SET') || "No Location Set"} style={{color: COLOR.grey}} />
+            </View>
+          )
         ) : (
           <MapSkeleton />
         )}
       </View>
 
       <View style={styles.chipContainer}>
-        {initialRegion && initialRegion.latitude && currentLatitude ? (
+        {profile && profile.id ? (
           option == 0 ? (
             <ChipOptions
               languageClick={() => setOption(1)}

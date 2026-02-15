@@ -64,6 +64,7 @@ import { setupAxiosInterceptors } from './src/Services/Api/AxiosInterceptor';
 import VersionCheck from 'react-native-version-check';
 import { APP_URL } from '@env';
 import { UpdateContext } from './src/Context/UpdateContext';
+import {KeyboardAwareScrollView} from 'react-native-keyboard-aware-scroll-view';
 
 // LogBox.ignoreAllLogs();
 // LogBox.ignoreLogs(['Warning: ...', 'Possible Unhandled Promise Rejection']);
@@ -178,7 +179,9 @@ export default function App() {
         STRING.STORAGE.IS_FIRST_TIME,
       );
       setIsFirstTime(isFirstTimeValue);
-      setLoading(false);
+      setTimeout(() => {
+        setLoading(false);
+      }, 2000);
     };
     checkFirstTime();
     setupAxiosInterceptors(); // Initialize Global Interceptor
@@ -432,10 +435,11 @@ export default function App() {
 
   const renderItem = ({ item }) => {
     return (
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={{ flex: 1 }}
-        keyboardVerticalOffset={Platform.OS === 'ios' ? 60 : 0}>
+      <KeyboardAwareScrollView
+        contentContainerStyle={{flexGrow: 1}}
+        keyboardShouldPersistTaps="handled"
+        enableOnAndroid={true}
+        extraHeight={150}>
         <View style={[styles.slide, { backgroundColor: item.backgroundColor }]}>
           {item.image && <Image source={item.image} style={styles.image} />}
 
@@ -459,8 +463,7 @@ export default function App() {
                 style={[
                   styles.searchPanelFieldNew,
                   {
-                    marginTop: isKeyboardVisible ? -400 : 0,
-                    borderWidth: isKeyboardVisible ? 3 : 1,
+                    borderWidth: 1,
                     textAlign: 'center',
                   },
                 ]}
@@ -510,7 +513,7 @@ export default function App() {
             ) : null}
           </View>
         </View>
-      </KeyboardAvoidingView>
+      </KeyboardAwareScrollView>
     );
   };
 
@@ -627,7 +630,10 @@ export default function App() {
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color={COLOR.themeBlue} />
+        <Image
+          source={require('./src/Assets/Images/Logos/tourkokan-logo.png')}
+          style={{width: 200, height: 200, resizeMode: 'contain', marginBottom: 20}}
+        />
       </View>
     );
   }

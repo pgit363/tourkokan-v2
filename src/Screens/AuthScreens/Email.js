@@ -7,6 +7,7 @@ import {
   ImageBackground,
   KeyboardAvoidingView,
   Image,
+  StatusBar,
 } from 'react-native';
 import TextField from '../../Components/Customs/TextField';
 import {EmailField} from '../../Services/Constants/FIELDS';
@@ -42,6 +43,8 @@ import AntDesign from 'react-native-vector-icons/AntDesign';
 import DIMENSIONS from '../../Services/Constants/DIMENSIONS';
 import LottieView from 'lottie-react-native';
 import {GOOGLE_WEB_CLIENT_ID} from '@env';
+import STRING from '../../Services/Constants/STRINGS';
+import Ionicons from 'react-native-vector-icons/Ionicons';
 
 const Email = ({navigation, route, ...props}) => {
   const {t, i18n} = useTranslation();
@@ -87,6 +90,8 @@ const Email = ({navigation, route, ...props}) => {
       };
 
       const res = await comnPost('v2/auth/googleAuth', $payload);
+      console.log(res);
+      
       if (res.data.success) {
         AsyncStorage.setItem(
           t('STORAGE.ACCESS_TOKEN'),
@@ -95,6 +100,14 @@ const Email = ({navigation, route, ...props}) => {
         AsyncStorage.setItem(
           t('STORAGE.USER_ID'),
           JSON.stringify(res.data.data.user.id),
+        );
+        AsyncStorage.setItem(
+          t('STORAGE.USER_EMAIL'),
+          res.data.data.user.email || '',
+        );
+        AsyncStorage.setItem(
+          t('STORAGE.USER_NAME'),
+          res.data.data.user.name || '',
         );
         // props.saveAccess_token(res.data.data.access_token);
         props.setLoader(false);
@@ -237,7 +250,7 @@ const Email = ({navigation, route, ...props}) => {
       (await getFromStorage(t('STORAGE.ACCESS_TOKEN'))) == null ||
       (await getFromStorage(t('STORAGE.ACCESS_TOKEN'))) == ''
     ) {
-      navigateTo(navigation, t('SCREEN.LANG_SELECTION'));
+      BackHandler.exitApp();
     } else {
       navigateTo(navigation, t('SCREEN.HOME'));
     }
@@ -289,29 +302,60 @@ const Email = ({navigation, route, ...props}) => {
     navigateTo(navigation, t('SCREEN.PASSWORD_LOGIN'), {email});
   };
 
+  const guestLogin = () => {
+    props.setLoader(true);
+    const data = {
+      is_guest: true,
+      name: `Guest_${Math.floor(Math.random() * 100000)}`,
+    };
+
+    comnPost('v2/auth/register', data)
+      .then(res => {
+        if (res.data.success) {
+          AsyncStorage.setItem(
+            t('STORAGE.ACCESS_TOKEN'),
+            res.data.data.access_token,
+          );
+          AsyncStorage.setItem(
+            t('STORAGE.USER_ID'),
+            JSON.stringify(res.data.data.user.id),
+          );
+          AsyncStorage.setItem(
+            t('STORAGE.USER_EMAIL'),
+            res.data.data.user.email || '',
+          );
+          AsyncStorage.setItem(
+            t('STORAGE.USER_NAME'),
+            res.data.data.user.name || '',
+          );
+          AsyncStorage.setItem('IS_GUEST', JSON.stringify(true));
+          props.setLoader(false);
+          AsyncStorage.setItem(t('STORAGE.IS_FIRST_TIME'), JSON.stringify(true));
+          saveToStorage(t('STORAGE.MODE'), JSON.stringify(true));
+          props.setMode(true);
+          navigateTo(navigation, t('SCREEN.HOME'));
+        } else {
+          props.setLoader(false);
+          setIsAlert(true);
+          setAlertMessage(res.data.message || t('ALERT.WENT_WRONG'));
+        }
+      })
+      .catch(err => {
+        props.setLoader(false);
+        setIsAlert(true);
+        setAlertMessage(t('ALERT.WENT_WRONG'));
+      });
+  };
+
   return (
     <View style={{flex: 1, backgroundColor: COLOR.white}}>
+      <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent={true} />
+      <Loader />
       <ImageBackground
         style={styles.loginImage}
         source={require('../../Assets/Images/Intro/login_background.png')}
       />
-      {/* <Header
-        name={""}
-        startIcon={<View></View>}
-        style={styles.loginHeader}
-      /> */}
 
-      <View>
-        <Loader />
-        <GlobalText text={''} style={styles.welcomeText} />
-        <GlobalText text={''} style={styles.boldKokan} />
-        <View style={styles.loginLogoView}>
-          <Image
-            source={require('../../Assets/Images/Logos/tourkokan-logo.png')}
-            style={styles.loginLogo}
-          />
-        </View>
-      </View>
       {isLoading ? (
         <View style={styles.middleFlexImage}>
           <LottieView
@@ -324,85 +368,76 @@ const Email = ({navigation, route, ...props}) => {
           />
         </View>
       ) : (
-        <View style={styles.middleFlex}>
-          {/* <GlobalText text={t('SIGN_IN')} style={styles.loginText} /> */}
-          {/* {EmailField.map((field, index) => {
-            return (
-              <TextField
-                name={field.name}
-                label={field.name}
-                placeholder={field.placeholder}
-                fieldType={field.type}
-                length={field.length}
-                required={field.required}
-                disabled={false}
-                value={getValue(index)}
-                setChild={(v, i) => setValue(v, i, index)}
-                style={styles.containerStyle}
-                inputContainerStyle={styles.inputContainerStyle}
-                isSecure={field.isSecure}
-                rightIcon={
-                  field.type == `${t('TYPE.PASSWORD')}` && (
-                    <Feather
-                      name={field.isSecure ? 'eye' : 'eye-off'}
-                      size={24}
-                      color={COLOR.themeBlue}
-                      onPress={() => {
-                        field.isSecure = !showPassword;
-                        setShowPassword(!showPassword);
-                      }}
-                      style={styles.eyeIcon}
-                    />
-                  )
-                }
-              />
-            );
-          })} */}
-
-          {/* login with passowrd commented for the time need to fix functionality as soon as possible */}
-          {/* <TouchableOpacity onPress={() => loginWithPassScreen()}>
-          <GlobalText
-            text={t('BUTTON.LOGIN_WITH_PASSWORD')}
-            style={styles.loginSubText}
-          />
-        </TouchableOpacity> */}
-          {/* <View style={{alignItems: 'center'}}>
-            <TextButton
-              title={t('BUTTON.SEND_OTP')}
-              buttonView={styles.buttonView}
-              isDisabled={isButtonDisabled}
-              raised={true}
-              onPress={() => generateOtp()}
+        <View style={styles.authContentContainer}>
+          {/* Logo Section */}
+          <View style={styles.logoSection}>
+            <Image
+              source={require('../../Assets/Images/Logos/tourkokan-logo.png')}
+              style={styles.loginLogo}
+              resizeMode="contain"
             />
-          </View> */}
-
-          <View style={styles.googleView}>
-            {/* <GlobalText
-              text={'---- OR ----'}
-              style={{marginTop: DIMENSIONS.sectionGap}}
-            /> */}
-            <GoogleSigninButton
-              size={GoogleSigninButton.Size.Wide}
-              color={GoogleSigninButton.Color.Dark}
-              onPress={() => {
-                signInWithGoogle();
-              }}
-              style={styles.googleButton}
-              // disabled={isInProgress}
+            <GlobalText
+              text="Where the coast tells stories"
+              style={styles.subTagline}
             />
           </View>
 
-          {/* <View style={styles.haveAcc}>
-            <GlobalText text={t('DONT_HAVE_ACC')} />
-            <TouchableOpacity onPress={() => signUpScreen()}>
-              <GlobalText text={t('SIGN_UP')} style={styles.blueBold} />
+          {/* Login Section */}
+          <View style={styles.loginSection}>
+            <GlobalText text="Welcome to Kokan" style={styles.loginTitle} />
+
+            {/* Google Button */}
+            <TouchableOpacity
+              style={styles.customGoogleBtn}
+              onPress={() => signInWithGoogle()}
+              activeOpacity={0.8}>
+              <Image
+                source={{uri: 'https://developers.google.com/identity/images/g-logo.png'}}
+                style={{width: 24, height: 24}}
+              />
+              <GlobalText
+                text="Sign in with Google"
+                style={styles.googleBtnText}
+              />
             </TouchableOpacity>
-          </View> */}
+
+            {/* Divider */}
+            <View style={styles.dividerContainer}>
+              <View style={styles.dividerLine} />
+              <GlobalText text="OR" style={styles.dividerText} />
+              <View style={styles.dividerLine} />
+            </View>
+
+            {/* Guest Button */}
+            <TouchableOpacity
+              style={styles.guestBtn}
+              onPress={() => guestLogin()}
+              activeOpacity={0.8}>
+              <Ionicons name="person-outline" size={20} color={COLOR.themeBlue} />
+              <GlobalText
+                text="Continue as Guest"
+                style={styles.guestBtnText}
+              />
+            </TouchableOpacity>
+
+            {/* Features */}
+            <View style={styles.featuresContainer}>
+              <View style={styles.featureBadge}>
+                <Ionicons name="map-outline" size={14} color={COLOR.themeBlue} />
+                <GlobalText text="Offline Maps" style={styles.featureText} />
+              </View>
+              <View style={styles.featureBadge}>
+                <Ionicons name="bus-outline" size={14} color={COLOR.themeBlue} />
+                <GlobalText text="MSRTC Buses" style={styles.featureText} />
+              </View>
+              <View style={styles.featureBadge}>
+                <Ionicons name="image-outline" size={14} color={COLOR.themeBlue} />
+                <GlobalText text="Kokan Places" style={styles.featureText} />
+              </View>
+            </View>
+          </View>
         </View>
       )}
-      <KeyboardAvoidingView
-        behavior="height"
-        style={{flex: 1}}></KeyboardAvoidingView>
       <Popup message={alertMessage} onPress={closePopup} visible={isAlert} />
     </View>
   );

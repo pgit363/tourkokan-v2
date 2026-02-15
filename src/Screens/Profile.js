@@ -55,6 +55,7 @@ const Profile = ({navigation, ...props}) => {
   const [showPassword, setShowPassword] = useState(false);
 
   useEffect(() => {
+    AsyncStorage.setItem('isUpdated', 'false');
     const backHandler = goBackHandler(navigation);
     checkLogin(navigation);
     props.setLoader(true);
@@ -246,7 +247,7 @@ const Profile = ({navigation, ...props}) => {
             {ProfileFields.map((field, index) => {
               return (
                 <TextField
-                  key={field.name || index}
+                  key={index}
                   name={field.name}
                   label={field.name}
                   placeholder={field.placeholder}

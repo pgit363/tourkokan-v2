@@ -475,7 +475,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: COLOR.themeComicBlueULight,
+    backgroundColor: COLOR.white,
   },
   eyeIcon: {
     position: 'absolute',

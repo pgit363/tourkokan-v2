@@ -3,6 +3,7 @@ import {
   createDrawerNavigator,
   DrawerContentScrollView,
   DrawerItemList,
+  DrawerItem,
 } from '@react-navigation/drawer';
 import {useTranslation} from 'react-i18next';
 import {
@@ -12,11 +13,14 @@ import {
   StyleSheet,
   TouchableOpacity,
   Image,
+  Alert,
 } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import TabNavigator from './TabNavigator';
 import Emergency from '../Screens/Emergency';
 import QueriesList from '../Screens/ListPages/QueriesList';
+import VersionCheck from 'react-native-version-check';
+import STRING from '../Services/Constants/STRINGS';
 
 const Drawer = createDrawerNavigator();
 
@@ -35,10 +39,45 @@ const DrawerNavigator = () => {
     }
   };
 
+  const checkUpdate = async () => {
+    try {
+      const update = await VersionCheck.needUpdate();
+      if (update && update.isNeeded) {
+        Alert.alert(
+          STRING.ALERT.UPDATE_AVAILABLE,
+          STRING.ALERT.UPDATE_DESC,
+          [
+            {
+              text: t('BUTTON.CANCEL'),
+              style: 'cancel',
+            },
+            {
+              text: t('BUTTON.UPDATE'),
+              onPress: () => {
+                Linking.openURL(update.storeUrl);
+              },
+            },
+          ],
+        );
+      } else {
+        Alert.alert(
+          STRING.ALERT.UP_TO_DATE,
+          STRING.ALERT.APP_UP_TO_DATE,
+        );
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
   const CustomDrawerContent = props => (
     <View style={{flex: 1}}>
       <DrawerContentScrollView {...props}>
         <DrawerItemList {...props} />
+        <DrawerItem
+          label={STRING.DRAWER.CHECK_UPDATE}
+          onPress={() => checkUpdate()}
+        />
       </DrawerContentScrollView>
       <View style={styles.footerContainer}>
         <View style={styles.socialMediaContainer}>
@@ -65,6 +104,9 @@ const DrawerNavigator = () => {
         </View>
         <Text style={styles.footerText}>
           Designed and Developed by Probyte Solution LLP.
+        </Text>
+        <Text style={styles.footerText}>
+          v{VersionCheck.getCurrentVersion()}
         </Text>
       </View>
     </View>

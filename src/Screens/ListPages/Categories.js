@@ -29,6 +29,7 @@ import ImageButtonSkeleton from '../../Components/Customs/Buttons/ImageButtonSke
 import {useTranslation} from 'react-i18next';
 import Accordion from '../../Components/Customs/Accordian';
 import ComingSoon from '../../Components/Common/ComingSoon';
+import {SafeAreaView} from 'react-native-safe-area-context';
 
 const Categories = ({route, navigation, ...props}) => {
   const {t} = useTranslation();
@@ -126,7 +127,7 @@ const Categories = ({route, navigation, ...props}) => {
   };
 
   return (
-    <>
+    <SafeAreaView edges={['top']} style={{flex: 1, backgroundColor: COLOR.white}}>
       <Header
         name={t('SCREEN.CATEGORIES')}
         startIcon={
@@ -214,7 +215,7 @@ const Categories = ({route, navigation, ...props}) => {
           toggleOverlay={() => setShowOnlineMode(false)}
         />
       </ScrollView>
-    </>
+    </SafeAreaView>
   );
 };
 

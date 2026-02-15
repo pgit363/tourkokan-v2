@@ -52,6 +52,7 @@ const STRING = {
     LOCATION: 'Location',
     ADD_QUERY: 'Add Query',
     CONTACT: 'Contact',
+    GUEST_LOGIN: 'Guest Login',
   },
   SCREEN: {
     ROOT: 'Root',
@@ -148,6 +149,9 @@ const STRING = {
     SUBCATEGORIES: 'sub-categories',
     CLASSIFICATIONS: 'Classifications',
   },
+  DRAWER: {
+    CHECK_UPDATE: 'Check for Update',
+  },
   ALERT: {
     FAILED: 'Failed',
     WENT_WRONG: 'Something went wrong...',
@@ -196,6 +200,10 @@ const STRING = {
     SELECT_MODE: 'Select Online/Offline Mode',
     PLEASE_CONTACT:
       'Data may not be perfect. If you find any false/wrong data here, please Contact Us by clicking on top corner. Arrival timings will be added soon.',
+    UPDATE_AVAILABLE: 'Update Available',
+    UPDATE_DESC: 'New update is available on Play Store.',
+    UP_TO_DATE: 'Up to Date',
+    APP_UP_TO_DATE: 'App is up to date',
   },
   TABLE: {
     CITY: 'City',
