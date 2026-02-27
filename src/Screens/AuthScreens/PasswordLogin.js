@@ -41,7 +41,7 @@ const PasswordLogin = ({navigation, route, ...props}) => {
     // createUserTable();
     const backHandler = BackHandler.addEventListener(
       t('EVENT.HARDWARE_BACK_PRESS'),
-      () => navigateTo(navigation, t('SCREEN.LANG_SELECTION')),
+      () => navigateTo(navigation, t('SCREEN.EMAIL')),
     );
     return () => {
       backHandler.remove();

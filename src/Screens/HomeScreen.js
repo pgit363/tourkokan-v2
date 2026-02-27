@@ -1,4 +1,4 @@
-import React, {useEffect, useState, useRef, useContext} from 'react';
+import React, {useEffect, useState, useRef, useContext, useReducer, useMemo, useCallback} from 'react';
 import {
   View,
   ScrollView,
@@ -13,6 +13,8 @@ import {
   TouchableOpacity,
   Alert,
   Image,
+  FlatList,
+  InteractionManager,
 } from 'react-native';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import SearchPanel from '../Components/Common/SearchPanel';
@@ -74,19 +76,19 @@ const HomeScreen = ({navigation, route, ...props}) => {
   const refRBSheet = useRef();
 
   const [searchValue, setSearchValue] = useState('');
-  const [categories, setCategories] = useState([]);
-  const [cities, setCities] = useState([]);
+  // const [categories, setCategories] = useState([]);
+  // const [cities, setCities] = useState([]);
   const [projects, setProjects] = useState([]);
   const [stops, setStops] = useState([]);
   const [place_category, setPlace_category] = useState([]);
   const [places, setPlaces] = useState([]);
-  const [routes, setRoutes] = useState([]);
+  // const [routes, setRoutes] = useState([]);
   const [error, setError] = useState(null);
   const [cityList, setCityList] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
+  // const [isLoading, setIsLoading] = useState(true);
   const [isLandingDataFetched, setIsLandingDataFetched] = useState(false);
   const [offline, setOffline] = useState(false);
-  const [isFetching, setIsFetching] = useState(true);
+  // const [isFetching, setIsFetching] = useState(true);
   const [bannerImages, setBannerImages] = useState([
     {
       id: 1,
@@ -112,7 +114,7 @@ const HomeScreen = ({navigation, route, ...props}) => {
       image: 'https://4kwallpapers.com/images/walls/thumbs_3t/912.jpg',
     },
   ]);
-  const [bannerObject, setBannerObject] = useState({});
+  // const [bannerObject, setBannerObject] = useState({});
   const [showSplash, setShowSplash] = useState(false);
   const [splashBanner, setSplashBanner] = useState([]);
   const splashShownRef = useRef(false);
@@ -128,13 +130,43 @@ const HomeScreen = ({navigation, route, ...props}) => {
   const [alertMessage, setAlertMessage] = useState('');
   const [scaleValue] = useState(new Animated.Value(1));
   const [mode, setMode] = useState(true);
-  const [trending, setTrending] = useState({});
+  // const [trending, setTrending] = useState({});
   const [activeTab, setActiveTab] = useState(null);
+  const [renderBottom, setRenderBottom] = useState(false);
   
   const { isUpdatePending } = useContext(UpdateContext);
   const isUpdatePendingRef = useRef(isUpdatePending);
 
-  const validTrendingKeys = trending ? Object.keys(trending).filter(key => trending[key] && trending[key].length > 0) : [];
+  const [state, dispatch] = useReducer(
+    (prevState, action) => {
+      switch (action.type) {
+        case 'SET_DATA':
+          return {
+            ...prevState,
+            ...action.payload,
+            isLoading: false,
+            isFetching: false,
+          };
+        case 'SET_LOADING':
+          return { ...prevState, isLoading: action.payload };
+        default:
+          return prevState;
+      }
+    },
+    {
+      cities: [],
+      routes: [],
+      bannerObject: {},
+      trending: {},
+      isLoading: true,
+      isFetching: true,
+    }
+  );
+  const { cities, routes, bannerObject, trending, isLoading, isFetching } = state;
+
+  const validTrendingKeys = useMemo(() => 
+    trending ? Object.keys(trending).filter(key => trending[key] && trending[key].length > 0) : [],
+  [trending]);
 
   useEffect(() => {
     isUpdatePendingRef.current = isUpdatePending;
@@ -171,6 +203,17 @@ const HomeScreen = ({navigation, route, ...props}) => {
       backHandler.remove();
     };
   }, []);
+
+  useEffect(() => {
+    if (isLoading) {
+      setRenderBottom(false);
+    } else {
+      const task = InteractionManager.runAfterInteractions(() => {
+        setRenderBottom(true);
+      });
+      return () => task.cancel();
+    }
+  }, [isLoading]);
 
   const ToNavigate = async () => {
     if (
@@ -213,7 +256,7 @@ const HomeScreen = ({navigation, route, ...props}) => {
     let isMounted = true; // flag to track if the component is mounted
 
     const init = async () => {
-      setIsLoading(true);
+      dispatch({type: 'SET_LOADING', payload: true});
       const selectedCity = await getSelectedCity();
       if (selectedCity) {
         setSindh({
@@ -229,7 +272,7 @@ const HomeScreen = ({navigation, route, ...props}) => {
         setCurrentCity(t('CITY.SINDHUDURG'));
       }
 
-      props.setLoader(true);
+      // props.setLoader(true);
       await AsyncStorage.setItem('isUpdated', 'false'); // Ensure await here
       checkToken(); // Ensure checkToken is a promise or add await if it's async
 
@@ -257,7 +300,7 @@ const HomeScreen = ({navigation, route, ...props}) => {
           if (mode) {
             await offlineClick();
           }
-          setIsLoading(false); // No loading if offline
+          dispatch({type: 'SET_LOADING', payload: false}); // No loading if offline
         }
 
         dataSync(
@@ -269,28 +312,31 @@ const HomeScreen = ({navigation, route, ...props}) => {
             if (resp) {
               const res = JSON.parse(resp);
               if (res && res.cities) {
-                setCities(res.cities);
-                setRoutes(res.routes);
-                setBannerObject(res.banners);
+                let newActiveTab = activeTab;
                 if (res.trending) {
-                  setTrending(res.trending);
                   const validKeys = Object.keys(res.trending).filter(k => res.trending[k]?.length > 0);
-                  if (validKeys.length > 0)
-                    setActiveTab(validKeys[0]);
+                  if (validKeys.length > 0) newActiveTab = validKeys[0];
                 }
-                setIsFetching(false);
-                setIsLoading(false);
+                setActiveTab(newActiveTab);
+
+                dispatch({
+                  type: 'SET_DATA',
+                  payload: {
+                    cities: res.cities,
+                    routes: res.routes,
+                    bannerObject: res.banners,
+                    trending: res.trending || {},
+                  },
+                });
                 props.setLoader(false);
               }
             } else {
               setOffline(true);
-              setIsFetching(false);
-              setIsLoading(false);
+              dispatch({type: 'SET_LOADING', payload: false});
             }
           } catch (error) {
             console.error('Error parsing response:', error);
-            setIsFetching(false);
-            setIsLoading(false);
+            dispatch({type: 'SET_LOADING', payload: false});
             setOffline(true);
           }
 
@@ -326,7 +372,7 @@ const HomeScreen = ({navigation, route, ...props}) => {
         const isUpdated = await AsyncStorage.getItem('isUpdated');
         checkToken();
         if (isUpdated === 'true' && props.mode) {
-          setCities([]);
+          // setCities([]);
           props.setLoader(true);
           await callLandingPageAPI(); // make sure to `await` this if it’s async
           const mode = JSON.parse(await getFromStorage(t('STORAGE.MODE')));
@@ -362,13 +408,27 @@ const HomeScreen = ({navigation, route, ...props}) => {
 
         const res = await comnPost('v2/landingpage', data, navigation);
 
+        console.log(res);
+        
         if (res && res.data.data) {
-          setOfflineData(res.data.data);
           i18n.changeLanguage(res.data.language);
-          setCities(res.data.data.cities);
-          // setProjects(res.data.data.projects);
-          setRoutes(res.data.data.routes);
-          setBannerObject(res.data.data.banners);
+          
+          let newActiveTab = activeTab;
+          if (res.data.data.trending) {
+             const validKeys = Object.keys(res.data.data.trending).filter(k => res.data.data.trending[k]?.length > 0);
+             if (validKeys.length > 0) newActiveTab = validKeys[0];
+          }
+          setActiveTab(newActiveTab);
+
+          dispatch({
+            type: 'SET_DATA',
+            payload: {
+              cities: res.data.data.cities,
+              routes: res.data.data.routes,
+              bannerObject: res.data.data.banners,
+              trending: res.data.data.trending || {},
+            },
+          });
 
           if (
             res.data.data.banners?.APP_SPLASH?.length > 0 &&
@@ -380,16 +440,8 @@ const HomeScreen = ({navigation, route, ...props}) => {
             splashShownRef.current = true;
           }
 
-          if (res.data.data.trending) {
-            setTrending(res.data.data.trending);
-            const validKeys = Object.keys(res.data.data.trending).filter(k => res.data.data.trending[k]?.length > 0);
-            if (validKeys.length > 0)
-              setActiveTab(validKeys[0]);
-          }
-          setIsFetching(false);
-          setIsLoading(false);
-          props.setLoader(false);
           setRefreshing(false);
+          props.setLoader(false);
 
           if (isFirstTime == 'true' && !isUpdatePendingRef.current) {
             // refRBSheet.current.open()
@@ -399,13 +451,17 @@ const HomeScreen = ({navigation, route, ...props}) => {
               JSON.stringify(false),
             );
           }
+
+          // Defer storage write to prevent UI jank
+          setTimeout(() => {
+            setOfflineData(res.data.data);
+          }, 2000);
         }
 
         await AsyncStorage.setItem('isUpdated', 'false');
       }
     } catch (error) {
-      setIsFetching(false);
-      setIsLoading(false);
+      dispatch({type: 'SET_LOADING', payload: false});
       props.setLoader(false);
       setRefreshing(false);
       setError(error.message);
@@ -471,9 +527,9 @@ const HomeScreen = ({navigation, route, ...props}) => {
   };
 
   const openProfile = () => {
-    setIsLoading(true);
+    dispatch({type: 'SET_LOADING', payload: true});
     navigateTo(navigation, t('SCREEN.PROFILE_VIEW'));
-    setIsLoading(false);
+    dispatch({type: 'SET_LOADING', payload: false});
   };
 
   const onCitySelect = async city => {
@@ -562,7 +618,7 @@ const HomeScreen = ({navigation, route, ...props}) => {
     }
   };
 
-  const getTabIcon = key => {
+  const getTabIcon = useCallback((key) => {
     let iconName = '';
     switch (key.toLowerCase()) {
       case 'hotels':
@@ -585,7 +641,32 @@ const HomeScreen = ({navigation, route, ...props}) => {
         style={{marginRight: 8}}
       />
     );
-  };
+  }, [activeTab]);
+
+  const renderTabItem = useCallback(({item: key}) => (
+    <TouchableOpacity
+      key={key}
+      onPress={() => setActiveTab(key)}
+      style={{
+        paddingVertical: 10,
+        paddingHorizontal: 15,
+        marginRight: 5,
+        borderBottomWidth: activeTab === key ? 2 : 0,
+        borderBottomColor: activeTab === key ? COLOR.themeBlue : 'transparent',
+        flexDirection: 'row',
+        alignItems: 'center',
+      }}>
+      {getTabIcon(key)}
+      <GlobalText
+        text={key.charAt(0).toUpperCase() + key.slice(1)}
+        style={{
+          color: activeTab === key ? COLOR.themeBlue : '#666',
+          fontWeight: activeTab === key ? 'bold' : 'normal',
+          fontSize: 14,
+        }}
+      />
+    </TouchableOpacity>
+  ), [activeTab, getTabIcon]);
 
   return (
     <>
@@ -633,58 +714,39 @@ const HomeScreen = ({navigation, route, ...props}) => {
             />
           )}
           <View style={{marginTop: 30, width: '100%'}}>
-            {isLoading ? (
+            {isLoading || !renderBottom ? (
               <TrendingSkeleton />
             ) : trending && validTrendingKeys.length > 0 ? (
               <View style={{width: '100%'}}>
-                <ScrollView
+                <FlatList
                   horizontal
+                  data={validTrendingKeys}
+                  renderItem={renderTabItem}
+                  keyExtractor={(item) => item}
                   showsHorizontalScrollIndicator={false}
                   contentContainerStyle={{paddingHorizontal: 10}}
-                  style={{marginBottom: 10}}>
-                  {validTrendingKeys.map((key, index) => (
-                    <TouchableOpacity
-                      key={key}
-                      onPress={() => setActiveTab(key)}
-                      style={{
-                        paddingVertical: 10,
-                        paddingHorizontal: 15,
-                        marginRight: 5,
-                        borderBottomWidth: activeTab === key ? 2 : 0,
-                        borderBottomColor:
-                          activeTab === key ? COLOR.themeBlue : 'transparent',
-                        flexDirection: 'row',
-                        alignItems: 'center',
-                      }}>
-                      {getTabIcon(key)}
-                      <GlobalText
-                        text={key.charAt(0).toUpperCase() + key.slice(1)}
-                        style={{
-                          color: activeTab === key ? COLOR.themeBlue : '#666',
-                          fontWeight: activeTab === key ? 'bold' : 'normal',
-                          fontSize: 14,
-                        }}
-                      />
-                    </TouchableOpacity>
-                  ))}
-                </ScrollView>
-                <ScrollView
+                  style={{marginBottom: 10}}
+                />
+                <FlatList
                   horizontal
+                  data={activeTab && trending[activeTab] ? trending[activeTab] : []}
+                  renderItem={({item, index}) => (
+                    <PackageCard
+                      key={`${item.id}_${index}`}
+                      data={item}
+                      navigation={navigation}
+                      isConnected={offline}
+                      cardType={'small'}
+                    />
+                  )}
+                  keyExtractor={(item, index) => `${item.id}_${index}`}
                   showsHorizontalScrollIndicator={false}
-                  contentContainerStyle={{paddingHorizontal: 5, paddingBottom: 10}}>
-                  {activeTab &&
-                    trending[activeTab] &&
-                    trending[activeTab].length > 0 &&
-                    trending[activeTab].map((item, index) => (
-                      <PackageCard
-                        key={`${item.id}_${index}`}
-                        data={item}
-                        navigation={navigation}
-                        isConnected={offline}
-                        cardType={'small'}
-                      />
-                    ))}
-                </ScrollView>
+                  initialNumToRender={3}
+                  windowSize={3}
+                  maxToRenderPerBatch={3}
+                  removeClippedSubviews={true}
+                  contentContainerStyle={{paddingHorizontal: 5, paddingBottom: 10}}
+                />
               </View>
             ) : null}
           </View>
@@ -740,7 +802,7 @@ const HomeScreen = ({navigation, route, ...props}) => {
               )}
             </View>
             <View style={styles.cardsWrap}>
-              {isLoading ? (
+              {isLoading || !renderBottom ? (
                 // Show skeleton loader when loading
                 <>
                   <RouteHeadCardSkeleton key="route-skeleton-1" />
@@ -749,7 +811,7 @@ const HomeScreen = ({navigation, route, ...props}) => {
                 </>
               ) : routes.length > 0 ? (
                 // Show routes if available
-                routes.map(
+                routes.slice(0, 3).map(
                   (route, index) =>
                     route && (
                       <RouteHeadCard
@@ -772,7 +834,7 @@ const HomeScreen = ({navigation, route, ...props}) => {
             </View>
           </View>
           <View style={styles.sectionView}>
-              {!isLoading &&
+              {!isLoading && renderBottom &&
                   bannerObject?.HOME_MIDDLE &&
                   bannerObject.HOME_MIDDLE.length > 0 && (
                     <View style={{marginTop: 20, width: '100%'}}>
@@ -824,14 +886,12 @@ const HomeScreen = ({navigation, route, ...props}) => {
                 </View>
               )}
               <View style={{flex: 1}}>
-                <ScrollView
-                  horizontal
-                  style={{marginLeft: 5}}
-                  showsHorizontalScrollIndicator={false}
-                  contentContainerStyle={{paddingBottom: 25, paddingRight: 10}}>
-                  {isLoading || cities.length === 0 ? (
-                    // Show skeleton loader when loading or when there are no cities
-                    <>
+                {isLoading || !renderBottom || cities.length === 0 ? (
+                  <ScrollView
+                    horizontal
+                    style={{marginLeft: 5}}
+                    showsHorizontalScrollIndicator={false}
+                    contentContainerStyle={{paddingBottom: 25, paddingRight: 10}}>
                       <PackageCardSkeleton
                         key="city-skeleton-1"
                         cardType={'small'}
@@ -844,24 +904,34 @@ const HomeScreen = ({navigation, route, ...props}) => {
                         key="city-skeleton-3"
                         cardType={'small'}
                       />
-                    </>
-                  ) : (
-                    // Show cities if available
-                    cities.map((city, index) => (
+                  </ScrollView>
+                ) : (
+                    <FlatList
+                      horizontal
+                      data={cities}
+                      renderItem={({item, index}) => (
                       <PackageCard
-                        key={`${city.id}_${index}`}
-                        data={city}
+                        key={`${item.id}_${index}`}
+                        data={item}
                         reload={() => {
                           callLandingPageAPI();
                         }}
                         navigation={navigation}
-                        onClick={() => getCityDetails(city)}
+                        onClick={() => getCityDetails(item)}
                         isConnected={offline}
                         cardType={'small'}
                       />
-                    ))
-                  )}
-                </ScrollView>
+                      )}
+                      keyExtractor={(item, index) => `${item.id}_${index}`}
+                      style={{marginLeft: 5}}
+                      showsHorizontalScrollIndicator={false}
+                      initialNumToRender={3}
+                      windowSize={3}
+                      maxToRenderPerBatch={3}
+                      removeClippedSubviews={true}
+                      contentContainerStyle={{paddingBottom: 25, paddingRight: 10}}
+                    />
+                )}
               </View>
             </View>
 
@@ -962,7 +1032,7 @@ const HomeScreen = ({navigation, route, ...props}) => {
           visible={showOnlineMode}
           toggleOverlay={() => setShowOnlineMode(false)}
         />
-        {!isLoading &&
+        {!isLoading && renderBottom &&
           bannerObject?.HOME_FOOTER &&
           bannerObject.HOME_FOOTER.length > 0 && (
             <View style={{width: '100%'}}>
