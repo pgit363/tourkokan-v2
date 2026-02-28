@@ -1,7 +1,6 @@
 import React, {useEffect, useState} from 'react';
-import {View, ImageBackground, TouchableOpacity, Share} from 'react-native';
+import {View, ImageBackground, TouchableOpacity} from 'react-native';
 import styles from './Styles';
-import Path from '../../Services/Api/BaseUrl';
 import GlobalText from '../Customs/Text';
 import ComingSoon from '../Common/ComingSoon';
 import Octicons from 'react-native-vector-icons/Octicons';
@@ -13,22 +12,31 @@ import {comnPost} from '../../Services/Api/CommonServices';
 import {useTranslation} from 'react-i18next';
 import {FTP_PATH} from '@env';
 
-const CityCard = ({data, reload, navigation, addComment, onClick}) => {
+const CityCard = ({data, reload, onClick, setLoader = () => {}}) => {
   const {t} = useTranslation();
 
-  const [isVisible, setIsVisible] = useState(false);
+  const [isVisible] = useState(false);
   const [isFav, setIsFav] = useState(data?.is_favorite);
   const [rating, setRating] = useState(data?.rating_avg_rate || 0);
-  const [commentCount, setCommentCount] = useState(data?.comment_count || 0);
+  const [commentCount] = useState(data?.comment_count || 0);
   const [rate, setRate] = useState(data?.rate?.rate || 0);
-  const [cardType, setCardType] = useState(data.category?.code);
+  const [cardType] = useState(data.category?.code);
+
+  const cardStyle = cardType === 'city' ? styles.cityCard : styles.placeCard;
+  const imageStyle = cardType === 'city' ? styles.cityImage : styles.placeImage;
+  const starViewStyle =
+    cardType === 'city' ? styles.cityStarView : styles.placeStarView;
+  const detailsOverlayStyle =
+    cardType === 'city' ? styles.cityDetailsOverlay : styles.placeDetailsOverlay;
+  const alignEndStyle = {alignItems: 'flex-end'};
+  const detailsHeaderStyle = {flexDirection: 'row', justifyContent: 'space-between'};
 
   useEffect(() => {
     setRating(data?.rating_avg_rate || 0);
-  }, [rate]);
+  }, [data?.rating_avg_rate]);
 
   const onHeartClick = async () => {
-    let placeData = {
+    const placeData = {
       user_id: await AsyncStorage.getItem(t('STORAGE.USER_ID')),
       favouritable_type: t('TABLE.SITE'),
       favouritable_id: data.id,
@@ -37,70 +45,50 @@ const CityCard = ({data, reload, navigation, addComment, onClick}) => {
     comnPost('v2/addDeleteFavourite', placeData)
       .then(res => {
         AsyncStorage.setItem('isUpdated', 'true');
-        props.setLoader(false);
+        setLoader(false);
         reload();
       })
-      .catch(err => {});
+      .catch(() => {});
   };
 
-  const onShareClick = async () => {
-    try {
-      const deepLink = `awesomeapp://citydetails?id=${data.id}`; // Replace with your custom scheme and path
-      const shareMessage = `Explore the details of this amazing city in TourKokan! 🌍🏙️ Check out what makes it unique and discover more about its culture, attractions, and hidden gems. Open the link to dive into the City Details now! 📱👀`;
-      const shareUrl = deepLink;
-      const result = await Share.share({
-        message: shareMessage,
-        url: shareUrl,
-      });
-
-      if (result.action === Share.sharedAction) {
-        console.log('Content shared successfully');
-      } else if (result.action === Share.dismissedAction) {
-        console.log('Share dismissed');
-      }
-    } catch (error) {
-      console.error('Error sharing content:', error.message);
-    }
-  };
-
-  const onStarRatingPress = async rate => {
-    setRate(rate);
+  const onStarRatingPress = async nextRate => {
+    setRate(nextRate);
     const placeData = {
       user_id: await AsyncStorage.getItem(t('STORAGE.USER_ID')),
       rateable_type: t('TABLE.SITE'),
       rateable_id: data.id,
-      rate,
+      rate: nextRate,
     };
     comnPost('v2/addUpdateRating', placeData)
       .then(res => {
         AsyncStorage.setItem('isUpdated', 'true');
-        props.setLoader(false);
+        setLoader(false);
         reload();
       })
-      .catch(err => {});
+      .catch(() => {});
   };
 
   return (
     <TouchableOpacity
-      style={cardType == 'city' ? styles.cityCard : styles.placeCard}
+      style={cardStyle}
       onPress={() => onClick()}>
       <View style={styles.cityOverlay} />
       {data.image ? (
         <ImageBackground
           source={{uri: FTP_PATH + data.image}}
-          style={cardType == 'city' ? styles.cityImage : styles.placeImage}
+          style={imageStyle}
           imageStyle={styles.cityImageStyle}
           resizeMode="cover"
         />
       ) : (
         <ImageBackground
           source={require('../../Assets/Images/no-image.png')}
-          style={cardType == 'city' ? styles.cityImage : styles.placeImage}
+          style={imageStyle}
           imageStyle={styles.cityImageStyle}
           resizeMode="cover"
         />
       )}
-      <View style={{alignItems: 'flex-end'}}>
+      <View style={alignEndStyle}>
         <TouchableOpacity
           style={styles.cityLikeView}
           onPress={() => onHeartClick()}>
@@ -130,8 +118,7 @@ const CityCard = ({data, reload, navigation, addComment, onClick}) => {
         </TouchableOpacity>
       </View>
 
-      <View
-        style={cardType == 'city' ? styles.cityStarView : styles.placeStarView}>
+      <View style={starViewStyle}>
         <StarRating
           rating={rate}
           onChange={onStarRatingPress}
@@ -140,17 +127,8 @@ const CityCard = ({data, reload, navigation, addComment, onClick}) => {
         />
       </View>
 
-      <View
-        style={
-          cardType == 'city'
-            ? styles.cityDetailsOverlay
-            : styles.placeDetailsOverlay
-        }>
-        <View
-          style={{
-            flexDirection: 'row',
-            justifyContent: 'space-between',
-          }}>
+      <View style={detailsOverlayStyle}>
+        <View style={detailsHeaderStyle}>
           <GlobalText text={data.name} style={styles.cityName} />
           <View>
             <GlobalText text={data.latitude} />
@@ -160,7 +138,7 @@ const CityCard = ({data, reload, navigation, addComment, onClick}) => {
         <View>
           <GlobalText
             text={`${
-              data.description != undefined
+              data.description !== undefined
                 ? data.description.slice(0, 80) + '...'
                 : ''
             }`}

@@ -1,8 +1,8 @@
 import React, {useEffect, useState, useRef, useContext, useReducer, useMemo, useCallback} from 'react';
+/* eslint-disable react-hooks/exhaustive-deps */
 import {
   View,
   ScrollView,
-  LogBox,
   BackHandler,
   KeyboardAvoidingView,
   RefreshControl,
@@ -11,7 +11,6 @@ import {
   Linking,
   Animated,
   TouchableOpacity,
-  Alert,
   Image,
   FlatList,
   InteractionManager,
@@ -25,7 +24,7 @@ import COLOR from '../Services/Constants/COLORS';
 import Feather from 'react-native-vector-icons/Feather';
 import {
   comnPost,
-  dataSync,
+  dataSyncResult,
   getFromStorage,
   saveToStorage,
 } from '../Services/Api/CommonServices';
@@ -34,7 +33,7 @@ import {
   saveAccess_token,
   setDestination,
   setLoader,
-  setMode,
+  setMode as setModeAction,
   setSource,
 } from '../Reducers/CommonActions';
 // import * as SplashScreen from 'expo-splash-screen';
@@ -51,8 +50,6 @@ import RouteHeadCardSkeleton from '../Components/Cards/RouteHeadCardSkeleton';
 import {Overlay, Skeleton} from '@rneui/themed';
 import SearchPanelSkeleton from '../Components/Common/SearchPanelSkeleton';
 import TopComponentSkeleton from '../Components/Common/TopComponentSkeleton';
-import CityCardSmall from '../Components/Cards/CityCardSmall';
-import CityCardSmallSkeleton from '../Components/Cards/CityCardSmallSkeleton';
 import {useTranslation} from 'react-i18next';
 import {useFocusEffect} from '@react-navigation/native';
 import BannerSkeleton from '../Components/Customs/BannerSkeleton';
@@ -65,8 +62,7 @@ import FontAwesome5Icon from 'react-native-vector-icons/FontAwesome5';
 import {FTP_PATH} from '@env';
 import PackageCard from '../Components/Cards/PackageCard';
 import PackageCardSkeleton from '../Components/Cards/PackageCardSkeleton';
-import ProjectCard from '../Components/Cards/ProjectCard';
-import { UpdateContext } from '../Context/UpdateContext';
+import {UpdateContext} from '../Context/UpdateContext';
 import TrendingSkeleton from '../Components/Customs/TrendingSkeleton';
 
 // SplashScreen.preventAutoHideAsync();
@@ -75,21 +71,12 @@ const HomeScreen = ({navigation, route, ...props}) => {
   const {t, i18n} = useTranslation();
   const refRBSheet = useRef();
 
-  const [searchValue, setSearchValue] = useState('');
-  // const [categories, setCategories] = useState([]);
-  // const [cities, setCities] = useState([]);
-  const [projects, setProjects] = useState([]);
-  const [stops, setStops] = useState([]);
-  const [place_category, setPlace_category] = useState([]);
-  const [places, setPlaces] = useState([]);
-  // const [routes, setRoutes] = useState([]);
-  const [error, setError] = useState(null);
-  const [cityList, setCityList] = useState([]);
+  const [, setError] = useState(null);
   // const [isLoading, setIsLoading] = useState(true);
   const [isLandingDataFetched, setIsLandingDataFetched] = useState(false);
   const [offline, setOffline] = useState(false);
   // const [isFetching, setIsFetching] = useState(true);
-  const [bannerImages, setBannerImages] = useState([
+  const [bannerImages] = useState([
     {
       id: 1,
       name: 'Angnewadi Yatra 2024',
@@ -125,16 +112,15 @@ const HomeScreen = ({navigation, route, ...props}) => {
   const [modePopup, setModePopup] = useState(false);
   const [showOffline, setShowOffline] = useState(false);
   const [showOnlineMode, setShowOnlineMode] = useState(false);
-  const [isInitialLoad, setIsInitialLoad] = useState(true);
   const [isAlert, setIsAlert] = useState(false);
   const [alertMessage, setAlertMessage] = useState('');
   const [scaleValue] = useState(new Animated.Value(1));
-  const [mode, setMode] = useState(true);
+  const [mode, setLocalMode] = useState(true);
   // const [trending, setTrending] = useState({});
   const [activeTab, setActiveTab] = useState(null);
   const [renderBottom, setRenderBottom] = useState(false);
-  
-  const { isUpdatePending } = useContext(UpdateContext);
+
+  const {isUpdatePending} = useContext(UpdateContext);
   const isUpdatePendingRef = useRef(isUpdatePending);
 
   const [state, dispatch] = useReducer(
@@ -162,11 +148,15 @@ const HomeScreen = ({navigation, route, ...props}) => {
       isFetching: true,
     }
   );
-  const { cities, routes, bannerObject, trending, isLoading, isFetching } = state;
+  const {cities, routes, bannerObject, trending, isLoading} = state;
 
-  const validTrendingKeys = useMemo(() => 
-    trending ? Object.keys(trending).filter(key => trending[key] && trending[key].length > 0) : [],
-  [trending]);
+  const validTrendingKeys = useMemo(
+    () =>
+      trending
+        ? Object.keys(trending).filter(key => trending[key] && trending[key].length > 0)
+        : [],
+    [trending],
+  );
 
   useEffect(() => {
     isUpdatePendingRef.current = isUpdatePending;
@@ -216,9 +206,10 @@ const HomeScreen = ({navigation, route, ...props}) => {
   }, [isLoading]);
 
   const ToNavigate = async () => {
+    const accessToken = await AsyncStorage.getItem(t('STORAGE.ACCESS_TOKEN'));
     if (
-      (await AsyncStorage.getItem(t('STORAGE.ACCESS_TOKEN'))) == null ||
-      (await AsyncStorage.getItem(t('STORAGE.ACCESS_TOKEN'))) == ''
+      accessToken === null ||
+      accessToken === ''
     ) {
       navigateTo(navigation, t('SCREEN.EMAIL'));
     } else {
@@ -288,34 +279,42 @@ const HomeScreen = ({navigation, route, ...props}) => {
         exitApp,
       );
 
-      const unsubscribe = NetInfo.addEventListener(async state => {
-        if (!isMounted) return; // Prevents updating state after component unmount
-
-        setOffline(!state.isConnected);
+      const unsubscribe = NetInfo.addEventListener(async netState => {
+        if (!isMounted) {
+          return;
+        } // Prevents updating state after component unmount
+        setOffline(!netState.isConnected);
         // Avoid setting loading on every network change unless needed
 
-        const mode = JSON.parse(await getFromStorage(t('STORAGE.MODE')));
-        setMode(mode);
-        if (!state.isConnected) {
-          if (mode) {
+        const storedMode = JSON.parse(await getFromStorage(t('STORAGE.MODE')));
+        setLocalMode(storedMode);
+        if (!netState.isConnected) {
+          if (storedMode) {
             await offlineClick();
           }
           dispatch({type: 'SET_LOADING', payload: false}); // No loading if offline
         }
 
-        dataSync(
+        dataSyncResult(
           t('STORAGE.LANDING_RESPONSE'),
           () => callLandingPageAPI(),
-          mode,
-        ).then(resp => {
+          storedMode,
+        ).then(result => {
+          if (result.source === 'network') {
+            return;
+          }
+
+          const resp = result.data;
           try {
             if (resp) {
-              const res = JSON.parse(resp);
+              const res = typeof resp === 'string' ? JSON.parse(resp) : resp;
               if (res && res.cities) {
                 let newActiveTab = activeTab;
                 if (res.trending) {
                   const validKeys = Object.keys(res.trending).filter(k => res.trending[k]?.length > 0);
-                  if (validKeys.length > 0) newActiveTab = validKeys[0];
+                  if (validKeys.length > 0) {
+                    newActiveTab = validKeys[0];
+                  }
                 }
                 setActiveTab(newActiveTab);
 
@@ -328,14 +327,13 @@ const HomeScreen = ({navigation, route, ...props}) => {
                     trending: res.trending || {},
                   },
                 });
-                props.setLoader(false);
               }
             } else {
               setOffline(true);
               dispatch({type: 'SET_LOADING', payload: false});
             }
-          } catch (error) {
-            console.error('Error parsing response:', error);
+          } catch (parseError) {
+            console.error('Error parsing response:', parseError);
             dispatch({type: 'SET_LOADING', payload: false});
             setOffline(true);
           }
@@ -373,10 +371,9 @@ const HomeScreen = ({navigation, route, ...props}) => {
         checkToken();
         if (isUpdated === 'true' && props.mode) {
           // setCities([]);
-          props.setLoader(true);
           await callLandingPageAPI(); // make sure to `await` this if it’s async
-          const mode = JSON.parse(await getFromStorage(t('STORAGE.MODE')));
-          setMode(mode);
+          const storedMode = JSON.parse(await getFromStorage(t('STORAGE.MODE')));
+          setLocalMode(storedMode);
         }
       };
 
@@ -384,15 +381,14 @@ const HomeScreen = ({navigation, route, ...props}) => {
 
       // Optional cleanup function (if needed)
       return () => {};
-    }, [props.mode, isInitialLoad]),
+    }, [props.mode]),
   );
 
   const callLandingPageAPI = async site_id => {
     try {
       let isFirstTime = await getFromStorage(t('STORAGE.IS_FIRST_TIME'));
-      let mode = JSON.parse(await getFromStorage(t('STORAGE.MODE')));
-
-      if (mode) {
+      const storedMode = JSON.parse(await getFromStorage(t('STORAGE.MODE')));
+      if (storedMode) {
         const selectedCity = await getSelectedCity();
         let data;
         if (selectedCity) {
@@ -409,14 +405,16 @@ const HomeScreen = ({navigation, route, ...props}) => {
         const res = await comnPost('v2/landingpage', data, navigation);
 
         console.log(res);
-        
+
         if (res && res.data.data) {
           i18n.changeLanguage(res.data.language);
-          
+
           let newActiveTab = activeTab;
           if (res.data.data.trending) {
              const validKeys = Object.keys(res.data.data.trending).filter(k => res.data.data.trending[k]?.length > 0);
-             if (validKeys.length > 0) newActiveTab = validKeys[0];
+             if (validKeys.length > 0) {
+               newActiveTab = validKeys[0];
+             }
           }
           setActiveTab(newActiveTab);
 
@@ -441,9 +439,8 @@ const HomeScreen = ({navigation, route, ...props}) => {
           }
 
           setRefreshing(false);
-          props.setLoader(false);
 
-          if (isFirstTime == 'true' && !isUpdatePendingRef.current) {
+          if (isFirstTime === 'true' && !isUpdatePendingRef.current) {
             // refRBSheet.current.open()
             setModePopup(true);
             await AsyncStorage.setItem(
@@ -460,11 +457,10 @@ const HomeScreen = ({navigation, route, ...props}) => {
 
         await AsyncStorage.setItem('isUpdated', 'false');
       }
-    } catch (error) {
+    } catch (apiError) {
       dispatch({type: 'SET_LOADING', payload: false});
-      props.setLoader(false);
       setRefreshing(false);
-      setError(error.message);
+      setError(apiError.message);
     } finally {
       props.setLoader(false);
     }
@@ -472,8 +468,8 @@ const HomeScreen = ({navigation, route, ...props}) => {
 
   const checkToken = async () => {
     if (
-      (await AsyncStorage.getItem(t('STORAGE.ACCESS_TOKEN'))) == null ||
-      (await AsyncStorage.getItem(t('STORAGE.ACCESS_TOKEN'))) == ''
+      (await AsyncStorage.getItem(t('STORAGE.ACCESS_TOKEN'))) === null ||
+      (await AsyncStorage.getItem(t('STORAGE.ACCESS_TOKEN'))) === ''
     ) {
       navigateTo(navigation, t('SCREEN.EMAIL'));
     }
@@ -502,17 +498,13 @@ const HomeScreen = ({navigation, route, ...props}) => {
     }
   };
 
-  const getRoutesList = item => {
+  const getRoutesList = useCallback(item => {
     navigateTo(navigation, t('SCREEN.ROUTES_LIST'), {item});
-  };
+  }, [navigation, t]);
 
-  const showMore = (page, subCat) => {
+  const showMore = useCallback((page, subCat) => {
     navigateTo(navigation, page, {from: t('SCREEN.HOME'), subCat});
-  };
-
-  const onSearchFocus = () => {
-    navigateTo(navigation, t('SCREEN.CITY_PLACE_SEARCH'));
-  };
+  }, [navigation, t]);
 
   const openLocationSheet = () => {
     refRBSheet.current.open();
@@ -522,9 +514,9 @@ const HomeScreen = ({navigation, route, ...props}) => {
     refRBSheet.current.close();
   };
 
-  const getCityDetails = city => {
+  const getCityDetails = useCallback(city => {
     navigateTo(navigation, t('SCREEN.CITY_DETAILS'), {city});
-  };
+  }, [navigation, t]);
 
   const openProfile = () => {
     dispatch({type: 'SET_LOADING', payload: true});
@@ -533,35 +525,24 @@ const HomeScreen = ({navigation, route, ...props}) => {
   };
 
   const onCitySelect = async city => {
-    // Retrieve previously selected city details
-    const selectedCityId = JSON.parse(
-      await getFromStorage(t('STORAGE.SELECTED_CITY_ID')),
-    );
-    const selectedCityName = JSON.parse(
-      await getFromStorage(t('STORAGE.SELECTED_CITY_NAME')),
-    );
-
-    // Retrieve the app's mode
-    const mode = JSON.parse(await getFromStorage(t('STORAGE.MODE')));
-
-    // Check the internet connectivity state
-    const state = await NetInfo.fetch();
-    const isConnected = state.isConnected;
+    const storedMode = JSON.parse(await getFromStorage(t('STORAGE.MODE')));
+    const netState = await NetInfo.fetch();
+    const isConnected = netState.isConnected;
 
     // Combined condition for all three cases
     if (
-      (isConnected && !mode) || // Case 1: Internet is available but mode is offline
-      (!isConnected && !mode) || // Case 2: Internet is not available and mode is offline
-      (!isConnected && mode) && !isUpdatePendingRef.current // Case 3: Internet is not available but mode is online
+      (isConnected && !storedMode) || // Case 1: Internet is available but mode is offline
+      (!isConnected && !storedMode) || // Case 2: Internet is not available and mode is offline
+      (!isConnected && storedMode) && !isUpdatePendingRef.current // Case 3: Internet is not available but mode is online
     ) {
       // Alert the user based on their mode and connectivity status
       setIsAlert(true);
       setAlertMessage(
-        !isConnected && !mode
+        !isConnected && !storedMode
           ? t('ALERT.NETWORK') // No internet and mode is offline
-          : !isConnected && mode
+          : !isConnected && storedMode
           ? t('ALERT.NO_INTERNET_AVAILABLE_MODE_ONLINE') // No internet but mode is online
-          : isConnected && !mode
+          : isConnected && !storedMode
           ? t('ALERT.INTERNET_AVAILABLE_MODE_OFFLINE') // Internet is available but mode is offline
           : '', // Default case (optional)
       );
@@ -581,12 +562,6 @@ const HomeScreen = ({navigation, route, ...props}) => {
     callLandingPageAPI(city.id);
   };
 
-  const onlineClick = () => {
-    saveToStorage(t('STORAGE.MODE'), JSON.stringify(true));
-    props.setMode(true);
-    setModePopup(false);
-  };
-
   const offlineClick = () => {
     saveToStorage(t('STORAGE.MODE'), JSON.stringify(false));
     props.setMode(false);
@@ -600,7 +575,7 @@ const HomeScreen = ({navigation, route, ...props}) => {
 
   const changeMode = val => {
     saveToStorage(t('STORAGE.MODE'), JSON.stringify(val));
-    setMode(val);
+    setLocalMode(val);
     Animated.spring(scaleValue, {
       toValue: 1.1,
       friction: 2,
@@ -616,6 +591,98 @@ const HomeScreen = ({navigation, route, ...props}) => {
     if (!val) {
       setShowOffline(true);
     }
+  };
+
+  const tabIconStyle = {marginRight: 8};
+  const trendingTabItemStyle = {
+    paddingVertical: 10,
+    paddingHorizontal: 15,
+    marginRight: 5,
+    flexDirection: 'row',
+    alignItems: 'center',
+  };
+  const trendingTabItemActiveStyle = {
+    borderBottomWidth: 2,
+    borderBottomColor: COLOR.themeBlue,
+  };
+  const trendingTabItemInactiveStyle = {
+    borderBottomWidth: 0,
+    borderBottomColor: 'transparent',
+  };
+  const trendingTabTextStyle = {
+    fontSize: 14,
+  };
+  const trendingTabTextActiveStyle = {
+    color: COLOR.themeBlue,
+    fontWeight: 'bold',
+  };
+  const trendingTabTextInactiveStyle = {
+    color: '#666',
+    fontWeight: 'normal',
+  };
+  const safeAreaStyle = {backgroundColor: COLOR.white, zIndex: 1000, elevation: 1000};
+  const scrollViewStyle = {backgroundColor: COLOR.white};
+  const mainContainerStyle = {flex: 1, alignItems: 'center'};
+  const heroBannerStyle = {height: DIMENSIONS.windowWidth / 1.5};
+  const trendingSectionStyle = {marginTop: 30, width: '100%'};
+  const fullWidthStyle = {width: '100%'};
+  const trendingTabsContentStyle = {paddingHorizontal: 10};
+  const trendingTabsStyle = {marginBottom: 10};
+  const trendingCardsContentStyle = {paddingHorizontal: 5, paddingBottom: 10};
+  const keyboardAvoidingStyle = {zIndex: 10};
+  const skeletonTextStyle = {width: 100, height: 30};
+  const middleBannerContainerStyle = {marginTop: 20, width: '100%'};
+  const secondaryBannerStyle = {height: DIMENSIONS.windowWidth / 3, marginBottom: 0};
+  const sectionWithBottomPadding = {paddingBottom: 25};
+  const cityHeaderRowStyle = {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 20,
+    width: '100%',
+  };
+  const cityTitleContainerStyle = {
+    width: 40,
+    justifyContent: 'center',
+    alignItems: 'center',
+  };
+  const cityTitleStyle = {
+    transform: [{rotate: '-90deg'}],
+    width: 150,
+    textAlign: 'center',
+  };
+  const flexOneStyle = {flex: 1};
+  const horizontalOffsetStyle = {marginLeft: 5};
+  const cityListContentStyle = {paddingBottom: 25, paddingRight: 10};
+  const modeOptionsStyle = {
+    flexDirection: 'column',
+    alignItems: 'center',
+    marginTop: 20,
+  };
+  const splashOverlayStyle = {
+    padding: 0,
+    backgroundColor: 'transparent',
+    elevation: 0,
+  };
+  const splashContainerStyle = {
+    width: DIMENSIONS.screenWidth * 0.85,
+    height: DIMENSIONS.screenHeight * 0.7,
+    alignItems: 'center',
+    justifyContent: 'center',
+  };
+  const splashCloseButtonStyle = {
+    position: 'absolute',
+    top: -15,
+    right: -15,
+    zIndex: 10,
+    backgroundColor: COLOR.white,
+    borderRadius: 20,
+  };
+  const fullSizeStyle = {width: '100%', height: '100%'};
+  const splashImageStyle = {
+    width: '100%',
+    height: '100%',
+    borderRadius: 10,
+    resizeMode: 'cover',
   };
 
   const getTabIcon = useCallback((key) => {
@@ -638,7 +705,7 @@ const HomeScreen = ({navigation, route, ...props}) => {
         name={iconName}
         size={14}
         color={activeTab === key ? COLOR.themeBlue : '#666'}
-        style={{marginRight: 8}}
+        style={tabIconStyle}
       />
     );
   }, [activeTab]);
@@ -647,42 +714,73 @@ const HomeScreen = ({navigation, route, ...props}) => {
     <TouchableOpacity
       key={key}
       onPress={() => setActiveTab(key)}
-      style={{
-        paddingVertical: 10,
-        paddingHorizontal: 15,
-        marginRight: 5,
-        borderBottomWidth: activeTab === key ? 2 : 0,
-        borderBottomColor: activeTab === key ? COLOR.themeBlue : 'transparent',
-        flexDirection: 'row',
-        alignItems: 'center',
-      }}>
+      style={[
+        trendingTabItemStyle,
+        activeTab === key ? trendingTabItemActiveStyle : trendingTabItemInactiveStyle,
+      ]}>
       {getTabIcon(key)}
       <GlobalText
         text={key.charAt(0).toUpperCase() + key.slice(1)}
-        style={{
-          color: activeTab === key ? COLOR.themeBlue : '#666',
-          fontWeight: activeTab === key ? 'bold' : 'normal',
-          fontSize: 14,
-        }}
+        style={[
+          trendingTabTextStyle,
+          activeTab === key ? trendingTabTextActiveStyle : trendingTabTextInactiveStyle,
+        ]}
       />
     </TouchableOpacity>
   ), [activeTab, getTabIcon]);
 
+  const trendingItems = useMemo(
+    () => (activeTab && trending[activeTab] ? trending[activeTab] : []),
+    [activeTab, trending],
+  );
+
+  const renderTrendingCard = useCallback(
+    ({item, index}) => (
+      <PackageCard
+        key={`${item.id}_${index}`}
+        data={item}
+        navigation={navigation}
+        isConnected={offline}
+        cardType={'small'}
+      />
+    ),
+    [navigation, offline],
+  );
+
+  const renderCityCard = useCallback(
+    ({item, index}) => (
+      <PackageCard
+        key={`${item.id}_${index}`}
+        data={item}
+        navigation={navigation}
+        onClick={() => getCityDetails(item)}
+        isConnected={offline}
+        cardType={'small'}
+      />
+    ),
+    [navigation, offline, getCityDetails],
+  );
+
+  const topCities = useMemo(() => [sindhudurg, ...cities], [sindhudurg, cities]);
+  const handleTopModeChange = useCallback(v => setLocalMode(v), []);
+  const handleTopCityChange = useCallback(v => onCitySelect(v), [onCitySelect]);
+  const handleTopProfileOpen = useCallback(() => openProfile(), []);
+
   return (
     <>
-      <SafeAreaView edges={['top']} style={{backgroundColor: COLOR.white, zIndex: 1000, elevation: 1000}}>
+      <SafeAreaView edges={['top']} style={safeAreaStyle}>
         {isLoading ? (
           <TopComponentSkeleton />
         ) : (
           <TopComponent
             mode={mode}
-            setMode={v => setMode(v)}
-            cities={[sindhudurg, ...cities]}
+            setMode={handleTopModeChange}
+            cities={topCities}
             currentCity={currentCity}
-            setCurrentCity={v => onCitySelect(v)}
+            setCurrentCity={handleTopCityChange}
             navigation={navigation}
-            openLocationSheet={() => openLocationSheet()}
-            gotoProfile={() => openProfile()}
+            openLocationSheet={openLocationSheet}
+            gotoProfile={handleTopProfileOpen}
           />
         )}
       </SafeAreaView>
@@ -692,60 +790,52 @@ const HomeScreen = ({navigation, route, ...props}) => {
         extraHeight={DIMENSIONS.halfHeight}
         enableOnAndroid={true}
         stickyHeaderIndices={[0]}
-        style={{backgroundColor: COLOR.white}}
+        style={scrollViewStyle}
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }>
         <CheckNet isOff={offline} />
         {/* <MyAnimatedLoader isVisible={isLoading} /> */}
         {!isLoading && <Loader />}
-        <View style={{flex: 1, alignItems: 'center'}}>
+        <View style={mainContainerStyle}>
           {isLoading ? (
             <BannerSkeleton />
           ) : bannerObject?.HOME_HERO && bannerObject.HOME_HERO.length > 0 ? (
             <Banner
               bannerImages={bannerObject.HOME_HERO}
-              style={{height: DIMENSIONS.windowWidth / 1.5}}
+              style={heroBannerStyle}
             />
           ) : (
             <Banner
               bannerImages={bannerImages}
-              style={{height: DIMENSIONS.windowWidth / 1.5}}
+              style={heroBannerStyle}
             />
           )}
-          <View style={{marginTop: 30, width: '100%'}}>
+          <View style={trendingSectionStyle}>
             {isLoading || !renderBottom ? (
               <TrendingSkeleton />
             ) : trending && validTrendingKeys.length > 0 ? (
-              <View style={{width: '100%'}}>
+              <View style={fullWidthStyle}>
                 <FlatList
                   horizontal
                   data={validTrendingKeys}
                   renderItem={renderTabItem}
                   keyExtractor={(item) => item}
                   showsHorizontalScrollIndicator={false}
-                  contentContainerStyle={{paddingHorizontal: 10}}
-                  style={{marginBottom: 10}}
+                  contentContainerStyle={trendingTabsContentStyle}
+                  style={trendingTabsStyle}
                 />
                 <FlatList
                   horizontal
-                  data={activeTab && trending[activeTab] ? trending[activeTab] : []}
-                  renderItem={({item, index}) => (
-                    <PackageCard
-                      key={`${item.id}_${index}`}
-                      data={item}
-                      navigation={navigation}
-                      isConnected={offline}
-                      cardType={'small'}
-                    />
-                  )}
+                  data={trendingItems}
+                  renderItem={renderTrendingCard}
                   keyExtractor={(item, index) => `${item.id}_${index}`}
                   showsHorizontalScrollIndicator={false}
                   initialNumToRender={3}
                   windowSize={3}
                   maxToRenderPerBatch={3}
                   removeClippedSubviews={true}
-                  contentContainerStyle={{paddingHorizontal: 5, paddingBottom: 10}}
+                  contentContainerStyle={trendingCardsContentStyle}
                 />
               </View>
             ) : null}
@@ -761,7 +851,7 @@ const HomeScreen = ({navigation, route, ...props}) => {
                             );
                         })} */}
           <KeyboardAvoidingView
-            style={{zIndex: 10}}
+            style={keyboardAvoidingStyle}
             behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
             keyboardVerticalOffset={keyboardOffset}>
             {isLoading ? (
@@ -781,12 +871,12 @@ const HomeScreen = ({navigation, route, ...props}) => {
                   <Skeleton
                     animation="pulse"
                     variant="text"
-                    style={{width: 100, height: 30}}
+                      style={skeletonTextStyle}
                   />
                   <Skeleton
                     animation="pulse"
                     variant="text"
-                    style={{width: 100, height: 30}}
+                      style={skeletonTextStyle}
                   />
                 </View>
               ) : (
@@ -812,13 +902,13 @@ const HomeScreen = ({navigation, route, ...props}) => {
               ) : routes.length > 0 ? (
                 // Show routes if available
                 routes.slice(0, 3).map(
-                  (route, index) =>
-                    route && (
+                  (routeItem, index) =>
+                    routeItem && (
                       <RouteHeadCard
-                        key={`${route?.id}_${index}`}
-                        data={route}
+                        key={`${routeItem?.id}_${index}`}
+                        data={routeItem}
                         bus={'Hirkani'}
-                        cardClick={() => getRoutesList(route)}
+                        cardClick={() => getRoutesList(routeItem)}
                       />
                     ),
                 )
@@ -837,10 +927,10 @@ const HomeScreen = ({navigation, route, ...props}) => {
               {!isLoading && renderBottom &&
                   bannerObject?.HOME_MIDDLE &&
                   bannerObject.HOME_MIDDLE.length > 0 && (
-                    <View style={{marginTop: 20, width: '100%'}}>
+                    <View style={middleBannerContainerStyle}>
                       <Banner
                         bannerImages={bannerObject.HOME_MIDDLE}
-                        style={{height: DIMENSIONS.windowWidth / 3, marginBottom: 0}}
+                        style={secondaryBannerStyle}
                       />
                     </View>
               )}
@@ -857,41 +947,27 @@ const HomeScreen = ({navigation, route, ...props}) => {
               />
             ))}
           </View> */}
-          <View style={[styles.sectionView, {paddingBottom: 25}]}>
-            <View
-              style={{
-                flexDirection: 'row',
-                alignItems: 'center',
-                marginTop: 20,
-                width: '100%',
-              }}>
-              {!isLoading && (
-                <View
-                  style={{
-                    width: 40,
-                    justifyContent: 'center',
-                    alignItems: 'center',
-                  }}>
-                  <GlobalText
-                    text={t('CITIES')}
-                    style={[
-                      styles.sectionTitle,
-                      {
-                        transform: [{rotate: '-90deg'}],
-                        width: 150,
-                        textAlign: 'center',
-                      },
-                    ]}
-                  />
-                </View>
-              )}
-              <View style={{flex: 1}}>
-                {isLoading || !renderBottom || cities.length === 0 ? (
-                  <ScrollView
-                    horizontal
-                    style={{marginLeft: 5}}
-                    showsHorizontalScrollIndicator={false}
-                    contentContainerStyle={{paddingBottom: 25, paddingRight: 10}}>
+            <View style={[styles.sectionView, sectionWithBottomPadding]}>
+              <View
+                style={cityHeaderRowStyle}>
+                {!isLoading && (
+                  <View style={cityTitleContainerStyle}>
+                    <GlobalText
+                      text={t('CITIES')}
+                      style={[
+                        styles.sectionTitle,
+                        cityTitleStyle,
+                      ]}
+                    />
+                  </View>
+                )}
+                <View style={flexOneStyle}>
+                  {isLoading || !renderBottom || cities.length === 0 ? (
+                    <ScrollView
+                      horizontal
+                      style={horizontalOffsetStyle}
+                      showsHorizontalScrollIndicator={false}
+                      contentContainerStyle={cityListContentStyle}>
                       <PackageCardSkeleton
                         key="city-skeleton-1"
                         cardType={'small'}
@@ -909,27 +985,15 @@ const HomeScreen = ({navigation, route, ...props}) => {
                     <FlatList
                       horizontal
                       data={cities}
-                      renderItem={({item, index}) => (
-                      <PackageCard
-                        key={`${item.id}_${index}`}
-                        data={item}
-                        reload={() => {
-                          callLandingPageAPI();
-                        }}
-                        navigation={navigation}
-                        onClick={() => getCityDetails(item)}
-                        isConnected={offline}
-                        cardType={'small'}
-                      />
-                      )}
+                      renderItem={renderCityCard}
                       keyExtractor={(item, index) => `${item.id}_${index}`}
-                      style={{marginLeft: 5}}
+                        style={horizontalOffsetStyle}
                       showsHorizontalScrollIndicator={false}
                       initialNumToRender={3}
                       windowSize={3}
                       maxToRenderPerBatch={3}
                       removeClippedSubviews={true}
-                      contentContainerStyle={{paddingBottom: 25, paddingRight: 10}}
+                        contentContainerStyle={cityListContentStyle}
                     />
                 )}
               </View>
@@ -966,12 +1030,12 @@ const HomeScreen = ({navigation, route, ...props}) => {
           Component={
             <LocationSheet
               setCurrentCity={name => setCurrentCity(name)}
-              openLocationSheet={() => openLocationSheet()}
-              closeLocationSheet={() => closeLocationSheet()}
+              openLocationSheet={openLocationSheet}
+              closeLocationSheet={closeLocationSheet}
             />
           }
-          openLocationSheet={() => openLocationSheet()}
-          closeLocationSheet={() => closeLocationSheet()}
+          openLocationSheet={openLocationSheet}
+          closeLocationSheet={closeLocationSheet}
         />
 
         <Overlay
@@ -981,11 +1045,7 @@ const HomeScreen = ({navigation, route, ...props}) => {
           <View style={styles.modeScreen}>
             <GlobalText text={t('APP_USAGE')} style={styles.sectionTitle} />
             <View
-              style={{
-                flexDirection: 'column',
-                alignItems: 'center',
-                marginTop: 20,
-              }}>
+                style={modeOptionsStyle}>
               <View style={styles.toggleContainer}>
                 <TouchableOpacity onPress={() => changeMode(true)}>
                   <Animated.View
@@ -1035,39 +1095,22 @@ const HomeScreen = ({navigation, route, ...props}) => {
         {!isLoading && renderBottom &&
           bannerObject?.HOME_FOOTER &&
           bannerObject.HOME_FOOTER.length > 0 && (
-            <View style={{width: '100%'}}>
-              <Banner
-                bannerImages={bannerObject.HOME_FOOTER}
-                style={{height: DIMENSIONS.windowWidth / 3, marginBottom: 0}}
-              />
-            </View>
+              <View style={fullWidthStyle}>
+                <Banner
+                  bannerImages={bannerObject.HOME_FOOTER}
+                  style={secondaryBannerStyle}
+                />
+              </View>
           )}
       </KeyboardAwareScrollView>
       <Overlay
         isVisible={showSplash}
         onBackdropPress={() => setShowSplash(false)}
-        overlayStyle={{
-          padding: 0,
-          backgroundColor: 'transparent',
-          elevation: 0,
-        }}>
-        <View
-          style={{
-            width: DIMENSIONS.screenWidth * 0.85,
-            height: DIMENSIONS.screenHeight * 0.7,
-            alignItems: 'center',
-            justifyContent: 'center',
-          }}>
+          overlayStyle={splashOverlayStyle}>
+          <View style={splashContainerStyle}>
           <TouchableOpacity
             onPress={() => setShowSplash(false)}
-            style={{
-              position: 'absolute',
-              top: -15,
-              right: -15,
-              zIndex: 10,
-              backgroundColor: 'white',
-              borderRadius: 20,
-            }}>
+              style={splashCloseButtonStyle}>
             <Feather name="x-circle" size={30} color="black" />
           </TouchableOpacity>
           {splashBanner[0] && (
@@ -1079,19 +1122,14 @@ const HomeScreen = ({navigation, route, ...props}) => {
                   setShowSplash(false);
                 }
               }}
-              style={{width: '100%', height: '100%'}}>
+                style={fullSizeStyle}>
             <Image
               source={{
                 uri: splashBanner[0].image.startsWith('http')
                   ? splashBanner[0].image
                   : FTP_PATH + splashBanner[0].image,
               }}
-              style={{
-                width: '100%',
-                height: '100%',
-                borderRadius: 10,
-                resizeMode: 'cover',
-              }}
+                style={splashImageStyle}
             />
             </TouchableOpacity>
           )}
@@ -1117,7 +1155,7 @@ const mapDispatchToProps = dispatch => {
       dispatch(setLoader(data));
     },
     setMode: data => {
-      dispatch(setMode(data));
+      dispatch(setModeAction(data));
     },
     setSource: data => {
       dispatch(setSource(data));

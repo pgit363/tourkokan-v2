@@ -10,8 +10,8 @@ const TextField = props => {
   const [value, setValue] = useState('');
   let x = {};
 
-  const onChange = value => {
-    let txtVal = value.trimLeft();
+  const onChange = inputValue => {
+    let txtVal = inputValue.trimLeft();
     if (txtVal !== '') {
       switch (props.fieldType) {
         case STRING.TYPE.TEXT: {
@@ -78,8 +78,8 @@ const TextField = props => {
         }
         case STRING.TYPE.PHONE: {
           if (txtVal.match(/^[0-9]{10}$/)) {
-            let value = txtVal !== '' ? Number(txtVal) : '';
-            if (value > 1111111111 && value <= 9999999999) {
+            let numericValue = txtVal !== '' ? Number(txtVal) : '';
+            if (numericValue > 1111111111 && numericValue <= 9999999999) {
               setErrorText('');
               setIsValid(false);
               setValue(txtVal);
@@ -103,12 +103,12 @@ const TextField = props => {
         case STRING.TYPE.EMAIL: {
           if (
             txtVal.match(
-              /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,3}))$/,
+              /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,3}))$/,
             )
           ) {
             var txt = txtVal.split('@')[1];
-            var value = txt.split('.com').length - 1;
-            if (value > 1 && value !== '.com.co') {
+            var domainCount = txt.split('.com').length - 1;
+            if (domainCount > 1 && domainCount !== '.com.co') {
               setErrorText(props.errMsg);
               setIsValid(true);
               setValue(txtVal);
@@ -148,7 +148,7 @@ const TextField = props => {
   if (props.label === 'First Name') {
     x = {
       endAdornment: (
-        <View></View>
+        <View />
         // <InputAdornment position="end">
         //     <AccountCircle />
         // </InputAdornment>
@@ -171,7 +171,7 @@ const TextField = props => {
       helperText={
         (props.value === '' && isValid) || props.value === '' ? errorText : ''
       }
-      onChangeText={value => onChange(value)}
+      onChangeText={textValue => onChange(textValue)}
       disabled={props.disabled}
       required={props.reqFlag}
       InputLabelProps={{

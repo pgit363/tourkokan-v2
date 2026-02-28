@@ -1,4 +1,5 @@
 import React, {useState, useEffect} from 'react';
+/* eslint-disable react-hooks/exhaustive-deps */
 import {
   FlatList,
   View,
@@ -34,7 +35,17 @@ const CommentsSheet = ({
   const [comments, setComments] = useState([]);
   const [newComment, setNewComment] = useState('');
   const [isActive, setIsActive] = useState(false);
-  const [page, setPage] = useState(1);
+  const [page] = useState(1);
+  const commentRowStyle = {
+    paddingHorizontal: 10,
+    flexDirection: 'row',
+    alignItems: 'center',
+  };
+  const avatarWrapStyle = {top: 8};
+  const commentActionRowStyle = {paddingHorizontal: 10, flexDirection: 'row'};
+  const containerStyle = {zIndex: 100, position: 'relative'};
+  const listWrapStyle = {overflowY: 'scroll', zIndex: 100};
+  const emptyCommentsStyle = {flex: 1};
 
   useEffect(() => {
     getComments();
@@ -51,7 +62,7 @@ const CommentsSheet = ({
         setComments(res.data.data.data);
         props.setLoader(false);
       })
-      .catch(err => {
+      .catch(() => {
         props.setLoader(false);
       });
   };
@@ -73,7 +84,7 @@ const CommentsSheet = ({
         setNewComment('');
         props.setLoader(false);
       })
-      .catch(err => {
+      .catch(() => {
         props.setLoader(false);
       });
   };
@@ -88,7 +99,7 @@ const CommentsSheet = ({
         getComments();
         props.setLoader(false);
       })
-      .catch(err => {
+      .catch(() => {
         props.setLoader(false);
       });
   };
@@ -96,13 +107,8 @@ const CommentsSheet = ({
   const renderComments = ({item}) => {
     return (
       <View>
-        <View
-          style={{
-            paddingHorizontal: 10,
-            flexDirection: 'row',
-            alignItems: 'center',
-          }}>
-          <View style={{top: 8}}>
+        <View style={commentRowStyle}>
+          <View style={avatarWrapStyle}>
             <ImageButton
               key={item.id}
               image={item.users?.profile_picture}
@@ -123,7 +129,7 @@ const CommentsSheet = ({
                     renderItem={renderSubComments}
                 /> */}
         </View>
-        <View style={{paddingHorizontal: 10, flexDirection: 'row'}}>
+        <View style={commentActionRowStyle}>
           <TouchableOpacity onPress={() => deleteComment(item.id)}>
             <GlobalText text={'Delete'} style={styles.deleteComment} />
           </TouchableOpacity>
@@ -135,29 +141,24 @@ const CommentsSheet = ({
     );
   };
 
-  const renderSubComments = ({item}) => {
-    return (
-      <View style={{padding: 10}}>
-        <GlobalText text={item.comment} style={{textAlign: 'left'}} />
-      </View>
-    );
-  };
-
   const setComment = val => {
     setNewComment(val);
-    if (val != null || val != '') setIsActive(true);
-    else setIsActive(false);
+    if (val !== null && val !== '') {
+      setIsActive(true);
+    } else {
+      setIsActive(false);
+    }
   };
 
   return (
-    <KeyboardAvoidingView style={{zIndex: 100, position: 'relative'}}>
+    <KeyboardAvoidingView style={containerStyle}>
       <Loader />
       <View>
         <View style={styles.commentsHeader}>
           <GlobalText text={t('HEADER.COMMENTS')} style={styles.fontBold} />
         </View>
       </View>
-      <View style={{overflowY: 'scroll', zIndex: 100}}>
+      <View style={listWrapStyle}>
         {comments ? (
           <FlatList
             nestedScrollEnabled={true}
@@ -166,7 +167,7 @@ const CommentsSheet = ({
             renderItem={renderComments}
           />
         ) : (
-          <View style={[styles.noComments, {flex: 1}]}>
+          <View style={[styles.noComments, emptyCommentsStyle]}>
             <GlobalText text={t('NO_COMMENTS')} style={styles.fontBold} />
             <GlobalText text={t('START_CONVO')} />
           </View>
@@ -183,9 +184,7 @@ const CommentsSheet = ({
               fieldType={field.type}
               length={field.length}
               required={field.required}
-              disabled={
-                index === 1 && (source?.name === '' || source?.name === null)
-              }
+              disabled={false}
               value={newComment}
               setChild={val => setComment(val)}
               style={styles.routesSearchPanelField}

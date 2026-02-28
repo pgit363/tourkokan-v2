@@ -1,4 +1,6 @@
 import React, {useState, useEffect, useRef} from 'react';
+/* eslint-disable react-hooks/exhaustive-deps */
+/* eslint-disable no-unused-vars, no-shadow, no-catch-shadow, handle-callback-err, react-native/no-inline-styles */
 import {
   View,
   ScrollView,
@@ -97,7 +99,7 @@ const CityDetails = ({navigation, route, offline, ...props}) => {
       };
       fetchData();
     }, [route?.params?.city?.id])
-  );  
+  );
 
   const setCityDetails = () => {
     setLoader(true);
@@ -114,7 +116,7 @@ const CityDetails = ({navigation, route, offline, ...props}) => {
     let data = {
       id: place || cityId,
     };
-    comnPost(`v2/getSite`, data)
+    comnPost('v2/getSite', data)
       .then(res => {
         if (res.data.success) {
           setCity(res.data.data);
@@ -260,8 +262,8 @@ const CityDetails = ({navigation, route, offline, ...props}) => {
 
   const onShareClick = async () => {
     try {
-      const deepLink = `awesomeapp://citydetails?id=${data.id}`; // Replace with your custom scheme and path
-      const shareMessage = `Explore the details of this amazing city in TourKokan! 🌍🏙️ Check out what makes it unique and discover more about its culture, attractions, and hidden gems. Open the link to dive into the City Details now! 📱👀`;
+      const deepLink = `awesomeapp://citydetails?id=${city.id}`; // Replace with your custom scheme and path
+      const shareMessage = 'Explore the details of this amazing city in TourKokan! 🌍🏙️ Check out what makes it unique and discover more about its culture, attractions, and hidden gems. Open the link to dive into the City Details now! 📱👀';
       const shareUrl = deepLink;
       const result = await Share.share({
         message: shareMessage,
@@ -541,7 +543,7 @@ const CityDetails = ({navigation, route, offline, ...props}) => {
                 bannerObject.CITY_MIDDLE.length > 0 && (
                   <View style={{marginLeft: -10, marginBottom: 20, width: '100%'}}>
                     <Banner
-                      bannerImages={bannerObject.CITY_MIDDLE} 
+                      bannerImages={bannerObject.CITY_MIDDLE}
                       style={{height: DIMENSIONS.windowWidth / 3, marginBottom: 0}}
                     />
                   </View>

@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 import React, {useEffect, useState} from 'react';
 import {Animated} from 'react-native';
 import AnimatedLoader from 'react-native-animated-loader';
@@ -9,8 +10,9 @@ import {useTranslation} from 'react-i18next';
 const MyAnimatedLoader = ({isVisible}) => {
   const {t} = useTranslation();
 
-  const [fadeAnim, setFadeAnim] = useState(new Animated.Value(1));
+  const [fadeAnim] = useState(new Animated.Value(1));
   const [isAnimated, setIsAnimated] = useState(isVisible);
+  const fadeStyle = {opacity: fadeAnim};
 
   useEffect(() => {
     if (isAnimated) {
@@ -31,7 +33,7 @@ const MyAnimatedLoader = ({isVisible}) => {
   }, []);
 
   return (
-    <Animated.View style={{opacity: fadeAnim}}>
+    <Animated.View style={fadeStyle}>
       <AnimatedLoader
         visible={isVisible}
         overlayColor={COLOR.themeComicBlueLight}

@@ -139,7 +139,7 @@ const styles = StyleSheet.create({
     fontWeight: '200',
     fontSize: DIMENSIONS.textSize,
   },
-  sectionTitle: {
+  sectionTitleAccent: {
     fontWeight: 'bold',
     fontSize: DIMENSIONS.headerTextSize,
     color: COLOR.cancelButton,

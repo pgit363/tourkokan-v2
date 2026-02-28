@@ -677,11 +677,6 @@ const styles = StyleSheet.create({
     fontSize: 11,
     width: DIMENSIONS.bannerWidth,
   },
-  locButtonView: {
-    padding: 10,
-    borderRadius: 5,
-    alignItems: 'center',
-  },
   searchPanelFieldNew: {
     borderWidth: 1,
     borderRadius: DIMENSIONS.borderRadiusSmall,

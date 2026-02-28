@@ -1,6 +1,7 @@
 import React, {useEffect} from 'react';
 import {useState} from 'react';
 import {
+  StyleSheet,
   View,
   TouchableOpacity,
   BackHandler,
@@ -13,7 +14,7 @@ import TextButton from '../../Components/Customs/Buttons/TextButton';
 import styles from './Styles';
 import {comnPost} from '../../Services/Api/CommonServices';
 import {connect} from 'react-redux';
-import {saveAccess_token, setLoader} from '../../Reducers/CommonActions';
+import {setLoader as setLoaderAction} from '../../Reducers/CommonActions';
 import Loader from '../../Components/Customs/Loader';
 import {exitApp, navigateTo} from '../../Services/CommonMethods';
 import GlobalText from '../../Components/Customs/Text';
@@ -21,13 +22,12 @@ import Popup from '../../Components/Common/Popup';
 import AppLogo from '../../Assets/Images/Logos/tourkokan-logo.png';
 import {useTranslation} from 'react-i18next';
 
-const SignIn = ({navigation, ...props}) => {
+const SignIn = ({navigation, setLoader}) => {
   const {t} = useTranslation();
 
   const [mobile, setMobile] = useState('');
-  const [isAlert, setIsAlert] = useState('');
+  const [isAlert, setIsAlert] = useState(false);
   const [alertMessage, setAlertMessage] = useState('');
-  const [successAlert, setSuccessAlert] = useState(false);
 
   useEffect(() => {
     const backHandler = BackHandler.addEventListener(
@@ -39,7 +39,7 @@ const SignIn = ({navigation, ...props}) => {
       setIsAlert(false);
       setAlertMessage('');
     };
-  }, []);
+  }, [t]);
 
   const setValue = (val, isVal, index) => {
     switch (index) {
@@ -57,7 +57,7 @@ const SignIn = ({navigation, ...props}) => {
   };
 
   const sendOTP = () => {
-    props.setLoader(true);
+    setLoader(true);
     const data = {
       mobile,
     };
@@ -66,18 +66,17 @@ const SignIn = ({navigation, ...props}) => {
         if (res.data.success) {
           setIsAlert(true);
           setAlertMessage(res.data.message);
-          props.setLoader(false);
-          setSuccessAlert(true);
+          setLoader(false);
         } else {
           if (res.data.message.mobile) {
             setIsAlert(true);
             setAlertMessage(res.data.message.mobile[0]);
-            props.setLoader(false);
+            setLoader(false);
           }
         }
       })
-      .catch(err => {
-        props.setLoader(false);
+      .catch(() => {
+        setLoader(false);
         setIsAlert(true);
         setAlertMessage(t('ALERT.WENT_WRONG'));
       });
@@ -85,11 +84,6 @@ const SignIn = ({navigation, ...props}) => {
 
   const closePopup = () => {
     setIsAlert(false);
-  };
-
-  const proceed = () => {
-    setIsAlert(false);
-    navigateTo(navigation, t('SCREEN.VERIFY_OTP'), {mobile});
   };
 
   const signUpScreen = () => {
@@ -101,7 +95,7 @@ const SignIn = ({navigation, ...props}) => {
   };
 
   return (
-    <View style={{alignItems: 'center', flex: 1}}>
+    <View style={localStyles.container}>
       <ImageBackground
         style={styles.loginImage}
         source={require('../../Assets/Images/kokan1.jpeg')}
@@ -147,7 +141,7 @@ const SignIn = ({navigation, ...props}) => {
           onPress={() => sendOTP()}
         />
 
-        <View style={{marginTop: 20, alignItems: 'center'}}>
+        <View style={localStyles.altLoginWrap}>
           <GlobalText text={t('OR')} style={styles.whiteText} />
           <TextButton
             title={t('BUTTON.LOGIN_WITH_EMAIL')}
@@ -173,21 +167,23 @@ const SignIn = ({navigation, ...props}) => {
   );
 };
 
-const mapStateToProps = state => {
-  return {
-    access_token: state.commonState.access_token,
-  };
-};
+const localStyles = StyleSheet.create({
+  container: {
+    alignItems: 'center',
+    flex: 1,
+  },
+  altLoginWrap: {
+    marginTop: 20,
+    alignItems: 'center',
+  },
+});
 
 const mapDispatchToProps = dispatch => {
   return {
-    saveAccess_token: data => {
-      dispatch(saveAccess_token(data));
-    },
     setLoader: data => {
-      dispatch(setLoader(data));
+      dispatch(setLoaderAction(data));
     },
   };
 };
 
-export default connect(mapStateToProps, mapDispatchToProps)(SignIn);
+export default connect(null, mapDispatchToProps)(SignIn);

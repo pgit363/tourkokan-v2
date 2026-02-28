@@ -1,22 +1,19 @@
 import React from 'react';
 import {ScrollView, View} from 'react-native';
-import {useTranslation} from 'react-i18next';
 import styles from './Styles';
 import DIMENSIONS from '../../Services/Constants/DIMENSIONS';
-import TextButton from '../Customs/Buttons/TextButton';
 import GlobalText from '../Customs/Text';
 
 const PrivacyPolicy = ({cancelClick, acceptClick}) => {
-  const {t} = useTranslation();
+  const policyContainerStyle = {
+    height: DIMENSIONS.screenHeight - 200,
+    width: DIMENSIONS.bannerWidth,
+    marginTop: 20,
+    marginBottom: -10,
+  };
 
   return (
-    <View
-      style={{
-        height: DIMENSIONS.screenHeight - 200,
-        width: DIMENSIONS.bannerWidth,
-        marginTop: 20,
-        marginBottom: -10,
-      }}>
+    <View style={policyContainerStyle}>
       <ScrollView style={styles.container}>
         <View style={styles.textContainer}>
           <GlobalText
@@ -25,7 +22,9 @@ const PrivacyPolicy = ({cancelClick, acceptClick}) => {
           />
           <GlobalText
             style={styles.paragraph}
-            text={`TourKokan is committed to protecting the privacy of its users. This Privacy Policy governs the manner in which TourKokan collects, uses, maintains, and discloses information collected from users (each, a "User") of the TourKokan mobile application ("App").`}
+            text={
+              'TourKokan is committed to protecting the privacy of its users. This Privacy Policy governs the manner in which TourKokan collects, uses, maintains, and discloses information collected from users (each, a \'User\') of the TourKokan mobile application (\'App\').'
+            }
           />
           <GlobalText
             style={styles.subheading}
@@ -42,7 +41,9 @@ const PrivacyPolicy = ({cancelClick, acceptClick}) => {
           <GlobalText style={styles.subheading} text={'Usage Data'} />
           <GlobalText
             style={styles.paragraph}
-            text={`We may also collect information that your device sends whenever you visit our App ("Usage Data"). This Usage Data may include information such as your device's Internet Protocol ("IP") address, device type, device operating system version, the pages of our App that you visit, the time and date of your visit, the time spent on those pages, and other statistics.`}
+            text={
+              'We may also collect information that your device sends whenever you visit our App (\'Usage Data\'). This Usage Data may include information such as your device\'s Internet Protocol (\'IP\') address, device type, device operating system version, the pages of our App that you visit, the time and date of your visit, the time spent on those pages, and other statistics.'
+            }
           />
 
           <GlobalText style={styles.subheading} text={'Location Data'} />

@@ -1,5 +1,6 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 import React, {useEffect, useState} from 'react';
-import {FlatList, View, SafeAreaView} from 'react-native';
+import {FlatList, View, SafeAreaView, StyleSheet} from 'react-native';
 import Header from '../../Components/Common/Header';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import COLOR from '../../Services/Constants/COLORS';
@@ -7,7 +8,7 @@ import DIMENSIONS from '../../Services/Constants/DIMENSIONS';
 import {connect} from 'react-redux';
 import {
   comnPost,
-  dataSync,
+  dataSyncResult,
   saveToStorage,
 } from '../../Services/Api/CommonServices';
 import {setLoader} from '../../Reducers/CommonActions';
@@ -42,17 +43,28 @@ const SearchList = ({navigation, route, ...props}) => {
     const unsubscribe = NetInfo.addEventListener(state => {
       setOffline(false);
 
-      dataSync(t('STORAGE.ROUTES_RESPONSE'), searchRoute(), props.mode).then(
-        resp => {
-          let res = JSON.parse(resp);
-          if (res.data && res.data.data) {
-            setList(res.data.data.data);
-          } else if (resp) {
-            setOffline(true);
+      dataSyncResult(
+        t('STORAGE.ROUTES_RESPONSE'),
+        () => searchRoute(),
+        props.mode,
+      ).then(result => {
+        try {
+          const parsed =
+            typeof result.data === 'string'
+              ? JSON.parse(result.data)
+              : result.data;
+          if (Array.isArray(parsed)) {
+            setList(parsed);
+          } else if (parsed?.data?.data?.data) {
+            setList(parsed.data.data.data);
+          } else {
+            setList([]);
           }
-          props.setLoader(false);
-        },
-      );
+        } catch {
+          setOffline(true);
+        }
+        props.setLoader(false);
+      });
       // removeFromStorage(t("STORAGE.LANDING_RESPONSE"))
     });
 
@@ -76,8 +88,9 @@ const SearchList = ({navigation, route, ...props}) => {
       comnPost(`v2/routes?page=${nextPage}`, data)
         .then(res => {
           if (res.data.success) {
-            if (res && res.data.data)
+            if (res && res.data.data) {
               saveToStorage(t('STORAGE.ROUTES_RESPONSE'), JSON.stringify(res));
+            }
             let myNextUrl = res.data.data.next_page_url;
             setNextUrl(myNextUrl);
             setList([...list, ...res.data.data.data]);
@@ -88,34 +101,10 @@ const SearchList = ({navigation, route, ...props}) => {
           }
         })
         .catch(err => {
+          console.error('Error while searching routes:', err);
           props.setLoader(false);
         });
     }
-  };
-
-  const renderItem = ({item}) => {
-    return (
-      // <ListItem bottomDivider onPress={() => getRoutes(item)}>
-      //   {/* <Avatar source={{ uri: item.avatar_url }} /> */}
-      //   <RouteLine />
-      //   <GlobalText text={item.id} />
-      //   <ListItem.Content>
-      //     {/* <ListItem.Title>{item.number}</ListItem.Title> */}
-      //     <ListItem.Title>{item.name}</ListItem.Title>
-      //   </ListItem.Content>
-      //   <ListItem.Chevron />
-      // </ListItem>
-      <View style={styles.sectionView}>
-        {list.map((route, index) => (
-          <View key={route.id || index} style={styles.cardsWrap}>
-            <RouteHeadCard
-              data={route}
-              cardClick={() => getRoutesList(route)}
-            />
-          </View>
-        ))}
-      </View>
-    );
   };
 
   return (
@@ -134,10 +123,10 @@ const SearchList = ({navigation, route, ...props}) => {
         }
       />
       <Loader />
-      <View style={{alignItems: 'center'}}>
+      <View style={localStyles.searchPanelWrap}>
         {/* <SearchPanel navigation={navigation} from={t("SCREEN.SEARCH_LIST")} onSwap={(a, b) => searchRoute(a, b)} /> */}
       </View>
-      <SafeAreaView style={{paddingBottom: 150}}>
+      <SafeAreaView style={localStyles.listSafeArea}>
         {list.length > 0 ? (
           <FlatList
             keyExtractor={item => item.id}
@@ -159,6 +148,15 @@ const SearchList = ({navigation, route, ...props}) => {
     </View>
   );
 };
+
+const localStyles = StyleSheet.create({
+  searchPanelWrap: {
+    alignItems: 'center',
+  },
+  listSafeArea: {
+    paddingBottom: 150,
+  },
+});
 
 const mapStateToProps = state => {
   return {

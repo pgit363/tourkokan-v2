@@ -1,6 +1,6 @@
 import React, {useState} from 'react';
 import {SignInFields} from '../../../Services/Constants/FIELDS';
-import {TouchableOpacity, View} from 'react-native';
+import {TouchableOpacity, View, StyleSheet} from 'react-native';
 import TextField from '../../../Components/Customs/TextField';
 import TextButton from '../../../Components/Customs/Buttons/TextButton';
 import Feather from 'react-native-vector-icons/Feather';
@@ -15,7 +15,7 @@ const EmailPassword = ({setValue, getValue, Login, changeChoice}) => {
   const [showPassword, setShowPassword] = useState(false);
 
   return (
-    <View style={{justifyContent: 'center', alignItems: 'center'}}>
+    <View style={localStyles.container}>
       <TouchableOpacity onPress={changeChoice}>
         <GlobalText text={t('CHANGE')} style={styles.changeOption} />
       </TouchableOpacity>
@@ -35,7 +35,7 @@ const EmailPassword = ({setValue, getValue, Login, changeChoice}) => {
             inputContainerStyle={styles.inputContainerStyle}
             isSecure={field.isSecure}
             rightIcon={
-              field.type == `${t('TYPE.PASSWORD')}` && (
+              field.type === `${t('TYPE.PASSWORD')}` && (
                 <Feather
                   name={field.isSecure ? 'eye' : 'eye-off'}
                   size={24}
@@ -64,5 +64,12 @@ const EmailPassword = ({setValue, getValue, Login, changeChoice}) => {
     </View>
   );
 };
+
+const localStyles = StyleSheet.create({
+  container: {
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+});
 
 export default EmailPassword;

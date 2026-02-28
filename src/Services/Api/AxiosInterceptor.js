@@ -1,36 +1,44 @@
 import axios from 'axios';
-import { Alert, BackHandler } from 'react-native';
+import {Alert, BackHandler} from 'react-native';
 
 let isMaintenanceAlertVisible = false;
 
 export const setupAxiosInterceptors = () => {
-  // Add a response interceptor
   axios.interceptors.response.use(
-    (response) => {
-      // Check if the API returned 503 (Maintenance) even if status is 200 (depending on backend wrapper)
+    response => {
       if (response.status === 503) {
         handleMaintenanceMode();
         return Promise.reject(new Error('Maintenance Mode'));
       }
       return response;
     },
-    (error) => {
+    error => {
       if (error.response && error.response.status === 503) {
         handleMaintenanceMode();
       }
       return Promise.reject(error);
-    }
+    },
   );
 };
 
 const handleMaintenanceMode = () => {
-  if (isMaintenanceAlertVisible) return;
+  if (isMaintenanceAlertVisible) {
+    return;
+  }
 
   isMaintenanceAlertVisible = true;
   Alert.alert(
     'Maintenance Mode',
     'App is in maintenance mode. Please try again later.',
-    [{ text: 'Close App', onPress: () => { isMaintenanceAlertVisible = false; BackHandler.exitApp(); } }],
-    { cancelable: false }
+    [
+      {
+        text: 'Close App',
+        onPress: () => {
+          isMaintenanceAlertVisible = false;
+          BackHandler.exitApp();
+        },
+      },
+    ],
+    {cancelable: false},
   );
 };

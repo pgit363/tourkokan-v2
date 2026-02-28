@@ -1,5 +1,5 @@
-import React, {useEffect, useState} from 'react';
-import {Image, Keyboard} from 'react-native';
+import React from 'react';
+import {Image} from 'react-native';
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
@@ -11,40 +11,42 @@ import COLOR from '../Services/Constants/COLORS';
 
 import HomeScreen from '../Screens/HomeScreen';
 import MapScreen from '../Screens/MapScreen';
-import Explore from '../Screens/ListPages/Explore';
 import Categories from '../Screens/ListPages/Categories';
 import AllRoutesSearch from '../Screens/ListPages/AllRoutesSearch';
 import ExploreGrid from '../Screens/ListPages/ExploreGrid';
 
 const Tab = createBottomTabNavigator();
+const routesIconStyle = {width: 40, height: 40};
+
+const HomeTabIcon = () => (
+  <Ionicons
+    name="home-outline"
+    color={COLOR.black}
+    size={DIMENSIONS.iconSize}
+  />
+);
+
+const GalleryTabIcon = () => (
+  <Fontisto name="photograph" color={COLOR.black} size={DIMENSIONS.iconSize} />
+);
+
+const RoutesTabIcon = () => (
+  <Image
+    source={require('../Assets/Images/Bus1_png_high.png')}
+    style={routesIconStyle}
+  />
+);
+
+const CategoriesTabIcon = () => (
+  <MaterialIcons name="category" color={COLOR.black} size={DIMENSIONS.iconSize} />
+);
+
+const MapTabIcon = () => (
+  <Ionicons name="map-outline" color={COLOR.black} size={DIMENSIONS.iconSize} />
+);
 
 const TabNavigator = () => {
   const {t} = useTranslation();
-
-  const [keyboardOffset, setKeyboardOffset] = useState(0);
-  const [keyboardShown, setKeyboardShown] = useState(false);
-
-  useEffect(() => {
-    const keyboardDidShowListener = Keyboard.addListener(
-      'keyboardDidShow',
-      event => {
-        setKeyboardShown(true);
-        setKeyboardOffset(event.endCoordinates.height);
-      },
-    );
-    const keyboardDidHideListener = Keyboard.addListener(
-      'keyboardDidHide',
-      () => {
-        setKeyboardShown(false);
-        setKeyboardOffset(0);
-      },
-    );
-
-    return () => {
-      keyboardDidShowListener.remove();
-      keyboardDidHideListener.remove();
-    };
-  }, []);
 
   return (
     <Tab.Navigator
@@ -62,13 +64,7 @@ const TabNavigator = () => {
         component={HomeScreen}
         options={{
           tabBarLabel: `${t('SCREEN.HOME')}`,
-          tabBarIcon: ({color, size}) => (
-            <Ionicons
-              name="home-outline"
-              color={COLOR.black}
-              size={DIMENSIONS.iconSize}
-            />
-          ),
+          tabBarIcon: HomeTabIcon,
         }}
       />
 
@@ -78,13 +74,7 @@ const TabNavigator = () => {
         options={{
           title: `${t('SCREEN.GALLERY')}`,
           tabBarLabel: `${t('SCREEN.GALLERY')}`,
-          tabBarIcon: ({color, size}) => (
-            <Fontisto
-              name="photograph"
-              color={COLOR.black}
-              size={DIMENSIONS.iconSize}
-            />
-          ),
+          tabBarIcon: GalleryTabIcon,
         }}
       />
 
@@ -92,12 +82,7 @@ const TabNavigator = () => {
         name={t('SCREEN.ROUTES')}
         component={AllRoutesSearch}
         options={{
-          tabBarIcon: ({color, size}) => (
-            <Image
-              source={require('../Assets/Images/Bus1_png_high.png')}
-              style={{width: 40, height: 40}}
-            />
-          ),
+          tabBarIcon: RoutesTabIcon,
           tabBarLabel: () => null,
         }}
       />
@@ -108,13 +93,7 @@ const TabNavigator = () => {
         options={{
           title: `${t('SCREEN.CATEGORIES')}`,
           tabBarLabel: `${t('SCREEN.CATEGORIES')}`,
-          tabBarIcon: ({color, size}) => (
-            <MaterialIcons
-              name="category"
-              color={COLOR.black}
-              size={DIMENSIONS.iconSize}
-            />
-          ),
+          tabBarIcon: CategoriesTabIcon,
         }}
       />
 
@@ -123,13 +102,7 @@ const TabNavigator = () => {
         component={MapScreen}
         options={{
           tabBarLabel: `${t('SCREEN.MAP')}`,
-          tabBarIcon: ({color, size}) => (
-            <Ionicons
-              name="map-outline"
-              color={COLOR.black}
-              size={DIMENSIONS.iconSize}
-            />
-          ),
+          tabBarIcon: MapTabIcon,
         }}
       />
     </Tab.Navigator>

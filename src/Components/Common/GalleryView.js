@@ -1,26 +1,18 @@
 import React, {useState} from 'react';
-import {View, FlatList, TouchableOpacity, Image, Text} from 'react-native';
+import {View, FlatList, TouchableOpacity} from 'react-native';
 import ProgressImage from 'react-native-image-progress';
 import * as Progress from 'react-native-progress';
-import ImageViewing from 'react-native-image-viewing';
 import styles from './Styles';
-import Path from '../../Services/Api/BaseUrl';
 import {FTP_PATH} from '@env';
 
 const ImageViewer = ({images}) => {
   const [selectedImage, setSelectedImage] = useState(images[0]);
-  const [isVisible, setIsVisible] = useState(false);
-
-  const openImageViewer = image => {
-    setSelectedImage(image);
-    setIsVisible(true);
-  };
 
   const renderItem = ({item}) => {
     const imageUri = FTP_PATH + item.path;
 
     return (
-      <TouchableOpacity onPress={() => openImageViewer(item)}>
+      <TouchableOpacity onPress={() => setSelectedImage(item)}>
         <ProgressImage
           source={{uri: imageUri}}
           style={styles.thumbnail}
@@ -62,12 +54,6 @@ const ImageViewer = ({images}) => {
           style={styles.thumbnailList}
         />
       </View>
-      {/* <ImageViewing
-        images={images.map((image) => ({ uri: FTP_PATH + image.path }))}
-        imageIndex={images.indexOf(selectedImage)}
-        visible={isVisible}
-        onRequestClose={() => setIsVisible(false)}
-      /> */}
     </View>
   );
 };

@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 import React, {useState, useEffect} from 'react';
 import {View, ScrollView} from 'react-native';
 import SmallCard from '../../Components/Customs/SmallCard';
@@ -8,6 +9,7 @@ import {connect} from 'react-redux';
 import Loader from '../../Components/Customs/Loader';
 import Header from '../../Components/Common/Header';
 import {setLoader} from '../../Reducers/CommonActions';
+import {comnPost} from '../../Services/Api/CommonServices';
 import {
   backPage,
   checkLogin,
@@ -16,11 +18,13 @@ import {
 } from '../../Services/CommonMethods';
 import {useTranslation} from 'react-i18next';
 
+const contentContainerStyle = {flex: 1, alignItems: 'center'};
+const cardsRowStyle = {flexDirection: 'row'};
+
 const Place_catList = ({navigation, ...props}) => {
   const {t} = useTranslation();
 
-  const [place_cats, setPlace_cats] = useState([]); // State to store place_cats
-  const [error, setError] = useState(null); // State to store error message
+  const [place_cats, setPlace_cats] = useState([]);
 
   useEffect(() => {
     const backHandler = goBackHandler(navigation);
@@ -35,12 +39,11 @@ const Place_catList = ({navigation, ...props}) => {
   const getList = () => {
     comnPost('v2/place_cats', props.access_token)
       .then(res => {
-        setPlace_cats(res.data.data.data); // Update place_cats state with response data
+        setPlace_cats(res.data.data.data);
         props.setLoader(false);
       })
-      .catch(error => {
+      .catch(() => {
         props.setLoader(false);
-        setError(error.message); // Update error state with error message
       });
   };
 
@@ -50,7 +53,7 @@ const Place_catList = ({navigation, ...props}) => {
 
   return (
     <ScrollView>
-      <View style={{flex: 1, alignItems: 'center'}}>
+      <View style={contentContainerStyle}>
         <Loader />
         <Header
           name={t('HEADER.PLACE_CATEGORIES')}
@@ -63,7 +66,7 @@ const Place_catList = ({navigation, ...props}) => {
             />
           }
         />
-        <View style={{flexDirection: 'row'}}>
+        <View style={cardsRowStyle}>
           {place_cats.map(place_cat => (
             <SmallCard
               Icon={

@@ -1,9 +1,9 @@
 import React, {useEffect, useRef} from 'react';
 import {useState} from 'react';
 import {
+  StyleSheet,
   View,
   TouchableOpacity,
-  BackHandler,
   ImageBackground,
   KeyboardAvoidingView,
   Platform,
@@ -21,24 +21,17 @@ import {
 import Loader from '../../Components/Customs/Loader';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import COLOR from '../../Services/Constants/COLORS';
-import DIMENSIONS from '../../Services/Constants/DIMENSIONS';
-import {
-  CodeField,
-  Cursor,
-  useBlurOnFulfill,
-  useClearByFocusCell,
-} from 'react-native-confirmation-code-field';
-import {backPage, navigateTo} from '../../Services/CommonMethods';
+import {CodeField, Cursor} from 'react-native-confirmation-code-field';
+import {navigateTo} from '../../Services/CommonMethods';
 import GlobalText from '../../Components/Customs/Text';
 import Popup from '../../Components/Common/Popup';
 import {useTranslation} from 'react-i18next';
-import {CommonActions} from '@react-navigation/native';
 
 const VerifyOTP = ({navigation, route, ...props}) => {
   const {t} = useTranslation();
 
   const [otp, setOtp] = useState(null);
-  const [email, setEmail] = useState(route.params?.email);
+  const [email] = useState(route.params?.email);
   const [sec, setSec] = useState(30);
   const [isAlert, setIsAlert] = useState(false);
   const [alertMessage, setAlertMessage] = useState('');
@@ -131,7 +124,7 @@ const VerifyOTP = ({navigation, route, ...props}) => {
   };
 
   return (
-    <View style={{flex: 1, backgroundColor: COLOR.white}}>
+    <View style={localStyles.container}>
       <ImageBackground
         style={styles.loginImage}
         source={require('../../Assets/Images/Intro/login_background.png')}
@@ -146,7 +139,7 @@ const VerifyOTP = ({navigation, route, ...props}) => {
         <View>
           <GlobalText text={t('LOG_IN')} style={styles.loginText} />
           <CodeField
-            style={{flexDirection: 'row', alignSelf: 'center'}}
+            style={localStyles.codeField}
             ref={ref}
             value={otp}
             onChangeText={setOtp}
@@ -183,7 +176,7 @@ const VerifyOTP = ({navigation, route, ...props}) => {
               )}`}
             />
           ) : (
-            <View style={{flexDirection: 'row'}}>
+            <View style={localStyles.resendRow}>
               <GlobalText text={t('DIDNT_RECEIVE')} />
               <TouchableOpacity onPress={resend}>
                 <GlobalText text={t('RESEND')} style={styles.sendOTPText} />
@@ -192,11 +185,28 @@ const VerifyOTP = ({navigation, route, ...props}) => {
           )}
         </View>
       </View>
-      <KeyboardAvoidingView behavior="height" style={{flex: 1}} />
+      <KeyboardAvoidingView behavior="height" style={localStyles.keyboardSpacer} />
       <Popup message={alertMessage} visible={isAlert} onPress={closePopup} />
     </View>
   );
 };
+
+const localStyles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: COLOR.white,
+  },
+  codeField: {
+    flexDirection: 'row',
+    alignSelf: 'center',
+  },
+  resendRow: {
+    flexDirection: 'row',
+  },
+  keyboardSpacer: {
+    flex: 1,
+  },
+});
 
 const mapStateToProps = state => ({
   access_token: state.commonState.access_token,

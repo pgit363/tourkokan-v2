@@ -1,9 +1,7 @@
 import React, {useState} from 'react';
 import {View, ImageBackground, TouchableOpacity} from 'react-native';
 import styles from './Styles';
-import Path from '../../Services/Api/BaseUrl';
 import Octicons from 'react-native-vector-icons/Octicons';
-import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import COLOR from '../../Services/Constants/COLORS';
 import DIMENSIONS from '../../Services/Constants/DIMENSIONS';
 import StarRating from 'react-native-star-rating-widget'; // Updated import
@@ -18,12 +16,10 @@ const PlaceCard = ({data, reload, navigation, addComment, onClick}) => {
   const {t} = useTranslation();
 
   const [isFav, setIsFav] = useState(data.is_favorite);
-  const [isLiked, setIsLiked] = useState(false);
-  const [isVisible, setIsVisible] = useState(false);
+  const [isVisible] = useState(false);
   const [rating, setRating] = useState(data?.rating_avg_rate || 0);
-  const [commentCount, setCommentCount] = useState(data?.comment_count || 0);
-  const [rate, setRate] = useState(data?.rate?.rate || 0);
-  const [cardType, setCardType] = useState(data.category?.code);
+  const [commentCount] = useState(data?.comment_count || 0);
+  const ratingWrapStyle = {width: '40%'};
 
   const onHeartClick = async () => {
     let cityData = {
@@ -37,7 +33,7 @@ const PlaceCard = ({data, reload, navigation, addComment, onClick}) => {
         AsyncStorage.setItem('isUpdated', 'true');
         reload();
       })
-      .catch(err => {});
+      .catch(() => {});
   };
 
   const onStarRatingPress = async rate => {
@@ -53,12 +49,7 @@ const PlaceCard = ({data, reload, navigation, addComment, onClick}) => {
         AsyncStorage.setItem('isUpdated', 'true');
         reload();
       })
-      .catch(err => {});
-  };
-
-  const onLikeClick = () => {
-    setIsLiked(!isLiked);
-    // reload()
+      .catch(() => {});
   };
 
   return (
@@ -87,7 +78,7 @@ const PlaceCard = ({data, reload, navigation, addComment, onClick}) => {
             <GlobalText text={data.tag_line} style={styles.placeTag} />
           </TouchableOpacity>
           <View style={styles.flexRowLike}>
-            <View style={{width: '40%'}}>
+            <View style={ratingWrapStyle}>
               <StarRating
                 rating={rating}
                 onChange={onStarRatingPress}

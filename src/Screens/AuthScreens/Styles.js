@@ -3,7 +3,7 @@ import DIMENSIONS from '../../Services/Constants/DIMENSIONS';
 import COLOR from '../../Services/Constants/COLORS';
 
 const styles = StyleSheet.create({
-  appLogo: {
+  appLogoSmall: {
     height: 70,
     marginTop: 30,
   },

@@ -8,7 +8,6 @@ import DrawerNavigator from './DrawerNavigator';
 import AllRoutesSearch from '../Screens/ListPages/AllRoutesSearch';
 import PasswordLogin from '../Screens/AuthScreens/PasswordLogin';
 import Email from '../Screens/AuthScreens/Email';
-import LangSelection from '../Screens/AuthScreens/LangSelection';
 import ContactUs from '../Screens/ContactUs';
 import SignIn from '../Screens/AuthScreens/SignIn';
 import SignUp from '../Screens/AuthScreens/SignUp';
@@ -50,7 +49,7 @@ const linking = {
 
 const StackNavigator = () => {
   const {t} = useTranslation();
-  const [isLoggedIn, setIsLoggedIn] = useState(true);
+  const [isLoggedIn] = useState(true);
 
   return (
     <NavigationContainer linking={linking}>

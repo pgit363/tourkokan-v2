@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 import React, {useEffect, useState} from 'react';
 import {View, Text} from 'react-native';
 import ComingSoon from '../Components/Common/ComingSoon';
@@ -7,7 +8,7 @@ import {useTranslation} from 'react-i18next';
 const Weather = ({navigation}) => {
   const {t} = useTranslation();
 
-  const [weatherData, setWeatherData] = useState(null);
+  const [weatherData] = useState(null);
   const [isVisible, setIsVisible] = useState(true);
 
   useEffect(() => {

@@ -9,7 +9,6 @@ import {
   TouchableWithoutFeedback,
   Dimensions,
 } from 'react-native';
-import Path from '../../Services/Api/BaseUrl';
 import styles from './Styles';
 import GlobalText from './Text';
 import {FTP_PATH} from '@env';

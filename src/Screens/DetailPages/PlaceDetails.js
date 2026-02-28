@@ -1,11 +1,13 @@
 import React, {useState, useEffect, useRef} from 'react';
-import {View, ScrollView, Text, ImageBackground} from 'react-native';
+/* eslint-disable react-hooks/exhaustive-deps */
+import {View, ScrollView, ImageBackground} from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import COLOR from '../../Services/Constants/COLORS';
 import DIMENSIONS from '../../Services/Constants/DIMENSIONS';
 import {connect} from 'react-redux';
 import {setLoader} from '../../Reducers/CommonActions';
 import Loader from '../../Components/Customs/Loader';
+import {comnPost} from '../../Services/Api/CommonServices';
 import Header from '../../Components/Common/Header';
 import styles from './Styles';
 import {
@@ -16,14 +18,16 @@ import {
 import CityCard from '../../Components/Cards/CityCard';
 import GlobalText from '../../Components/Customs/Text';
 import CommentsSheet from '../../Components/Common/CommentsSheet';
+import BottomSheet from '../../Components/Customs/BottomSheet';
 import {useTranslation} from 'react-i18next';
+
+const placeDetailsContainerStyle = {flex: 1, padding: 10};
 
 const PlaceDetails = ({navigation, route, ...props}) => {
   const {t} = useTranslation();
   const refRBSheet = useRef();
 
   const [place, setPlace] = useState([]); // State to store city
-  const [error, setError] = useState(null); // State to store error message
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -46,8 +50,7 @@ const PlaceDetails = ({navigation, route, ...props}) => {
         setIsLoading(false);
         props.setLoader(false);
       })
-      .catch(error => {
-        setError(error.message); // Update error state with error message
+      .catch(() => {
         setIsLoading(false);
         props.setLoader(false);
       });
@@ -85,7 +88,7 @@ const PlaceDetails = ({navigation, route, ...props}) => {
             { width: 180, height: 20, marginBottom: 6 },
             ]} isLoading={true}> */}
           {place && (
-            <View style={{flex: 1, padding: 10}}>
+            <View style={placeDetailsContainerStyle}>
               <View style={styles.placeImageTitleView}>
                 <ImageBackground
                   source={place.image_url}

@@ -3,10 +3,10 @@ import styles from './Styles';
 import {Dropdown} from 'react-native-element-dropdown';
 
 const DropDown = ({...props}) => {
-  const [errorText, setErrorText] = useState('');
   const [value, setValue] = useState('');
   const [isValid, setIsValid] = useState(false);
   const [isFocus, setIsFocus] = useState(false);
+  const focusedStyle = {borderColor: 'blue'};
 
   const handleChange = event => {
     let txtVal = event;
@@ -15,7 +15,6 @@ const DropDown = ({...props}) => {
       setIsValid(false);
       props.setChild(txtVal, true, props.parentDetails);
     } else {
-      setErrorText(props.helperMsg);
       setValue(txtVal);
       setIsValid(true);
       props.setChild(txtVal, false, props.parentDetails);
@@ -24,7 +23,7 @@ const DropDown = ({...props}) => {
 
   return (
     <Dropdown
-      style={[styles.dropdown, isFocus && {borderColor: 'blue'}, props.style]}
+      style={[styles.dropdown, isFocus && focusedStyle, props.style]}
       placeholderStyle={styles.placeholderStyle}
       selectedTextStyle={props.selectedTextStyle}
       inputSearchStyle={styles.inputSearchStyle}

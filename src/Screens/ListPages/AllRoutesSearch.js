@@ -1,5 +1,6 @@
-import React, {useEffect, useState} from 'react';
-import {FlatList, View, Text} from 'react-native';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
+/* eslint-disable react-hooks/exhaustive-deps */
+import {FlatList, View, StyleSheet} from 'react-native';
 import Header from '../../Components/Common/Header';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import COLOR from '../../Services/Constants/COLORS';
@@ -7,7 +8,7 @@ import DIMENSIONS from '../../Services/Constants/DIMENSIONS';
 import {connect} from 'react-redux';
 import {
   comnPost,
-  dataSync,
+  dataSyncResult,
   getFromStorage,
   saveToStorage,
 } from '../../Services/Api/CommonServices';
@@ -41,7 +42,6 @@ const AllRoutesSearch = ({navigation, route, ...props}) => {
   const [list, setList] = useState([]);
   const [offline, setOffline] = useState(false);
   const [nextPage, setNextPage] = useState(1);
-  const [nextUrl, setNextUrl] = useState(1);
   const [source, setSource] = useState(route?.params?.source);
   const [destination, setDestination] = useState(route?.params?.destination);
   const [isFirstTime, setIsFirstTime] = useState(true);
@@ -51,6 +51,73 @@ const AllRoutesSearch = ({navigation, route, ...props}) => {
   const [isAlert, setIsAlert] = useState(false);
   const [alertMessage, setAlertMessage] = useState('');
   const [bannerObject, setBannerObject] = useState({});
+  const nextPageRef = useRef(1);
+  const lastPageRef = useRef(null);
+  const isLoadingRef = useRef(true);
+
+  useEffect(() => {
+    nextPageRef.current = nextPage;
+  }, [nextPage]);
+
+  useEffect(() => {
+    lastPageRef.current = lastPage;
+  }, [lastPage]);
+
+  useEffect(() => {
+    isLoadingRef.current = isLoading;
+  }, [isLoading]);
+
+  const getRoutesList = useCallback(item => {
+    navigateTo(navigation, t('SCREEN.ROUTES_LIST'), {item});
+  }, [navigation, t]);
+
+  const searchRoute = useCallback(async (a, b, isNext) => {
+    AsyncStorage.setItem('isLangChanged', 'false');
+
+    const currentPage = isNext ? nextPageRef.current : 1;
+    if (currentPage < 1) {
+      return;
+    }
+
+    props.setLoader(true);
+    const data = {
+      source_place_id: a || source?.id,
+      destination_place_id: b || destination?.id,
+    };
+
+    comnPost(`v2/routes?page=${currentPage}`, data, navigation)
+      .then(res => {
+        if (res.data.success) {
+          const fetchedRoutes = res?.data?.data?.data || [];
+          if (fetchedRoutes[0]) {
+            saveToStorage(t('STORAGE.ROUTES_RESPONSE'), JSON.stringify(res));
+            if (isNext) {
+              setList(prevList => [...prevList, ...fetchedRoutes]);
+            } else {
+              setList(fetchedRoutes);
+            }
+            setNextPage(res.data.data.current_page + 1);
+            setLastPage(res.data.data.last_page);
+          } else {
+            setList([]);
+          }
+          setIsLoading(false);
+          setIsFirstTime(false);
+        } else {
+          setIsLoading(false);
+          setIsFirstTime(false);
+          setList([]);
+        }
+      })
+      .catch(err => {
+        console.error('Error loading routes:', err);
+        setIsLoading(false);
+        setIsFirstTime(false);
+      })
+      .finally(() => {
+        props.setLoader(false);
+      });
+  }, [navigation, props.setLoader, source?.id, destination?.id, t]);
 
   useEffect(() => {
     props.setLoader(true);
@@ -59,28 +126,35 @@ const AllRoutesSearch = ({navigation, route, ...props}) => {
     // searchRoute();
 
     const unsubscribe = NetInfo.addEventListener(async state => {
-      dataSync(t('STORAGE.ROUTES_RESPONSE'), searchRoute(), props.mode).then(
-        resp => {
-          if (resp) {
-            let res = JSON.parse(resp);
-            setList(res);
-            setIsLoading(false);
-          } else if (resp) {
-            setOffline(true);
-            setIsLoading(false);
+      dataSyncResult(
+        t('STORAGE.ROUTES_RESPONSE'),
+        () => searchRoute(),
+        props.mode,
+      ).then(result => {
+        const {data} = result;
+        try {
+          const parsed = typeof data === 'string' ? JSON.parse(data) : data;
+          if (Array.isArray(parsed)) {
+            setList(parsed);
+          } else if (parsed?.data?.data?.data) {
+            setList(parsed.data.data.data);
+          } else {
+            setList([]);
           }
-          // props.setLoader(false);
-        },
-      );
+          setIsLoading(false);
+        } catch {
+          setOffline(true);
+          setIsLoading(false);
+        }
+      });
       // removeFromStorage(t("STORAGE.LANDING_RESPONSE"))
     });
-    props.setLoader(false);
 
     return () => {
       backHandler.remove();
       unsubscribe();
     };
-  }, []);
+  }, [navigation, props.mode, searchRoute, t]);
 
   useEffect(() => {
     const getBanners = async () => {
@@ -104,64 +178,10 @@ const AllRoutesSearch = ({navigation, route, ...props}) => {
         }
       };
       checkLangChange();
-    }, [])
+    }, [searchRoute]),
   );
-  
-  const getRoutesList = item => {
-    navigateTo(navigation, t('SCREEN.ROUTES_LIST'), {item});
-  };
 
-  const searchRoute = async (a, b, isNext) => {
-    AsyncStorage.setItem('isLangChanged', 'false');
-
-    if (nextPage >= 1) {
-      props.setLoader(true);
-      const data = {
-        source_place_id: a || source?.id,
-        destination_place_id: b || destination?.id,
-      };
-
-      comnPost(`v2/routes?page=${isNext ? nextPage : 1}`, data, navigation)
-        .then(res => {
-          if (res.data.success) {
-            if (res && res.data.data.data[0]) {
-              saveToStorage(t('STORAGE.ROUTES_RESPONSE'), JSON.stringify(res));
-              let myNextUrl = res.data.data.next_page_url;
-              setNextUrl(myNextUrl);
-              if (myNextUrl) {
-                nextPage !== myNextUrl[myNextUrl.length - 1] && isNext
-                  ? setList([...list, ...res.data.data.data])
-                  : setList([...res.data.data.data]);
-              } else {
-                setList([...res.data.data.data]);
-              }
-              setNextPage(res.data.data.current_page + 1);
-              setLastPage(res.data.data.last_page);
-              setIsLoading(false);
-              setIsFirstTime(false);
-              props.setLoader(false);
-            } else {
-              setIsLoading(false);
-              setIsFirstTime(false);
-              setList([]);
-              props.setLoader(false);
-            }
-          } else {
-            setIsLoading(false);
-            setIsFirstTime(false);
-            setList([]);
-            props.setLoader(false);
-          }
-        })
-        .catch(err => {
-          setIsLoading(false);
-          setIsFirstTime(false);
-          props.setLoader(false);
-        });
-    }
-  };
-
-  const loadMoreRoutes = async () => {
+  const loadMoreRoutes = useCallback(async () => {
     const mode = JSON.parse(await getFromStorage(t('STORAGE.MODE')));
     // Check the internet connectivity state
     const state = await NetInfo.fetch();
@@ -190,45 +210,39 @@ const AllRoutesSearch = ({navigation, route, ...props}) => {
 
     if (!props.mode) {
       setShowOffline(true);
-    } else if (!isLoading && nextPage <= lastPage) {
+    } else if (
+      !isLoadingRef.current &&
+      nextPageRef.current <= lastPageRef.current
+    ) {
       searchRoute(source, destination, true);
     }
-  };
+  }, [destination, props.mode, searchRoute, source, t]);
 
-  const closePopup = () => {
+  const closePopup = useCallback(() => {
     setIsAlert(false);
-  };
+  }, []);
 
-  const renderItem = ({item}) => {
-    return (
-      // <ListItem bottomDivider onPress={() => getRoutes(item)}>
-      //   {/* <Avatar source={{ uri: item.avatar_url }} /> */}
-      //   <RouteLine />
-      //   <GlobalText text={item.id} />
-      //   <ListItem.Content>
-      //     {/* <ListItem.Title>{item.number}</ListItem.Title> */}
-      //     <ListItem.Title>{item.name}</ListItem.Title>
-      //   </ListItem.Content>
-      //   <ListItem.Chevron />
-      // </ListItem>
-      <View style={styles.sectionView}>
-        {list.map((route, index) => (
-          <View key={route.id || index} style={styles.cardsWrap}>
-            <RouteHeadCard
-              data={route}
-              cardClick={() => getRoutesList(route)}
-            />
-          </View>
-        ))}
-      </View>
-    );
-  };
+  const renderRouteItem = useCallback(
+    ({item}) => (
+      <RouteHeadCard
+        data={item}
+        cardClick={() => getRoutesList(item)}
+        style={styles.routeHeadCard}
+      />
+    ),
+    [getRoutesList],
+  );
+
+  const hasFooterBanner =
+    !isLoading &&
+    bannerObject?.ROUTE_LIST_FOOTER &&
+    bannerObject.ROUTE_LIST_FOOTER.length > 0;
 
   return (
-    <SafeAreaView edges={['top']} style={{backgroundColor: COLOR.white, flex: 1}}>
+    <SafeAreaView edges={['top']} style={localStyles.safeArea}>
       <CheckNet isOff={offline} />
       {!isFirstTime && (
-        <View style={{position: 'absolute', width: 0, height: 0}}>
+        <View style={localStyles.hiddenLoader}>
           <Loader />
         </View>
       )}
@@ -263,15 +277,11 @@ const AllRoutesSearch = ({navigation, route, ...props}) => {
         )}
       </View>
       <View
-        style={{
-          flex: 1,
-          marginBottom:
-            !isLoading &&
-            bannerObject?.ROUTE_LIST_FOOTER &&
-            bannerObject.ROUTE_LIST_FOOTER.length > 0
-              ? DIMENSIONS.windowWidth / 3
-              : 0,
-        }}>
+        style={
+          hasFooterBanner
+            ? localStyles.listContainerWithFooter
+            : localStyles.listContainer
+        }>
         {isFirstTime && isLoading ? (
           <>
             <RouteHeadCardSkeleton />
@@ -282,36 +292,17 @@ const AllRoutesSearch = ({navigation, route, ...props}) => {
           </>
         ) : list.length > 0 ? (
           <FlatList
-            keyExtractor={item => item.id}
+            keyExtractor={item => item.id?.toString()}
             data={list}
-            onEndReached={() => loadMoreRoutes()}
-            contentContainerStyle={{paddingBottom: 20}}
+            onEndReached={loadMoreRoutes}
+            contentContainerStyle={localStyles.listContent}
             onEndReachedThreshold={0.5}
-            ListHeaderComponent={
-              // !isLoading &&
-              // bannerObject?.ROUTE_LIST_MIDDLE &&
-              // bannerObject.ROUTE_LIST_MIDDLE.length > 0 ? (
-              //   <View style={{marginTop: 10, marginBottom: 10, width: '100%'}}>
-              //     <Banner
-              //       bannerImages={bannerObject.ROUTE_LIST_MIDDLE}
-              //     />
-              //   </View>
-              // ) : null
-              null
-            }
-            ListFooterComponent={null}
-            renderItem={({item}) => (
-              <RouteHeadCard
-                data={item}
-                cardClick={() => getRoutesList(item)}
-                style={styles.routeHeadCard}
-              />
-            )}
+            renderItem={renderRouteItem}
           />
         ) : (
-          <View style={{alignItems: 'center', padding: 50}}>
+          <View style={localStyles.emptyState}>
             <GlobalText
-              style={{fontWeight: 'bold'}}
+              style={localStyles.emptyText}
               text={
                 offline
                   ? t('NO_INTERNET')
@@ -326,10 +317,10 @@ const AllRoutesSearch = ({navigation, route, ...props}) => {
       {!isLoading &&
         bannerObject?.ROUTE_LIST_FOOTER &&
         bannerObject.ROUTE_LIST_FOOTER.length > 0 && (
-          <View style={{position: 'absolute', bottom: 0, width: '100%'}}>
+          <View style={localStyles.footerWrapper}>
             <Banner
               bannerImages={bannerObject.ROUTE_LIST_FOOTER}
-              style={{height: DIMENSIONS.windowWidth / 3, marginBottom: 0}}
+              style={localStyles.footerBanner}
             />
           </View>
         )}
@@ -342,6 +333,44 @@ const AllRoutesSearch = ({navigation, route, ...props}) => {
     </SafeAreaView>
   );
 };
+
+const localStyles = StyleSheet.create({
+  safeArea: {
+    backgroundColor: COLOR.white,
+    flex: 1,
+  },
+  hiddenLoader: {
+    position: 'absolute',
+    width: 0,
+    height: 0,
+  },
+  listContainer: {
+    flex: 1,
+  },
+  listContainerWithFooter: {
+    flex: 1,
+    marginBottom: DIMENSIONS.windowWidth / 3,
+  },
+  listContent: {
+    paddingBottom: 20,
+  },
+  emptyState: {
+    alignItems: 'center',
+    padding: 50,
+  },
+  emptyText: {
+    fontWeight: 'bold',
+  },
+  footerWrapper: {
+    position: 'absolute',
+    bottom: 0,
+    width: '100%',
+  },
+  footerBanner: {
+    height: DIMENSIONS.windowWidth / 3,
+    marginBottom: 0,
+  },
+});
 
 const mapStateToProps = state => {
   return {

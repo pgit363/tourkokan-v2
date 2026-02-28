@@ -1,6 +1,6 @@
 import React, {useEffect, useState} from 'react';
 import {EmailOtpFields} from '../../../Services/Constants/FIELDS';
-import {TouchableOpacity, View} from 'react-native';
+import {TouchableOpacity, View, StyleSheet} from 'react-native';
 import TextField from '../../../Components/Customs/TextField';
 import TextButton from '../../../Components/Customs/Buttons/TextButton';
 import Feather from 'react-native-vector-icons/Feather';
@@ -21,6 +21,7 @@ const EmailOtp = ({
 
   const [sec, setSec] = useState(30);
   const [otpSent, setOtpSent] = useState(isOtpSent);
+  const [showPassword, setShowPassword] = useState(false);
 
   const sendOtp = () => {
     setSec(30);
@@ -29,21 +30,17 @@ const EmailOtp = ({
   };
 
   useEffect(() => {
-    let intervalId;
-    if (otpSent) {
-      intervalId = setInterval(timer, 1000);
+    if (!otpSent || sec <= 0) {
+      return;
     }
+    const intervalId = setInterval(() => {
+      setSec(prev => (prev > 0 ? prev - 1 : 0));
+    }, 1000);
     return () => clearInterval(intervalId);
   }, [otpSent, sec]);
 
-  const timer = () => {
-    if (sec) {
-      setSec(sec - 1);
-    }
-  };
-
   return (
-    <View style={{justifyContent: 'center', alignItems: 'center'}}>
+    <View style={localStyles.container}>
       <TouchableOpacity onPress={changeChoice}>
         <GlobalText text={t('CHANGE')} style={styles.changeOption} />
       </TouchableOpacity>
@@ -56,14 +53,14 @@ const EmailOtp = ({
             fieldType={field.type}
             length={field.length}
             required={field.required}
-            disabled={index == 1 && !otpSent}
+            disabled={index === 1 && !otpSent}
             value={getValue(index)}
             setChild={(v, i) => setValue(v, i, index)}
             style={styles.containerStyle}
             inputContainerStyle={styles.inputContainerStyle}
             isSecure={field.isSecure}
             rightIcon={
-              field.type == `${t('TYPE.PASSWORD')}` && (
+              field.type === `${t('TYPE.PASSWORD')}` && (
                 <Feather
                   name={field.isSecure ? 'eye' : 'eye-off'}
                   size={24}
@@ -79,7 +76,7 @@ const EmailOtp = ({
           />
         );
       })}
-      <View style={{marginVertical: 10}}>
+      <View style={localStyles.resendWrap}>
         {otpSent ? (
           sec >= 1 ? (
             <GlobalText
@@ -120,5 +117,15 @@ const EmailOtp = ({
     </View>
   );
 };
+
+const localStyles = StyleSheet.create({
+  container: {
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  resendWrap: {
+    marginVertical: 10,
+  },
+});
 
 export default EmailOtp;

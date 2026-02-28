@@ -473,7 +473,7 @@ const styles = StyleSheet.create({
     alignSelf: 'flex-end',
   },
   lastContent: {
-    top: 2
+    top: 2,
   },
   lastContentLong: {
     alignSelf: 'flex-end',

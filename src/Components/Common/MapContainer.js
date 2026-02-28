@@ -7,7 +7,9 @@ const MapContainer = ({initialRegion, currentLatitude, currentLongitude}) => {
   const lat = parseFloat(currentLatitude);
   const lng = parseFloat(currentLongitude);
 
-  if (isNaN(lat) || isNaN(lng)) return null;
+  if (isNaN(lat) || isNaN(lng)) {
+    return null;
+  }
 
   return (
     <View style={styles.profileMapView}>

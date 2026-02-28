@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React from 'react';
 import {ImageBackground, TouchableOpacity, View} from 'react-native';
 import {FTP_PATH} from '@env';
 import styles from './Styles';
@@ -8,16 +8,18 @@ import COLOR from '../../Services/Constants/COLORS';
 import DIMENSIONS from '../../Services/Constants/DIMENSIONS';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 
+const ratingTextStyle = {marginLeft: 5};
+
 const PackageCard = ({data, cardType, onClick, reload}) => {
-  const [rating, setRating] = useState(data?.rating_avg_rate || 0);
-  const [isFav, setIsFav] = useState(data?.is_favorite);
+  const rating = data?.rating_avg_rate || 0;
+  const isFav = data?.is_favorite;
 
   return (
     <TouchableOpacity
       style={
         cardType === 'small' ? styles.packageCardSmall : styles.packageCardLong
       }
-      onPress={() => onClick()}>
+      onPress={() => onClick?.()}>
       <View
         style={
           cardType === 'small'
@@ -41,7 +43,7 @@ const PackageCard = ({data, cardType, onClick, reload}) => {
             source={require('../../Assets/Images/no-image.png')}
             // style={cardType == 'small' ? styles.smallPackageImage : styles.placeImage}
             imageStyle={
-              cardType == 'small'
+              cardType === 'small'
                 ? styles.smallPackageImageStyle
                 : styles.smallPackageImageLongStyle
             }
@@ -107,7 +109,7 @@ const PackageCard = ({data, cardType, onClick, reload}) => {
               color={COLOR.yellow}
               size={DIMENSIONS.iconSize}
             />
-            <GlobalText text={rating} style={{marginLeft: 5}} />
+            <GlobalText text={rating} style={ratingTextStyle} />
           </View>
         </View>
       </View>
@@ -115,4 +117,4 @@ const PackageCard = ({data, cardType, onClick, reload}) => {
   );
 };
 
-export default PackageCard;
+export default React.memo(PackageCard);

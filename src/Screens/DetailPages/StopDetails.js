@@ -1,5 +1,6 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 import React, {useState, useEffect} from 'react';
-import {View, ScrollView, Text} from 'react-native';
+import {View, ScrollView} from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import COLOR from '../../Services/Constants/COLORS';
 import DIMENSIONS from '../../Services/Constants/DIMENSIONS';
@@ -13,10 +14,13 @@ import {
   goBackHandler,
 } from '../../Services/CommonMethods';
 import GlobalText from '../../Components/Customs/Text';
+import {comnPost} from '../../Services/Api/CommonServices';
+
+const detailsContainerStyle = {flex: 1, alignItems: 'center'};
+const detailsRowStyle = {flexDirection: 'row'};
 
 const StopDetails = ({navigation, route, ...props}) => {
-  const [stop, setStop] = useState([]); // State to store city
-  const [error, setError] = useState(null); // State to store error message
+  const [stop, setStop] = useState([]);
 
   useEffect(() => {
     const backHandler = goBackHandler(navigation);
@@ -31,11 +35,10 @@ const StopDetails = ({navigation, route, ...props}) => {
   const getDetails = () => {
     comnPost(`v2/stop/${route.params.id}`, props.access_token)
       .then(res => {
-        setStop(res.data.data); // Update city state with response data
+        setStop(res.data.data);
         props.setLoader(false);
       })
-      .catch(error => {
-        setError(error.message); // Update error state with error message
+      .catch(() => {
         props.setLoader(false);
       });
   };
@@ -54,8 +57,8 @@ const StopDetails = ({navigation, route, ...props}) => {
           />
         }
       />
-      <View style={{flex: 1, alignItems: 'center'}}>
-        <View style={{flexDirection: 'row'}}>
+      <View style={detailsContainerStyle}>
+        <View style={detailsRowStyle}>
           <GlobalText text={stop.name} />
           <GlobalText text={JSON.stringify(stop)} />
         </View>

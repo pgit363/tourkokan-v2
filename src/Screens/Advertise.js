@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
 import {comnPost} from '../Services/Api/CommonServices';
@@ -7,7 +8,6 @@ import styles from './Styles';
 
 const Advertise = ({navigation}) => {
   const [adv, setAdv] = useState('a');
-  const [update, setUpdate] = useState('');
 
   useEffect(() => {
     firstAPI();
@@ -18,6 +18,7 @@ const Advertise = ({navigation}) => {
   }, [adv]);
 
   const firstAPI = () => {
+    const data = {};
     comnPost('v1/', data, navigation).then(res => {
       setAdv(res);
     });

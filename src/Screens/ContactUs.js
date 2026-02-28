@@ -1,11 +1,12 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 import React, {useEffect, useState, useRef} from 'react';
-import {BackHandler, View, ScrollView} from 'react-native';
+import {BackHandler, View, ScrollView, StyleSheet} from 'react-native';
 import Header from '../Components/Common/Header';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import COLOR from '../Services/Constants/COLORS';
 import DIMENSIONS from '../Services/Constants/DIMENSIONS';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import {backPage, checkLogin, goBackHandler} from '../Services/CommonMethods';
+import {backPage} from '../Services/CommonMethods';
 import {ContactUsFields} from '../Services/Constants/FIELDS';
 import TextField from '../Components/Customs/TextField';
 import TextButton from '../Components/Customs/Buttons/TextButton';
@@ -38,7 +39,6 @@ const ContactUs = ({
   const [message, setMessage] = useState('');
   const [alertMessage, setAlertMessage] = useState('');
   const [isAlert, setIsAlert] = useState(false);
-  const [selectedFile, setSelectedFile] = useState(null);
 
   const isMounted = useRef(true); // Initialize ref to track component mount state
 
@@ -52,7 +52,7 @@ const ContactUs = ({
     );
     const init = async () => {
       const userEmail = await AsyncStorage.getItem(t('STORAGE.USER_EMAIL'));
-      if (isMounted.current) setEmail(userEmail);
+      if (isMounted.current) {setEmail(userEmail);}
       // checkLogin(navigation);
     };
     init();
@@ -64,7 +64,7 @@ const ContactUs = ({
   }, []);
 
   const goBackStep = () => {
-    if (step == 0 || !setStep) {
+    if (step === 0 || !setStep) {
       backPage(navigation);
     } else {
       setStep(0);
@@ -153,6 +153,7 @@ const ContactUs = ({
       })
       .catch(err => {
         if (isMounted.current) {
+          console.error('Failed to send query:', err);
           setIsAlert(true);
           setAlertMessage(t('ALERT.FAILED'));
           props.setLoader(false);
@@ -184,8 +185,8 @@ const ContactUs = ({
   // };
 
   return (
-    <View style={{backgroundColor: COLOR.white, flex: 1}}>
-      <SafeAreaView edges={['top']} style={{backgroundColor: COLOR.white}}>
+    <View style={localStyles.container}>
+      <SafeAreaView edges={['top']} style={localStyles.safeArea}>
         <Header
           name={t('HEADER.CONTACT_US')}
           startIcon={
@@ -200,13 +201,10 @@ const ContactUs = ({
       </SafeAreaView>
       <Loader />
       <ScrollView
-        contentContainerStyle={{
-          alignItems: 'center',
-          paddingBottom: 50,
-        }}>
+        contentContainerStyle={localStyles.scrollContent}>
         {ContactUsFields.map((field, index) => {
           return (
-            <View key={field.name || index} style={{width: DIMENSIONS.bannerWidth}}>
+            <View key={field.name || index} style={localStyles.fieldWrap}>
               <GlobalText text={field.placeholder} style={styles.fieldTitle} />
               <TextField
                 name={field.name}
@@ -236,6 +234,23 @@ const ContactUs = ({
     </View>
   );
 };
+
+const localStyles = StyleSheet.create({
+  container: {
+    backgroundColor: COLOR.white,
+    flex: 1,
+  },
+  safeArea: {
+    backgroundColor: COLOR.white,
+  },
+  scrollContent: {
+    alignItems: 'center',
+    paddingBottom: 50,
+  },
+  fieldWrap: {
+    width: DIMENSIONS.bannerWidth,
+  },
+});
 
 const mapStateToProps = state => {
   return {

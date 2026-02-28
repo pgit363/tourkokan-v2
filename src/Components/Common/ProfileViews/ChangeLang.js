@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
 import GlobalText from '../../Customs/Text';
@@ -15,7 +16,7 @@ import Popup from '../Popup';
 const ChangeLang = ({refreshOption, setLoader, ...props}) => {
   const {t, i18n} = useTranslation();
 
-  const [list, setList] = useState([
+  const [list] = useState([
     {label: 'English', value: 'en'},
     {label: 'मराठी', value: 'mr'},
   ]);
@@ -25,6 +26,8 @@ const ChangeLang = ({refreshOption, setLoader, ...props}) => {
 
   const [isAlert, setIsAlert] = useState(false);
   const [alertMessage, setAlertMessage] = useState('');
+  const titleStyle = {textAlign: 'left'};
+  const focusStyle = {borderColor: 'blue'};
 
   useEffect(() => {
     setLanguage(t('LANG'));
@@ -66,7 +69,7 @@ const ChangeLang = ({refreshOption, setLoader, ...props}) => {
         .then(res => {
           AsyncStorage.setItem('isUpdated', 'true');
         })
-        .catch(err => {});
+        .catch(() => {});
       i18n.changeLanguage(language);
       AsyncStorage.setItem('isLangChanged', 'true');
       refreshOption();
@@ -83,10 +86,10 @@ const ChangeLang = ({refreshOption, setLoader, ...props}) => {
     <View>
       <GlobalText
         text={t('CHIPS.CHANGE_LANGUAGE')}
-        style={{textAlign: 'left'}}
+        style={titleStyle}
       />
       <Dropdown
-        style={[styles.dropdown, isFocus && {borderColor: 'blue'}]}
+        style={[styles.dropdown, isFocus && focusStyle]}
         placeholderStyle={styles.placeholderStyle}
         selectedTextStyle={styles.selectedTextStyle}
         inputSearchStyle={styles.inputSearchStyle}

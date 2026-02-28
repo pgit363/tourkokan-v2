@@ -1,10 +1,12 @@
-import React, {useEffect, useState, useRef, useCallback} from 'react';
+/* eslint-disable react-hooks/exhaustive-deps */
+import React, {useEffect, useState, useRef} from 'react';
 import {
   FlatList,
   View,
   Linking,
   ActivityIndicator,
   RefreshControl,
+  StyleSheet,
 } from 'react-native';
 import {ListItem} from '@rneui/themed';
 import Header from '../Components/Common/Header';
@@ -17,7 +19,7 @@ import TextButton from '../Components/Customs/Buttons/TextButton';
 import styles from './Styles';
 import {
   comnPost,
-  dataSync,
+  dataSyncResult,
   saveToStorage,
 } from '../Services/Api/CommonServices';
 import Loader from '../Components/Customs/Loader';
@@ -52,11 +54,12 @@ const Emergency = ({navigation, route, ...props}) => {
     // Function to check if data exists in storage
     const checkStoredData = async () => {
       try {
-        const storedData = await dataSync(
+        const syncResult = await dataSyncResult(
           t('STORAGE.EMERGENCY'),
           null,
           props.mode,
         );
+        const storedData = syncResult.data;
         if (storedData) {
           setData(JSON.parse(storedData));
           props.setLoader(false);
@@ -113,12 +116,12 @@ const Emergency = ({navigation, route, ...props}) => {
       }
 
       setLoading(true);
-      let data = {
+      let requestData = {
         apitype: 'list',
         category: 'emergency',
         page: page,
       };
-      comnPost('v2/sites', data)
+      comnPost('v2/sites', requestData)
         .then(res => {
           if (res && res.data.data) {
             if (reset) {
@@ -147,7 +150,9 @@ const Emergency = ({navigation, route, ...props}) => {
             props.setLoader(false);
           }
         });
-    } else props.setLoader(false);
+    } else {
+      props.setLoader(false);
+    }
   };
 
   const loadMoreData = () => {
@@ -171,29 +176,25 @@ const Emergency = ({navigation, route, ...props}) => {
     return (
       <ListItem bottomDivider>
         <ListItem.Content>
-          <View style={{flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', width: '100%'}}>
+          <View style={localStyles.row}>
             <ListItem.Title>{item.name}</ListItem.Title>
-            <View
-            style={{
-              flexDirection: 'row',
-              justifyContent: 'flex-end',
-            }}>
-            <TextButton
-              title=""
-              onPress={() => makeContact(item.address, 'phone')}
-              buttonView={styles.callButton}
-              endIcon={
-                <Feather name="phone-call" size={24} color={COLOR.themeBlue} />
-              }
-            />
-            <TextButton
-              title=""
-              onPress={() => makeContact(item.address, 'email')}
-              buttonView={styles.callButton}
-              endIcon={
-                <MaterialIcons name="email" size={24} color={COLOR.themeBlue} />
-              }
-            />
+            <View style={localStyles.actionsRow}>
+              <TextButton
+                title=""
+                onPress={() => makeContact(item.address, 'phone')}
+                buttonView={styles.callButton}
+                endIcon={
+                  <Feather name="phone-call" size={24} color={COLOR.themeBlue} />
+                }
+              />
+              <TextButton
+                title=""
+                onPress={() => makeContact(item.address, 'email')}
+                buttonView={styles.callButton}
+                endIcon={
+                  <MaterialIcons name="email" size={24} color={COLOR.themeBlue} />
+                }
+              />
             </View>
           </View>
         </ListItem.Content>
@@ -202,16 +203,18 @@ const Emergency = ({navigation, route, ...props}) => {
   };
 
   const renderFooter = () => {
-    if (!loading || !hasMore) return null;
+    if (!loading || !hasMore) {
+      return null;
+    }
     return (
-      <View style={{paddingVertical: 20}}>
+      <View style={localStyles.footer}>
         <ActivityIndicator size="small" color={COLOR.primary} />
       </View>
     );
   };
 
   return (
-    <SafeAreaView edges={['top']} style={{flex: 1, backgroundColor: COLOR.white}}>
+    <SafeAreaView edges={['top']} style={localStyles.container}>
       <Header
         name={t('HEADER.EMERGENCY')}
         goBack={() => backPage(navigation)}
@@ -242,19 +245,14 @@ const Emergency = ({navigation, route, ...props}) => {
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }
         ListEmptyComponent={
-          <View
-            style={{
-              height: DIMENSIONS.screenHeight,
-              alignItems: 'center',
-              padding: 50,
-            }}>
+          <View style={localStyles.emptyWrap}>
             <GlobalText
-              style={{fontWeight: 'bold'}}
+              style={localStyles.emptyText}
               text={offline ? t('NO_INTERNET') : t('NO_DATA_AVAILABLE')}
             />
           </View>
         }
-        style={{flex: 1, marginTop: -19}}
+        style={localStyles.list}
       />
       <ComingSoon
         message={errorMessage}
@@ -264,6 +262,38 @@ const Emergency = ({navigation, route, ...props}) => {
     </SafeAreaView>
   );
 };
+
+const localStyles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: COLOR.white,
+  },
+  row: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    width: '100%',
+  },
+  actionsRow: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+  },
+  footer: {
+    paddingVertical: 20,
+  },
+  emptyWrap: {
+    height: DIMENSIONS.screenHeight,
+    alignItems: 'center',
+    padding: 50,
+  },
+  emptyText: {
+    fontWeight: 'bold',
+  },
+  list: {
+    flex: 1,
+    marginTop: -19,
+  },
+});
 
 const mapStateToProps = state => {
   return {

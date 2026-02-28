@@ -3,6 +3,8 @@ apply plugin: "org.jetbrains.kotlin.android"
 apply plugin: "com.facebook.react"
 apply from: "../../node_modules/react-native-vector-icons/fonts.gradle"
 apply from: "../../node_modules/react-native-config/android/dotenv.gradle"
+import java.util.Properties
+import java.io.FileInputStream
 
 /**
  * This is the configuration block to customize your React Native Android app.
@@ -85,6 +87,12 @@ task setEnv {
 }
 preBuild.dependsOn setEnv
 
+def keystorePropertiesFile = rootProject.file("keystore.properties")
+def keystoreProperties = new Properties()
+if (keystorePropertiesFile.exists()) {
+    keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
+}
+
 android {
     ndkVersion rootProject.ext.ndkVersion
     buildToolsVersion rootProject.ext.buildToolsVersion
@@ -97,6 +105,9 @@ android {
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 41
         versionName "2.0.3"
+        manifestPlaceholders = [
+            GOOGLE_MAPS_API_KEY: project.findProperty("GOOGLE_MAPS_API_KEY") ?: System.getenv("GOOGLE_MAPS_API_KEY") ?: ""
+        ]
     }
     signingConfigs {
         debug {
@@ -106,12 +117,12 @@ android {
             keyPassword 'android'
         }
         release {
-            // storeFile file('/Users/balkrushnawalke/Documents/malvani/react_native/More_Latest/tourkokan/tourkokan-release.keystore')
-            // storeFile file('/var/www/html/latestpackages/android/app/keystore/tourkokan-release.keystore')
-            storeFile file('/Users/pranavkamble/Documents/tourkokan-v2/android/app/tourkokan-release.keystore')
-            storePassword 'tourkokan'
-            keyAlias 'my-key-alias'
-            keyPassword 'tourkokan'
+            if (keystorePropertiesFile.exists()) {
+                storeFile file(keystoreProperties['storeFile'])
+                storePassword keystoreProperties['storePassword']
+                keyAlias keystoreProperties['keyAlias']
+                keyPassword keystoreProperties['keyPassword']
+            }
         }
     }
     buildTypes {
@@ -120,7 +131,7 @@ android {
             buildConfigField "String", "ENV_FILE", "\"${project.hasProperty('ENV_FILE') ? project.ENV_FILE : 'development'}\""
         }
         release {
-            signingConfig signingConfigs.release
+            signingConfig keystorePropertiesFile.exists() ? signingConfigs.release : signingConfigs.debug
             minifyEnabled enableProguardInReleaseBuilds
             minifyEnabled true
             shrinkResources true

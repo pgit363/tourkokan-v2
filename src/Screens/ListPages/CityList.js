@@ -1,8 +1,9 @@
-import React, {useState, useEffect, useRef} from 'react';
+/* eslint-disable react-hooks/exhaustive-deps */
+import React, {useState, useEffect} from 'react';
 import {
+  StyleSheet,
   View,
   FlatList,
-  TouchableOpacity,
   ActivityIndicator,
   RefreshControl,
 } from 'react-native';
@@ -11,12 +12,11 @@ import COLOR from '../../Services/Constants/COLORS';
 import DIMENSIONS from '../../Services/Constants/DIMENSIONS';
 import {
   comnPost,
-  dataSync,
+  dataSyncResult,
   saveToStorage,
   getFromStorage,
 } from '../../Services/Api/CommonServices';
 import {connect} from 'react-redux';
-import Loader from '../../Components/Customs/Loader';
 import Header from '../../Components/Common/Header';
 import {setLoader, setMode} from '../../Reducers/CommonActions';
 import {
@@ -25,32 +25,23 @@ import {
   goBackHandler,
   navigateTo,
 } from '../../Services/CommonMethods';
-import CityCard from '../../Components/Cards/CityCard';
 import NetInfo from '@react-native-community/netinfo';
-import CheckNet from '../../Components/Common/CheckNet';
 import GlobalText from '../../Components/Customs/Text';
 import {useTranslation} from 'react-i18next';
-import styles from './Styles';
 import ComingSoon from '../../Components/Common/ComingSoon';
 import Popup from '../../Components/Common/Popup';
 import FlatListSkeleton from './FlatListSkeleton';
-import CityCardSmall from '../../Components/Cards/CityCardSmall';
-import PlaceCard from '../../Components/Cards/PlaceCard';
 import PackageCard from '../../Components/Cards/PackageCard';
 
 const CityList = ({navigation, route, ...props}) => {
   const {t} = useTranslation();
-  const refRBSheet = useRef();
 
   const [cities, setCities] = useState([]); // State to store cities
-  const [error, setError] = useState(null); // State to store error message
-  const [isLandingDataFetched, setIsLandingDataFetched] = useState(false);
   const [offline, setOffline] = useState(false);
   const [nextPage, setNextPage] = useState(1);
   const [loading, setLoading] = useState(false);
   const [lastPage, setLastPage] = useState(null);
   const [refreshing, setRefreshing] = useState(false);
-  const [showOffline, setShowOffline] = useState(false);
   const [showOnlineMode, setShowOnlineMode] = useState(false);
   const [isAlert, setIsAlert] = useState(false);
   const [alertMessage, setAlertMessage] = useState('');
@@ -66,15 +57,20 @@ const CityList = ({navigation, route, ...props}) => {
     const unsubscribe = NetInfo.addEventListener(state => {
       setOffline(!state.isConnected);
 
-      dataSync(
+      dataSyncResult(
         t('STORAGE.CITIES_RESPONSE'),
-        fetchCities(1, true),
+        () => fetchCities(1, true),
         props.mode,
-      ).then(resp => {
+      ).then(result => {
+        const resp = result.data;
         if (resp) {
-          let res = JSON.parse(resp);
-          setCities(res);
-        } else if (resp) {
+          const res = typeof resp === 'string' ? JSON.parse(resp) : resp;
+          if (Array.isArray(res)) {
+            setCities(res);
+          } else if (res?.data?.data?.data) {
+            setCities(res.data.data.data);
+          }
+        } else if (result.offline) {
           setOffline(true);
         }
         setLoading(false);
@@ -115,7 +111,7 @@ const CityList = ({navigation, route, ...props}) => {
           page: page,
         };
       }
-      comnPost(`v2/sites`, data, navigation)
+      comnPost('v2/sites', data, navigation)
         .then(res => {
           if (res && res.data.data) {
             if (reset) {
@@ -129,18 +125,22 @@ const CityList = ({navigation, route, ...props}) => {
               t('STORAGE.CITIES_RESPONSE'),
               JSON.stringify(res.data.data.data),
             );
+            return res.data.data.data;
           }
           setLoading(false);
           props.setLoader(false);
           setRefreshing(false);
+          return null;
         })
-        .catch(error => {
+        .catch(fetchError => {
+          console.error('Error fetching cities:', fetchError);
           setLoading(false);
           props.setLoader(false);
           setRefreshing(false);
-          setError(error.message); // Update error state with error message
+          return null;
         });
     }
+    return null;
   };
 
   const getCityDetails = city => {
@@ -199,9 +199,7 @@ const CityList = ({navigation, route, ...props}) => {
 
       return;
     }
-    if (!props.mode) {
-      setShowOffline(true);
-    } else if (!loading && nextPage <= lastPage) {
+    if (props.mode && !loading && nextPage <= lastPage) {
       fetchCities(nextPage, false);
     }
   };
@@ -211,9 +209,11 @@ const CityList = ({navigation, route, ...props}) => {
   };
 
   const renderFooter = () => {
-    if (!loading) return null;
+    if (!loading) {
+      return null;
+    }
     return (
-      <View style={{paddingVertical: 20}}>
+      <View style={localStyles.footer}>
         <ActivityIndicator size="small" color={COLOR.primary} />
       </View>
     );
@@ -247,25 +247,12 @@ const CityList = ({navigation, route, ...props}) => {
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }
         ListEmptyComponent={
-          <View
-            style={{
-              height: DIMENSIONS.screenHeight,
-              alignItems: 'center',
-              padding: 50,
-            }}>
-            <GlobalText
-              style={{fontWeight: 'bold'}}
-              text={
-                offline ? (
-                  <GlobalText
-                    style={{fontWeight: 'bold'}}
-                    text={t('NO_INTERNET')}
-                  />
-                ) : (
-                  <FlatListSkeleton />
-                )
-              }
-            />
+          <View style={localStyles.emptyWrap}>
+            {offline ? (
+              <GlobalText style={localStyles.emptyText} text={t('NO_INTERNET')} />
+            ) : (
+              <FlatListSkeleton />
+            )}
           </View>
         }
       />
@@ -278,6 +265,20 @@ const CityList = ({navigation, route, ...props}) => {
     </>
   );
 };
+
+const localStyles = StyleSheet.create({
+  footer: {
+    paddingVertical: 20,
+  },
+  emptyWrap: {
+    height: DIMENSIONS.screenHeight,
+    alignItems: 'center',
+    padding: 50,
+  },
+  emptyText: {
+    fontWeight: 'bold',
+  },
+});
 
 const mapStateToProps = state => {
   return {

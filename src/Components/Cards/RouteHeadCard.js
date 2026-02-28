@@ -10,9 +10,19 @@ import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import {useTranslation} from 'react-i18next';
 
+const rowContainerStyle = {flex: 1, flexDirection: 'row'};
+const contentContainerStyle = {flex: 3, justifyContent: 'space-evenly'};
+const statsRowStyle = {
+  flexDirection: 'row',
+  justifyContent: 'space-between',
+  width: '95%',
+};
+const emptyStateStyle = {flex: 1, justifyContent: 'center', alignItems: 'center'};
+const whiteTextStyle = {color: COLOR.white};
+
 const RouteHeadCard = ({data, cardClick, style, showDetails = true}) => {
   const {t} = useTranslation();
-  let imagePath = `../../Assets/Images/Buses/OrdinaryExpress.png`;
+  let imagePath = '../../Assets/Images/Buses/OrdinaryExpress.png';
 
   return (
     <TouchableOpacity
@@ -20,7 +30,7 @@ const RouteHeadCard = ({data, cardClick, style, showDetails = true}) => {
       onPress={() => showDetails && cardClick()}
       disabled={!showDetails}>
       {showDetails ? (
-        <View style={{flex: 1, flexDirection: 'row'}}>
+        <View style={rowContainerStyle}>
           <View style={styles.routeHeadCardImage}>
             {typeof imagePath === 'string' && imagePath.endsWith('.png') ? (
               <Image source={require(imagePath)} style={styles.busImage} />
@@ -28,7 +38,7 @@ const RouteHeadCard = ({data, cardClick, style, showDetails = true}) => {
               <Image source={{uri: imagePath}} style={styles.busImage} />
             )}
           </View>
-          <View style={{flex: 3, justifyContent: 'space-evenly'}}>
+          <View style={contentContainerStyle}>
             <GlobalText
               text={`${data.source_place?.name} ${t('TO')} ${
                 data.destination_place?.name
@@ -36,12 +46,7 @@ const RouteHeadCard = ({data, cardClick, style, showDetails = true}) => {
               style={styles.routeHeadCardTitle}
             />
             <View>
-              <View
-                style={{
-                  flexDirection: 'row',
-                  justifyContent: 'space-between',
-                  width: '95%',
-                }}>
+              <View style={statsRowStyle}>
                 <View style={styles.flexRow}>
                   <MaterialIcons
                     name="location-pin"
@@ -61,12 +66,7 @@ const RouteHeadCard = ({data, cardClick, style, showDetails = true}) => {
                   <GlobalText text={`${data.route_stops.length} ${t('STOPS')}`} />
                 </View>
               </View>
-              <View
-                style={{
-                  flexDirection: 'row',
-                  justifyContent: 'space-between',
-                  width: '95%',
-                }}>
+              <View style={statsRowStyle}>
                 <View style={styles.flexRow}>
                   <MaterialCommunityIcons
                     name="clock-outline"
@@ -90,7 +90,7 @@ const RouteHeadCard = ({data, cardClick, style, showDetails = true}) => {
           </View>
         </View>
       ) : (
-        <View style={{flex: 1, justifyContent: 'center', alignItems: 'center'}}>
+        <View style={emptyStateStyle}>
           <GlobalText text="No Route Available" style={styles.noRouteMessage} />
         </View>
       )}
@@ -102,7 +102,7 @@ const RouteHeadCard = ({data, cardClick, style, showDetails = true}) => {
               backgroundColor: JSON.parse(data.bus_type.meta_data)[0].color_code,
             },
           ]}>
-          <GlobalText text={data.bus_type.type} style={{color: COLOR.white}} />
+          <GlobalText text={data.bus_type.type} style={whiteTextStyle} />
         </View>
       )}
     </TouchableOpacity>

@@ -3,7 +3,6 @@ import {TouchableOpacity} from 'react-native';
 import styles from './Styles';
 import {Image} from '@rneui/base';
 import GlobalText from '../Text';
-import Path from '../../../Services/Api/BaseUrl';
 import {FTP_PATH} from '@env';
 
 const ImageButton = ({

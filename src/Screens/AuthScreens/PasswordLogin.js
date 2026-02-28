@@ -1,6 +1,7 @@
 import React, {useEffect} from 'react';
 import {useState} from 'react';
 import {
+  StyleSheet,
   View,
   TouchableOpacity,
   BackHandler,
@@ -13,7 +14,10 @@ import TextButton from '../../Components/Customs/Buttons/TextButton';
 import styles from './Styles';
 import {comnPost} from '../../Services/Api/CommonServices';
 import {connect} from 'react-redux';
-import {saveAccess_token, setLoader} from '../../Reducers/CommonActions';
+import {
+  saveAccess_token as saveAccessTokenAction,
+  setLoader as setLoaderAction,
+} from '../../Reducers/CommonActions';
 import Loader from '../../Components/Customs/Loader';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import COLOR from '../../Services/Constants/COLORS';
@@ -22,18 +26,15 @@ import GlobalText from '../../Components/Customs/Text';
 import Popup from '../../Components/Common/Popup';
 import AppLogo from '../../Assets/Images/Logos/tourkokan-logo.png';
 import Feather from 'react-native-vector-icons/Feather';
-import {CommonActions} from '@react-navigation/native';
 import {useTranslation} from 'react-i18next';
 
-const PasswordLogin = ({navigation, route, ...props}) => {
+const PasswordLogin = ({navigation, route, saveAccess_token, setLoader}) => {
   const {t} = useTranslation();
 
   const [email, setEmail] = useState(route?.params?.email);
   const [password, setPassword] = useState('');
   const [isAlert, setIsAlert] = useState(false);
   const [alertMessage, setAlertMessage] = useState('');
-  const [isSuccess, setIsSuccess] = useState(false);
-  const [isButtonDisabled, setIsButtonDisabled] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
 
   useEffect(() => {
@@ -48,7 +49,7 @@ const PasswordLogin = ({navigation, route, ...props}) => {
       setIsAlert(false);
       setAlertMessage('');
     };
-  }, []);
+  }, [navigation, t]);
 
   const setValue = (val, isVal, index) => {
     switch (index) {
@@ -57,7 +58,6 @@ const PasswordLogin = ({navigation, route, ...props}) => {
         break;
       case 1:
         setPassword(val);
-        setIsButtonDisabled(false);
         break;
     }
   };
@@ -72,15 +72,6 @@ const PasswordLogin = ({navigation, route, ...props}) => {
   };
 
   const closePopup = () => {
-    if (isSuccess) {
-      AsyncStorage.setItem(t('STORAGE.IS_FIRST_TIME'), JSON.stringify(true));
-      navigation.dispatch(
-        CommonActions.reset({
-          index: 0,
-          routes: [{name: t('SCREEN.HOME')}],
-        }),
-      );
-    }
     setIsAlert(false);
   };
 
@@ -89,17 +80,14 @@ const PasswordLogin = ({navigation, route, ...props}) => {
   };
 
   const login = () => {
-    props.setLoader(true);
+    setLoader(true);
     const data = {
       email,
       password,
     };
-    // createUser()
-    comnPost('auth/login', data)
+    comnPost('v2/auth/login', data)
       .then(res => {
         if (res.data.success) {
-          // setIsAlert(true);
-          // setAlertMessage(res.data.message);
           AsyncStorage.setItem(
             t('STORAGE.ACCESS_TOKEN'),
             res.data.data.access_token,
@@ -108,19 +96,13 @@ const PasswordLogin = ({navigation, route, ...props}) => {
             t('STORAGE.USER_ID'),
             JSON.stringify(res.data.data.user.id),
           );
-          props.saveAccess_token(res.data.data.access_token);
-          props.setLoader(false);
-          // setIsSuccess(true)
+          saveAccess_token(res.data.data.access_token);
+          setLoader(false);
           AsyncStorage.setItem(
             t('STORAGE.IS_FIRST_TIME'),
             JSON.stringify(true),
           );
-          navigation.dispatch(
-            CommonActions.reset({
-              index: 0,
-              routes: [{name: t('SCREEN.HOME')}],
-            }),
-          );
+          navigateTo(navigation, t('SCREEN.HOME'));
         } else {
           setIsAlert(true);
           setAlertMessage(
@@ -130,20 +112,18 @@ const PasswordLogin = ({navigation, route, ...props}) => {
               ? res.data.message.password
               : res.data.message,
           );
-          props.setLoader(false);
-          setIsSuccess(false);
+          setLoader(false);
         }
       })
-      .catch(err => {
+      .catch(() => {
         setIsAlert(true);
-        setIsSuccess(false);
         setAlertMessage(t('ALERT.WENT_WRONG'));
-        props.setLoader(false);
+        setLoader(false);
       });
   };
 
   return (
-    <View style={{alignItems: 'center'}}>
+    <View style={localStyles.container}>
       <ImageBackground
         style={styles.loginImage}
         source={require('../../Assets/Images/Intro/login_background.png')}
@@ -159,7 +139,7 @@ const PasswordLogin = ({navigation, route, ...props}) => {
       </View>
 
       <Loader />
-      <View style={{justifyContent: 'center', padding: 10, marginTop: 70}}>
+      <View style={localStyles.formWrap}>
         <GlobalText text={t('LOG_IN')} style={styles.loginText} />
         {SignInFields.map((field, index) => {
           return (
@@ -170,20 +150,23 @@ const PasswordLogin = ({navigation, route, ...props}) => {
               fieldType={field.type}
               length={field.length}
               required={field.required}
-              disabled={index == 0}
+              disabled={index === 0}
               value={getValue(index)}
               setChild={(v, i) => setValue(v, i, index)}
               style={styles.containerStyle}
               inputContainerStyle={styles.inputContainerStyle}
-              isSecure={field.isSecure}
+              isSecure={
+                field.type === `${t('TYPE.PASSWORD')}`
+                  ? !showPassword
+                  : field.isSecure
+              }
               rightIcon={
-                field.type == `${t('TYPE.PASSWORD')}` && (
+                field.type === `${t('TYPE.PASSWORD')}` && (
                   <Feather
-                    name={field.isSecure ? 'eye' : 'eye-off'}
+                    name={showPassword ? 'eye-off' : 'eye'}
                     size={24}
                     color={COLOR.themeBlue}
                     onPress={() => {
-                      field.isSecure = !showPassword;
                       setShowPassword(!showPassword);
                     }}
                     style={styles.eyeIcon}
@@ -216,21 +199,26 @@ const PasswordLogin = ({navigation, route, ...props}) => {
   );
 };
 
-const mapStateToProps = state => {
-  return {
-    access_token: state.commonState.access_token,
-  };
-};
+const localStyles = StyleSheet.create({
+  container: {
+    alignItems: 'center',
+  },
+  formWrap: {
+    justifyContent: 'center',
+    padding: 10,
+    marginTop: 70,
+  },
+});
 
 const mapDispatchToProps = dispatch => {
   return {
     saveAccess_token: data => {
-      dispatch(saveAccess_token(data));
+      dispatch(saveAccessTokenAction(data));
     },
     setLoader: data => {
-      dispatch(setLoader(data));
+      dispatch(setLoaderAction(data));
     },
   };
 };
 
-export default connect(mapStateToProps, mapDispatchToProps)(PasswordLogin);
+export default connect(null, mapDispatchToProps)(PasswordLogin);

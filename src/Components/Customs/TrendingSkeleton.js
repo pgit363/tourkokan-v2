@@ -4,25 +4,36 @@ import {Skeleton} from '@rneui/themed';
 import PackageCardSkeleton from '../Cards/PackageCardSkeleton';
 
 const TrendingSkeleton = () => {
+  const containerStyle = {width: '100%'};
+  const tabsContentStyle = {paddingHorizontal: 10};
+  const tabsScrollStyle = {marginBottom: 10};
+  const tabItemStyle = {
+    paddingVertical: 10,
+    paddingHorizontal: 15,
+    marginRight: 5,
+    flexDirection: 'row',
+    alignItems: 'center',
+  };
+  const tabIconStyle = {marginRight: 8};
+  const cardsContentStyle = {paddingHorizontal: 5, paddingBottom: 10};
+
   return (
-    <View style={{width: '100%'}}>
+    <View style={containerStyle}>
       {/* Tabs Skeleton */}
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
-        contentContainerStyle={{paddingHorizontal: 10}}
-        style={{marginBottom: 10}}>
+        contentContainerStyle={tabsContentStyle}
+        style={tabsScrollStyle}>
         {[1, 2, 3, 4].map((item, index) => (
-          <View
-            key={index}
-            style={{
-              paddingVertical: 10,
-              paddingHorizontal: 15,
-              marginRight: 5,
-              flexDirection: 'row',
-              alignItems: 'center',
-            }}>
-            <Skeleton circle width={14} height={14} style={{marginRight: 8}} animation="pulse" />
+          <View key={index} style={tabItemStyle}>
+            <Skeleton
+              circle
+              width={14}
+              height={14}
+              style={tabIconStyle}
+              animation="pulse"
+            />
             <Skeleton width={60} height={14} animation="pulse" />
           </View>
         ))}
@@ -32,7 +43,7 @@ const TrendingSkeleton = () => {
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
-        contentContainerStyle={{paddingHorizontal: 5, paddingBottom: 10}}>
+        contentContainerStyle={cardsContentStyle}>
         {[1, 2, 3].map((item, index) => (
           <PackageCardSkeleton key={index} cardType={'small'} />
         ))}

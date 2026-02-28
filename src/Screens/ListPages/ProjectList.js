@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 import React, {useState, useEffect} from 'react';
 import {View, SafeAreaView, StyleSheet} from 'react-native';
 import {comnPost} from '../../Services/Api/CommonServices';
@@ -6,7 +7,6 @@ import {setLoader} from '../../Reducers/CommonActions';
 import {
   checkLogin,
   goBackHandler,
-  navigateTo,
 } from '../../Services/CommonMethods';
 import MapView, {Marker} from 'react-native-maps';
 import {useTranslation} from 'react-i18next';
@@ -15,7 +15,6 @@ const ProjectList = ({navigation, ...props}) => {
   const {t} = useTranslation();
 
   const [projects, setProjects] = useState([]); // State to store projects
-  const [error, setError] = useState(null); // State to store error message
 
   useEffect(() => {
     const backHandler = goBackHandler(navigation);
@@ -34,14 +33,10 @@ const ProjectList = ({navigation, ...props}) => {
         setProjects(res.data.data.data); // Update projects state with response data
         props.setLoader(false);
       })
-      .catch(error => {
+      .catch(fetchError => {
+        console.error('Error fetching projects:', fetchError);
         props.setLoader(false);
-        setError(error.message); // Update error state with error message
       });
-  };
-
-  const handleSmallCardClick = id => {
-    navigateTo(navigation, t('SCREEN.PROJECT_DETAILS'), {id});
   };
 
   return (
@@ -75,7 +70,7 @@ const ProjectList = ({navigation, ...props}) => {
     //     </View>
     //   </View>
     // </ScrollView>
-    <SafeAreaView style={{flex: 1}}>
+    <SafeAreaView style={stylesMap.safeArea}>
       <View style={stylesMap.containerMap}>
         <MapView
           style={stylesMap.mapStyle}
@@ -92,9 +87,9 @@ const ProjectList = ({navigation, ...props}) => {
               latitude: 19.2309972,
               longitude: 73.0838757,
             }}
-            onDragEnd={e => alert(JSON.stringify(e.nativeEvent.coordinate))}
+            onDragEnd={e => console.log('Marker moved:', e.nativeEvent.coordinate)}
             title={t('TEST_MARKER')}
-            description={t('MARKER_DESCRIPTION')}
+            description={`${t('MARKER_DESCRIPTION')} (${projects.length})`}
           />
         </MapView>
       </View>
@@ -198,6 +193,9 @@ const mapStyle = [
 ];
 
 const stylesMap = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+  },
   containerMap: {
     position: 'absolute',
     top: 0,

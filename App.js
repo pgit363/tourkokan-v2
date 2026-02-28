@@ -1,26 +1,15 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 import 'react-native-gesture-handler';
-import { StatusBar } from 'expo-status-bar';
-import React, { useEffect, useState } from 'react';
-import { NavigationContainer } from '@react-navigation/native';
-import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { SafeAreaProvider } from 'react-native-safe-area-context';
-import { Provider } from 'react-redux';
+import {StatusBar} from 'expo-status-bar';
+import React, {useEffect, useState} from 'react';
+import {SafeAreaProvider} from 'react-native-safe-area-context';
+import {Provider} from 'react-redux';
 import store from './Store';
 import {
   Image,
-  LogBox,
-  StyleSheet,
   View,
   ActivityIndicator,
-  TextInput,
-  Button,
-  PermissionsAndroid,
-  Text,
-  TouchableOpacity,
-  Animated,
   Alert,
-  KeyboardAvoidingView,
-  ScrollView,
   Keyboard,
   BackHandler,
   Linking,
@@ -29,57 +18,55 @@ import StackNavigator from './src/Navigators/StackNavigator';
 import COLOR from './src/Services/Constants/COLORS';
 import AppIntroSlider from 'react-native-app-intro-slider';
 import GlobalText from './src/Components/Customs/Text';
-import DIMENSIONS from './src/Services/Constants/DIMENSIONS';
 import STRING from './src/Services/Constants/STRINGS';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import TextButton from './src/Components/Customs/Buttons/TextButton';
-import Feather from 'react-native-vector-icons/Feather';
 import styles from './src/Screens/Styles';
 import analytics from '@react-native-firebase/analytics';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import './src/localization/i18n';
-import firebase from '@react-native-firebase/app';
 import {
   comnPost,
-  dataSync,
+  dataSyncResult,
   getFromStorage,
   saveToStorage,
 } from './src/Services/Api/CommonServices';
-import { useTranslation } from 'react-i18next';
-import { Dropdown } from 'react-native-element-dropdown';
-import Geolocation from '@react-native-community/geolocation';
-import DeviceInfo from 'react-native-device-info';
-import { navigateTo } from './src/Services/CommonMethods';
+import {useTranslation} from 'react-i18next';
+import {Dropdown} from 'react-native-element-dropdown';
 import TextField from './src/Components/Customs/TextField';
-import { CheckBox, Switch, Overlay } from '@rneui/themed';
+import {CheckBox, Overlay} from '@rneui/themed';
 import PrivacyPolicy from './src/Components/Common/PrivacyPolicy';
-// import LocationEnabler from 'react-native-android-location-enabler';
-import {
-  checkLocationEnabled,
-  requestResolutionSettings,
-} from 'react-native-android-location-enabler';
 import * as LocationEnabler from 'react-native-android-location-enabler';
-import { initializeApp, getApps } from 'firebase/app';
-import { setupAxiosInterceptors } from './src/Services/Api/AxiosInterceptor';
+import {initializeApp, getApps} from 'firebase/app';
+import {setupAxiosInterceptors} from './src/Services/Api/AxiosInterceptor';
 import VersionCheck from 'react-native-version-check';
-import { APP_URL } from '@env';
-import { UpdateContext } from './src/Context/UpdateContext';
+import {
+  APP_URL,
+  FIREBASE_API_KEY,
+  FIREBASE_AUTH_DOMAIN,
+  FIREBASE_PROJECT_ID,
+  FIREBASE_STORAGE_BUCKET,
+  FIREBASE_APP_ID,
+} from '@env';
+import {UpdateContext} from './src/Context/UpdateContext';
 import {KeyboardAwareScrollView} from 'react-native-keyboard-aware-scroll-view';
 
 // LogBox.ignoreAllLogs();
 // LogBox.ignoreLogs(['Warning: ...', 'Possible Unhandled Promise Rejection']);
-const Stack = createNativeStackNavigator();
-
 const firebaseConfig = {
-  apiKey: 'AIzaSyDT01wLV3kMfc6OuQwK5f1UwAeZGOFviR4',
-  authDomain: 'tourkokan-658d1.firebaseapp.com',
-  projectId: 'tourkokan-658d1',
-  storageBucket: 'tourkokan-658d1.appspot.com',
+  apiKey: FIREBASE_API_KEY,
+  authDomain: FIREBASE_AUTH_DOMAIN,
+  projectId: FIREBASE_PROJECT_ID,
+  storageBucket: FIREBASE_STORAGE_BUCKET,
   // messagingSenderId: 'YOUR_SENDER_ID',
-  appId: '1:941471956439:android:24306c81153b4a533c5f92',
+  appId: FIREBASE_APP_ID,
 };
 
-if (!getApps().length) {
+const hasFirebaseConfig =
+  firebaseConfig.apiKey &&
+  firebaseConfig.projectId &&
+  firebaseConfig.appId;
+
+if (!getApps().length && hasFirebaseConfig) {
   initializeApp(firebaseConfig);
 }
 
@@ -124,7 +111,7 @@ const slides = [
 ];
 
 export default function App() {
-  const { t } = useTranslation();
+  const {t} = useTranslation();
   const sliderRef = React.useRef(null);
 
   const [isFirstTime, setIsFirstTime] = useState(null);
@@ -141,10 +128,10 @@ export default function App() {
   const [latitude, setCurrentLatitude] = useState(null);
   const [longitude, setCurrentLongitude] = useState(null);
   const [isPrivacyChecked, setIsPrivacyChecked] = useState(false);
-  const [isKeyboardVisible, setKeyboardVisible] = useState(false);
+  const [, setKeyboardVisible] = useState(false);
   const languagesList = [
-    { label: 'English', value: 'en' },
-    { label: 'मराठी', value: 'mr' },
+    {label: 'English', value: 'en'},
+    {label: 'मराठी', value: 'mr'},
   ];
   const [isLoading, setIsLoading] = useState(false); // State to manage loading spinner
   const [locationStatus, setLocationStatus] = useState('Share Location');
@@ -179,9 +166,7 @@ export default function App() {
         STRING.STORAGE.IS_FIRST_TIME,
       );
       setIsFirstTime(isFirstTimeValue);
-      setTimeout(() => {
-        setLoading(false);
-      }, 2000);
+      setLoading(false);
     };
     checkFirstTime();
     setupAxiosInterceptors(); // Initialize Global Interceptor
@@ -196,10 +181,6 @@ export default function App() {
     apiCalling();
   }, []);
 
-  const handleInputChange = (key, value) => {
-    setTextValues(prev => ({ ...prev, [key]: value }));
-  };
-
   // const handleNextButton = () => {
   //   if (currentIndex < slides.length - 1) {
   //     setCurrentIndex(currentIndex + 1);
@@ -209,14 +190,18 @@ export default function App() {
 
   const checkValidation = async index => {
     if ((!latitude || !longitude) && index >= 3) {
-      alert(STRING.ALERT.SHARE_LOCATION);
+      Alert.alert(STRING.ALERT.SHARE_LOCATION);
       setCurrentIndex(2);
-      if (sliderRef.current) sliderRef.current.goToSlide(2);
+      if (sliderRef.current) {
+        sliderRef.current.goToSlide(2);
+      }
       return;
     } else if (!textValues[4] && index >= 4) {
-      alert(STRING.ALERT.TNC);
+      Alert.alert(STRING.ALERT.TNC);
       setCurrentIndex(3);
-      if (sliderRef.current) sliderRef.current.goToSlide(3);
+      if (sliderRef.current) {
+        sliderRef.current.goToSlide(3);
+      }
       return;
     } else {
       if (latitude && longitude && textValues[4]) {
@@ -229,45 +214,57 @@ export default function App() {
     // Check when on the third slide for Terms and Conditions acceptance and location sharing
     if (currentIndex === 3) {
       if (!textValues[4]) {
-        alert(STRING.ALERT.TNC);
+        Alert.alert(STRING.ALERT.TNC);
         return;
       }
 
       if (!latitude || !longitude) {
-        alert(STRING.ALERT.SHARE_LOCATION);
+        Alert.alert(STRING.ALERT.SHARE_LOCATION);
         return;
       }
     }
 
     // Check when on the second slide for location sharing
     if (currentIndex === 2 && (!latitude || !longitude)) {
-      alert(STRING.ALERT.SHARE_LOCATION);
+      Alert.alert(STRING.ALERT.SHARE_LOCATION);
       return;
     }
 
     // Proceed to the next slide
     if (currentIndex < slides.length - 1) {
       setCurrentIndex(currentIndex + 1);
-      if (sliderRef.current) sliderRef.current.goToSlide(currentIndex + 1);
+      if (sliderRef.current) {
+        sliderRef.current.goToSlide(currentIndex + 1);
+      }
     }
   };
 
   const callAPI = () => {
-    dataSync(STRING.STORAGE.LANDING_RESPONSE, callLandingPageAPI, true).then(
-      resp => { },
+    dataSyncResult(
+      STRING.STORAGE.LANDING_RESPONSE,
+      callLandingPageAPI,
+      true,
+    ).then(
+      () => {},
     );
   };
 
   const needUpdate = (current, latest) => {
-    if (!current || !latest) return false;
+    if (!current || !latest) {
+      return false;
+    }
     const v1 = current.split('.').map(Number);
     const v2 = latest.split('.').map(Number);
-    
+
     for (let i = 0; i < Math.max(v1.length, v2.length); i++) {
       const num1 = v1[i] || 0;
       const num2 = v2[i] || 0;
-      if (num1 < num2) return true;
-      if (num1 > num2) return false;
+      if (num1 < num2) {
+        return true;
+      }
+      if (num1 > num2) {
+        return false;
+      }
     }
     return false;
   };
@@ -287,7 +284,7 @@ export default function App() {
 
   const callLandingPageAPI = async site_id => {
     try {
-      let data = { site_id };
+      let data = {site_id};
       const res = await comnPost('v2/landingpage', data);
       if (res && res.data && res.data.data) {
         setOfflineData(res.data.data);
@@ -430,17 +427,40 @@ export default function App() {
 
   const privacyClicked = () => {
     setIsPrivacyChecked(!isPrivacyChecked);
-    setTextValues({ ...textValues, 4: !textValues[4] });
+    setTextValues({...textValues, 4: !textValues[4]});
   };
 
-  const renderItem = ({ item }) => {
+  const keyboardAwareContentStyle = {flexGrow: 1};
+  const referralInputStyle = {borderWidth: 1, textAlign: 'center'};
+  const locationButtonBgStyle = {backgroundColor: buttonColor};
+  const termsTextStyle = {fontSize: 12.5};
+  const splashImageStyle = {
+    width: 200,
+    height: 200,
+    resizeMode: 'contain',
+    marginBottom: 20,
+  };
+  const inactiveDotStyle = {
+    width: 10,
+    height: 10,
+    borderRadius: 7.5,
+    backgroundColor: '#C0C0C0',
+  };
+  const activeDotStyle = {
+    width: 15,
+    height: 15,
+    borderRadius: 10,
+    backgroundColor: COLOR.themeBlue,
+  };
+
+  const renderItem = ({item}) => {
     return (
       <KeyboardAwareScrollView
-        contentContainerStyle={{flexGrow: 1}}
+        contentContainerStyle={keyboardAwareContentStyle}
         keyboardShouldPersistTaps="handled"
         enableOnAndroid={true}
         extraHeight={150}>
-        <View style={[styles.slide, { backgroundColor: item.backgroundColor }]}>
+        <View style={[styles.slide, {backgroundColor: item.backgroundColor}]}>
           {item.image && <Image source={item.image} style={styles.image} />}
 
           <View style={styles.bottomFields}>
@@ -455,17 +475,14 @@ export default function App() {
                 valueField="value"
                 placeholder="Select Language"
                 value={language}
-                onChange={item => setLanguage(item.value)}
+                onChange={dropdownItem => setLanguage(dropdownItem.value)}
               />
             ) : item.type === 'referral' ? (
               <TextField
                 fieldType={'text'}
                 style={[
                   styles.searchPanelFieldNew,
-                  {
-                    borderWidth: 1,
-                    textAlign: 'center',
-                  },
+                  referralInputStyle,
                 ]}
                 inputContainerStyle={styles.inputContainerStyle}
                 placeholder="Enter Referral Code"
@@ -483,13 +500,11 @@ export default function App() {
                       locationStatus
                     )
                   } // Show spinner instead of text when loading
-                  buttonView={[
-                    styles.locButtonView,
-                    { backgroundColor: buttonColor },
-                  ]}
+                  buttonView={[styles.locButtonView, locationButtonBgStyle]}
                   isDisabled={isButtonDisabled}
                   raised={true}
-                  onPress={enableLocationService}></TextButton>
+                  onPress={enableLocationService}
+                />
               </View>
             ) : item.type === 'terms' ? (
               <View>
@@ -507,7 +522,7 @@ export default function App() {
                   title={STRING.ACCEPT_TNC}
                   onPress={() => privacyClicked()}
                   checked={isPrivacyChecked}
-                  textStyle={{ fontSize: 12.5 }}
+                  textStyle={termsTextStyle}
                 />
               </View>
             ) : null}
@@ -602,8 +617,11 @@ export default function App() {
     checkValidation(index);
   };
 
-  const UpdateOverlay = () => (
-    <Overlay style={styles.locationModal} isVisible={updateApp} onBackdropPress={() => !isForceUpdate && setUpdateApp(false)}>
+  const renderUpdateOverlay = () => (
+    <Overlay
+      style={styles.locationModal}
+      isVisible={updateApp}
+      onBackdropPress={() => !isForceUpdate && setUpdateApp(false)}>
       <GlobalText
         text={isForceUpdate ? (t('ALERT.MAJOR_UPDATE') || 'Major update available. Please update to continue.') : t('ALERT.APP_VERSION')}
         style={styles.locationModal}
@@ -632,7 +650,7 @@ export default function App() {
       <View style={styles.loadingContainer}>
         <Image
           source={require('./src/Assets/Images/Logos/tourkokan-logo.png')}
-          style={{width: 200, height: 200, resizeMode: 'contain', marginBottom: 20}}
+          style={splashImageStyle}
         />
       </View>
     );
@@ -641,11 +659,11 @@ export default function App() {
   if (isFirstTime === 'false') {
     return (
       <Provider store={store}>
-        <UpdateContext.Provider value={{ isUpdatePending: updateApp }}>
+        <UpdateContext.Provider value={{isUpdatePending: updateApp}}>
           <SafeAreaProvider>
             <StatusBar style="dark" backgroundColor="transparent" translucent={true} />
             <StackNavigator />
-            <UpdateOverlay />
+            {renderUpdateOverlay()}
           </SafeAreaProvider>
         </UpdateContext.Provider>
       </Provider>
@@ -662,18 +680,8 @@ export default function App() {
         data={slides}
         onDone={onDone}
         activeDotColor={COLOR.themeBlue}
-        dotStyle={{
-          width: 10,
-          height: 10,
-          borderRadius: 7.5,
-          backgroundColor: '#C0C0C0',
-        }}
-        activeDotStyle={{
-          width: 15,
-          height: 15,
-          borderRadius: 10,
-          backgroundColor: COLOR.themeBlue,
-        }}
+        dotStyle={inactiveDotStyle}
+        activeDotStyle={activeDotStyle}
         renderDoneButton={renderDoneButton}
         renderNextButton={renderNextButton}
         // renderPrevButton={renderPrevButton}
@@ -682,7 +690,7 @@ export default function App() {
       // dotClickEnabled={false}
       />
       {currentIndex > 0 && renderNewButton()}
-      <UpdateOverlay />
+      {renderUpdateOverlay()}
     </>
   );
 }

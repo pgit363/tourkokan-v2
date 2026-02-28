@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {StatusBar, View, TouchableOpacity, Image} from 'react-native';
 import styles from './Styles';
 import Ionicons from 'react-native-vector-icons/Ionicons';
@@ -6,71 +6,77 @@ import COLOR from '../../Services/Constants/COLORS';
 import DIMENSIONS from '../../Services/Constants/DIMENSIONS';
 import GlobalText from '../Customs/Text';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
-import Path from '../../Services/Api/BaseUrl';
 import SearchDropdown from './SearchDropdown';
 import {useTranslation} from 'react-i18next';
 import {Switch} from '@rneui/themed';
-import {connect} from 'react-redux';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import {getFromStorage, saveToStorage} from '../../Services/Api/CommonServices';
-import { FTP_PATH } from '@env';
+import {FTP_PATH} from '@env';
 
 StatusBar.setBarStyle('dark-content');
 
 const TopComponent = ({
   navigation,
-  openLocationSheet,
   currentCity,
   gotoProfile,
   cities,
   setCurrentCity,
   mode,
   setMode,
-  ...props
 }) => {
   const {t} = useTranslation();
-  // const { SettingsModule } = NativeModules;
 
   const [showCities, setShowCities] = useState(false);
-  const [isOnline, setIsOnline] = useState(mode);
   const [profilePhoto, setProfilePhoto] = useState(null);
+  const menuIconStyle = {marginRight: 10};
+  const cityNameStyle = {fontWeight: '500', textAlign: 'left'};
+  const modeWrapStyle = {flexDirection: 'row', alignItems: 'center'};
+  const modeTextStyle = {fontSize: DIMENSIONS.textSizeSmall};
 
   useEffect(() => {
     const fetchProfilePhoto = async () => {
-      let picture = JSON.parse(
-        await getFromStorage(t('STORAGE.PROFILE_PICTURE'))
-      );
-      setProfilePhoto(picture);
+      const rawPicture = await getFromStorage(t('STORAGE.PROFILE_PICTURE'));
+      if (!rawPicture) {
+        return;
+      }
+      try {
+        setProfilePhoto(JSON.parse(rawPicture));
+      } catch {
+        setProfilePhoto(rawPicture);
+      }
     };
     fetchProfilePhoto();
-  }, []);  
+  }, [t]);
 
-  const openDrawer = () => {
+  const openDrawer = useCallback(() => {
     navigation.openDrawer();
-  };
+  }, [navigation]);
 
-  const openProfile = () => {
+  const openProfile = useCallback(() => {
     gotoProfile();
-  };
+  }, [gotoProfile]);
 
-  const toggleCityDropdown = () => {
-    setShowCities(!showCities);
-  };
+  const toggleCityDropdown = useCallback(() => {
+    setShowCities(prev => !prev);
+  }, []);
 
-  const setCity = v => {
-    toggleCityDropdown();
+  const setCity = useCallback(v => {
+    setShowCities(false);
     setCurrentCity(v);
-  };
+  }, [setCurrentCity]);
 
-  const changeMode = () => {
-    saveToStorage(t('STORAGE.MODE'), JSON.stringify(!isOnline));
-    setMode(!isOnline);
-    setIsOnline(!isOnline);
-  };
+  const changeMode = useCallback(() => {
+    const nextMode = !mode;
+    saveToStorage(t('STORAGE.MODE'), JSON.stringify(nextMode));
+    setMode(nextMode);
+  }, [mode, setMode, t]);
 
-  // const openMobileDataSettings = () => {
-  //     SettingsModule.openMobileDataSettings();
-  //   };
+  const profileImageUri = useMemo(
+    () =>
+      profilePhoto
+        ? FTP_PATH + profilePhoto
+        : 'https://api-private.atlassian.com/users/2143ab39b9c73bcab4fe6562fff8d23d/avatar',
+    [profilePhoto],
+  );
 
   return (
     <View style={styles.topComponent}>
@@ -81,11 +87,11 @@ const TopComponent = ({
             name="menu"
             color={COLOR.black}
             size={DIMENSIONS.userIconSize}
-            style={{marginRight: 10}}
-            onPress={() => openDrawer()}
+            style={menuIconStyle}
+            onPress={openDrawer}
           />
           <TouchableOpacity
-            onPress={() => toggleCityDropdown()}
+            onPress={toggleCityDropdown}
             style={styles.locationPill}>
             <MaterialIcons
               name="location-pin"
@@ -95,7 +101,7 @@ const TopComponent = ({
             />
             <GlobalText
               text={currentCity}
-              style={{fontWeight: '500', textAlign: 'left'}}
+              style={cityNameStyle}
             />
             <Ionicons
               name="chevron-down"
@@ -104,10 +110,10 @@ const TopComponent = ({
             />
           </TouchableOpacity>
         </View>
-        <View style={{flexDirection: 'row', alignItems: 'center'}}>
+        <View style={modeWrapStyle}>
           <GlobalText
             text={mode ? t('BUTTON.ONLINE') : t('BUTTON.OFFLINE')}
-            style={{fontSize: DIMENSIONS.textSizeSmall}}
+            style={modeTextStyle}
           />
           <Switch
             thumbColor={mode ? COLOR.green : COLOR.red}
@@ -115,20 +121,16 @@ const TopComponent = ({
               false: COLOR.lightRed,
               true: COLOR.lightGreen,
             }}
-            onChange={() => changeMode()}
+            onChange={changeMode}
             value={mode}
           />
         </View>
         <TouchableOpacity
-          onPress={() => openProfile()}
+          onPress={openProfile}
           style={styles.profileIconView}>
           <Image
             source={{
-              uri: `${
-                profilePhoto
-                  ? FTP_PATH + profilePhoto
-                  : 'https://api-private.atlassian.com/users/2143ab39b9c73bcab4fe6562fff8d23d/avatar'
-              }`,
+              uri: profileImageUri,
             }}
             style={styles.profileIcon}
           />
@@ -139,8 +141,8 @@ const TopComponent = ({
         <SearchDropdown
           placesList={cities}
           style={styles.citiesDropdown}
-          setPlace={v => setCity(v)}
-          closeDropdown={() => toggleCityDropdown()}
+          setPlace={setCity}
+          closeDropdown={toggleCityDropdown}
           height={500}
         />
       )}
@@ -163,4 +165,4 @@ const TopComponent = ({
 //   };
 // };
 
-export default TopComponent;
+export default React.memo(TopComponent);

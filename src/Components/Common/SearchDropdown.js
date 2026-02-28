@@ -1,5 +1,5 @@
 import React from 'react';
-import {FlatList, KeyboardAvoidingView, ScrollView, View} from 'react-native';
+import {FlatList, View} from 'react-native';
 import {ListItem} from '@rneui/themed';
 import styles from './Styles';
 import Ionicons from 'react-native-vector-icons/Ionicons';
@@ -17,7 +17,6 @@ const SearchDropdown = ({
   const renderItem = ({item}) => {
     return (
       <ListItem
-        key={item.id || item.name}
         bottomDivider
         onPress={() => setPlace(item)}>
         <ListItem.Content>
@@ -26,29 +25,33 @@ const SearchDropdown = ({
       </ListItem>
     );
   };
+  const listWrapStyle = {marginBottom: 20};
+  const dropdownStyle = [
+    styles.searchDropView,
+    height ? {maxHeight: height} : null,
+    style,
+  ];
 
   return (
-    <ScrollView
-      behavior="height"
+    <FlatList
       nestedScrollEnabled
-      style={[styles.searchDropView, style]}
-    >
-      <Ionicons
-        style={styles.dropCloseIcon}
-        name="close-circle"
-        color={COLOR.themeBlue}
-        size={DIMENSIONS.iconLarge}
-        onPress={closeDropdown}
-      />
-
-      <View style={{ marginBottom: 20 }}>
-        {(placesList ?? []).map((item, index) => (
-          <View key={item.id || index}>
-            {renderItem({ item, index })}
-          </View>
-        ))}
-      </View>
-    </ScrollView>
+      style={dropdownStyle}
+      data={placesList ?? []}
+      keyExtractor={(item, index) => `${item?.id ?? item?.name ?? index}`}
+      renderItem={renderItem}
+      onEndReached={goToNext}
+      onEndReachedThreshold={0.6}
+      ListHeaderComponent={
+        <Ionicons
+          style={styles.dropCloseIcon}
+          name="close-circle"
+          color={COLOR.themeBlue}
+          size={DIMENSIONS.iconLarge}
+          onPress={closeDropdown}
+        />
+      }
+      ListFooterComponent={<View style={listWrapStyle} />}
+    />
   );
 };
 

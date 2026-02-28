@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useCallback, useMemo} from 'react';
 import {
   createDrawerNavigator,
   DrawerContentScrollView,
@@ -6,15 +6,7 @@ import {
   DrawerItem,
 } from '@react-navigation/drawer';
 import {useTranslation} from 'react-i18next';
-import {
-  View,
-  Text,
-  Linking,
-  StyleSheet,
-  TouchableOpacity,
-  Image,
-  Alert,
-} from 'react-native';
+import {View, Text, Linking, StyleSheet, TouchableOpacity, Alert} from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import TabNavigator from './TabNavigator';
 import Emergency from '../Screens/Emergency';
@@ -23,23 +15,23 @@ import VersionCheck from 'react-native-version-check';
 import STRING from '../Services/Constants/STRINGS';
 
 const Drawer = createDrawerNavigator();
+const drawerContainerStyle = {flex: 1};
+const FACEBOOK_URL = 'https://www.facebook.com/...';
+const INSTAGRAM_URL = 'https://www.instagram.com/tour_kokan';
+const APP_VERSION = VersionCheck.getCurrentVersion();
 
-const DrawerNavigator = () => {
-  const {t, i18n} = useTranslation();
+const CustomDrawerContent = React.memo(props => {
+  const {t} = useTranslation();
 
-  if (!i18n.isInitialized) {
-    return null;
-  }
-
-  const handleLinkPress = async url => {
+  const handleLinkPress = useCallback(async url => {
     try {
       await Linking.openURL(url);
     } catch (err) {
       console.error('Failed to open URL:', err);
     }
-  };
+  }, []);
 
-  const checkUpdate = async () => {
+  const checkUpdate = useCallback(async () => {
     try {
       const update = await VersionCheck.needUpdate();
       if (update && update.isNeeded) {
@@ -60,29 +52,29 @@ const DrawerNavigator = () => {
           ],
         );
       } else {
-        Alert.alert(
-          STRING.ALERT.UP_TO_DATE,
-          STRING.ALERT.APP_UP_TO_DATE,
-        );
+        Alert.alert(STRING.ALERT.UP_TO_DATE, STRING.ALERT.APP_UP_TO_DATE);
       }
     } catch (error) {
       console.log(error);
     }
-  };
+  }, [t]);
 
-  const CustomDrawerContent = props => (
-    <View style={{flex: 1}}>
+  const openFacebook = useCallback(() => handleLinkPress(FACEBOOK_URL), [
+    handleLinkPress,
+  ]);
+  const openInstagram = useCallback(() => handleLinkPress(INSTAGRAM_URL), [
+    handleLinkPress,
+  ]);
+
+  return (
+    <View style={drawerContainerStyle}>
       <DrawerContentScrollView {...props}>
         <DrawerItemList {...props} />
-        <DrawerItem
-          label={STRING.DRAWER.CHECK_UPDATE}
-          onPress={() => checkUpdate()}
-        />
+        <DrawerItem label={STRING.DRAWER.CHECK_UPDATE} onPress={checkUpdate} />
       </DrawerContentScrollView>
       <View style={styles.footerContainer}>
         <View style={styles.socialMediaContainer}>
-          <TouchableOpacity
-            onPress={() => handleLinkPress('https://www.facebook.com/...')}>
+          <TouchableOpacity onPress={openFacebook}>
             <Ionicons
               name="logo-facebook"
               size={24}
@@ -90,10 +82,7 @@ const DrawerNavigator = () => {
               style={styles.icon}
             />
           </TouchableOpacity>
-          <TouchableOpacity
-            onPress={() =>
-              handleLinkPress('https://www.instagram.com/tour_kokan')
-            }>
+          <TouchableOpacity onPress={openInstagram}>
             <Ionicons
               name="logo-instagram"
               size={24}
@@ -105,17 +94,28 @@ const DrawerNavigator = () => {
         <Text style={styles.footerText}>
           Designed and Developed by Probyte Solution LLP.
         </Text>
-        <Text style={styles.footerText}>
-          v{VersionCheck.getCurrentVersion()}
-        </Text>
+        <Text style={styles.footerText}>v{APP_VERSION}</Text>
       </View>
     </View>
   );
+});
+
+const DrawerNavigator = () => {
+  const {t, i18n} = useTranslation();
+  const screenOptions = useMemo(() => ({headerShown: false}), []);
+  const renderDrawerContent = useCallback(
+    drawerProps => <CustomDrawerContent {...drawerProps} />,
+    [],
+  );
+
+  if (!i18n.isInitialized) {
+    return null;
+  }
 
   return (
     <Drawer.Navigator
-      screenOptions={{headerShown: false}}
-      drawerContent={props => <CustomDrawerContent {...props} />}>
+      screenOptions={screenOptions}
+      drawerContent={renderDrawerContent}>
       <Drawer.Screen name={t('SCREEN.DASHBOARD')} component={TabNavigator} />
       <Drawer.Screen name={t('SCREEN.EMERGENCY')} component={Emergency} />
       <Drawer.Screen name={t('SCREEN.CONTACT_US')} component={QueriesList} />

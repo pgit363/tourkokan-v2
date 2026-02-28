@@ -1,6 +1,7 @@
 import React, {useEffect} from 'react';
 import {useState} from 'react';
 import {
+  StyleSheet,
   View,
   TouchableOpacity,
   BackHandler,
@@ -14,43 +15,33 @@ import styles from './Styles';
 import {
   comnPost,
   saveToStorage,
-  getFromStorage,
 } from '../../Services/Api/CommonServices';
 import {connect} from 'react-redux';
 import {
-  saveAccess_token,
-  setLoader,
-  setMode,
+  saveAccess_token as saveAccessTokenAction,
+  setLoader as setLoaderAction,
+  setMode as setModeAction,
 } from '../../Reducers/CommonActions';
 import Loader from '../../Components/Customs/Loader';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import COLOR from '../../Services/Constants/COLORS';
 import {navigateTo} from '../../Services/CommonMethods';
 import GlobalText from '../../Components/Customs/Text';
-// import SQLite from 'react-native-sqlite-storage';
 import Popup from '../../Components/Common/Popup';
 import Feather from 'react-native-vector-icons/Feather';
-import {CommonActions} from '@react-navigation/native';
 import {useTranslation} from 'react-i18next';
 
-const EmailSignIn = ({navigation, route, ...props}) => {
+const EmailSignIn = ({navigation, setLoader, setMode}) => {
   const {t} = useTranslation();
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [otp, setOtp] = useState('');
   const [isAlert, setIsAlert] = useState(false);
   const [alertMessage, setAlertMessage] = useState('');
-  const [isSuccess, setIsSuccess] = useState(false);
-  const [isOtp, setIsOtp] = useState(route.params?.isOtp || false);
-  const [isPassword, setIsPassword] = useState(false);
-  const [isOtpSent, setIsOtpSent] = useState(false);
   const [isButtonDisabled, setIsButtonDisabled] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
   useEffect(() => {
-    // openDB()
-    // createUserTable();
     const backHandler = BackHandler.addEventListener(
       t('EVENT.HARDWARE_BACK_PRESS'),
       () => navigateTo(navigation, t('SCREEN.EMAIL')),
@@ -60,55 +51,7 @@ const EmailSignIn = ({navigation, route, ...props}) => {
       setIsAlert(false);
       setAlertMessage('');
     };
-  }, []);
-
-  // const openDB = () => {
-  //   const db = SQLite.openDatabase({
-  //     name: 'mydb.db',
-  //     createFromLocation: '~mydata.db',
-  //   });
-  //   if (db) {
-  //     // Database initialization successful, proceed with queries
-  //   } else {
-  //     console.error('Failed to initialize the database.');
-  //   }
-  // };
-
-  const createUserTable = () => {
-    db.transaction(tx => {
-      tx.executeSql(
-        'CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT, email TEXT)',
-      );
-    });
-  };
-
-  const createUser = () => {
-    db.transaction(tx => {
-      tx.executeSql(
-        'INSERT INTO users (name, email) VALUES (?, ?)',
-        ['John Doe', 'john@example.com'],
-        (tx, results) => {
-          if (results.rowsAffected > 0) {
-            console.log('Record inserted successfully.');
-          } else {
-            console.log('Failed to insert record.');
-          }
-        },
-      );
-    });
-  };
-
-  const getUserData = () => {
-    db.transaction(tx => {
-      tx.executeSql('SELECT * FROM users', [], (tx, results) => {
-        const len = results.rows.length;
-        for (let i = 0; i < len; i++) {
-          const {id, name, email} = results.rows.item(i);
-          console.log(`User ${id}: ${name} (${email})`);
-        }
-      });
-    });
-  };
+  }, [navigation, t]);
 
   const setValue = (val, isVal, index) => {
     switch (index) {
@@ -117,12 +60,9 @@ const EmailSignIn = ({navigation, route, ...props}) => {
         break;
       case 1:
         setPassword(val);
-        setOtp(val);
         break;
     }
     setIsButtonDisabled(false);
-    // if ((val !== '' || val !== null) && isVal) setIsButtonDisabled(false);
-    // else setIsButtonDisabled(true);
   };
 
   const getValue = i => {
@@ -134,74 +74,7 @@ const EmailSignIn = ({navigation, route, ...props}) => {
     }
   };
 
-  // const getOtpValue = i => {
-  //   switch (i) {
-  //     case 0:
-  //       return email;
-  //     case 1:
-  //       return otp;
-  //   }
-  // };
-
-  // const verifyOtp = () => {
-  //   props.setLoader(true);
-  //   const data = {
-  //     email,
-  //     otp,
-  //   };
-  //   comnPost('v2/auth/verifyOtp', data)
-  //     .then(res => {
-  //       if (res.data.success) {
-  //         // setIsAlert(true);
-  //         // setAlertMessage(res.data.message);
-  //         AsyncStorage.setItem(
-  //           t('STORAGE.ACCESS_TOKEN'),
-  //           res.data.data.access_token,
-  //         );
-  //         AsyncStorage.setItem(
-  //           t('STORAGE.USER_ID'),
-  //           JSON.stringify(res.data.data.user.id),
-  //         );
-  //         props.saveAccess_token(res.data.data.access_token);
-  //         props.setLoader(false);
-  //         // setIsSuccess(true)
-  //         AsyncStorage.setItem(
-  //           t('STORAGE.IS_FIRST_TIME'),
-  //           JSON.stringify(true),
-  //         );
-  //         navigation.dispatch(
-  //           CommonActions.reset({
-  //             index: 0,
-  //             routes: [{name: t('SCREEN.HOME')}],
-  //           }),
-  //         );
-  //       } else {
-  //         setIsAlert(true);
-  //         setAlertMessage(
-  //           res.data.message.email ? res.data.message.email : res.data.message,
-  //         );
-  //         props.setLoader(false);
-  //         setIsSuccess(false);
-  //       }
-  //     })
-  //     .catch(err => {
-  //       setIsAlert(true);
-  //       setIsSuccess(false);
-  //       setAlertMessage(t('ALERT.WENT_WRONG'));
-  //       props.setLoader(false);
-  //     });
-  // };
-
   const closePopup = () => {
-    if (isSuccess) {
-      AsyncStorage.setItem(t('STORAGE.IS_FIRST_TIME'), JSON.stringify(true));
-      navigation.dispatch(
-        CommonActions.reset({
-          index: 0,
-          routes: [{name: t('SCREEN.HOME')}],
-        }),
-      );
-    }
     setIsAlert(false);
   };
 
@@ -209,29 +82,29 @@ const EmailSignIn = ({navigation, route, ...props}) => {
     navigateTo(navigation, t('SCREEN.SIGN_UP'));
   };
 
-  const validateEmail = email => {
+  const validateEmail = value => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return emailRegex.test(email);
+    return emailRegex.test(value);
   };
 
-  const validatePassword = password => {
-    return password.length >= 6;
+  const validatePassword = value => {
+    return value.length >= 6;
   };
 
   const login = () => {
-    props.setLoader(true);
+    setLoader(true);
 
     if (!validateEmail(email)) {
       setIsAlert(true);
       setAlertMessage(t('ALERT.INVALID_EMAIL'));
-      props.setLoader(false);
+      setLoader(false);
       return;
     }
 
     if (!validatePassword(password)) {
       setIsAlert(true);
       setAlertMessage(t('ALERT.INVALID_PASSWORD'));
-      props.setLoader(false);
+      setLoader(false);
       return;
     }
 
@@ -239,7 +112,6 @@ const EmailSignIn = ({navigation, route, ...props}) => {
       email,
       password,
     };
-    // createUser()
     comnPost('v2/auth/login', data)
       .then(res => {
         if (res.data.success) {
@@ -251,21 +123,14 @@ const EmailSignIn = ({navigation, route, ...props}) => {
             t('STORAGE.USER_ID'),
             JSON.stringify(res.data.data.user.id),
           );
-          // props.saveAccess_token(res.data.data.access_token);
-          props.setLoader(false);
+          setLoader(false);
           AsyncStorage.setItem(
             t('STORAGE.IS_FIRST_TIME'),
             JSON.stringify(true),
           );
           saveToStorage(t('STORAGE.MODE'), JSON.stringify(true));
-          props.setMode(true);
+          setMode(true);
           navigateTo(navigation, t('SCREEN.HOME'));
-          // navigation.dispatch(
-          //   CommonActions.reset({
-          //     index: 0,
-          //     routes: [{name: t('SCREEN.HOME')}],
-          //   }),
-          // );
         } else {
           setIsAlert(true);
           setAlertMessage(
@@ -275,24 +140,18 @@ const EmailSignIn = ({navigation, route, ...props}) => {
               ? res.data.message.password
               : res.data.message,
           );
-          props.setLoader(false);
-          // setIsSuccess(false);
+          setLoader(false);
         }
       })
-      .catch(err => {
+      .catch(() => {
         setIsAlert(true);
-        // setIsSuccess(false);
         setAlertMessage(t('ALERT.WENT_WRONG'));
-        props.setLoader(false);
+        setLoader(false);
       });
   };
 
-  const selectPassword = () => {
-    navigateTo(navigation, t('SCREEN.PASSWORD_LOGIN'), {email});
-  };
-
   return (
-    <View style={{flex: 1, backgroundColor: COLOR.white}}>
+    <View style={localStyles.container}>
       <ImageBackground
         style={styles.loginImage}
         source={require('../../Assets/Images/Intro/login_background.png')}
@@ -325,15 +184,18 @@ const EmailSignIn = ({navigation, route, ...props}) => {
               setChild={(v, i) => setValue(v, i, index)}
               style={styles.containerStyle}
               inputContainerStyle={styles.inputContainerStyle}
-              isSecure={field.isSecure}
+              isSecure={
+                field.type === `${t('TYPE.PASSWORD')}`
+                  ? !showPassword
+                  : field.isSecure
+              }
               rightIcon={
-                field.type == `${t('TYPE.PASSWORD')}` && (
+                field.type === `${t('TYPE.PASSWORD')}` && (
                   <Feather
-                    name={field.isSecure ? 'eye' : 'eye-off'}
+                    name={showPassword ? 'eye-off' : 'eye'}
                     size={24}
                     color={COLOR.themeBlue}
                     onPress={() => {
-                      field.isSecure = !showPassword;
                       setShowPassword(!showPassword);
                     }}
                     style={styles.eyeIcon}
@@ -350,7 +212,7 @@ const EmailSignIn = ({navigation, route, ...props}) => {
             style={styles.loginSubText}
           />
         </TouchableOpacity>
-        <View style={{alignItems: 'center'}}>
+        <View style={localStyles.loginButtonWrap}>
           <TextButton
             title={t('BUTTON.LOGIN')}
             buttonView={styles.buttonView}
@@ -366,27 +228,31 @@ const EmailSignIn = ({navigation, route, ...props}) => {
           </TouchableOpacity>
         </View>
       </View>
-      <KeyboardAvoidingView
-        behavior="height"
-        style={{flex: 1}}></KeyboardAvoidingView>
+      <KeyboardAvoidingView behavior="height" style={localStyles.keyboardSpacer} />
       <Popup message={alertMessage} onPress={closePopup} visible={isAlert} />
     </View>
   );
 };
 
-const mapStateToProps = state => {
-  return {
-    access_token: state.commonState.access_token,
-    loader: state.commonState.loader,
-  };
-};
+const localStyles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: COLOR.white,
+  },
+  loginButtonWrap: {
+    alignItems: 'center',
+  },
+  keyboardSpacer: {
+    flex: 1,
+  },
+});
 
 const mapDispatchToProps = dispatch => {
   return {
-    saveAccess_token: data => dispatch(saveAccess_token(data)),
-    setLoader: data => dispatch(setLoader(data)),
-    setMode: data => dispatch(setMode(data)),
+    saveAccess_token: data => dispatch(saveAccessTokenAction(data)),
+    setLoader: data => dispatch(setLoaderAction(data)),
+    setMode: data => dispatch(setModeAction(data)),
   };
 };
 
-export default connect(mapStateToProps, mapDispatchToProps)(EmailSignIn);
+export default connect(null, mapDispatchToProps)(EmailSignIn);

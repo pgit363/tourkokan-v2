@@ -1,34 +1,31 @@
-import React, { useEffect, useState } from 'react';
-import { KeyboardAvoidingView, ScrollView, View } from 'react-native';
-import { SrcDest } from '../../Services/Constants/FIELDS';
+import React, {useEffect, useMemo, useRef, useState} from 'react';
+import {KeyboardAvoidingView, View} from 'react-native';
+import {SrcDest} from '../../Services/Constants/FIELDS';
 import TextButton from '../Customs/Buttons/TextButton';
 import TextField from '../Customs/TextField';
 import styles from './Styles';
-import { connect } from 'react-redux';
-import { comnPost, getFromStorage } from '../../Services/Api/CommonServices';
+import {connect} from 'react-redux';
+import {comnPost, getFromStorage} from '../../Services/Api/CommonServices';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import COLOR from '../../Services/Constants/COLORS';
 import DIMENSIONS from '../../Services/Constants/DIMENSIONS';
-import { navigateTo } from '../../Services/CommonMethods';
+import {navigateTo} from '../../Services/CommonMethods';
 import {
-  setDestination,
+  setDestination as setDestinationAction,
   setLoader,
-  setSource,
+  setSource as setSourceAction,
 } from '../../Reducers/CommonActions';
 import GlobalText from '../Customs/Text';
 import SearchDropdown from './SearchDropdown';
-import { useTranslation } from 'react-i18next';
+import {useTranslation} from 'react-i18next';
 import STRING from '../../Services/Constants/STRINGS';
 import Popup from './Popup';
-import { useFocusEffect } from '@react-navigation/native';
 import NetInfo from '@react-native-community/netinfo';
 
-const SearchPanel = ({ navigation, from, onSwap, ...props }) => {
-  const { t } = useTranslation();
+const SearchPanel = ({navigation, from, onSwap, ...props}) => {
+  const {t} = useTranslation();
 
-  const [isValid, setIsValid] = useState(false);
-  const [errorText, setErrorText] = useState('');
   const [placesList, setPlacesList] = useState([]);
   const [nextPage, setNextPage] = useState(1);
   const [searchValue, setSearchValue] = useState('');
@@ -37,13 +34,26 @@ const SearchPanel = ({ navigation, from, onSwap, ...props }) => {
   const [destination, setDestination] = useState({});
   const [isAlert, setIsAlert] = useState(false);
   const [alertMessage, setAlertMessage] = useState('');
+  const searchDebounceRef = useRef(null);
+  const panelWrapStyle = {marginVertical: 20, zIndex: 50};
+  const dropdownWrapStyle = {
+    position: 'absolute',
+    width: DIMENSIONS.bannerWidth,
+    top: 160,
+  };
 
   useEffect(() => {
-    setSource(props.source || '');
-    setDestination(props.destination || '');
-    // checkIsValid()
-    checkIsValid();
-  }, [props]);
+    setSource(props.source || {});
+    setDestination(props.destination || {});
+  }, [props.source, props.destination]);
+
+  useEffect(() => {
+    return () => {
+      if (searchDebounceRef.current) {
+        clearTimeout(searchDebounceRef.current);
+      }
+    };
+  }, []);
 
   const setValue = (v, i, index, type) => {
     switch (index) {
@@ -54,39 +64,23 @@ const SearchPanel = ({ navigation, from, onSwap, ...props }) => {
         setDestination(v);
         break;
     }
-    searchPlace(v);
+    queueSearchPlace(v);
     setFieldType(type);
-    checkIsValid();
   };
-
-  useFocusEffect(
-    React.useCallback(() => {
-      setSource(props.source || '');
-      setDestination(props.destination || '');
-      checkIsValid();
-
-      return () => { };
-    }, [props.source, props.destination])
-  );
-
 
   const getValue = i => {
     switch (i) {
       case 0:
-        return props.source?.name || source?.name;
+        return source?.name;
       case 1:
-        return props.destination?.name || destination?.name;
+        return destination?.name;
     }
   };
 
-  const checkIsValid = () => {
-    if (
-      (source?.name || props.source?.name) &&
-      (destination?.name || props.destination?.name)
-    )
-      setIsValid(true);
-    else setIsValid(false);
-  };
+  const isValid = useMemo(
+    () => Boolean(source?.name && destination?.name),
+    [source?.name, destination?.name],
+  );
 
   const gotoRoutes = async () => {
     const mode = JSON.parse(await getFromStorage(t('STORAGE.MODE')));
@@ -130,7 +124,7 @@ const SearchPanel = ({ navigation, from, onSwap, ...props }) => {
     setDestination({});
   };
 
-  const swap = async () => {
+  const swap = () => {
     let a = source;
     let b = destination;
     setSource(b);
@@ -139,9 +133,7 @@ const SearchPanel = ({ navigation, from, onSwap, ...props }) => {
     props.setDestination(a);
   };
 
-  const refresh = async () => {
-    let a = '';
-    let b = '';
+  const refresh = () => {
     setSource('');
     setDestination('');
     props.setSource('');
@@ -149,14 +141,27 @@ const SearchPanel = ({ navigation, from, onSwap, ...props }) => {
     // onSwap(a, b);
   };
 
-  const searchPlace = v => {
+  const queueSearchPlace = v => {
     setSearchValue(v);
+    if (searchDebounceRef.current) {
+      clearTimeout(searchDebounceRef.current);
+    }
+    if (!v || !v.trim()) {
+      setPlacesList([]);
+      return;
+    }
+    searchDebounceRef.current = setTimeout(() => {
+      searchPlace(v);
+    }, 300);
+  };
+
+  const searchPlace = v => {
     let data = {
       search: v,
       apitype: 'dropdown',
       type: 'bus',
     };
-    comnPost(`v2/sites`, data)
+    comnPost('v2/sites', data)
       .then(res => {
         if (res.data.success) {
           props.setLoader(false);
@@ -165,7 +170,7 @@ const SearchPanel = ({ navigation, from, onSwap, ...props }) => {
           props.setLoader(false);
         }
       })
-      .catch(err => {
+      .catch(() => {
         props.setLoader(false);
       });
   };
@@ -182,20 +187,20 @@ const SearchPanel = ({ navigation, from, onSwap, ...props }) => {
       .then(res => {
         if (res.data.success) {
           let nextUrl = res.data.data.next_page_url;
-          setPlacesList([...placesList, ...res.data.data.data]);
+          setPlacesList(prevList => [...prevList, ...res.data.data.data]);
           setNextPage(nextUrl[nextUrl.length - 1]);
           props.setLoader(false);
         } else {
           props.setLoader(false);
         }
       })
-      .catch(err => {
+      .catch(() => {
         props.setLoader(false);
       });
   };
 
   const setPlace = place => {
-    if (fieldType == STRING.LABEL.SOURCE) {
+    if (fieldType === STRING.LABEL.SOURCE) {
       setSource(place);
     } else {
       setDestination(place);
@@ -219,10 +224,10 @@ const SearchPanel = ({ navigation, from, onSwap, ...props }) => {
 
   const closeDropdown = () => {
     setPlacesList([]);
-    if (fieldType == STRING.LABEL.SOURCE) {
-      setSource({ name: '' });
+    if (fieldType === STRING.LABEL.SOURCE) {
+      setSource({name: ''});
     } else {
-      setDestination({ name: '' });
+      setDestination({name: ''});
     }
   };
 
@@ -234,7 +239,7 @@ const SearchPanel = ({ navigation, from, onSwap, ...props }) => {
     <KeyboardAvoidingView
       enabled
       behavior="position"
-      style={{ marginVertical: 20, zIndex: 50 }}>
+      style={panelWrapStyle}>
       <View style={styles.fieldsView}>
         <GlobalText text={t('UNCOVER')} style={styles.instructionText} />
         {SrcDest.map((field, index) => {
@@ -248,7 +253,7 @@ const SearchPanel = ({ navigation, from, onSwap, ...props }) => {
               fieldType={field.type}
               length={field.length}
               required={field.required}
-              disabled={index == 1 && (source?.name == '' || source?.name == null)}
+              disabled={index === 1 && !source?.name}
               value={getValue(index)}
               setChild={(val, i) => setValue(val, i, index, field.name)}
               style={styles.searchPanelField}
@@ -285,13 +290,7 @@ const SearchPanel = ({ navigation, from, onSwap, ...props }) => {
         raised={false}
         onPress={gotoRoutes}
       />
-      <ScrollView
-        style={{
-          position: 'absolute',
-          width: DIMENSIONS.bannerWidth,
-          top: 160,
-        }}
-        nestedScrollEnabled={true}>
+      <View style={dropdownWrapStyle}>
         {placesList[0] && (
           <SearchDropdown
             placesList={placesList}
@@ -301,7 +300,7 @@ const SearchPanel = ({ navigation, from, onSwap, ...props }) => {
             height={330}
           />
         )}
-      </ScrollView>
+      </View>
     </KeyboardAvoidingView>
   );
 };
@@ -319,10 +318,10 @@ const mapDispatchToProps = dispatch => {
       dispatch(setLoader(data));
     },
     setSource: data => {
-      dispatch(setSource(data));
+      dispatch(setSourceAction(data));
     },
     setDestination: data => {
-      dispatch(setDestination(data));
+      dispatch(setDestinationAction(data));
     },
   };
 };

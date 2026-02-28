@@ -24,11 +24,17 @@ const commonReducer = (state = initialState, action) => {
         loginUser: action.payload,
       };
     case SaveAccess_token:
+      if (state.access_token === action.payload) {
+        return state;
+      }
       return {
         ...state,
         access_token: action.payload,
       };
     case SetLoader:
+      if (state.isLoading === action.payload) {
+        return state;
+      }
       return {
         ...state,
         isLoading: action.payload,
@@ -44,6 +50,9 @@ const commonReducer = (state = initialState, action) => {
         destination: action.payload,
       };
     case SetMode: {
+      if (state.mode === action.payload) {
+        return state;
+      }
       return {
         ...state,
         mode: action.payload,

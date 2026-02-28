@@ -20,7 +20,7 @@
         <!-- ✅ Place meta-data tag HERE inside application -->
         <meta-data
             android:name="com.google.android.geo.API_KEY"
-            android:value="AIzaSyCUUzdHc1ccGZhOzia9NoPf8mf3Yv901ZQ" />
+            android:value="${GOOGLE_MAPS_API_KEY}" />
 
         <meta-data
             android:name="com.google.android.gms.version"

@@ -11,7 +11,7 @@ const CityCardSmallSkeleton = ({type}) => {
       animation="pulse"
       variant="text"
       style={
-        type == t('HEADER.PLACE')
+        type === t('HEADER.PLACE')
           ? styles.placeCardSkeleton
           : styles.cityCardSmallSkeleton
       }

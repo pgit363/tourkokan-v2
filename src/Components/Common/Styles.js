@@ -410,7 +410,6 @@ const styles = StyleSheet.create({
     fontSize: DIMENSIONS.textSize,
   },
   listItem: {
-    fontSize: 16,
     marginBottom: 10,
     textAlign: 'justify',
     fontSize: DIMENSIONS.textSize,

@@ -1,9 +1,10 @@
 import React from 'react';
 import {ImageBackground, View} from 'react-native';
 import styles from './Styles';
-import Path from '../../Services/Api/BaseUrl';
 import GlobalText from '../Customs/Text';
 import {FTP_PATH} from '@env';
+
+const projectTextWrapperStyle = {flex: 1, justifyContent: 'center', paddingLeft: 5};
 
 const ProjectCard = ({project}) => {
   return (
@@ -17,7 +18,7 @@ const ProjectCard = ({project}) => {
           resizeMode="cover"
         />
       </View>
-      <View style={{flex: 1, justifyContent: 'center', paddingLeft: 5}}>
+      <View style={projectTextWrapperStyle}>
         <GlobalText text={project.domain_name} />
       </View>
     </View>

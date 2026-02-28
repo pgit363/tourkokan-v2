@@ -1,26 +1,25 @@
-import React, { useEffect, useState } from 'react';
-import { View } from 'react-native';
-import { SrcDest } from '../../Services/Constants/FIELDS';
+import React, {useEffect, useMemo, useRef, useState} from 'react';
+import {View} from 'react-native';
+import {SrcDest} from '../../Services/Constants/FIELDS';
 import TextButton from '../Customs/Buttons/TextButton';
 import TextField from '../Customs/TextField';
 import styles from './Styles';
-import { connect } from 'react-redux';
-import { comnPost } from '../../Services/Api/CommonServices';
+import {connect} from 'react-redux';
+import {comnPost} from '../../Services/Api/CommonServices';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import COLOR from '../../Services/Constants/COLORS';
 import DIMENSIONS from '../../Services/Constants/DIMENSIONS';
 import {
-  setDestination,
+  setDestination as setDestinationAction,
   setLoader,
-  setSource,
+  setSource as setSourceAction,
 } from '../../Reducers/CommonActions';
 import GlobalText from '../Customs/Text';
 import SearchDropdown from './SearchDropdown';
-import { useTranslation } from 'react-i18next';
+import {useTranslation} from 'react-i18next';
 import STRING from '../../Services/Constants/STRINGS';
-import { navigateTo } from '../../Services/CommonMethods';
-import { useFocusEffect } from '@react-navigation/native';
+import {navigateTo} from '../../Services/CommonMethods';
 
 const RoutesSearchPanel = ({
   mySource,
@@ -33,9 +32,8 @@ const RoutesSearchPanel = ({
   searchRoutes,
   ...props
 }) => {
-  const { t } = useTranslation();
+  const {t} = useTranslation();
 
-  const [isValid, setIsValid] = useState(false);
   const [errorText, setErrorText] = useState('');
   const [placesList, setPlacesList] = useState([]);
   const [nextPage, setNextPage] = useState(1);
@@ -43,24 +41,27 @@ const RoutesSearchPanel = ({
   const [fieldType, setFieldType] = useState('');
   const [source, setSource] = useState(mySource);
   const [destination, setDestination] = useState(myDestination);
+  const searchDebounceRef = useRef(null);
+  const panelBottomStyle = {marginBottom: 20};
+  const errorWrapStyle = {minHeight: 20};
+  const dropdownWrapStyle = {
+    position: 'relative',
+    marginTop: -50,
+    marginBottom: 50,
+  };
 
   useEffect(() => {
-    setSource(props.source || '');
-    setDestination(props.destination || '');
-    // checkIsValid()
-    checkIsValid();
-  }, [props]);
+    setSource(props.source || {});
+    setDestination(props.destination || {});
+  }, [props.source, props.destination]);
 
-  useFocusEffect(
-    React.useCallback(() => {
-      const init = async () => {
-        setSource(props.source || '');
-        setDestination(props.destination || '');
-        checkIsValid();
-      };
-      init();
-    }, [props.source, props.destination])
-  );
+  useEffect(() => {
+    return () => {
+      if (searchDebounceRef.current) {
+        clearTimeout(searchDebounceRef.current);
+      }
+    };
+  }, []);
 
   const setValue = (v, i, index, type) => {
     switch (index) {
@@ -71,38 +72,35 @@ const RoutesSearchPanel = ({
         setDestination(v);
         break;
     }
-    searchPlace(v);
+    queueSearchPlace(v);
     setFieldType(type);
-    checkIsValid();
   };
 
   const getValue = i => {
     switch (i) {
       case 0:
-        return props.source?.name || source?.name;
+        return source?.name;
       case 1:
-        return props.destination?.name || destination?.name;
+        return destination?.name;
     }
   };
 
-  const checkIsValid = () => {
-    if (
-      (source?.name || props.source?.name) &&
-      (destination?.name || props.destination?.name)
-    )
-      setIsValid(true);
-    else setIsValid(false);
-  };
+  const isValid = useMemo(
+    () => Boolean(source?.name && destination?.name),
+    [source?.name, destination?.name],
+  );
 
   const gotoRoutes = () => {
     // setSource("")
     // setDestination("")
     if (isValid) {
       searchRoutes(source.id, destination.id);
-    } else setErrorText(t('ALERT.SOURCE_DESTINATION_REQUIRED'));
+    } else {
+      setErrorText(t('ALERT.SOURCE_DESTINATION_REQUIRED'));
+    }
   };
 
-  const swap = async () => {
+  const swap = () => {
     let a = source;
     let b = destination;
     setSource(b);
@@ -113,7 +111,7 @@ const RoutesSearchPanel = ({
     props.setDestination(a);
   };
 
-  const refresh = async () => {
+  const refresh = () => {
     let a = '';
     let b = '';
     setSource('');
@@ -125,14 +123,27 @@ const RoutesSearchPanel = ({
     onSwap(a, b);
   };
 
-  const searchPlace = v => {
+  const queueSearchPlace = v => {
     setSearchValue(v);
+    if (searchDebounceRef.current) {
+      clearTimeout(searchDebounceRef.current);
+    }
+    if (!v || !v.trim()) {
+      setPlacesList([]);
+      return;
+    }
+    searchDebounceRef.current = setTimeout(() => {
+      searchPlace(v);
+    }, 300);
+  };
+
+  const searchPlace = v => {
     let data = {
       search: v,
       apitype: 'dropdown',
       type: 'bus',
     };
-    comnPost(`v2/sites`, data)
+    comnPost('v2/sites', data)
       .then(res => {
         if (res.data.success) {
           props.setLoader(false);
@@ -141,7 +152,7 @@ const RoutesSearchPanel = ({
           props.setLoader(false);
         }
       })
-      .catch(err => {
+      .catch(() => {
         props.setLoader(false);
       });
   };
@@ -158,20 +169,20 @@ const RoutesSearchPanel = ({
       .then(res => {
         if (res.data.success) {
           let nextUrl = res.data.data.next_page_url;
-          setPlacesList([...placesList, ...res.data.data.data]);
+          setPlacesList(prevList => [...prevList, ...res.data.data.data]);
           setNextPage(nextUrl[nextUrl.length - 1]);
           props.setLoader(false);
         } else {
           props.setLoader(false);
         }
       })
-      .catch(err => {
+      .catch(() => {
         props.setLoader(false);
       });
   };
 
   const setPlace = place => {
-    if (fieldType == STRING.LABEL.SOURCE) {
+    if (fieldType === STRING.LABEL.SOURCE) {
       setSource(place);
       setSourceId(place.id);
     } else {
@@ -197,15 +208,15 @@ const RoutesSearchPanel = ({
 
   const closeDropdown = () => {
     setPlacesList([]);
-    if (fieldType == STRING.LABEL.SOURCE) {
-      setSource({ name: '' });
+    if (fieldType === STRING.LABEL.SOURCE) {
+      setSource({name: ''});
     } else {
-      setDestination({ name: '' });
+      setDestination({name: ''});
     }
   };
 
   return (
-    <View style={{ marginBottom: 20 }}>
+    <View style={panelBottomStyle}>
       <View style={styles.routesFieldsView}>
         {SrcDest.map((field, index) => {
           return (
@@ -218,7 +229,7 @@ const RoutesSearchPanel = ({
               fieldType={field.type}
               length={field.length}
               required={field.required}
-              disabled={index == 1 && (source?.name == '' || source?.name == null)}
+              disabled={index === 1 && !source?.name}
               value={getValue(index)}
               setChild={(val, i) => setValue(val, i, index, field.name)}
               style={styles.searchPanelField}
@@ -246,7 +257,7 @@ const RoutesSearchPanel = ({
         </View>
       </View>
 
-      <View style={{ minHeight: 20 }}>
+      <View style={errorWrapStyle}>
         {!isValid && <GlobalText text={errorText} style={styles.errorText} />}
       </View>
       <TextButton
@@ -256,12 +267,7 @@ const RoutesSearchPanel = ({
         raised={false}
         onPress={gotoRoutes}
       />
-      <View
-        style={{
-          position: 'relative',
-          marginTop: -50,
-          marginBottom: 50,
-        }}>
+      <View style={dropdownWrapStyle}>
         {placesList[0] && (
           <SearchDropdown
             placesList={placesList}
@@ -288,10 +294,10 @@ const mapDispatchToProps = dispatch => {
       dispatch(setLoader(data));
     },
     setSource: data => {
-      dispatch(setSource(data));
+      dispatch(setSourceAction(data));
     },
     setDestination: data => {
-      dispatch(setDestination(data));
+      dispatch(setDestinationAction(data));
     },
   };
 };

@@ -1,5 +1,6 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 import React, {useEffect, useState} from 'react';
-import {FlatList, View} from 'react-native';
+import {FlatList} from 'react-native';
 import {connect} from 'react-redux';
 import Header from '../Components/Common/Header';
 import SearchBar from '../Components/Customs/Search';
@@ -9,19 +10,18 @@ import {ListItem} from '@rneui/themed';
 import {setDestination, setLoader, setSource} from '../Reducers/CommonActions';
 import Loader from '../Components/Customs/Loader';
 import {checkLogin, goBackHandler, navigateTo} from '../Services/CommonMethods';
-import {useTranslation} from 'react-i18next';
 import STRING from '../Services/Constants/STRINGS';
 import {TouchableOpacity} from 'react-native';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import COLOR from '../Services/Constants/COLORS';
 
 const SearchPlace = ({navigation, route, ...props}) => {
-  const {t} = useTranslation();
-
   const [searchValue, setSearchValue] = useState('');
   const [placesList, setPlacesList] = useState([]);
   const [nextPage, setNextPage] = useState(1);
-  let saveNext = 1;
+
+  const screenStyle = {flex: 1, backgroundColor: COLOR.white};
+  const listStyle = {marginBottom: 30};
 
   useEffect(() => {
     props.setLoader(true);
@@ -41,7 +41,7 @@ const SearchPlace = ({navigation, route, ...props}) => {
       apitype: 'dropdown',
       type: 'bus',
     };
-    comnPost(`v2/sites`, data)
+    comnPost('v2/sites', data)
       .then(res => {
         if (res.data.success) {
           let nextUrl = res.data.data.next_page_url;
@@ -53,7 +53,8 @@ const SearchPlace = ({navigation, route, ...props}) => {
           props.setLoader(false);
         }
       })
-      .catch(err => {
+      .catch(error => {
+        console.warn('Search place failed:', error);
         props.setLoader(false);
       });
   };
@@ -77,14 +78,15 @@ const SearchPlace = ({navigation, route, ...props}) => {
           props.setLoader(false);
         }
       })
-      .catch(err => {
+      .catch(error => {
+        console.warn('Scroll place failed:', error);
         props.setLoader(false);
       });
   };
 
   const setPlace = place => {
     navigateTo(navigation, route.params?.from, {from: 'SearchPlace'});
-    if (route.params.type == STRING.LABEL.SOURCE) {
+    if (route.params.type === STRING.LABEL.SOURCE) {
       props.setSource(place);
     } else {
       props.setDestination(place);
@@ -115,7 +117,7 @@ const SearchPlace = ({navigation, route, ...props}) => {
   };
 
   return (
-    <SafeAreaView edges={['top']} style={{flex: 1, backgroundColor: COLOR.white}}>
+    <SafeAreaView edges={['top']} style={screenStyle}>
       <Loader />
       <Header
         Component={
@@ -134,7 +136,7 @@ const SearchPlace = ({navigation, route, ...props}) => {
         renderItem={renderItem}
         onEndReached={goToNext}
         onEndReachedThreshold={0.5}
-        style={{marginBottom: 30}}
+        style={listStyle}
       />
       {/* </ScrollView> */}
     </SafeAreaView>

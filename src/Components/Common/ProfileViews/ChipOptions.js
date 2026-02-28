@@ -1,7 +1,6 @@
 import React from 'react';
 import {View} from 'react-native';
 import ProfileChip from '../ProfileChip';
-import Ionicons from 'react-native-vector-icons/Ionicons';
 import Feather from 'react-native-vector-icons/Feather';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';

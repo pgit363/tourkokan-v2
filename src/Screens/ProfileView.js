@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 import {
   View,
   ScrollView,
@@ -12,10 +13,9 @@ import React, {useState, useEffect} from 'react';
 import Header from '../Components/Common/Header';
 import COLOR from '../Services/Constants/COLORS';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import Octicons from 'react-native-vector-icons/Octicons';
 import {
   comnPost,
-  dataSync,
+  dataSyncResult,
   saveToStorage,
   getFromStorage,
 } from '../Services/Api/CommonServices';
@@ -25,12 +25,11 @@ import {setLoader} from '../Reducers/CommonActions';
 import {Image} from '@rneui/themed';
 import styles from './Styles';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import {checkLogin, backPage, navigateTo} from '../Services/CommonMethods';
+import {checkLogin, navigateTo} from '../Services/CommonMethods';
 import GlobalText from '../Components/Customs/Text';
 import TextButton from '../Components/Customs/Buttons/TextButton';
 import Geolocation from '@react-native-community/geolocation';
 import {Overlay} from '@rneui/themed';
-import Path from '../Services/Api/BaseUrl';
 import NetInfo from '@react-native-community/netinfo';
 import CheckNet from '../Components/Common/CheckNet';
 import {useTranslation} from 'react-i18next';
@@ -41,34 +40,41 @@ import UpdateProfile from '../Components/Common/ProfileViews/UpdateProfile';
 import ProfileChipSkeleton from '../Components/Common/ProfileChipSkeleton';
 import MapContainer from '../Components/Common/MapContainer';
 import MapSkeleton from '../Components/Common/MapSkeleton';
-import {launchImageLibrary} from 'react-native-image-picker';
-import Popup from '../Components/Common/Popup';
 import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
 import DIMENSIONS from '../Services/Constants/DIMENSIONS';
 import ComingSoon from '../Components/Common/ComingSoon';
 import {GoogleSignin} from '@react-native-google-signin/google-signin';
-import {DevSettings} from 'react-native';
-import { FTP_PATH } from '@env';
+import {FTP_PATH} from '@env';
 import {SafeAreaView} from 'react-native-safe-area-context';
 
 const ProfileView = ({navigation, route, ...props}) => {
-  const {t, i18n} = useTranslation();
+  const {t} = useTranslation();
 
   const [currentLatitude, setCurrentLatitude] = useState();
   const [currentLongitude, setCurrentLongitude] = useState();
-  const [locationStatus, setLocationStatus] = useState('');
+  const [, setLocationStatus] = useState('');
   const [watchID, setWatchID] = useState('');
   const [showLocModal, setShowLocModal] = useState(false);
   const [initialRegion, setInitialRegion] = useState({});
   const [profile, setProfile] = useState([]);
-  const [error, setError] = useState(null);
+  const [, setError] = useState(null);
   const [offline, setOffline] = useState(false);
   const [option, setOption] = useState(0);
-  const [imageSource, setImageSource] = useState(null);
-  const [uploadImage, setUploadImage] = useState(null);
+  const [uploadImage] = useState(null);
   const [refreshing, setRefreshing] = useState(false);
   const [isAlert, setIsAlert] = useState(false);
   const [showOnlineMode, setShowOnlineMode] = useState(false);
+  const safeAreaStyle = {flex: 1, backgroundColor: COLOR.white};
+  const noLocationViewStyle = {
+    height: 150,
+    width: '90%',
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: COLOR.lightGrey,
+    borderRadius: 10,
+    marginVertical: 10,
+  };
+  const noLocationTextStyle = {color: COLOR.grey};
 
   useEffect(() => {
     props.setLoader(true);
@@ -80,18 +86,26 @@ const ProfileView = ({navigation, route, ...props}) => {
     checkLogin(navigation);
     // getUserProfile();
     const unsubscribeFocus = navigation.addListener(t('EVENT.FOCUS'), () => {
-      if (props.mode) getUserProfile();
+      if (props.mode) {
+        getUserProfile();
+      }
     });
 
     const unsubscribe = NetInfo.addEventListener(state => {
       setOffline(false);
-      dataSync(
+      dataSyncResult(
         t('STORAGE.PROFILE_RESPONSE'),
-        getUserProfile(),
+        () => getUserProfile(),
         props.mode,
-      ).then(resp => {
+      ).then(result => {
+        if (result.source === 'network') {
+          props.setLoader(false);
+          return;
+        }
+
+        const resp = result.data;
         if (resp) {
-          let res = JSON.parse(resp);
+          const res = typeof resp === 'string' ? JSON.parse(resp) : resp;
           setProfile(res);
           setOption(0);
           if (res?.addresses && res.addresses.length > 0) {
@@ -101,7 +115,7 @@ const ProfileView = ({navigation, route, ...props}) => {
           }
           props.setLoader(false);
           setRefreshing(false);
-        } else if (resp) {
+        } else if (result.offline) {
           setOffline(true);
         }
         props.setLoader(false);
@@ -127,10 +141,11 @@ const ProfileView = ({navigation, route, ...props}) => {
   };
 
   const backPress = async () => {
-    if (option == 0) {
+    if (option === 0) {
+      const accessToken = await AsyncStorage.getItem(t('STORAGE.ACCESS_TOKEN'));
       if (
-        (await AsyncStorage.getItem(t('STORAGE.ACCESS_TOKEN'))) == null ||
-        (await AsyncStorage.getItem(t('STORAGE.ACCESS_TOKEN'))) == ''
+        accessToken === null ||
+        accessToken === ''
       ) {
         navigateTo(navigation, t('SCREEN.EMAIL'));
       } else {
@@ -174,17 +189,17 @@ const ProfileView = ({navigation, route, ...props}) => {
       position => {
         setLocationStatus(t('YOU_ARE_HERE'));
         setInitialLocation(position.coords.longitude, position.coords.latitude);
-        const currentLongitude = position.coords.longitude;
+        const coordsLongitude = position.coords.longitude;
         //getting the Longitude from the location json
-        const currentLatitude = position.coords.latitude;
+        const coordsLatitude = position.coords.latitude;
         //getting the Latitude from the location json
-        setCurrentLongitude(currentLongitude);
+        setCurrentLongitude(coordsLongitude);
         //Setting state Longitude to re re-render the Longitude Text
-        setCurrentLatitude(currentLatitude);
+        setCurrentLatitude(coordsLatitude);
         //Setting state Latitude to re re-render the Longitude Text
       },
-      error => {
-        setLocationStatus(error.message);
+      geoError => {
+        setLocationStatus(geoError.message);
       },
       {enableHighAccuracy: false, timeout: 30000, maximumAge: 1000},
     );
@@ -195,17 +210,17 @@ const ProfileView = ({navigation, route, ...props}) => {
       position => {
         setLocationStatus(t('YOU_ARE_HERE'));
         //Will give you the location on location change
-        const currentLongitude = position.coords.longitude;
+        const coordsLongitude = position.coords.longitude;
         //getting the Longitude from the location json
-        const currentLatitude = position.coords.latitude;
+        const coordsLatitude = position.coords.latitude;
         //getting the Latitude from the location json
-        setCurrentLongitude(currentLongitude);
+        setCurrentLongitude(coordsLongitude);
         //Setting state Longitude to re re-render the Longitude Text
-        setCurrentLatitude(currentLatitude);
+        setCurrentLatitude(coordsLatitude);
         //Setting state Latitude to re re-render the Longitude Text
       },
-      error => {
-        setLocationStatus(error.message);
+      geoError => {
+        setLocationStatus(geoError.message);
       },
       {enableHighAccuracy: false, maximumAge: 1000},
     );
@@ -235,7 +250,7 @@ const ProfileView = ({navigation, route, ...props}) => {
       console.log('Fetching user profile...');
       console.log('Access Token:', props.access_token);
 
-      comnPost('v2/user-profile', props.access_token, navigation)
+      return comnPost('v2/user-profile', props.access_token, navigation)
         .then(res => {
           console.log('API Response:', res);
 
@@ -258,34 +273,18 @@ const ProfileView = ({navigation, route, ...props}) => {
 
           props.setLoader(false);
           setRefreshing(false);
+          return res?.data?.data ?? null;
         })
-        .catch(error => {
-          console.error('Error fetching user profile:', error.message); // Log any errors
-          setError(error.message); // Update error state with error message
+        .catch(profileError => {
+          console.error('Error fetching user profile:', profileError.message); // Log any errors
+          setError(profileError.message); // Update error state with error message
           props.setLoader(false);
           setRefreshing(false);
+          return null;
         });
     } else {
       console.warn('App is in offline mode. Cannot fetch user profile.');
-    }
-  };
-
-  const clearStorageExcept = async (keysToKeep = []) => {
-    try {
-      // Get all keys from AsyncStorage
-      const allKeys = await AsyncStorage.getAllKeys();
-
-      // Filter out keys that you want to keep
-      const keysToRemove = allKeys.filter(key => !keysToKeep.includes(key));
-
-      // Remove all keys except the ones you want to keep
-      if (keysToRemove.length > 0) {
-        await AsyncStorage.multiRemove(keysToRemove);
-      }
-
-      console.log('Storage cleared except:', keysToKeep);
-    } catch (error) {
-      console.error('Error clearing storage:', error);
+      return null;
     }
   };
 
@@ -355,8 +354,8 @@ const ProfileView = ({navigation, route, ...props}) => {
       } else {
         console.error('Logout failed:', res.data.message); // Log API response message
       }
-    } catch (error) {
-      console.error('Logout error:', error); // Log any errors
+    } catch (logoutError) {
+      console.error('Logout error:', logoutError); // Log any errors
     } finally {
       props.setLoader(false); // Ensure loader is stopped regardless of success or failure
     }
@@ -377,8 +376,8 @@ const ProfileView = ({navigation, route, ...props}) => {
       } else if (result.action === Share.dismissedAction) {
         console.log('Share dismissed');
       }
-    } catch (error) {
-      console.error('Error sharing content:', error.message);
+    } catch (shareError) {
+      console.error('Error sharing content:', shareError.message);
     }
   };
 
@@ -393,28 +392,8 @@ const ProfileView = ({navigation, route, ...props}) => {
     setShowLocModal(false);
   };
 
-  const handleImageUpload = () => {
-    launchImageLibrary(
-      {
-        mediaType: t('TYPE.PHOTO'),
-        includeBase64: true, // Set to true to include base64 data
-        maxHeight: 200,
-        maxWidth: 200,
-      },
-      response => {
-        if (response.assets) {
-          // Upload the image to the API
-          setUploadImage(
-            `data:${response.assets[0].type};base64,${response.assets[0].base64}`,
-          );
-          setImageSource(response.assets[0].uri);
-        }
-      },
-    );
-  };
-
   return (
-    <SafeAreaView edges={['top']} style={{flex: 1, backgroundColor: COLOR.white}}>
+    <SafeAreaView edges={['top']} style={safeAreaStyle}>
     <ScrollView
       style={styles.container}
       key={option}
@@ -445,20 +424,16 @@ const ProfileView = ({navigation, route, ...props}) => {
           />
           <GlobalText text={profile.wallets_sum_amount} />
         </View>
-        {imageSource ? (
-          <Image source={{uri: imageSource}} style={styles.profilePhoto} />
-        ) : (
-          <Image
-            style={styles.profilePhoto}
-            source={{
-              uri: `${
-                profile.profile_picture
-                  ? FTP_PATH + profile.profile_picture
-                  : 'https://api-private.atlassian.com/users/2143ab39b9c73bcab4fe6562fff8d23d/avatar'
-              }`,
-            }}
-          />
-        )}
+        <Image
+          style={styles.profilePhoto}
+          source={{
+            uri: `${
+              profile.profile_picture
+                ? FTP_PATH + profile.profile_picture
+                : 'https://api-private.atlassian.com/users/2143ab39b9c73bcab4fe6562fff8d23d/avatar'
+            }`,
+          }}
+        />
         {/* the profile photo update commented for we are using gmail sign in it provides profile deatils */}
         {/* {option == 3 && (
           <Octicons
@@ -482,10 +457,10 @@ const ProfileView = ({navigation, route, ...props}) => {
               currentLongitude={currentLongitude}
             />
           ) : (
-            <View style={{height: 150, width: '90%', justifyContent: 'center', alignItems: 'center', backgroundColor: COLOR.lightGrey, borderRadius: 10, marginVertical: 10}}>
-              <Ionicons name="location-outline" size={40} color={COLOR.grey} />
-              <GlobalText text={t('NO_LOCATION_SET') || "No Location Set"} style={{color: COLOR.grey}} />
-            </View>
+              <View style={noLocationViewStyle}>
+                <Ionicons name="location-outline" size={40} color={COLOR.grey} />
+                <GlobalText text={t('NO_LOCATION_SET') || 'No Location Set'} style={noLocationTextStyle} />
+              </View>
           )
         ) : (
           <MapSkeleton />
@@ -494,7 +469,7 @@ const ProfileView = ({navigation, route, ...props}) => {
 
       <View style={styles.chipContainer}>
         {profile && profile.id ? (
-          option == 0 ? (
+            option === 0 ? (
             <ChipOptions
               languageClick={() => setOption(1)}
               locationClick={() => setShowLocModal(true)}
@@ -503,12 +478,12 @@ const ProfileView = ({navigation, route, ...props}) => {
               referralClick={() => referralClick()}
               uid={profile.uid}
             />
-          ) : option == 1 ? (
+            ) : option === 1 ? (
             <ChangeLang
               refreshOption={() => getUserProfile()}
               setLoader={v => props.setLoader(v)}
             />
-          ) : option == 3 ? (
+            ) : option === 3 ? (
             <UpdateProfile
               user={profile.email}
               phone={profile.mobile}

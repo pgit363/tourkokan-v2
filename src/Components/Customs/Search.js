@@ -1,15 +1,9 @@
-import React, {useState} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 import {SearchBar} from '@rneui/themed';
 import styles from './Styles';
 
 const Search = ({style, placeholder, onChangeText, value, onFocus}) => {
-  const [search, setSearch] = useState('');
-
-  const updateSearch = search => {
-    setSearch(search);
-  };
-
   return (
     <View>
       <SearchBar

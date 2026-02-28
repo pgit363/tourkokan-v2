@@ -1,5 +1,6 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 import React, {useEffect, useState} from 'react';
-import {ImageBackground, View} from 'react-native';
+import {ImageBackground, StyleSheet, View} from 'react-native';
 import COLOR from '../../Services/Constants/COLORS';
 import styles from './Styles';
 import {useTranslation} from 'react-i18next';
@@ -12,10 +13,10 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 const LangSelection = ({navigation}) => {
   const {t, i18n} = useTranslation();
 
-  const [list, setList] = useState([
+  const list = [
     {label: 'English', value: 'en'},
     {label: 'मराठी', value: 'mr'},
-  ]);
+  ];
   const [language, setLanguage] = useState('en');
   const [isFocus, setIsFocus] = useState(false);
 
@@ -33,10 +34,8 @@ const LangSelection = ({navigation}) => {
   };
 
   const ToNavigate = async () => {
-    if (
-      (await AsyncStorage.getItem(t('STORAGE.ACCESS_TOKEN'))) == null ||
-      (await AsyncStorage.getItem(t('STORAGE.ACCESS_TOKEN'))) == ''
-    ) {
+    const token = await AsyncStorage.getItem(t('STORAGE.ACCESS_TOKEN'));
+    if (token === null || token === '') {
       navigateTo(navigation, t('SCREEN.LANG_SELECTION'));
     } else {
       navigateTo(navigation, t('SCREEN.HOME'));
@@ -44,13 +43,7 @@ const LangSelection = ({navigation}) => {
   };
 
   return (
-    <View
-      style={{
-        flex: 1,
-        backgroundColor: COLOR.white,
-        alignItems: 'center',
-        justifyContent: 'center',
-      }}>
+    <View style={localStyles.container}>
       <ImageBackground
         style={styles.loginImage}
         source={require('../../Assets/Images/Intro/login_background.png')}
@@ -58,10 +51,10 @@ const LangSelection = ({navigation}) => {
       <View>
         <GlobalText
           text={t('CHIPS.SELECT_LANGUAGE')}
-          style={{textAlign: 'left'}}
+          style={localStyles.title}
         />
         <Dropdown
-          style={[styles.dropdown, isFocus && {borderColor: 'blue'}]}
+          style={[styles.dropdown, isFocus && localStyles.dropdownFocus]}
           placeholderStyle={styles.placeholderStyle}
           selectedTextStyle={styles.selectedTextStyle}
           inputSearchStyle={styles.inputSearchStyle}
@@ -91,5 +84,20 @@ const LangSelection = ({navigation}) => {
     </View>
   );
 };
+
+const localStyles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: COLOR.white,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  title: {
+    textAlign: 'left',
+  },
+  dropdownFocus: {
+    borderColor: 'blue',
+  },
+});
 
 export default LangSelection;

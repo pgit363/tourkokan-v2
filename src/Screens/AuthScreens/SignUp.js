@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars, no-shadow, handle-callback-err, react-native/no-inline-styles */
 import React, {useEffect, useRef, useState} from 'react';
 import {
   View,
@@ -226,23 +227,23 @@ const SignUp = ({navigation, ...props}) => {
     switch (index) {
       case 0:
         setName(val);
-        if (isVal) setNameErr(false);
-        else setNameErr(true);
+        if (isVal) {setNameErr(false);}
+        else {setNameErr(true);}
         break;
       case 1:
         setEmail(val.trim());
-        if (isVal) setEmailErr(false);
-        else setEmailErr(true);
+        if (isVal) {setEmailErr(false);}
+        else {setEmailErr(true);}
         break;
       case 2:
         setMobile(val);
-        if (isVal) setMobileErr(false);
-        else setMobileErr(true);
+        if (isVal) {setMobileErr(false);}
+        else {setMobileErr(true);}
         break;
       case 3:
         setReferral(val.trim());
-        if (isVal) setRefErr(false);
-        else setRefErr(true);
+        if (isVal) {setRefErr(false);}
+        else {setRefErr(true);}
         break;
       default:
         setRole(val);
@@ -334,6 +335,11 @@ const SignUp = ({navigation, ...props}) => {
     // Adjust the regex as per your mobile number requirements
     const re = /^[0-9]{10}$/;
     return re.test(String(mobile));
+  };
+
+  const validateReferral = value => {
+    const re = /^[A-Za-z0-9]{4,20}$/;
+    return re.test(String(value));
   };
 
   const Register = (lat, long) => {
@@ -563,7 +569,7 @@ const SignUp = ({navigation, ...props}) => {
               flexDirection: 'row',
               justifyContent: 'space-evenly',
               width: '100%',
-            }}></View>
+            }} />
 
           {SignUpFields.map((field, index) => {
             return (
@@ -643,7 +649,7 @@ const SignUp = ({navigation, ...props}) => {
 
       <KeyboardAvoidingView
         behavior="height"
-        style={{flex: 1}}></KeyboardAvoidingView>
+        style={{flex: 1}} />
       <Popup
         message={alertMessage}
         visible={isAlert}

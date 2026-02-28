@@ -1,5 +1,6 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 import React, {useState, useEffect} from 'react';
-import {View, ScrollView, ImageBackground} from 'react-native';
+import {View, ScrollView, ImageBackground, StyleSheet} from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import COLOR from '../Services/Constants/COLORS';
 import DIMENSIONS from '../Services/Constants/DIMENSIONS';
@@ -11,21 +12,16 @@ import {
   backPage,
   checkLogin,
   goBackHandler,
-  navigateTo,
 } from '../Services/CommonMethods';
-import Path from '../Services/Api/BaseUrl';
 import styles from './Styles';
 import ProjectCard from '../Components/Cards/ProjectCard';
 import GlobalText from '../Components/Customs/Text';
-import {useTranslation} from 'react-i18next';
 import {FTP_PATH} from '@env';
 import {SafeAreaView} from 'react-native-safe-area-context';
+import {comnPost} from '../Services/Api/CommonServices';
 
 const CategoryProjects = ({navigation, route, ...props}) => {
-  const {t} = useTranslation();
-
   const [projects, setProjects] = useState([]); // State to store Projects
-  const [error, setError] = useState(null); // State to store error message
 
   useEffect(() => {
     const backHandler = goBackHandler(navigation);
@@ -43,21 +39,16 @@ const CategoryProjects = ({navigation, route, ...props}) => {
         setProjects(res.data.data[0]); // Update Projects state with response data
         props.setLoader(false);
       })
-      .catch(error => {
+      .catch(fetchError => {
+        console.error('Error fetching category projects:', fetchError);
         props.setLoader(false);
-        setError(error.message); // Update error state with error message
       });
   };
 
-  // Function to handle SmallCard click
-  const handleSmallCardClick = id => {
-    navigateTo(navigation, t('SCREEN.PROJECT_DETAILS'), {id});
-  };
-
   return (
-    <SafeAreaView edges={['top']} style={{flex: 1, backgroundColor: COLOR.white}}>
+    <SafeAreaView edges={['top']} style={localStyles.safeArea}>
     <ScrollView>
-      <View style={{flex: 1, alignItems: 'center'}}>
+      <View style={localStyles.container}>
         <Loader />
         <Header
           name={route.params.name}
@@ -98,7 +89,7 @@ const CategoryProjects = ({navigation, route, ...props}) => {
 
             <GlobalText
               text={JSON.stringify(projects.projects)}
-              style={{marginTop: 50}}
+              style={localStyles.debugText}
             />
           </View>
         )}
@@ -107,6 +98,20 @@ const CategoryProjects = ({navigation, route, ...props}) => {
     </SafeAreaView>
   );
 };
+
+const localStyles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: COLOR.white,
+  },
+  container: {
+    flex: 1,
+    alignItems: 'center',
+  },
+  debugText: {
+    marginTop: 50,
+  },
+});
 
 const mapStateToProps = state => {
   return {

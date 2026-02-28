@@ -14,7 +14,7 @@ const RouteLineLast = () => {
         size={DIMENSIONS.iconBig}
         style={styles.icon}
       />
-      <View style={styles.routeLineLast}></View>
+      <View style={styles.routeLineLast} />
     </View>
   );
 };

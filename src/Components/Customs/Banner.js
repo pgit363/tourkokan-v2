@@ -1,9 +1,8 @@
-import React, {Component} from 'react';
-import {View, Animated, LogBox, Image, TouchableOpacity} from 'react-native';
+import React, {Component, useCallback, useMemo} from 'react';
+import {View, Animated, TouchableOpacity} from 'react-native';
 import Carousel from 'react-native-reanimated-carousel';
 import DIMENSIONS from '../../Services/Constants/DIMENSIONS';
 import styles from './Styles';
-import Path from '../../Services/Api/BaseUrl';
 import ProgressImage from 'react-native-image-progress';
 import * as Progress from 'react-native-progress';
 import {Linking} from 'react-native';
@@ -24,14 +23,15 @@ class AnimationStyle extends Component {
 
   onLoadError = (error) => {
     const errorMessage = error?.nativeEvent?.error;
-  
+
     if (errorMessage && errorMessage.includes('404')) {
       console.warn('⚠️ Image not found (404).');
     } else {
       console.warn('⚠️ Image failed to load:', errorMessage);
     }
   };
-  
+
+  imageStyle = {width: '100%', height: '100%'};
 
   render() {
     return (
@@ -60,7 +60,7 @@ class AnimationStyle extends Component {
             unfilledColor: 'rgba(200, 200, 200, 0.2)',
           }}
           resizeMode="stretch"
-          imageStyle={{ width: '100%', height: '100%' }}
+          imageStyle={this.imageStyle}
           onLoad={this.onLoad}
           onError={this.onLoadError}
         />
@@ -70,9 +70,34 @@ class AnimationStyle extends Component {
 }
 
 const Banner = ({style, bannerImages}) => {
-  const bannerClick = imageUri => {
+  const fullSizeStyle = useMemo(() => ({width: '100%', height: '100%'}), []);
+  const bannerImageStyle = useMemo(
+    () => ({width: '100%', height: '100%', resizeMode: 'stretch'}),
+    [],
+  );
+  const bannerClick = useCallback(imageUri => {
     Linking.openURL(imageUri);
-  };
+  }, []);
+
+  const renderBannerItem = useCallback(
+    ({item}) => {
+      const image = item.image;
+      const imageUri = image.startsWith('http') ? image : `${FTP_PATH}${image}`;
+      const url = item.redirect_url || item.meta_data?.url;
+
+      return (
+        <TouchableOpacity
+          style={fullSizeStyle}
+          onPress={() => (url ? bannerClick(url) : null)}>
+          <AnimationStyle
+            source={{uri: imageUri}}
+            style={[styles.bannerImage, bannerImageStyle]}
+          />
+        </TouchableOpacity>
+      );
+    },
+    [bannerClick, bannerImageStyle, fullSizeStyle],
+  );
 
   return (
     <View style={[styles.banner, style]}>
@@ -83,32 +108,10 @@ const Banner = ({style, bannerImages}) => {
         autoPlay={bannerImages.length > 1}
         data={bannerImages}
         scrollAnimationDuration={3000}
-        renderItem={({index}) => {
-          const image = bannerImages[index].image;
-          const imageUri = image.startsWith('http')
-            ? image
-            : `${FTP_PATH}${image}`;
-          const item = bannerImages[index];
-          const url = item.redirect_url || item.meta_data?.url;
-
-          return (
-            <TouchableOpacity
-              style={{ width: '100%', height: '100%' }}
-              onPress={() => (url ? bannerClick(url) : null)}>
-              <AnimationStyle
-                source={{uri: imageUri}}
-                style={[styles.bannerImage, { width: '100%', height: '100%', resizeMode: 'stretch' }]}
-                onLoad={() => console.log(`Image ${imageUri} loaded`)}
-                onError={error => {
-                  console.error(`Image ${imageUri} failed to load`, error);
-                }}
-              />
-            </TouchableOpacity>
-          );
-        }}
+        renderItem={renderBannerItem}
       />
     </View>
   );
 };
 
-export default Banner;
+export default React.memo(Banner);

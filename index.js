@@ -8,10 +8,20 @@ import App from './App';
 import {name as appName} from './app.json';
 import 'react-native-reanimated';
 import 'react-native-gesture-handler';
-import 'react-native-reanimated'; // this line can come after gesture-handler
+
+const suspenseFallbackStyle = {
+  flex: 1,
+  justifyContent: 'center',
+  alignItems: 'center',
+};
 
 const AppWithSuspense = () => (
-  <Suspense fallback={<View style={{flex: 1, justifyContent: 'center', alignItems: 'center'}}><ActivityIndicator size="large" color="#0000ff" /></View>}>
+  <Suspense
+    fallback={
+      <View style={suspenseFallbackStyle}>
+        <ActivityIndicator size="large" color="#0000ff" />
+      </View>
+    }>
     <App />
   </Suspense>
 );

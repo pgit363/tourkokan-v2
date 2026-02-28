@@ -22,8 +22,8 @@ export const navigateTo = (navigation, page, params) => {
 
 export const checkLogin = async navigation => {
   if (
-    (await AsyncStorage.getItem(STRING.STORAGE.ACCESS_TOKEN)) == null ||
-    (await AsyncStorage.getItem(STRING.STORAGE.ACCESS_TOKEN)) == ''
+    (await AsyncStorage.getItem(STRING.STORAGE.ACCESS_TOKEN)) === null ||
+    (await AsyncStorage.getItem(STRING.STORAGE.ACCESS_TOKEN)) === ''
   ) {
     navigateTo(navigation, STRING.SCREEN.LANG_SELECTION);
   }

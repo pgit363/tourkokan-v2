@@ -1,6 +1,6 @@
 import React from 'react';
 import styles from './Styles';
-import {TouchableOpacity, View} from 'react-native';
+import {TouchableOpacity} from 'react-native';
 import GlobalText from '../Text';
 
 const TextButton = ({

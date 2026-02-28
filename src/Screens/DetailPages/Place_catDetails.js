@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 import React, {useState, useEffect} from 'react';
 import {View, ScrollView} from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
@@ -13,10 +14,13 @@ import {
   goBackHandler,
 } from '../../Services/CommonMethods';
 import GlobalText from '../../Components/Customs/Text';
+import {comnPost} from '../../Services/Api/CommonServices';
+
+const detailsContainerStyle = {flex: 1, alignItems: 'center'};
+const detailsRowStyle = {flexDirection: 'row'};
 
 const Place_catDetails = ({navigation, route, ...props}) => {
-  const [place_cat, setPlace_cat] = useState([]); // State to store city
-  const [error, setError] = useState(null); // State to store error message
+  const [place_cat, setPlace_cat] = useState([]);
 
   useEffect(() => {
     const backHandler = goBackHandler(navigation);
@@ -34,8 +38,7 @@ const Place_catDetails = ({navigation, route, ...props}) => {
         setPlace_cat(res.data.data);
         props.setLoader(false);
       })
-      .catch(error => {
-        setError(error.message);
+      .catch(() => {
         props.setLoader(false);
       });
   };
@@ -54,8 +57,8 @@ const Place_catDetails = ({navigation, route, ...props}) => {
           />
         }
       />
-      <View style={{flex: 1, alignItems: 'center'}}>
-        <View style={{flexDirection: 'row'}}>
+      <View style={detailsContainerStyle}>
+        <View style={detailsRowStyle}>
           <GlobalText text={place_cat.name} />
           <GlobalText text={JSON.stringify(place_cat)} />
         </View>

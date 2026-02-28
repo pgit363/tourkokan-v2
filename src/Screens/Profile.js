@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 import React, {useState, useEffect} from 'react';
 import {View, TouchableOpacity, ScrollView} from 'react-native';
 import Header from '../Components/Common/Header';
@@ -6,7 +7,7 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import {
   comnPost,
-  dataSync,
+  dataSyncResult,
   saveToStorage,
 } from '../Services/Api/CommonServices';
 import {connect} from 'react-redux';
@@ -24,7 +25,6 @@ import GlobalText from '../Components/Customs/Text';
 import {ProfileFields} from '../Services/Constants/FIELDS';
 import TextButton from '../Components/Customs/Buttons/TextButton';
 import TextField from '../Components/Customs/TextField';
-import Path from '../Services/Api/BaseUrl';
 import {launchImageLibrary} from 'react-native-image-picker';
 import Popup from '../Components/Common/Popup';
 import NetInfo from '@react-native-community/netinfo';
@@ -38,8 +38,8 @@ import {SafeAreaView} from 'react-native-safe-area-context';
 const Profile = ({navigation, ...props}) => {
   const {t} = useTranslation();
 
-  const [profile, setProfile] = useState([]);
-  const [error, setError] = useState(null);
+  const [, setProfile] = useState([]);
+  const [, setError] = useState(null);
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [mobile, setMobile] = useState('');
@@ -53,6 +53,8 @@ const Profile = ({navigation, ...props}) => {
   const [uploadImage, setUploadImage] = useState(null);
   const [offline, setOffline] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const safeAreaStyle = {flex: 1, backgroundColor: COLOR.white};
+  const headerStyle = {backgroundColor: 'transparent', zIndex: 10};
 
   useEffect(() => {
     AsyncStorage.setItem('isUpdated', 'false');
@@ -63,19 +65,27 @@ const Profile = ({navigation, ...props}) => {
 
     const unsubscribe = NetInfo.addEventListener(state => {
       setOffline(false);
-      dataSync(
+      dataSyncResult(
         t('STORAGE.PROFILE_RESPONSE'),
-        getUserProfile(),
+        () => getUserProfile(),
         props.mode,
-      ).then(resp => {
-        let res = JSON.parse(resp);
-        if (res.data && res.data.data) {
-          setProfile(res.data.data);
-          setName(res.data.data.name);
-          setEmail(res.data.data.email);
-          setMobile(res.data.data.mobile);
-          setPicture(res.data.data.profile_picture);
-        } else if (resp) {
+      ).then(result => {
+        if (result.source === 'network') {
+          props.setLoader(false);
+          return;
+        }
+
+        const parsed =
+          typeof result.data === 'string'
+            ? JSON.parse(result.data)
+            : result.data;
+        if (parsed?.name || parsed?.email) {
+          setProfile(parsed);
+          setName(parsed.name);
+          setEmail(parsed.email);
+          setMobile(parsed.mobile);
+          setPicture(parsed.profile_picture);
+        } else if (result.offline) {
           setOffline(true);
         }
         props.setLoader(false);
@@ -90,23 +100,27 @@ const Profile = ({navigation, ...props}) => {
   }, []);
 
   const getUserProfile = () => {
-    comnPost('v2/user-profile', props.access_token)
+    return comnPost('v2/user-profile', props.access_token)
       .then(res => {
         if (res && res.data.data)
-          saveToStorage(
-            t('STORAGE.PROFILE_RESPONSE'),
-            JSON.stringify(res.data.data),
-          );
+          {
+            saveToStorage(
+              t('STORAGE.PROFILE_RESPONSE'),
+              JSON.stringify(res.data.data),
+            );
+          }
         setProfile(res.data.data); // Update places state with response data
         props.setLoader(false);
         setName(res.data.data.name);
         setEmail(res.data.data.email);
         setMobile(res.data.data.mobile);
         setPicture(res.data.data.profile_picture);
+        return res?.data?.data ?? null;
       })
-      .catch(error => {
-        setError(error.message); // Update error state with error message
+      .catch(profileError => {
+        setError(profileError.message); // Update error state with error message
         props.setLoader(false);
+        return null;
       });
   };
 
@@ -181,10 +195,13 @@ const Profile = ({navigation, ...props}) => {
         setIsAlert(true);
         setAlertMessage(res.data.message);
         props.setLoader(false);
-        if (res.data.success) setIsSuccess(true);
-        else setIsSuccess(false);
+        if (res.data.success) {
+          setIsSuccess(true);
+        } else {
+          setIsSuccess(false);
+        }
       })
-      .catch(err => {
+      .catch(() => {
         setIsAlert(true);
         setAlertMessage(t('ALERT.FAILED'));
         props.setLoader(false);
@@ -199,11 +216,11 @@ const Profile = ({navigation, ...props}) => {
   };
 
   return (
-    <SafeAreaView edges={['top']} style={{flex: 1, backgroundColor: COLOR.white}}>
+    <SafeAreaView edges={['top']} style={safeAreaStyle}>
       <ScrollView>
         <CheckNet isOff={offline} />
         <Header
-          style={{backgroundColor: 'transparent', zIndex: 10}}
+          style={headerStyle}
           name={''}
           startIcon={
             <Ionicons
@@ -261,7 +278,7 @@ const Profile = ({navigation, ...props}) => {
                   inputContainerStyle={styles.profileContainerStyle}
                   isSecure={field.isSecure}
                   rightIcon={
-                    field.type == `${t('TYPE.PASSWORD')}` && (
+                    field.type === `${t('TYPE.PASSWORD')}` && (
                       <Feather
                         name={field.isSecure ? 'eye' : 'eye-off'}
                         size={24}

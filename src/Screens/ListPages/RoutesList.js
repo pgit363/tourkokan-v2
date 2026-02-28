@@ -1,6 +1,8 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 import React, { useEffect, useState } from 'react';
 import {
   FlatList,
+  StyleSheet,
   View,
   TouchableOpacity,
 } from 'react-native';
@@ -36,10 +38,6 @@ const RoutesList = ({ navigation, route }) => {
   const [bannerObject, setBannerObject] = useState({});
 
   useEffect(() => {
-    console.log('RoutesList route params:', route?.params?.item);
-    console.log('Route stops data:', stops);
-    console.log('First stop structure:', stops[0]);
-    
     const backHandler = goBackHandler(navigation);
     checkLogin(navigation);
 
@@ -48,11 +46,8 @@ const RoutesList = ({ navigation, route }) => {
       if (landingData) {
         const parsedData = JSON.parse(landingData);
         if (parsedData?.banners) {
-          console.log('ROUTE_DETAIL_FOOTER:', parsedData.banners?.ROUTE_DETAIL_FOOTER);
           setBannerObject(parsedData.banners);
         }
-        console.log(bannerObject);
-        
       }
     };
     getBanners();
@@ -65,16 +60,19 @@ const RoutesList = ({ navigation, route }) => {
   const renderItem = ({ item, index }) => {
     const isFirst = index === 0;
     const isLast = index === list.length - 1;
+    const stopNameStyle = isFirst || isLast
+      ? localStyles.stopNameHighlight
+      : localStyles.stopName;
 
     return (
       <ListItem
         key={`route-stop-${item?.id || item?.site?.id || index}`}
         bottomDivider
-        style={{ paddingTop: isFirst ? 20 : 0 }}>
-        <View style={{ flexDirection: 'row', width: '100%', alignItems: 'center' }}>
-          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+        style={isFirst ? localStyles.listItemFirst : localStyles.listItem}>
+        <View style={localStyles.row}>
+          <View style={localStyles.rowStart}>
             {/* Distance */}
-            <View style={{ width: 70, alignItems: 'flex-start' }}>
+            <View style={localStyles.distanceWrap}>
               <GlobalText text={`${item?.distance ?? 0} Km`} />
             </View>
 
@@ -88,20 +86,17 @@ const RoutesList = ({ navigation, route }) => {
             )}
           </View>
 
-          <ListItem.Content style={{ flex: 1 }}>
-            <View style={{ width: '100%', alignItems: 'flex-start', justifyContent: 'center', paddingLeft: 25 }}>
+          <ListItem.Content style={localStyles.listItemContent}>
+            <View style={localStyles.stopNameWrap}>
               <GlobalText
                 text={item?.site?.name ?? ''}
-                style={{
-                  color: isFirst || isLast ? COLOR.themeBlue : COLOR.black,
-                  textAlign: 'left',
-                }}
+                style={stopNameStyle}
               />
             </View>
           </ListItem.Content>
 
           {/* Arrival Time */}
-          <View style={{ width: 70, alignItems: 'flex-start' }}>
+          <View style={localStyles.distanceWrap}>
             <GlobalText text={`${item?.arr_time ?? ''}`} />
           </View>
         </View>
@@ -110,18 +105,16 @@ const RoutesList = ({ navigation, route }) => {
   };
 
   return (
-    <SafeAreaView edges={['top']} style={{ flex: 1, backgroundColor: COLOR.white }}>
+    <SafeAreaView edges={['top']} style={localStyles.safeArea}>
       <View
-        style={{
-          flex: 1,
-          marginBottom:
-            bannerObject?.ROUTE_DETAIL_FOOTER &&
-            bannerObject.ROUTE_DETAIL_FOOTER.length > 0
-              ? DIMENSIONS.windowWidth / 3
-              : 0,
-        }}>
+        style={
+          bannerObject?.ROUTE_DETAIL_FOOTER &&
+          bannerObject.ROUTE_DETAIL_FOOTER.length > 0
+            ? localStyles.contentWithFooter
+            : localStyles.content
+        }>
       <FlatList
-        contentContainerStyle={{paddingBottom: 20}}
+        contentContainerStyle={localStyles.listContent}
         data={list}
         renderItem={renderItem}
         keyExtractor={(item, index) =>
@@ -154,7 +147,7 @@ const RoutesList = ({ navigation, route }) => {
               }
             />
 
-            <View style={{ marginVertical: -15 }}>
+            <View style={localStyles.routeHeadWrap}>
               <RouteHeadCard
                 data={route?.params?.item}
                 cardClick={() => {}}
@@ -175,10 +168,10 @@ const RoutesList = ({ navigation, route }) => {
       </View>
       {bannerObject?.ROUTE_DETAIL_FOOTER &&
         bannerObject.ROUTE_DETAIL_FOOTER.length > 0 && (
-          <View style={{position: 'absolute', bottom: 0, width: '100%'}}>
+          <View style={localStyles.footerWrap}>
             <Banner
               bannerImages={bannerObject.ROUTE_DETAIL_FOOTER}
-              style={{height: DIMENSIONS.windowWidth / 3, marginBottom: 0}}
+              style={localStyles.footerBanner}
             />
           </View>
         )}
@@ -198,5 +191,70 @@ const RoutesList = ({ navigation, route }) => {
     </SafeAreaView>
   );
 };
+
+const localStyles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: COLOR.white,
+  },
+  content: {
+    flex: 1,
+  },
+  contentWithFooter: {
+    flex: 1,
+    marginBottom: DIMENSIONS.windowWidth / 3,
+  },
+  listContent: {
+    paddingBottom: 20,
+  },
+  listItem: {
+    paddingTop: 0,
+  },
+  listItemFirst: {
+    paddingTop: 20,
+  },
+  row: {
+    flexDirection: 'row',
+    width: '100%',
+    alignItems: 'center',
+  },
+  rowStart: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  distanceWrap: {
+    width: 70,
+    alignItems: 'flex-start',
+  },
+  listItemContent: {
+    flex: 1,
+  },
+  stopNameWrap: {
+    width: '100%',
+    alignItems: 'flex-start',
+    justifyContent: 'center',
+    paddingLeft: 25,
+  },
+  stopName: {
+    color: COLOR.black,
+    textAlign: 'left',
+  },
+  stopNameHighlight: {
+    color: COLOR.themeBlue,
+    textAlign: 'left',
+  },
+  routeHeadWrap: {
+    marginVertical: -15,
+  },
+  footerWrap: {
+    position: 'absolute',
+    bottom: 0,
+    width: '100%',
+  },
+  footerBanner: {
+    height: DIMENSIONS.windowWidth / 3,
+    marginBottom: 0,
+  },
+});
 
 export default RoutesList;

@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 import React, {useEffect} from 'react';
 import {View, ScrollView} from 'react-native';
 import Header from '../Components/Common/Header';
@@ -9,6 +10,8 @@ import styles from './Styles';
 import TextButton from '../Components/Customs/Buttons/TextButton';
 import {useTranslation} from 'react-i18next';
 import {SafeAreaView} from 'react-native-safe-area-context';
+
+const screenStyle = {flex: 1, backgroundColor: COLOR.white};
 
 const Pricing = ({navigation, ...props}) => {
   const {t} = useTranslation();
@@ -26,108 +29,108 @@ const Pricing = ({navigation, ...props}) => {
   };
 
   return (
-    <SafeAreaView edges={['top']} style={{flex: 1, backgroundColor: COLOR.white}}>
-    <ScrollView stickyHeaderIndices={[0]}>
-      <Header
-        name={t('HEADER.PRICING')}
-        goBack={() => backPage(navigation)}
-        startIcon={
-          <Ionicons
-            name="chevron-back-outline"
-            size={24}
-            onPress={() => backPage(navigation)}
-            color={COLOR.black}
-          />
-        }
-      />
-      <View style={styles.pricingView}>
-        <View style={styles.pricingCard}>
-          <GlobalText text={'Basic'} style={styles.pricingOptionTitle} />
-          <GlobalText text={'$10/month'} style={styles.pricingOptionPrice} />
-          <GlobalText
-            text={'Lorem ipsum dolor sit amet, consectetur adipiscing elit.'}
-            style={styles.pricingOptionDescription}
-          />
+    <SafeAreaView edges={['top']} style={screenStyle}>
+      <ScrollView stickyHeaderIndices={[0]}>
+        <Header
+          name={t('HEADER.PRICING')}
+          goBack={() => backPage(navigation)}
+          startIcon={
+            <Ionicons
+              name="chevron-back-outline"
+              size={24}
+              onPress={() => backPage(navigation)}
+              color={COLOR.black}
+            />
+          }
+        />
+        <View style={styles.pricingView}>
+          <View style={styles.pricingCard}>
+            <GlobalText text={'Basic'} style={styles.pricingOptionTitle} />
+            <GlobalText text={'$10/month'} style={styles.pricingOptionPrice} />
+            <GlobalText
+              text={'Lorem ipsum dolor sit amet, consectetur adipiscing elit.'}
+              style={styles.pricingOptionDescription}
+            />
 
-          <View style={styles.pricingOptionFeatures}>
-            <GlobalText text={'1 user'} style={styles.pricingOptionFeature} />
-            <GlobalText
-              text={'10GB storage'}
-              style={styles.pricingOptionFeature}
-            />
-            <GlobalText
-              text={'Basic support'}
-              style={styles.pricingOptionFeature}
-            />
-          </View>
-          <TextButton
-            title={t('BUTTON.CHOOSE_PLAN')}
-            containerStyle={styles.planButtonContainer}
-            buttonStyle={styles.planButtonStyle}
-            titleStyle={styles.planButtonTitleStyle}
-            raised={true}
-            onPress={selectPlan}
-          />
-        </View>
-        <View style={styles.pricingCard}>
-          <GlobalText text={'Pro'} style={styles.pricingOptionTitle} />
-          <GlobalText text={'$25/month'} style={styles.pricingOptionPrice} />
-          <GlobalText
-            text={'Lorem ipsum dolor sit amet, consectetur adipiscing elit.'}
-            style={styles.pricingOptionDescription}
-          />
-          <View style={styles.pricingOptionFeatures}>
-            <GlobalText text={'5 users'} style={styles.pricingOptionFeature} />
-            <GlobalText
-              text={'100GB storage'}
-              style={styles.pricingOptionFeature}
-            />
-            <GlobalText
-              text={'Priority support'}
-              style={styles.pricingOptionFeature}
+            <View style={styles.pricingOptionFeatures}>
+              <GlobalText text={'1 user'} style={styles.pricingOptionFeature} />
+              <GlobalText
+                text={'10GB storage'}
+                style={styles.pricingOptionFeature}
+              />
+              <GlobalText
+                text={'Basic support'}
+                style={styles.pricingOptionFeature}
+              />
+            </View>
+            <TextButton
+              title={t('BUTTON.CHOOSE_PLAN')}
+              containerStyle={styles.planButtonContainer}
+              buttonStyle={styles.planButtonStyle}
+              titleStyle={styles.planButtonTitleStyle}
+              raised={true}
+              onPress={selectPlan}
             />
           </View>
-          <TextButton
-            title={t('BUTTON.CHOOSE_PLAN')}
-            containerStyle={styles.planButtonContainer}
-            buttonStyle={styles.planButtonStyle}
-            titleStyle={styles.planButtonTitleStyle}
-            raised={true}
-            onPress={selectPlan}
-          />
-        </View>
-        <View style={styles.pricingCard}>
-          <GlobalText text={'Enterprise'} style={styles.pricingOptionTitle} />
-          <GlobalText text={'$50/month'} style={styles.pricingOptionPrice} />
-          <GlobalText
-            text={'Lorem ipsum dolor sit amet, consectetur adipiscing elit.'}
-            style={styles.pricingOptionDescription}
-          />
-          <View style={styles.pricingOptionFeatures}>
+          <View style={styles.pricingCard}>
+            <GlobalText text={'Pro'} style={styles.pricingOptionTitle} />
+            <GlobalText text={'$25/month'} style={styles.pricingOptionPrice} />
             <GlobalText
-              text={'Unlimited users'}
-              style={styles.pricingOptionFeature}
+              text={'Lorem ipsum dolor sit amet, consectetur adipiscing elit.'}
+              style={styles.pricingOptionDescription}
             />
-            <GlobalText
-              text={'1000GB storage'}
-              style={styles.pricingOptionFeature}
-            />
-            <GlobalText
-              text={'24/7 support'}
-              style={styles.pricingOptionFeature}
+            <View style={styles.pricingOptionFeatures}>
+              <GlobalText text={'5 users'} style={styles.pricingOptionFeature} />
+              <GlobalText
+                text={'100GB storage'}
+                style={styles.pricingOptionFeature}
+              />
+              <GlobalText
+                text={'Priority support'}
+                style={styles.pricingOptionFeature}
+              />
+            </View>
+            <TextButton
+              title={t('BUTTON.CHOOSE_PLAN')}
+              containerStyle={styles.planButtonContainer}
+              buttonStyle={styles.planButtonStyle}
+              titleStyle={styles.planButtonTitleStyle}
+              raised={true}
+              onPress={selectPlan}
             />
           </View>
-          <TextButton
-            title={t('BUTTON.CHOOSE_PLAN')}
-            containerStyle={styles.planButtonContainer}
-            buttonStyle={styles.planButtonStyle}
-            titleStyle={styles.planButtonTitleStyle}
-            raised={true}
-            onPress={selectPlan}
-          />
+          <View style={styles.pricingCard}>
+            <GlobalText text={'Enterprise'} style={styles.pricingOptionTitle} />
+            <GlobalText text={'$50/month'} style={styles.pricingOptionPrice} />
+            <GlobalText
+              text={'Lorem ipsum dolor sit amet, consectetur adipiscing elit.'}
+              style={styles.pricingOptionDescription}
+            />
+            <View style={styles.pricingOptionFeatures}>
+              <GlobalText
+                text={'Unlimited users'}
+                style={styles.pricingOptionFeature}
+              />
+              <GlobalText
+                text={'1000GB storage'}
+                style={styles.pricingOptionFeature}
+              />
+              <GlobalText
+                text={'24/7 support'}
+                style={styles.pricingOptionFeature}
+              />
+            </View>
+            <TextButton
+              title={t('BUTTON.CHOOSE_PLAN')}
+              containerStyle={styles.planButtonContainer}
+              buttonStyle={styles.planButtonStyle}
+              titleStyle={styles.planButtonTitleStyle}
+              raised={true}
+              onPress={selectPlan}
+            />
+          </View>
         </View>
-      </View>
-    </ScrollView>
+      </ScrollView>
     </SafeAreaView>
   );
 };

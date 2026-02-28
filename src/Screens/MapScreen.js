@@ -1,8 +1,9 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 import React, {useEffect, useRef, useState} from 'react';
-import {ScrollView, View, RefreshControl} from 'react-native';
+import {View, StyleSheet} from 'react-native';
 import MapView, {Marker} from 'react-native-maps';
 import styles from './Styles';
-import {comnPost, dataSync} from '../Services/Api/CommonServices';
+import {comnPost, dataSyncResult} from '../Services/Api/CommonServices';
 import {connect} from 'react-redux';
 import {setLoader} from '../Reducers/CommonActions';
 import Loader from '../Components/Customs/Loader';
@@ -21,7 +22,6 @@ const MapScreen = ({navigation, ...props}) => {
 
   const [cities, setCities] = useState([]);
   const [offline, setOffline] = useState(false);
-  const [refreshing, setRefreshing] = useState(false);
 
   useEffect(() => {
     props.setLoader(true);
@@ -31,17 +31,26 @@ const MapScreen = ({navigation, ...props}) => {
     const unsubscribe = NetInfo.addEventListener(state => {
       setOffline(false);
 
-      dataSync(t('STORAGE.CITIES_RESPONSE'), getCities(), props.mode).then(
-        resp => {
-          if (resp) {
-            let res = JSON.parse(resp);
-            setCities(res);
-          } else if (resp) {
-            setOffline(true);
+      dataSyncResult(
+        t('STORAGE.CITIES_RESPONSE'),
+        () => getCities(),
+        props.mode,
+      ).then(result => {
+        try {
+          const parsed =
+            typeof result.data === 'string'
+              ? JSON.parse(result.data)
+              : result.data;
+          if (Array.isArray(parsed)) {
+            setCities(parsed);
+          } else if (parsed?.data?.data?.data) {
+            setCities(parsed.data.data.data);
           }
-          props.setLoader(false);
-        },
-      );
+        } catch {
+          setOffline(true);
+        }
+        props.setLoader(false);
+      });
     });
 
     return () => {
@@ -88,32 +97,28 @@ const MapScreen = ({navigation, ...props}) => {
         apitype: 'list',
         category: 'City',
       };
-      comnPost(`v2/sites`, data, navigation)
+      comnPost('v2/sites', data, navigation)
         .then(async res => {
-          if (res && res.data.data) setCities(res.data.data.data);
+          if (res && res.data.data) {
+            setCities(res.data.data.data);
+          }
           props.setLoader(false);
-          setRefreshing(false);
         })
         .catch(error => {
+          console.error('Error fetching cities:', error);
           props.setLoader(false);
-          setRefreshing(false);
         });
     }
   };
 
   return (
-    <SafeAreaView edges={['top']} style={{flex: 1, backgroundColor: COLOR.white}}>
+    <SafeAreaView edges={['top']} style={localStyles.safeArea}>
       <Loader />
       <CheckNet isOff={offline} />
       {offline ? (
-        <View
-          style={{
-            height: DIMENSIONS.screenHeight,
-            alignItems: 'center',
-            padding: 50,
-          }}>
+        <View style={localStyles.offlineContainer}>
           <GlobalText
-            style={{fontWeight: 'bold'}}
+            style={localStyles.offlineText}
             text={
               offline
                 ? t('NO_INTERNET_MAP')
@@ -145,7 +150,9 @@ const MapScreen = ({navigation, ...props}) => {
               {cities.map(marker => {
                 const lat = parseFloat(marker.latitude);
                 const lng = parseFloat(marker.longitude);
-                if (isNaN(lat) || isNaN(lng)) return null;
+                if (isNaN(lat) || isNaN(lng)) {
+                  return null;
+                }
                 return (
                   <Marker
                     key={marker.id}
@@ -165,6 +172,21 @@ const MapScreen = ({navigation, ...props}) => {
     </SafeAreaView>
   );
 };
+
+const localStyles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: COLOR.white,
+  },
+  offlineContainer: {
+    height: DIMENSIONS.screenHeight,
+    alignItems: 'center',
+    padding: 50,
+  },
+  offlineText: {
+    fontWeight: 'bold',
+  },
+});
 
 const mapStateToProps = state => {
   return {

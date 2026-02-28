@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 import React, {useEffect, useState} from 'react';
 import {FlatList, View, SafeAreaView} from 'react-native';
 import {connect} from 'react-redux';
@@ -18,9 +19,9 @@ const CityPlaceSearch = ({navigation, route, ...props}) => {
   const {t} = useTranslation();
 
   const [searchValue, setSearchValue] = useState('');
-  const [tableName, setTableName] = useState('places');
+  const [tableName] = useState('places');
   const [placesList, setPlacesList] = useState([]);
-  const [isCity, setIsCity] = useState(false);
+  const [isCity] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -47,26 +48,20 @@ const CityPlaceSearch = ({navigation, route, ...props}) => {
         setIsLoading(false);
         props.setLoader(false);
       })
-      .catch(err => {
+      .catch(error => {
+        console.warn('City/place search failed:', error);
         setIsLoading(false);
         props.setLoader(false);
       });
     // } else setPlacesList([])
   };
 
-  const onChipClick = val => {
-    setIsCity(val);
-    let table = t('TABLE.CITIES');
-    if (!val) {
-      setTableName(t('TABLE.PLACES'));
-      table = t('TABLE.PLACES');
-    } else setTableName(t('TABLE.CITIES'));
-    searchPlace(searchValue, table);
-  };
-
   const onListItemClick = id => {
-    if (isCity) navigateTo(navigation, t('SCREEN.CITY_DETAILS'), {id});
-    else navigateTo(navigation, t('SCREEN.PLACE_DETAILS'), {id});
+    if (isCity) {
+      navigateTo(navigation, t('SCREEN.CITY_DETAILS'), {id});
+    } else {
+      navigateTo(navigation, t('SCREEN.PLACE_DETAILS'), {id});
+    }
   };
 
   const renderItem = ({item}) => {

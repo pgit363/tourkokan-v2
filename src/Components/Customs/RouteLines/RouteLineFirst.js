@@ -8,7 +8,7 @@ import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 const RouteLineFirst = () => {
   return (
     <View>
-      <View style={styles.routeLineFirst}></View>
+      <View style={styles.routeLineFirst} />
       <MaterialIcons
         name="my-location"
         color={COLOR.themeBlue}

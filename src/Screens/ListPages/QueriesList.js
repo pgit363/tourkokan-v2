@@ -1,12 +1,13 @@
 import React, {useEffect, useState, useRef, useCallback} from 'react';
+/* eslint-disable react-hooks/exhaustive-deps */
 import {
   FlatList,
   View,
-  Linking,
   ActivityIndicator,
   RefreshControl,
   TouchableOpacity,
   BackHandler,
+  StyleSheet,
 } from 'react-native';
 import {ListItem} from '@rneui/themed';
 import {SafeAreaView} from 'react-native-safe-area-context';
@@ -18,20 +19,15 @@ import COLOR from '../../Services/Constants/COLORS';
 import {
   backPage,
   checkLogin,
-  goBackHandler,
 } from '../../Services/CommonMethods';
-import TextButton from '../../Components/Customs/Buttons/TextButton';
-import styles from './Styles';
 import {
   comnPost,
-  dataSync,
+  dataSyncResult,
   saveToStorage,
 } from '../../Services/Api/CommonServices';
-import Loader from '../../Components/Customs/Loader';
 import {setLoader} from '../../Reducers/CommonActions';
 import {connect} from 'react-redux';
 import {useTranslation} from 'react-i18next';
-import CheckNet from '../../Components/Common/CheckNet';
 import NetInfo from '@react-native-community/netinfo';
 import DIMENSIONS from '../../Services/Constants/DIMENSIONS';
 import GlobalText from '../../Components/Customs/Text';
@@ -66,11 +62,12 @@ const QueriesList = ({navigation, route, ...props}) => {
     // Function to check if data exists in storage and fetch if not
     const checkStoredData = async () => {
       try {
-        const storedData = await dataSync(
+        const syncResult = await dataSyncResult(
           t('STORAGE.QUERIES'),
           null,
           props.mode,
         );
+        const storedData = syncResult.data;
         if (storedData) {
           setData(JSON.parse(storedData));
           props.setLoader(false);
@@ -81,12 +78,6 @@ const QueriesList = ({navigation, route, ...props}) => {
       } catch (error) {
         console.error('Error checking stored data:', error);
         fetchData(1, true);
-      }
-    };
-
-    const fetchDataAsync = async () => {
-      if (props.access_token) {
-        await fetchData(1, true);
       }
     };
 
@@ -110,13 +101,13 @@ const QueriesList = ({navigation, route, ...props}) => {
   }, [navigation, props.access_token, props.mode, t]);
 
   useEffect(() => {
-    if (step == 0) {
+    if (step === 0) {
       fetchData(1, true);
     }
   }, [step, nextPage]);
 
   const goBackStep = () => {
-    if (step == 0) {
+    if (step === 0) {
       backPage(navigation);
     } else {
       setStep(0);
@@ -136,13 +127,15 @@ const QueriesList = ({navigation, route, ...props}) => {
 
   const fetchData = useCallback(
     async (page, reset) => {
-      if (offline || step == 1) {
+      if (offline || step === 1) {
         props.setLoader(false);
         setLoading(false);
         return;
       }
       if (props.mode) {
-        if (loading) return;
+        if (loading) {
+          return;
+        }
         setLoading(true);
         try {
           const res = await comnPost('v2/getQueries', {page});
@@ -200,8 +193,8 @@ const QueriesList = ({navigation, route, ...props}) => {
     return (
       <ListItem bottomDivider>
         <ListItem.Content>
-          <View style={{flexDirection: 'row', width: '100%', alignItems: 'center', justifyContent: 'space-between'}}>
-            <View style={{flex: 1, paddingRight: 10}}>
+          <View style={localStyles.itemRow}>
+            <View style={localStyles.messageWrap}>
               <ListItem.Title>{item.message}</ListItem.Title>
             </View>
             <View>
@@ -232,9 +225,11 @@ const QueriesList = ({navigation, route, ...props}) => {
   };
 
   const renderFooter = () => {
-    if (!loading || !hasMore) return null;
+    if (!loading || !hasMore) {
+      return null;
+    }
     return (
-      <View style={{paddingVertical: 20}}>
+      <View style={localStyles.footer}>
         <ActivityIndicator size="small" color={COLOR.primary} />
       </View>
     );
@@ -245,7 +240,7 @@ const QueriesList = ({navigation, route, ...props}) => {
       <SafeAreaView edges={['top']} style={{backgroundColor: COLOR.white}}>
         <Header
           name={t('HEADER.CONTACT_US')}
-          goBack={() => backPage()}
+          goBack={() => backPage(navigation)}
           startIcon={
             <Ionicons
               name="chevron-back-outline"
@@ -277,14 +272,9 @@ const QueriesList = ({navigation, route, ...props}) => {
         onEndReachedThreshold={0.5}
         ListFooterComponent={renderFooter}
         ListEmptyComponent={
-          <View
-            style={{
-              height: DIMENSIONS.screenHeight,
-              alignItems: 'center',
-              padding: 50,
-            }}>
+          <View style={localStyles.emptyWrap}>
             <GlobalText
-              style={{fontWeight: 'bold'}}
+              style={localStyles.emptyText}
               text={offline ? t('NO_INTERNET') : ''}
             />
           </View>
@@ -292,7 +282,7 @@ const QueriesList = ({navigation, route, ...props}) => {
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }
-        style={{flex: 1, marginTop: -19}}
+        style={localStyles.list}
       />
       <ComingSoon
         message={errorMessage}
@@ -302,6 +292,34 @@ const QueriesList = ({navigation, route, ...props}) => {
     </>
   );
 };
+
+const localStyles = StyleSheet.create({
+  itemRow: {
+    flexDirection: 'row',
+    width: '100%',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  messageWrap: {
+    flex: 1,
+    paddingRight: 10,
+  },
+  footer: {
+    paddingVertical: 20,
+  },
+  emptyWrap: {
+    height: DIMENSIONS.screenHeight,
+    alignItems: 'center',
+    padding: 50,
+  },
+  emptyText: {
+    fontWeight: 'bold',
+  },
+  list: {
+    flex: 1,
+    marginTop: -19,
+  },
+});
 
 const mapStateToProps = state => {
   return {

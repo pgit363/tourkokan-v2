@@ -1,5 +1,6 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 import React, { useState, useEffect } from 'react';
-import { View, ScrollView, Image } from 'react-native';
+import { View, ScrollView, Image, StyleSheet } from 'react-native';
 import SmallCard from '../../Components/Customs/SmallCard';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import COLOR from '../../Services/Constants/COLORS';
@@ -9,6 +10,7 @@ import Loader from '../../Components/Customs/Loader';
 import Header from '../../Components/Common/Header';
 import { setLoader } from '../../Reducers/CommonActions';
 import { backPage, navigateTo } from '../../Services/CommonMethods';
+import { comnPost } from '../../Services/Api/CommonServices';
 import styles from './Styles';
 import Path from '../../Services/Api/BaseUrl';
 import { useTranslation } from 'react-i18next';
@@ -17,7 +19,6 @@ const StopList = ({ navigation, ...props }) => {
   const { t } = useTranslation();
 
   const [stops, setStops] = useState([]);
-  const [error, setError] = useState(null);
 
   useEffect(() => {
     props.setLoader(true);
@@ -27,9 +28,9 @@ const StopList = ({ navigation, ...props }) => {
         setStops(res.data.data.data);
         props.setLoader(false);
       })
-      .catch(error => {
+      .catch(fetchError => {
         props.setLoader(false);
-        setError(error.message);
+        console.error('Failed to load stops:', fetchError);
       });
   }, []);
 
@@ -39,8 +40,7 @@ const StopList = ({ navigation, ...props }) => {
 
   return (
     <ScrollView>
-      <View style={{ flex: 1, alignItems: 'center' }}>
-        
+      <View style={localStyles.container}>
         <Loader />
 
         <Header
@@ -56,14 +56,14 @@ const StopList = ({ navigation, ...props }) => {
         />
 
         <View style={styles.cardsWrap}>
-          {stops.map((stop) => (
+          {stops.map(stop => (
             <SmallCard
-              key={stop.id?.toString()}    // ✅ FIXED HERE
+              key={stop.id?.toString()}
               style={styles.stopsCard}
               Icon={
                 <Image
                   source={{ uri: Path.API_PATH + stop.icon }}
-                  style={{ width: 40, height: 40 }} // ✅ Image requires style
+                  style={localStyles.stopIcon}
                   resizeMode="contain"
                 />
               }
@@ -72,11 +72,21 @@ const StopList = ({ navigation, ...props }) => {
             />
           ))}
         </View>
-
       </View>
     </ScrollView>
   );
 };
+
+const localStyles = StyleSheet.create({
+  container: {
+    flex: 1,
+    alignItems: 'center',
+  },
+  stopIcon: {
+    width: 40,
+    height: 40,
+  },
+});
 
 const mapStateToProps = state => ({
   access_token: state.commonState.access_token,

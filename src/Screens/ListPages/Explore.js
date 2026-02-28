@@ -1,14 +1,10 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 import React, {useState, useEffect} from 'react';
 import {View, ScrollView, ImageBackground, FlatList} from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import COLOR from '../../Services/Constants/COLORS';
 import DIMENSIONS from '../../Services/Constants/DIMENSIONS';
-import {
-  checkTokenExpired,
-  comnPost,
-  dataSync,
-  saveToStorage,
-} from '../../Services/Api/CommonServices';
+import {comnPost, dataSyncResult, saveToStorage} from '../../Services/Api/CommonServices';
 import {connect} from 'react-redux';
 import {setLoader} from '../../Reducers/CommonActions';
 import styles from './Styles';
@@ -29,15 +25,23 @@ import {Skeleton} from '@rneui/themed';
 import CityCardSkeleton from '../../Components/Cards/CityCardSkeleton';
 import {useTranslation} from 'react-i18next';
 
-const Explore = ({route, navigation, ...props}) => {
+const screenContainerStyle = {flex: 1, justifyContent: 'flex-start'};
+const sectionHeaderRowStyle = {
+  paddingBottom: 10,
+  flexDirection: 'row',
+  justifyContent: 'center',
+};
+const sitesContainerStyle = {
+  minHeight: DIMENSIONS.screenHeight,
+  alignItems: 'center',
+};
+const skeletonButtonStyle = {width: 100, height: 30};
+const emptyStateStyle = {marginTop: 20};
+
+const Explore = ({navigation, ...props}) => {
   const {t} = useTranslation();
 
-  const [places, setPlaces] = useState([]);
   const [cities, setCities] = useState([]);
-  const [error, setError] = useState(null);
-  const [isEnabled, setIsEnabled] = useState(route.name == t('SCREEN.CITIES'));
-  const [isLandingDataFetched, setIsLandingDataFetched] = useState(false);
-  const [nextPage, setNextPage] = useState(1);
   const [offline, setOffline] = useState(false);
   const [selectedCity, setSelectedCity] = useState('');
   const [selectedCityId, setSelectedCityId] = useState('');
@@ -50,30 +54,30 @@ const Explore = ({route, navigation, ...props}) => {
     checkLogin(navigation);
     setIsLoading(true);
 
-    const unsubscribe = NetInfo.addEventListener(state => {
+    const unsubscribe = NetInfo.addEventListener(() => {
       setOffline(false);
 
-      dataSync(t('STORAGE.CITIES_RESPONSE'), getCities(), props.mode).then(
-        resp => {
-          let res = JSON.parse(resp);
-          if (res.data && res.data.data) {
-            setCities(res.data.data.data);
-          } else if (resp) {
+      dataSyncResult(t('STORAGE.CITIES_RESPONSE'), getCities, props.mode).then(
+        result => {
+          const resp = result.data;
+          if (resp && resp.data && resp.data.data) {
+            setCities(resp.data.data.data);
+            return;
+          }
+
+          if (typeof resp === 'string') {
+            const parsedResp = JSON.parse(resp);
+            if (parsedResp.data && parsedResp.data.data) {
+              setCities(parsedResp.data.data.data);
+              return;
+            }
+          }
+
+          if (result.offline) {
             setOffline(true);
           }
         },
       );
-
-      // dataSync(t("STORAGE.PLACES_RESPONSE"), getPlaces(), props.mode)
-      //   .then(resp => {
-      //     let res = JSON.parse(resp)
-      //     if (res.data && res.data.data) {
-      //       setPlaces([...places, ...res.data.data.data]);
-      //     } else if (resp) {
-      //       setOffline(true)
-      //     }
-      //   })
-      // removeFromStorage(t("STORAGE.LANDING_RESPONSE"))
     });
 
     return () => {
@@ -82,52 +86,27 @@ const Explore = ({route, navigation, ...props}) => {
     };
   }, []);
 
-  const getPlaces = ifNext => {
-    setIsLoading(true);
-    comnPost(
-      `v2/places?page=${ifNext ? nextPage : nextPage - 1}`,
-      props.access_token,
-    )
-      .then(res => {
-        checkTokenExpired(res);
-        if (res && res.data.data)
-          saveToStorage(t('STORAGE.PLACES_RESPONSE'), JSON.stringify(res));
-        setPlaces([...places, ...res.data.data.data]);
-        setIsLoading(false);
-        let nextUrl = res.data.data.next_page_url;
-        setNextPage(nextUrl[nextUrl.length - 1]);
-      })
-      .catch(error => {
-        setIsLoading(false);
-      });
-  };
-
   const getCities = () => {
     setIsLoading(true);
-    let data = {
+    const data = {
       apitype: 'list',
-      // parent_id: 1,
       category: 'city',
     };
-    comnPost('v2/sites', data, navigation)
+    return comnPost('v2/sites', data, navigation)
       .then(res => {
-        if (res && res.data.data)
+        if (res && res.data.data) {
           saveToStorage(t('STORAGE.CITIES_RESPONSE'), JSON.stringify(res));
+        }
         setCities(res.data.data.data);
         setSelectedCity(res.data.data.data[0].name);
         setSelectedCityId(res.data.data.data[0].id);
         setSelectedSites(res.data.data.data[0].sites);
-        // setSelectedSites(res.data.data.data[0].sites)
         setIsLoading(false);
+        return res;
       })
-      .catch(error => {
+      .catch(() => {
         setIsLoading(false);
       });
-  };
-
-  const goToNext = () => {
-    // setIsLoading(true)
-    getPlaces(true);
   };
 
   const seeMore = () => {
@@ -150,12 +129,8 @@ const Explore = ({route, navigation, ...props}) => {
     setSelectedSites(cities.find(item => item.name === city.name).sites);
   };
 
-  const getCityDetails = id => {
-    navigateTo(navigation, t('SCREEN.CITY_DETAILS'), {id});
-  };
-
   return (
-    <View style={{flex: 1, justifyContent: 'flex-start'}}>
+    <View style={screenContainerStyle}>
       <CheckNet isOff={offline} />
       <Header
         name={t('SCREEN.CITIES')}
@@ -218,23 +193,18 @@ const Explore = ({route, navigation, ...props}) => {
           </View>
         )}
       </View>
-      <View
-        style={{
-          paddingBottom: 10,
-          flexDirection: 'row',
-          justifyContent: 'center',
-        }}>
+      <View style={sectionHeaderRowStyle}>
         {isLoading ? (
           <View style={styles.flexAroundSkeleton}>
             <Skeleton
               animation="pulse"
               variant="text"
-              style={{width: 100, height: 30}}
+              style={skeletonButtonStyle}
             />
             <Skeleton
               animation="pulse"
               variant="text"
-              style={{width: 100, height: 30}}
+              style={skeletonButtonStyle}
             />
           </View>
         ) : (
@@ -250,11 +220,7 @@ const Explore = ({route, navigation, ...props}) => {
           </View>
         )}
       </View>
-      <View
-        style={{
-          minHeight: DIMENSIONS.screenHeight,
-          alignItems: 'center',
-        }}>
+      <View style={sitesContainerStyle}>
         {isLoading ? (
           <View>
             <FlatList
@@ -274,7 +240,7 @@ const Explore = ({route, navigation, ...props}) => {
             />
           </View>
         ) : (
-          <View style={{marginTop: 20}}>
+          <View style={emptyStateStyle}>
             <GlobalText text={t('ADDED')} style={styles.boldText} />
           </View>
         )}

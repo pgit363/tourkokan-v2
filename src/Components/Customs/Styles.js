@@ -3,7 +3,7 @@ import COLOR from '../../Services/Constants/COLORS';
 import DIMENSIONS from '../../Services/Constants/DIMENSIONS';
 
 const styles = StyleSheet.create({
-  container: {
+  mainContainer: {
     flex: 1,
     backgroundColor: COLOR.white,
     alignItems: 'center',
@@ -200,12 +200,11 @@ const styles = StyleSheet.create({
     fontSize: DIMENSIONS.headerTextSize,
   },
   accordContent: {
-    paddingVertical: 50,
-    // flex: 1,
+    paddingVertical: 12,
     justifyContent: 'center',
-    alignItems: 'left',
-    width: DIMENSIONS.screenWidth,
-    marginLeft: -5,
+    alignItems: 'flex-start',
+    width: '100%',
+    marginLeft: 0,
   },
   columnWrapper: {},
   catCardIcon: {
