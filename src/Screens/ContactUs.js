@@ -52,7 +52,13 @@ const ContactUs = ({
     );
     const init = async () => {
       const userEmail = await AsyncStorage.getItem(t('STORAGE.USER_EMAIL'));
-      if (isMounted.current) setEmail(userEmail);
+      if (isMounted.current && userEmail) setEmail(userEmail);
+
+      const profileData = await getFromStorage(t('STORAGE.PROFILE_RESPONSE'));
+      if (isMounted.current && profileData) {
+        const profile = JSON.parse(profileData);
+        if (profile.mobile) setPhone(profile.mobile);
+      }
       // checkLogin(navigation);
     };
     init();

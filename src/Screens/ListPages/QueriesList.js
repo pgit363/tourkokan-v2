@@ -33,6 +33,7 @@ import {connect} from 'react-redux';
 import {useTranslation} from 'react-i18next';
 import CheckNet from '../../Components/Common/CheckNet';
 import NetInfo from '@react-native-community/netinfo';
+import {getFromStorage} from '../../Services/Api/CommonServices';
 import DIMENSIONS from '../../Services/Constants/DIMENSIONS';
 import GlobalText from '../../Components/Customs/Text';
 import ContactUs from '../ContactUs';
@@ -54,66 +55,56 @@ const QueriesList = ({navigation, route, ...props}) => {
   const [errorMessage, setErrorMessage] = useState('');
 
   useEffect(() => {
+    let unsubscribeNetInfo;
     const backHandler = BackHandler.addEventListener(
       STRING.EVENT.HARDWARE_BACK_PRESS,
       () => goBackStep(),
     );
 
     checkLogin(navigation);
-    props.setLoader(true);
-    setData([]);
 
-    // Function to check if data exists in storage and fetch if not
-    const checkStoredData = async () => {
-      try {
-        const storedData = await dataSync(
-          t('STORAGE.QUERIES'),
-          null,
-          props.mode,
-        );
-        if (storedData) {
-          setData(JSON.parse(storedData));
-          props.setLoader(false);
-        } else {
-          // Data is not in storage, fetch it from the API
-          fetchData(1, true);
-        }
-      } catch (error) {
-        console.error('Error checking stored data:', error);
-        fetchData(1, true);
-      }
-    };
-
-    const fetchDataAsync = async () => {
-      if (props.access_token) {
-        await fetchData(1, true);
-      }
-    };
-
-    // Check stored data and then fetch if needed
-    checkStoredData();
-
-    const unsubscribe = NetInfo.addEventListener(state => {
-      setOffline(!state.isConnected);
-      if (state.isConnected) {
-        checkStoredData(); // Recheck storage and possibly fetch data
+    const init = async () => {
+      // 1. Load local data immediately
+      const localData = await getFromStorage(t('STORAGE.QUERIES'));
+      if (localData) {
+        setData(JSON.parse(localData));
       } else {
-        props.setLoader(false);
+        props.setLoader(true);
       }
-    });
+
+      // 2. Sync with API
+      unsubscribeNetInfo = NetInfo.addEventListener(state => {
+        setOffline(!state.isConnected);
+        dataSync(
+          t('STORAGE.QUERIES'),
+          () => fetchData(1, true),
+          props.mode,
+        ).then(resp => {
+          if (resp) {
+            const res = JSON.parse(resp);
+            if (Array.isArray(res)) {
+              setData(res);
+            }
+          }
+          props.setLoader(false);
+        });
+      });
+    };
+
+    init();
 
     return () => {
       backHandler.remove();
-      unsubscribe();
+      if (unsubscribeNetInfo) unsubscribeNetInfo();
       isMounted.current = false;
     };
-  }, [navigation, props.access_token, props.mode, t]);
+  }, []);
 
   useEffect(() => {
     if (step == 0) {
       fetchData(1, true);
     }
-  }, [step, nextPage]);
+  }, [step]);
 
   const goBackStep = () => {
     if (step == 0) {
@@ -142,7 +133,6 @@ const QueriesList = ({navigation, route, ...props}) => {
         return;
       }
       if (props.mode) {
-        if (loading) return;
         setLoading(true);
         try {
           const res = await comnPost('v2/getQueries', {page});
@@ -154,10 +144,13 @@ const QueriesList = ({navigation, route, ...props}) => {
             }
             setHasMore(!!res.data.data.next_page_url);
             setNextPage(page + 1);
-            await saveToStorage(
-              t('STORAGE.QUERIES'),
-              JSON.stringify(res.data.data.data),
-            );
+            if (reset) {
+              saveToStorage(
+                t('STORAGE.QUERIES'),
+                JSON.stringify(res.data.data.data),
+              );
+            }
+            return res.data.data.data;
           }
           setLoading(false);
         } catch (error) {
@@ -173,7 +166,7 @@ const QueriesList = ({navigation, route, ...props}) => {
         }
       }
     },
-    [props.mode, loading, hasMore, t],
+    [props.mode, hasMore, t],
   );
 
   const loadMoreData = useCallback(() => {

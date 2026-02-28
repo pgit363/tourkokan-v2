@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useState, useCallback} from 'react';
 import {FlatList, View, Text} from 'react-native';
 import Header from '../../Components/Common/Header';
 import Ionicons from 'react-native-vector-icons/Ionicons';
@@ -53,32 +53,48 @@ const AllRoutesSearch = ({navigation, route, ...props}) => {
   const [bannerObject, setBannerObject] = useState({});
 
   useEffect(() => {
-    props.setLoader(true);
+    let isMounted = true;
     const backHandler = goBackHandler(navigation);
     checkLogin(navigation);
-    // searchRoute();
 
-    const unsubscribe = NetInfo.addEventListener(async state => {
-      dataSync(t('STORAGE.ROUTES_RESPONSE'), searchRoute(), props.mode).then(
-        resp => {
+    const init = async () => {
+      // 1. Load local data immediately for fast render
+      const localData = await getFromStorage(t('STORAGE.ROUTES_RESPONSE'));
+      if (localData) {
+        const parsed = JSON.parse(localData);
+        if (parsed && parsed.data && parsed.data.data) {
+          setList(parsed.data.data.data);
+          setIsLoading(false);
+          setIsFirstTime(false);
+        }
+      } else {
+        props.setLoader(true);
+      }
+
+      // 2. Sync with API
+      const unsubscribe = NetInfo.addEventListener(async state => {
+        if (!isMounted) return;
+        
+        dataSync(t('STORAGE.ROUTES_RESPONSE'), () => searchRoute(), props.mode).then(resp => {
           if (resp) {
             let res = JSON.parse(resp);
-            setList(res);
-            setIsLoading(false);
-          } else if (resp) {
-            setOffline(true);
+            if (res.data && res.data.data && Array.isArray(res.data.data.data)) {
+              setList(res.data.data.data);
+            }
             setIsLoading(false);
           }
-          // props.setLoader(false);
-        },
-      );
-      // removeFromStorage(t("STORAGE.LANDING_RESPONSE"))
-    });
-    props.setLoader(false);
+          props.setLoader(false);
+        });
+      });
+      return unsubscribe;
+    };
+
+    const sub = init();
 
     return () => {
       backHandler.remove();
-      unsubscribe();
+      if (typeof sub === 'function') sub();
+      isMounted = false;
     };
   }, []);
 
@@ -107,21 +123,21 @@ const AllRoutesSearch = ({navigation, route, ...props}) => {
     }, [])
   );
   
-  const getRoutesList = item => {
+  const getRoutesList = useCallback((item) => {
     navigateTo(navigation, t('SCREEN.ROUTES_LIST'), {item});
-  };
+  }, [navigation, t]);
 
   const searchRoute = async (a, b, isNext) => {
     AsyncStorage.setItem('isLangChanged', 'false');
 
     if (nextPage >= 1) {
-      props.setLoader(true);
+      if (list.length === 0 || isNext) props.setLoader(true);
       const data = {
         source_place_id: a || source?.id,
         destination_place_id: b || destination?.id,
       };
 
-      comnPost(`v2/routes?page=${isNext ? nextPage : 1}`, data, navigation)
+      return comnPost(`v2/routes?page=${isNext ? nextPage : 1}`, data, navigation)
         .then(res => {
           if (res.data.success) {
             if (res && res.data.data.data[0]) {
@@ -140,11 +156,13 @@ const AllRoutesSearch = ({navigation, route, ...props}) => {
               setIsLoading(false);
               setIsFirstTime(false);
               props.setLoader(false);
+              return res;
             } else {
               setIsLoading(false);
               setIsFirstTime(false);
               setList([]);
               props.setLoader(false);
+              return res;
             }
           } else {
             setIsLoading(false);
@@ -199,30 +217,13 @@ const AllRoutesSearch = ({navigation, route, ...props}) => {
     setIsAlert(false);
   };
 
-  const renderItem = ({item}) => {
-    return (
-      // <ListItem bottomDivider onPress={() => getRoutes(item)}>
-      //   {/* <Avatar source={{ uri: item.avatar_url }} /> */}
-      //   <RouteLine />
-      //   <GlobalText text={item.id} />
-      //   <ListItem.Content>
-      //     {/* <ListItem.Title>{item.number}</ListItem.Title> */}
-      //     <ListItem.Title>{item.name}</ListItem.Title>
-      //   </ListItem.Content>
-      //   <ListItem.Chevron />
-      // </ListItem>
-      <View style={styles.sectionView}>
-        {list.map((route, index) => (
-          <View key={route.id || index} style={styles.cardsWrap}>
-            <RouteHeadCard
-              data={route}
-              cardClick={() => getRoutesList(route)}
-            />
-          </View>
-        ))}
-      </View>
-    );
-  };
+  const renderRouteItem = useCallback(({item}) => (
+    <RouteHeadCard
+      data={item}
+      cardClick={() => getRoutesList(item)}
+      style={styles.routeHeadCard}
+    />
+  ), [getRoutesList]);
 
   return (
     <SafeAreaView edges={['top']} style={{backgroundColor: COLOR.white, flex: 1}}>
@@ -282,7 +283,11 @@ const AllRoutesSearch = ({navigation, route, ...props}) => {
           </>
         ) : list.length > 0 ? (
           <FlatList
-            keyExtractor={item => item.id}
+            keyExtractor={item => item.id.toString()}
+            initialNumToRender={5}
+            maxToRenderPerBatch={5}
+            windowSize={3}
+            removeClippedSubviews={true}
             data={list}
             onEndReached={() => loadMoreRoutes()}
             contentContainerStyle={{paddingBottom: 20}}
@@ -300,13 +305,7 @@ const AllRoutesSearch = ({navigation, route, ...props}) => {
               null
             }
             ListFooterComponent={null}
-            renderItem={({item}) => (
-              <RouteHeadCard
-                data={item}
-                cardClick={() => getRoutesList(item)}
-                style={styles.routeHeadCard}
-              />
-            )}
+            renderItem={renderRouteItem}
           />
         ) : (
           <View style={{alignItems: 'center', padding: 50}}>

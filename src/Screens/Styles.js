@@ -677,11 +677,6 @@ const styles = StyleSheet.create({
     fontSize: 11,
     width: DIMENSIONS.bannerWidth,
   },
-  locButtonView: {
-    padding: 10,
-    borderRadius: 5,
-    alignItems: 'center',
-  },
   searchPanelFieldNew: {
     borderWidth: 1,
     borderRadius: DIMENSIONS.borderRadiusSmall,
@@ -699,6 +694,18 @@ const styles = StyleSheet.create({
     color: COLOR.black,
     fontSize: DIMENSIONS.textSize,
     textAlign: 'center',
+  },
+  safeArea: {
+    flex: 1,
+    backgroundColor: COLOR.white,
+  },
+  offlineContainer: {
+    height: DIMENSIONS.screenHeight,
+    alignItems: 'center',
+    padding: 50,
+  },
+  offlineText: {
+    fontWeight: 'bold',
   },
 });
 

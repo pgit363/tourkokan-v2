@@ -14,7 +14,6 @@ import {
   Alert,
   Image,
   FlatList,
-  InteractionManager,
 } from 'react-native';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import SearchPanel from '../Components/Common/SearchPanel';
@@ -57,7 +56,7 @@ import {useTranslation} from 'react-i18next';
 import {useFocusEffect} from '@react-navigation/native';
 import BannerSkeleton from '../Components/Customs/BannerSkeleton';
 import Loader from '../Components/Customs/Loader';
-import {KeyboardAwareScrollView} from 'react-native-keyboard-aware-scroll-view';
+import {KeyboardAwareFlatList} from 'react-native-keyboard-aware-scroll-view';
 import DIMENSIONS from '../Services/Constants/DIMENSIONS';
 import ComingSoon from '../Components/Common/ComingSoon';
 import Popup from '../Components/Common/Popup';
@@ -132,10 +131,10 @@ const HomeScreen = ({navigation, route, ...props}) => {
   const [mode, setMode] = useState(true);
   // const [trending, setTrending] = useState({});
   const [activeTab, setActiveTab] = useState(null);
-  const [renderBottom, setRenderBottom] = useState(false);
   
   const { isUpdatePending } = useContext(UpdateContext);
   const isUpdatePendingRef = useRef(isUpdatePending);
+  const isFetchingRef = useRef(false);
 
   const [state, dispatch] = useReducer(
     (prevState, action) => {
@@ -167,6 +166,8 @@ const HomeScreen = ({navigation, route, ...props}) => {
   const validTrendingKeys = useMemo(() => 
     trending ? Object.keys(trending).filter(key => trending[key] && trending[key].length > 0) : [],
   [trending]);
+
+  const topComponentCities = useMemo(() => [sindhudurg, ...cities], [sindhudurg, cities]);
 
   useEffect(() => {
     isUpdatePendingRef.current = isUpdatePending;
@@ -203,17 +204,6 @@ const HomeScreen = ({navigation, route, ...props}) => {
       backHandler.remove();
     };
   }, []);
-
-  useEffect(() => {
-    if (isLoading) {
-      setRenderBottom(false);
-    } else {
-      const task = InteractionManager.runAfterInteractions(() => {
-        setRenderBottom(true);
-      });
-      return () => task.cancel();
-    }
-  }, [isLoading]);
 
   const ToNavigate = async () => {
     if (
@@ -256,7 +246,33 @@ const HomeScreen = ({navigation, route, ...props}) => {
     let isMounted = true; // flag to track if the component is mounted
 
     const init = async () => {
-      dispatch({type: 'SET_LOADING', payload: true});
+      // 1. Load Local Data Immediately
+      const localData = await getFromStorage(t('STORAGE.LANDING_RESPONSE'));
+      if (localData && isMounted) {
+        try {
+          const res = JSON.parse(localData);
+          if (res && res.cities) {
+            let newActiveTab = activeTab;
+            if (res.trending) {
+              const validKeys = Object.keys(res.trending).filter(k => res.trending[k]?.length > 0);
+              if (validKeys.length > 0) newActiveTab = validKeys[0];
+            }
+            setActiveTab(newActiveTab);
+            dispatch({
+              type: 'SET_DATA',
+              payload: {
+                cities: res.cities,
+                routes: res.routes,
+                bannerObject: res.banners,
+                trending: res.trending || {},
+              },
+            });
+          }
+        } catch (e) { console.log(e); }
+      } else {
+        dispatch({type: 'SET_LOADING', payload: true});
+      }
+
       const selectedCity = await getSelectedCity();
       if (selectedCity) {
         setSindh({
@@ -384,11 +400,14 @@ const HomeScreen = ({navigation, route, ...props}) => {
 
       // Optional cleanup function (if needed)
       return () => {};
-    }, [props.mode, isInitialLoad]),
+    }, [props.mode, isInitialLoad, callLandingPageAPI]),
   );
 
-  const callLandingPageAPI = async site_id => {
+  const callLandingPageAPI = useCallback(async site_id => {
     try {
+      if (isFetchingRef.current) return;
+      isFetchingRef.current = true;
+
       let isFirstTime = await getFromStorage(t('STORAGE.IS_FIRST_TIME'));
       let mode = JSON.parse(await getFromStorage(t('STORAGE.MODE')));
 
@@ -408,11 +427,26 @@ const HomeScreen = ({navigation, route, ...props}) => {
 
         const res = await comnPost('v2/landingpage', data, navigation);
 
-        console.log(res);
-        
         if (res && res.data.data) {
-          i18n.changeLanguage(res.data.language);
+          if (i18n.language !== res.data.language) {
+            i18n.changeLanguage(res.data.language);
+          }
           
+          setSindh({
+            id: 0,
+            name: t('CITY.SINDHUDURG'),
+          });
+
+          if (selectedCity && selectedCity.id !== 0) {
+            const foundCity = res.data.data.cities.find(c => c.id === selectedCity.id);
+            if (foundCity) {
+              setCurrentCity(foundCity.name);
+              saveToStorage(t('STORAGE.SELECTED_CITY_NAME'), JSON.stringify(foundCity.name));
+            }
+          } else {
+            setCurrentCity(t('CITY.SINDHUDURG'));
+          }
+
           let newActiveTab = activeTab;
           if (res.data.data.trending) {
              const validKeys = Object.keys(res.data.data.trending).filter(k => res.data.data.trending[k]?.length > 0);
@@ -467,8 +501,9 @@ const HomeScreen = ({navigation, route, ...props}) => {
       setError(error.message);
     } finally {
       props.setLoader(false);
+      isFetchingRef.current = false;
     }
-  };
+  }, [t, i18n, props.mode, navigation, activeTab, props.setLoader]);
 
   const checkToken = async () => {
     if (
@@ -677,7 +712,7 @@ const HomeScreen = ({navigation, route, ...props}) => {
           <TopComponent
             mode={mode}
             setMode={v => setMode(v)}
-            cities={[sindhudurg, ...cities]}
+            cities={topComponentCities}
             currentCity={currentCity}
             setCurrentCity={v => onCitySelect(v)}
             navigation={navigation}
@@ -688,18 +723,20 @@ const HomeScreen = ({navigation, route, ...props}) => {
       </SafeAreaView>
       <Popup message={alertMessage} onPress={closePopup} visible={isAlert} />
 
-      <KeyboardAwareScrollView
+      <CheckNet isOff={offline} />
+      <KeyboardAwareFlatList
+        data={[]}
+        renderItem={null}
         extraHeight={DIMENSIONS.halfHeight}
         enableOnAndroid={true}
-        stickyHeaderIndices={[0]}
         style={{backgroundColor: COLOR.white}}
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-        }>
-        <CheckNet isOff={offline} />
-        {/* <MyAnimatedLoader isVisible={isLoading} /> */}
-        {!isLoading && <Loader />}
-        <View style={{flex: 1, alignItems: 'center'}}>
+        }
+        ListHeaderComponent={
+          <>
+            {!isLoading && <Loader />}
+            <View style={{flex: 1, alignItems: 'center'}}>
           {isLoading ? (
             <BannerSkeleton />
           ) : bannerObject?.HOME_HERO && bannerObject.HOME_HERO.length > 0 ? (
@@ -714,7 +751,7 @@ const HomeScreen = ({navigation, route, ...props}) => {
             />
           )}
           <View style={{marginTop: 30, width: '100%'}}>
-            {isLoading || !renderBottom ? (
+            {isLoading ? (
               <TrendingSkeleton />
             ) : trending && validTrendingKeys.length > 0 ? (
               <View style={{width: '100%'}}>
@@ -802,7 +839,7 @@ const HomeScreen = ({navigation, route, ...props}) => {
               )}
             </View>
             <View style={styles.cardsWrap}>
-              {isLoading || !renderBottom ? (
+              {isLoading ? (
                 // Show skeleton loader when loading
                 <>
                   <RouteHeadCardSkeleton key="route-skeleton-1" />
@@ -811,7 +848,7 @@ const HomeScreen = ({navigation, route, ...props}) => {
                 </>
               ) : routes.length > 0 ? (
                 // Show routes if available
-                routes.slice(0, 3).map(
+                routes.map(
                   (route, index) =>
                     route && (
                       <RouteHeadCard
@@ -834,7 +871,7 @@ const HomeScreen = ({navigation, route, ...props}) => {
             </View>
           </View>
           <View style={styles.sectionView}>
-              {!isLoading && renderBottom &&
+              {!isLoading &&
                   bannerObject?.HOME_MIDDLE &&
                   bannerObject.HOME_MIDDLE.length > 0 && (
                     <View style={{marginTop: 20, width: '100%'}}>
@@ -886,7 +923,7 @@ const HomeScreen = ({navigation, route, ...props}) => {
                 </View>
               )}
               <View style={{flex: 1}}>
-                {isLoading || !renderBottom || cities.length === 0 ? (
+                {isLoading || cities.length === 0 ? (
                   <ScrollView
                     horizontal
                     style={{marginLeft: 5}}
@@ -959,7 +996,22 @@ const HomeScreen = ({navigation, route, ...props}) => {
               />
             )} */}
           </View>
-        </View>
+            </View>
+          </>
+        }
+        ListFooterComponent={
+          !isLoading &&
+          bannerObject?.HOME_FOOTER &&
+          bannerObject.HOME_FOOTER.length > 0 ? (
+            <View style={{width: '100%'}}>
+              <Banner
+                bannerImages={bannerObject.HOME_FOOTER}
+                style={{height: DIMENSIONS.windowWidth / 3, marginBottom: 0}}
+              />
+            </View>
+          ) : null
+        }
+      />
         <BottomSheet
           refRBSheet={refRBSheet}
           height={300}
@@ -1032,17 +1084,6 @@ const HomeScreen = ({navigation, route, ...props}) => {
           visible={showOnlineMode}
           toggleOverlay={() => setShowOnlineMode(false)}
         />
-        {!isLoading && renderBottom &&
-          bannerObject?.HOME_FOOTER &&
-          bannerObject.HOME_FOOTER.length > 0 && (
-            <View style={{width: '100%'}}>
-              <Banner
-                bannerImages={bannerObject.HOME_FOOTER}
-                style={{height: DIMENSIONS.windowWidth / 3, marginBottom: 0}}
-              />
-            </View>
-          )}
-      </KeyboardAwareScrollView>
       <Overlay
         isVisible={showSplash}
         onBackdropPress={() => setShowSplash(false)}

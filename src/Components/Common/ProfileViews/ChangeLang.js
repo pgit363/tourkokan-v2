@@ -12,7 +12,7 @@ import {connect} from 'react-redux';
 import NetInfo from '@react-native-community/netinfo';
 import Popup from '../Popup';
 
-const ChangeLang = ({refreshOption, setLoader, ...props}) => {
+const ChangeLang = ({refreshOption, setLoader, close, ...props}) => {
   const {t, i18n} = useTranslation();
 
   const [list, setList] = useState([
@@ -31,6 +31,7 @@ const ChangeLang = ({refreshOption, setLoader, ...props}) => {
   }, []);
 
   const saveLang = async () => {
+    setLoader(true);
     const mode = JSON.parse(await getFromStorage(t('STORAGE.MODE')));
     // Check the internet connectivity state
     const state = await NetInfo.fetch();
@@ -42,6 +43,7 @@ const ChangeLang = ({refreshOption, setLoader, ...props}) => {
       (!isConnected && !mode) || // Case 2: Internet is not available and mode is offline
       (!isConnected && mode) // Case 3: Internet is not available but mode is online
     ) {
+      setLoader(false);
       // The user should be alerted based on their mode and connectivity status
       setIsAlert(true);
       setAlertMessage(
@@ -58,19 +60,29 @@ const ChangeLang = ({refreshOption, setLoader, ...props}) => {
     }
 
     if (props.mode) {
-      setLoader(true);
       let data = {
         language,
       };
-      comnPost('v2/updateProfile', data)
-        .then(res => {
-          AsyncStorage.setItem('isUpdated', 'true');
-        })
-        .catch(err => {});
-      i18n.changeLanguage(language);
-      AsyncStorage.setItem('isLangChanged', 'true');
-      refreshOption();
+      try {
+        await comnPost('v2/updateProfile', data);
+        AsyncStorage.setItem('isUpdated', 'true');
+      } catch (err) {
+        console.log('API Error:', err);
+      }
+
+      setLoader(false);
+      if (close) {
+        close();
+      } else {
+        refreshOption();
+      }
+
+      setTimeout(() => {
+        i18n.changeLanguage(language);
+        AsyncStorage.setItem('isLangChanged', 'true');
+      }, 100);
     } else {
+      setLoader(false);
       setShowOnlineMode(true);
     }
   };

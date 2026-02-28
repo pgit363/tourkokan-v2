@@ -131,9 +131,9 @@ const Email = ({navigation, route, ...props}) => {
   };
 
   useEffect(() => {
-    getAsyncValues();
     // openDB()
     // createUserTable();
+    getAsyncValues();
     const backHandler = BackHandler.addEventListener(
       t('EVENT.HARDWARE_BACK_PRESS'),
       () => ToNavigate(),
@@ -153,8 +153,9 @@ const Email = ({navigation, route, ...props}) => {
     let token = await getFromStorage(t('STORAGE.ACCESS_TOKEN'));
     if (token) {
       navigateTo(navigation, t('SCREEN.HOME'));
+    } else {
+      setIsLoading(false);
     }
-    setIsLoading(false);
   };
 
   // const openDB = () => {

@@ -1,5 +1,5 @@
 import React from 'react';
-import {View} from 'react-native';
+import {View, TouchableOpacity} from 'react-native';
 import ProfileChip from '../ProfileChip';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import Feather from 'react-native-vector-icons/Feather';
@@ -12,13 +12,14 @@ import {useTranslation} from 'react-i18next';
 import CodeChip from '../CodeChip';
 
 const ChipOptions = ({
-  languageClick,
   locationClick,
   profileClick,
   settingsClick,
   logoutClick,
   referralClick,
   uid,
+  currentLanguage,
+  changeLanguage,
 }) => {
   const {t} = useTranslation();
 
@@ -31,8 +32,53 @@ const ChipOptions = ({
             <FontAwesome name="language" size={20} color={COLOR.white} />
           </View>
         }
-        clickChip={languageClick}
-        meta={<GlobalText text={t('LANGUAGE')} />}
+        rightElement={
+          <View
+            style={{
+              flexDirection: 'row',
+              backgroundColor: '#E0E0E0',
+              borderRadius: 20,
+              padding: 3,
+              alignItems: 'center',
+            }}>
+            <TouchableOpacity
+              onPress={() => changeLanguage(true)}
+              style={{
+                backgroundColor:
+                  currentLanguage === 'en' ? COLOR.themeBlue : 'transparent',
+                borderRadius: 15,
+                paddingVertical: 5,
+                paddingHorizontal: 12,
+              }}>
+              <GlobalText
+                text="English"
+                style={{
+                  color: currentLanguage === 'en' ? COLOR.white : COLOR.black,
+                  fontSize: 12,
+                  fontWeight: 'bold',
+                }}
+              />
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={() => changeLanguage(false)}
+              style={{
+                backgroundColor:
+                  currentLanguage === 'mr' ? COLOR.themeBlue : 'transparent',
+                borderRadius: 15,
+                paddingVertical: 5,
+                paddingHorizontal: 12,
+              }}>
+              <GlobalText
+                text="मराठी"
+                style={{
+                  color: currentLanguage === 'mr' ? COLOR.white : COLOR.black,
+                  fontSize: 12,
+                  fontWeight: 'bold',
+                }}
+              />
+            </TouchableOpacity>
+          </View>
+        }
       />
       {/* <ProfileChip
         name={t('CHIPS.UPDATE_LOCATION')}

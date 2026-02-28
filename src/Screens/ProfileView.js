@@ -36,7 +36,6 @@ import CheckNet from '../Components/Common/CheckNet';
 import {useTranslation} from 'react-i18next';
 import ProfileChip from '../Components/Common/ProfileChip';
 import ChipOptions from '../Components/Common/ProfileViews/ChipOptions';
-import ChangeLang from '../Components/Common/ProfileViews/ChangeLang';
 import UpdateProfile from '../Components/Common/ProfileViews/UpdateProfile';
 import ProfileChipSkeleton from '../Components/Common/ProfileChipSkeleton';
 import MapContainer from '../Components/Common/MapContainer';
@@ -71,48 +70,63 @@ const ProfileView = ({navigation, route, ...props}) => {
   const [showOnlineMode, setShowOnlineMode] = useState(false);
 
   useEffect(() => {
-    props.setLoader(true);
-    const backHandler = BackHandler.addEventListener(
-      t('EVENT.HARDWARE_BACK_PRESS'),
-      () => backPress(),
-    );
+    let isMounted = true;
+    let unsubscribeNetInfo;
     // requestLocationPermission();
     checkLogin(navigation);
     // getUserProfile();
+
+    const init = async () => {
+      // 1. Load local data immediately for instant render
+      const localData = await getFromStorage(t('STORAGE.PROFILE_RESPONSE'));
+      if (localData && isMounted) {
+        const res = JSON.parse(localData);
+        setProfile(res);
+        if (res?.addresses && res.addresses.length > 0) {
+          setLocationMap(res.addresses[0]?.latitude, res.addresses[0]?.longitude);
+        }
+        props.setLoader(false);
+      } else {
+        props.setLoader(true);
+      }
+
+      // 2. Sync with API in background
+      unsubscribeNetInfo = NetInfo.addEventListener(state => {
+        if (!isMounted) return;
+        setOffline(!state.isConnected);
+        dataSync(
+          t('STORAGE.PROFILE_RESPONSE'),
+          () => getUserProfile(), // Pass as function reference
+          props.mode,
+        ).then(resp => {
+          if (!isMounted) return;
+          if (resp) {
+            let res = JSON.parse(resp);
+            setProfile(res);
+            // setOption(0); // Optional: Avoid resetting view on background sync
+            if (res?.addresses && res.addresses.length > 0) {
+              setLocationMap(res.addresses[0]?.latitude, res.addresses[0]?.longitude);
+            }
+          } else if (resp) {
+            setOffline(true);
+          }
+          props.setLoader(false);
+          setRefreshing(false);
+        });
+      });
+    };
+
+    init();
+
     const unsubscribeFocus = navigation.addListener(t('EVENT.FOCUS'), () => {
       if (props.mode) getUserProfile();
     });
 
-    const unsubscribe = NetInfo.addEventListener(state => {
-      setOffline(false);
-      dataSync(
-        t('STORAGE.PROFILE_RESPONSE'),
-        getUserProfile(),
-        props.mode,
-      ).then(resp => {
-        if (resp) {
-          let res = JSON.parse(resp);
-          setProfile(res);
-          setOption(0);
-          if (res?.addresses && res.addresses.length > 0) {
-            const latitude = res.addresses[0]?.latitude ?? null;
-            const longitude = res.addresses[0]?.longitude ?? null;
-            setLocationMap(latitude, longitude);
-          }
-          props.setLoader(false);
-          setRefreshing(false);
-        } else if (resp) {
-          setOffline(true);
-        }
-        props.setLoader(false);
-      });
-      // removeFromStorage(t("STORAGE.LANDING_RESPONSE"))
-    });
     return () => {
+      isMounted = false;
       Geolocation.clearWatch(watchID);
-      backHandler.remove();
       unsubscribeFocus();
-      unsubscribe();
+      if (unsubscribeNetInfo) unsubscribeNetInfo();
     };
   }, [route]);
 
@@ -134,12 +148,23 @@ const ProfileView = ({navigation, route, ...props}) => {
       ) {
         navigateTo(navigation, t('SCREEN.EMAIL'));
       } else {
-        navigateTo(navigation, t('SCREEN.HOME'));
+        backPage(navigation);
       }
     } else {
       setOption(0);
     }
   };
+
+  useEffect(() => {
+    const backHandler = BackHandler.addEventListener(
+      t('EVENT.HARDWARE_BACK_PRESS'),
+      () => {
+        backPress();
+        return true;
+      },
+    );
+    return () => backHandler.remove();
+  }, [option]);
 
   const requestLocationPermission = async () => {
     if (Platform.OS === 'ios') {
@@ -230,22 +255,25 @@ const ProfileView = ({navigation, route, ...props}) => {
     }
   };
 
-  const getUserProfile = () => {
+  const getUserProfile = (closeView = false) => {
     if (props.mode) {
       console.log('Fetching user profile...');
       console.log('Access Token:', props.access_token);
+      const startTime = Date.now();
 
-      comnPost('v2/user-profile', props.access_token, navigation)
-        .then(res => {
-          console.log('API Response:', res);
+      return comnPost('v2/user-profile', props.access_token, navigation)
+        .then(async res => {
+          const apiTime = Date.now();
+          console.log(`API Response received in: ${apiTime - startTime}ms`);
+          // console.log('API Response:', res);
 
           if (res && res.data.data) {
-            saveToStorage(
+            await saveToStorage(
               t('STORAGE.PROFILE_RESPONSE'),
               JSON.stringify(res.data.data),
             );
             setProfile(res.data.data); // Update places state with response data
-            setOption(0);
+            if (closeView) setOption(0);
             if (res.data.data.addresses && res.data.data.addresses.length > 0) {
               setLocationMap(
                 res.data.data.addresses[0].latitude,
@@ -258,15 +286,51 @@ const ProfileView = ({navigation, route, ...props}) => {
 
           props.setLoader(false);
           setRefreshing(false);
+
+          const endTime = Date.now();
+          console.log(`Data processed and state updated in: ${endTime - apiTime}ms`);
+          return res.data.data;
         })
         .catch(error => {
           console.error('Error fetching user profile:', error.message); // Log any errors
           setError(error.message); // Update error state with error message
           props.setLoader(false);
           setRefreshing(false);
+          return null;
         });
     } else {
       console.warn('App is in offline mode. Cannot fetch user profile.');
+    }
+  };
+
+  const changeLanguage = async val => {
+    const newLang = val ? 'en' : 'mr';
+    props.setLoader(true);
+
+    if (props.mode) {
+      try {
+        await comnPost('v2/updateProfile', {language: newLang});
+        await AsyncStorage.setItem('isUpdated', 'true');
+      } catch (err) {
+        console.log('API Error:', err);
+      }
+    }
+
+    i18n.changeLanguage(newLang);
+    await AsyncStorage.setItem('isLangChanged', 'true');
+    props.setLoader(false);
+  };
+
+  const handleProfileUpdate = async (updatedData) => {
+    if (updatedData && typeof updatedData === 'object') {
+      setProfile(updatedData);
+      await saveToStorage(t('STORAGE.PROFILE_RESPONSE'), JSON.stringify(updatedData));
+      setOption(0);
+      if (updatedData.addresses && updatedData.addresses.length > 0) {
+        setLocationMap(updatedData.addresses[0].latitude, updatedData.addresses[0].longitude);
+      }
+    } else {
+      getUserProfile(true);
     }
   };
 
@@ -496,24 +560,20 @@ const ProfileView = ({navigation, route, ...props}) => {
         {profile && profile.id ? (
           option == 0 ? (
             <ChipOptions
-              languageClick={() => setOption(1)}
+              currentLanguage={i18n.language}
+              changeLanguage={changeLanguage}
               locationClick={() => setShowLocModal(true)}
               profileClick={() => setOption(3)}
               logoutClick={() => setIsAlert(true)}
               referralClick={() => referralClick()}
               uid={profile.uid}
             />
-          ) : option == 1 ? (
-            <ChangeLang
-              refreshOption={() => getUserProfile()}
-              setLoader={v => props.setLoader(v)}
-            />
           ) : option == 3 ? (
             <UpdateProfile
               user={profile.email}
               phone={profile.mobile}
               uploadImage={uploadImage}
-              refreshOption={() => getUserProfile()}
+              refreshOption={(data) => handleProfileUpdate(data)}
               isConnected={offline}
               setLoader={v => props.setLoader(v)}
             />

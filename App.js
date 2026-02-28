@@ -181,7 +181,7 @@ export default function App() {
       setIsFirstTime(isFirstTimeValue);
       setTimeout(() => {
         setLoading(false);
-      }, 2000);
+      }, 500);
     };
     checkFirstTime();
     setupAxiosInterceptors(); // Initialize Global Interceptor

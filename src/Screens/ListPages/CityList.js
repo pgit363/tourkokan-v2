@@ -1,4 +1,4 @@
-import React, {useState, useEffect, useRef} from 'react';
+import React, {useState, useEffect, useRef, useCallback} from 'react';
 import {
   View,
   FlatList,
@@ -37,6 +37,7 @@ import FlatListSkeleton from './FlatListSkeleton';
 import CityCardSmall from '../../Components/Cards/CityCardSmall';
 import PlaceCard from '../../Components/Cards/PlaceCard';
 import PackageCard from '../../Components/Cards/PackageCard';
+import {SafeAreaView} from 'react-native-safe-area-context';
 
 const CityList = ({navigation, route, ...props}) => {
   const {t} = useTranslation();
@@ -56,35 +57,46 @@ const CityList = ({navigation, route, ...props}) => {
   const [alertMessage, setAlertMessage] = useState('');
 
   useEffect(() => {
-    props.setLoader(true);
-    setLoading(true);
-
+    let isMounted = true;
+    let unsubscribe;
     const backHandler = goBackHandler(navigation);
     checkLogin(navigation);
-    setCities([]);
 
-    const unsubscribe = NetInfo.addEventListener(state => {
-      setOffline(!state.isConnected);
+    const init = async () => {
+      // 1. Load local data immediately
+      const localData = await getFromStorage(t('STORAGE.CITIES_RESPONSE'));
+      if (localData && isMounted) {
+        setCities(JSON.parse(localData));
+      } else {
+        props.setLoader(true);
+        setLoading(true);
+      }
 
-      dataSync(
-        t('STORAGE.CITIES_RESPONSE'),
-        fetchCities(1, true),
-        props.mode,
-      ).then(resp => {
-        if (resp) {
-          let res = JSON.parse(resp);
-          setCities(res);
-        } else if (resp) {
-          setOffline(true);
-        }
-        setLoading(false);
-        props.setLoader(false);
+      // 2. Sync in background
+      unsubscribe = NetInfo.addEventListener(state => {
+        if (!isMounted) return;
+        setOffline(!state.isConnected);
+
+        dataSync(t('STORAGE.CITIES_RESPONSE'), () => fetchCities(1, true), props.mode).then(resp => {
+          if (!isMounted) return;
+          if (resp) {
+            let res = JSON.parse(resp);
+            setCities(res);
+          } else if (resp) {
+            setOffline(true);
+          }
+          setLoading(false);
+          props.setLoader(false);
+        });
       });
-    });
+    };
+
+    init();
 
     return () => {
+      isMounted = false;
       backHandler.remove();
-      unsubscribe();
+      if (unsubscribe) unsubscribe();
     };
   }, []);
 
@@ -115,7 +127,7 @@ const CityList = ({navigation, route, ...props}) => {
           page: page,
         };
       }
-      comnPost(`v2/sites`, data, navigation)
+      return comnPost(`v2/sites`, data, navigation)
         .then(res => {
           if (res && res.data.data) {
             if (reset) {
@@ -133,6 +145,7 @@ const CityList = ({navigation, route, ...props}) => {
           setLoading(false);
           props.setLoader(false);
           setRefreshing(false);
+          return res.data.data.data;
         })
         .catch(error => {
           setLoading(false);
@@ -143,9 +156,9 @@ const CityList = ({navigation, route, ...props}) => {
     }
   };
 
-  const getCityDetails = city => {
+  const getCityDetails = useCallback((city) => {
     navigateTo(navigation, t('SCREEN.CITY_DETAILS'), {city});
-  };
+  }, [navigation, t]);
 
   const onRefresh = async () => {
     setRefreshing(true);
@@ -157,7 +170,7 @@ const CityList = ({navigation, route, ...props}) => {
     }
   };
 
-  const renderItem = ({item}) => (
+  const renderItem = useCallback(({item}) => (
     // <TouchableOpacity
     //   onPress={() => getCityDetails(item)}
     //   style={styles.SmallChipCard}>
@@ -171,7 +184,7 @@ const CityList = ({navigation, route, ...props}) => {
     />
     // <CityCard data={item} onClick={() => getCityDetails(item)} />
     // <CityCardSmall data={item} onClick={() => getCityDetails(item)} />
-  );
+  ), [getCityDetails]);
 
   const loadMoreCities = async () => {
     const mode = JSON.parse(await getFromStorage(t('STORAGE.MODE')));
@@ -220,7 +233,7 @@ const CityList = ({navigation, route, ...props}) => {
   };
 
   return (
-    <>
+    <SafeAreaView edges={['top']} style={{flex: 1, backgroundColor: COLOR.white}}>
       <Header
         name={
           route?.params?.subCat?.name ||
@@ -239,6 +252,10 @@ const CityList = ({navigation, route, ...props}) => {
       <FlatList
         data={cities}
         keyExtractor={item => item.id?.toString()}
+        initialNumToRender={5}
+        maxToRenderPerBatch={5}
+        windowSize={3}
+        removeClippedSubviews={true}
         renderItem={renderItem}
         onEndReached={loadMoreCities}
         onEndReachedThreshold={0.5}
@@ -275,7 +292,7 @@ const CityList = ({navigation, route, ...props}) => {
         visible={showOnlineMode}
         toggleOverlay={() => setShowOnlineMode(false)}
       />
-    </>
+    </SafeAreaView>
   );
 };
 

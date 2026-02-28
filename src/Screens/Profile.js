@@ -90,6 +90,8 @@ const Profile = ({navigation, ...props}) => {
   }, []);
 
   const getUserProfile = () => {
+    console.log("1");
+    
     comnPost('v2/user-profile', props.access_token)
       .then(res => {
         if (res && res.data.data)

@@ -12,9 +12,8 @@ const MapContainer = ({initialRegion, currentLatitude, currentLongitude}) => {
   return (
     <View style={styles.profileMapView}>
       <MapView
-        key={`${lat}_${lng}`}
         style={styles.map}
-        initialRegion={{
+        region={{
           latitude: lat,
           longitude: lng,
           latitudeDelta: initialRegion?.latitudeDelta || 0.01,

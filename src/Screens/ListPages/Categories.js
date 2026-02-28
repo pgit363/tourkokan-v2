@@ -11,7 +11,6 @@ import {
 } from '../../Services/Api/CommonServices';
 import {connect} from 'react-redux';
 import {setLoader} from '../../Reducers/CommonActions';
-import Loader from '../../Components/Customs/Loader';
 import styles from '../Styles';
 import Header from '../../Components/Common/Header';
 import {
@@ -30,6 +29,7 @@ import {useTranslation} from 'react-i18next';
 import Accordion from '../../Components/Customs/Accordian';
 import ComingSoon from '../../Components/Common/ComingSoon';
 import {SafeAreaView} from 'react-native-safe-area-context';
+import Loader from '../../Components/Customs/Loader';
 
 const Categories = ({route, navigation, ...props}) => {
   const {t} = useTranslation();
@@ -51,64 +51,82 @@ const Categories = ({route, navigation, ...props}) => {
   const [showOnlineMode, setShowOnlineMode] = useState(false);
 
   useEffect(() => {
-    props.setLoader(true);
+    let unsubscribe;
     const backHandler = goBackHandler(navigation);
     checkLogin(navigation);
-    setIsLoading(true);
 
-    const unsubscribe = NetInfo.addEventListener(state => {
-      setOffline(false);
-      let resp;
-      dataSync(
-        t('STORAGE.CATEGORIES_RESPONSE'),
-        getCategories(),
-        props.mode,
-      ).then(res => {
-        if (!props.mode) {
-          resp = JSON.parse(res);
+    const init = async () => {
+      props.setLoader(true);
+      const localData = await getFromStorage(t('STORAGE.CATEGORIES_RESPONSE'));
+      if (localData) {
+        const cats = JSON.parse(localData);
+        setCategories(cats);
+        if (cats && cats.length > 0) {
+          setSelectedCategory(cats[0].name);
+          setSelectedSubCategory(cats[0].sub_categories);
         }
-        if (resp) {
-          setCategories(resp);
-          setSelectedCategory(resp[0].name);
-          setSelectedSubCategory(resp[0].sub_categories);
-        } else if (resp) {
-          setOffline(true);
-        }
+        setIsLoading(false);
         props.setLoader(false);
+      } else {
+        setIsLoading(true);
+      }
+
+      unsubscribe = NetInfo.addEventListener(state => {
+        setOffline(!state.isConnected);
+        dataSync(
+          t('STORAGE.CATEGORIES_RESPONSE'),
+          () => getCategories(),
+          props.mode,
+        ).then((res) => {
+          if(res){
+             const cats = JSON.parse(res);
+             setCategories(cats);
+          }
+          setIsLoading(false);
+          props.setLoader(false);
+        });
       });
-    });
+    };
+
+    init();
 
     return () => {
       backHandler.remove();
-      unsubscribe();
+      if (unsubscribe) unsubscribe();
     };
   }, []);
 
   const onRefresh = () => {
     setRefreshing(true);
     if (props.mode) {
-      getCategories();
+      getCategories().then(res => {
+        if (res && res.length > 0) {
+          setCategories(res);
+          saveToStorage(t('STORAGE.CATEGORIES_RESPONSE'), JSON.stringify(res));
+        }
+        setRefreshing(false);
+      });
     } else {
       setShowOnlineMode(true);
       setRefreshing(false);
     }
   };
 
-  const getCategories = async () => {
-    setIsLoading(true);
-    let cat = await getFromStorage(t('STORAGE.CATEGORIES_RESPONSE'));
-    let cats = JSON.parse(cat);
-    setCategories(cats);
-    setSelectedCategory(cats[0].name);
-    setSelectedSubCategory(cats[0].sub_categories);
-    // setSelectedSubCategory(cats[0].sub_categories)
-    setIsLoading(false);
-    props.setLoader(false);
-    setRefreshing(false);
-
-    console.log(categories);
-    
-    return cats;
+  const getCategories = () => {
+    let data = {
+      parent_list: '1',
+      per_page: '20',
+    };
+    return comnPost('v2/listcategories', data, navigation)
+      .then(res => {
+        if (res && res.data && res.data.data) {
+            return res.data.data.data;
+        }
+        return [];
+      })
+      .catch(() => {
+        return [];
+      });
   };
 
   const handleCategoryPress = category => {
@@ -128,27 +146,30 @@ const Categories = ({route, navigation, ...props}) => {
 
   return (
     <SafeAreaView edges={['top']} style={{flex: 1, backgroundColor: COLOR.white}}>
-      <Header
-        name={t('SCREEN.CATEGORIES')}
-        startIcon={
-          <Ionicons
-            name="chevron-back-outline"
-            color={COLOR.black}
-            size={DIMENSIONS.userIconSize}
-            onPress={() => backPage(navigation)}
+          <Header
+            name={t('SCREEN.CATEGORIES')}
+            startIcon={
+              <Ionicons
+                name="chevron-back-outline"
+                color={COLOR.black}
+                size={DIMENSIONS.userIconSize}
+                onPress={() => backPage(navigation)}
+              />
+            }
           />
-        }
-      />
-      <ScrollView
-        style={{
-          flex: 1,
-          backgroundColor: COLOR.themeComicBlueULight,
-          marginTop: -20,
-        }}
-        refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-        }>
-        <Loader />
+      {isLoading && categories.length === 0 ? (
+        <View style={{flex: 1, backgroundColor: COLOR.white}}>
+          <Loader />
+        </View>
+      ) : (
+        <ScrollView
+          style={{
+            flex: 1,
+            backgroundColor: COLOR.themeComicBlueULight,
+          }}
+          refreshControl={
+            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+          }>
         <CheckNet isOff={offline} />
         {/* <View style={styles.horizontalCategoriesScroll}>
                 <ScrollView horizontal style={styles.categoriesButtonScroll}>
@@ -184,7 +205,7 @@ const Categories = ({route, navigation, ...props}) => {
                 </ScrollView>
             </View> */}
 
-        <View style={styles.subCatContainer}>
+        <View>
           {/* <View>
                     <GlobalText
                         text={t("HEADER.CLASSIFICATIONS")}
@@ -215,6 +236,7 @@ const Categories = ({route, navigation, ...props}) => {
           toggleOverlay={() => setShowOnlineMode(false)}
         />
       </ScrollView>
+      )}
     </SafeAreaView>
   );
 };
@@ -223,6 +245,7 @@ const mapStateToProps = state => {
   return {
     access_token: state.commonState.access_token,
     mode: state.commonState.mode,
+    isLoading: state.commonState.isLoading,
   };
 };
 

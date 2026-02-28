@@ -1,5 +1,5 @@
 import React, {useState, useRef, useEffect} from 'react';
-import {View, Image, FlatList, ScrollView} from 'react-native';
+import {View, FlatList, ScrollView, Image} from 'react-native';
 import {List} from 'react-native-paper';
 import styles from './Styles';
 import Ionicons from 'react-native-vector-icons/Ionicons';
@@ -8,7 +8,6 @@ import DIMENSIONS from '../../Services/Constants/DIMENSIONS';
 import SubCatCard from '../Cards/SubCatCard';
 import {navigateTo} from '../../Services/CommonMethods';
 import {useTranslation} from 'react-i18next';
-import {FTP_PATH} from '@env';
 
 const Accordion = ({data, navigation}) => {
   const {t} = useTranslation();
@@ -28,7 +27,7 @@ const Accordion = ({data, navigation}) => {
   useEffect(() => {
     data.forEach((item) => {
       if (item.icon && typeof item.icon === 'string' && item.icon !== '0') {
-        console.log('Icon:', FTP_PATH + item.icon); // Log only once per item
+        console.log('Icon:', item.icon); // Log only once per item
       }
     });
   }, [data]);
@@ -85,6 +84,7 @@ const Accordion = ({data, navigation}) => {
                 styles.catCardIcon,
                 expandedIndex === index && styles.selectedIcon,
               ]}
+              resizeMode="cover"
             />
           </View>
         )}

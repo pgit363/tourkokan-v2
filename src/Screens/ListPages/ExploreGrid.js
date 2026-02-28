@@ -35,7 +35,6 @@ import Search from '../../Components/Customs/Search';
 import { useTranslation } from 'react-i18next';
 import GlobalText from '../../Components/Customs/Text';
 import DIMENSIONS from '../../Services/Constants/DIMENSIONS';
-import ExploreGridSkeleton from './ExploreGridSkeleton';
 import ComingSoon from '../../Components/Common/ComingSoon';
 import Popup from '../../Components/Common/Popup';
 import { FTP_PATH } from '@env';
@@ -67,6 +66,7 @@ const ExploreGrid = ({ route, navigation, ...props }) => {
     const backHandler = goBackHandler(navigation);
     checkLogin(navigation);
     setLoading(true);
+    props.setLoader(true);
 
     const unsubscribe = NetInfo.addEventListener(state => {
       setOffline(!state.isConnected);
@@ -323,8 +323,9 @@ const ExploreGrid = ({ route, navigation, ...props }) => {
             />
           }
         />
+        <Loader />
         {loading && !gallery.length ? (
-          <ExploreGridSkeleton />
+          <View style={{flex: 1, backgroundColor: COLOR.white}} />
         ) : gallery.length ? (
           <ResponsiveGrid
             maxItemsPerColumn={3}
@@ -351,7 +352,7 @@ const ExploreGrid = ({ route, navigation, ...props }) => {
             {offline ? (
               <GlobalText style={{ fontWeight: 'bold' }} text={t('NO_INTERNET')} />
             ) : (
-              <ExploreGridSkeleton />
+              <View style={{flex: 1, backgroundColor: COLOR.white}} />
             )}
           </View>
         )}

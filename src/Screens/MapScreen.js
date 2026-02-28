@@ -1,19 +1,17 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 import React, {useEffect, useRef, useState} from 'react';
-import {ScrollView, View, RefreshControl} from 'react-native';
+import {View} from 'react-native';
 import MapView, {Marker} from 'react-native-maps';
 import styles from './Styles';
-import {comnPost, dataSync} from '../Services/Api/CommonServices';
+import {comnPost, dataSync, getFromStorage} from '../Services/Api/CommonServices';
 import {connect} from 'react-redux';
 import {setLoader} from '../Reducers/CommonActions';
-import Loader from '../Components/Customs/Loader';
 import {checkLogin, goBackHandler} from '../Services/CommonMethods';
 import NetInfo from '@react-native-community/netinfo';
 import {useTranslation} from 'react-i18next';
 import CheckNet from '../Components/Common/CheckNet';
-import DIMENSIONS from '../Services/Constants/DIMENSIONS';
 import GlobalText from '../Components/Customs/Text';
 import {SafeAreaView} from 'react-native-safe-area-context';
-import COLOR from '../Services/Constants/COLORS';
 
 const MapScreen = ({navigation, ...props}) => {
   const {t} = useTranslation();
@@ -21,32 +19,39 @@ const MapScreen = ({navigation, ...props}) => {
 
   const [cities, setCities] = useState([]);
   const [offline, setOffline] = useState(false);
-  const [refreshing, setRefreshing] = useState(false);
 
   useEffect(() => {
-    props.setLoader(true);
+    let unsubscribe;
     const backHandler = goBackHandler(navigation);
     checkLogin(navigation);
 
-    const unsubscribe = NetInfo.addEventListener(state => {
-      setOffline(false);
+    const init = async () => {
+      const localData = await getFromStorage(t('STORAGE.CITIES_RESPONSE'));
+      if (localData) {
+        setCities(JSON.parse(localData));
+      }
 
-      dataSync(t('STORAGE.CITIES_RESPONSE'), getCities(), props.mode).then(
-        resp => {
-          if (resp) {
-            let res = JSON.parse(resp);
-            setCities(res);
-          } else if (resp) {
-            setOffline(true);
-          }
-          props.setLoader(false);
-        },
-      );
-    });
+      unsubscribe = NetInfo.addEventListener(state => {
+        setOffline(false);
+
+        dataSync(t('STORAGE.CITIES_RESPONSE'), () => getCities(), props.mode).then(
+          resp => {
+            if (resp) {
+              let res = JSON.parse(resp);
+              setCities(res);
+            } else if (resp) {
+              setOffline(true);
+            }
+          },
+        );
+      });
+    };
+
+    init();
 
     return () => {
       backHandler.remove();
-      unsubscribe();
+      if (unsubscribe) unsubscribe();
     };
   }, []);
 
@@ -72,7 +77,7 @@ const MapScreen = ({navigation, ...props}) => {
               animated: true,
             });
           }
-        }, 1000);
+        }, 500);
       }
     }
   };
@@ -83,37 +88,30 @@ const MapScreen = ({navigation, ...props}) => {
 
   const getCities = () => {
     if (props.mode) {
-      props.setLoader(true);
       let data = {
         apitype: 'list',
         category: 'City',
       };
-      comnPost(`v2/sites`, data, navigation)
+      return comnPost('v2/sites', data, navigation)
         .then(async res => {
-          if (res && res.data.data) setCities(res.data.data.data);
-          props.setLoader(false);
-          setRefreshing(false);
+          if (res && res.data.data) {
+            setCities(res.data.data.data);
+            return res.data.data.data;
+          }
         })
         .catch(error => {
-          props.setLoader(false);
-          setRefreshing(false);
+          console.error('Error fetching cities:', error);
         });
     }
   };
 
   return (
-    <SafeAreaView edges={['top']} style={{flex: 1, backgroundColor: COLOR.white}}>
-      <Loader />
+    <SafeAreaView edges={['top']} style={styles.safeArea}>
       <CheckNet isOff={offline} />
       {offline ? (
-        <View
-          style={{
-            height: DIMENSIONS.screenHeight,
-            alignItems: 'center',
-            padding: 50,
-          }}>
+        <View style={styles.offlineContainer}>
           <GlobalText
-            style={{fontWeight: 'bold'}}
+            style={styles.offlineText}
             text={
               offline
                 ? t('NO_INTERNET_MAP')
@@ -145,7 +143,9 @@ const MapScreen = ({navigation, ...props}) => {
               {cities.map(marker => {
                 const lat = parseFloat(marker.latitude);
                 const lng = parseFloat(marker.longitude);
-                if (isNaN(lat) || isNaN(lng)) return null;
+                if (isNaN(lat) || isNaN(lng)) {
+                  return null;
+                }
                 return (
                   <Marker
                     key={marker.id}
