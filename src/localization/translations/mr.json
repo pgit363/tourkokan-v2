@@ -108,7 +108,10 @@
     "PROJECT_DETAILS": "ProjectDetails",
     "STOP_DETAILS": "StopDetails",
     "CITY_DETAILS": "CityDetails",
-    "GALLERY": "Gallery"
+    "GALLERY": "Gallery",
+    "SETTINGS": "Settings",
+    "PRIVACY_POLICY": "PrivacyPolicy",
+    "TERMS": "Terms"
   },
   "STORAGE": {
     "ACCESS_TOKEN": "access_token",
@@ -343,5 +346,159 @@
   "ACCEPT_TNC": "मी अटी आणि शर्ती स्वीकारतो",
   "APP_USAGE": "तुम्हाला तुमचा ॲप कसा वापरायचा आहे?",
   "NOTE": "कृपया लक्षात ठेवा: ऑफलाइन मोडमध्ये देखील, लॉगिन प्रक्रिया पूर्ण करण्यासाठी आणि आवश्यक डेटा लोड करण्यासाठी सुरुवातीला नेटवर्क कनेक्शन आवश्यक आहे.",
-  "REFER_EARN": "मित्रांना कधीही प्रवासाची तयारी न करता सोडू नका—त्यांना TourKokan वापरायला सांगा आणि प्रत्येक नवीन प्रवासासाठी बक्षिसे मिळवा!"
+  "REFER_EARN": "मित्रांना कधीही प्रवासाची तयारी न करता सोडू नका—त्यांना TourKokan वापरायला सांगा आणि प्रत्येक नवीन प्रवासासाठी बक्षिसे मिळवा!",
+
+  "SETTINGS": {
+    "TITLE": "सेटिंग्ज",
+    "PREFERENCES": "प्राधान्ये",
+    "APP_SECTION": "ॲप",
+    "LEGAL": "कायदेशीर",
+    "LANGUAGE": "भाषा",
+    "LANGUAGE_DESC": "ॲप प्रदर्शन भाषा",
+    "ONLINE_MODE": "ऑनलाइन मोड",
+    "FETCHING_LIVE": "लाइव्ह डेटा मिळवत आहे",
+    "USING_CACHED": "कॅश केलेला डेटा वापरत आहे",
+    "NOTIFICATIONS": "सूचना",
+    "NOTIFICATIONS_DESC": "पुश नोटिफिकेशन्स",
+    "COMING_SOON_BADGE": "लवकरच",
+    "CHECK_UPDATES": "अपडेट तपासा",
+    "PRIVACY_POLICY": "गोपनीयता धोरण",
+    "TERMS": "सेवा अटी",
+    "VERSION_PREFIX": "आवृत्ती",
+    "COMING_SOON_TITLE": "लवकरच येत आहे!",
+    "COMING_SOON_MESSAGE": "हे वैशिष्ट्य विकासाधीन आहे आणि पुढील अपडेटमध्ये उपलब्ध होईल.",
+    "GOT_IT": "समजले"
+  },
+
+  "PRIVACY_POLICY_SCREEN": {
+    "TITLE": "गोपनीयता धोरण"
+  },
+
+  "TERMS_SCREEN": {
+    "TITLE": "सेवा अटी"
+  },
+
+  "EMERGENCY_SCREEN": {
+    "TITLE": "🚨 आपत्कालीन",
+    "SUBTITLE": "आपत्कालीन सेवांसाठी त्वरित प्रवेश",
+    "AMBULANCE": "रुग्णवाहिका",
+    "POLICE": "पोलीस",
+    "FIRE": "अग्निशमन",
+    "ALERT_BOLD": "आपत्कालीन?",
+    "ALERT_TEXT": " त्वरित मदतीसाठी वरील बटणे वापरा. गैर-तातडीच्या मदतीसाठी खालील संपर्क पहा.",
+    "NO_CONTACTS": "कोणतेही संपर्क उपलब्ध नाहीत",
+    "MORE_NUMBERS": "अधिक आपत्कालीन क्रमांक",
+    "NATIONAL_HELPLINES": "राष्ट्रीय हेल्पलाइन",
+    "WOMEN_HELPLINE": "महिला हेल्पलाइन",
+    "CHILD_HELPLINE": "बाल हेल्पलाइन",
+    "SENIOR_CITIZENS": "ज्येष्ठ नागरिक",
+    "TOURIST_HELPLINE": "पर्यटक हेल्पलाइन",
+    "DISASTER_MGMT": "आपत्ती व्यवस्थापन"
+  },
+
+  "CATEGORIES_SCREEN": {
+    "TITLE": "श्रेणी",
+    "NO_CATEGORIES": "कोणत्याही श्रेणी आढळल्या नाहीत",
+    "TRY_AGAIN": "कृपया नंतर पुन्हा प्रयत्न करा.",
+    "OFFLINE_BANNER": "इंटरनेट कनेक्शन नाही. ऑफलाइन डेटा दाखवत आहे.",
+    "PLACES": "ठिकाणे"
+  },
+
+  "CONTACT_US_SCREEN": {
+    "TITLE": "💬 आमच्याशी संपर्क करा",
+    "SEND_MESSAGE": "आम्हाला संदेश पाठवा",
+    "EMAIL": "ईमेल",
+    "PHONE": "फोन",
+    "ADDRESS": "पत्ता",
+    "MESSAGE_LABEL": "संदेश *",
+    "PLACEHOLDER": "आम्ही तुम्हाला कसे मदत करू शकतो?",
+    "SUBMIT": "सबमिट करा"
+  },
+
+  "QUERIES_SCREEN": {
+    "TITLE": "💬 संपर्क प्रश्न",
+    "SUBTITLE": "सर्व वापरकर्त्यांचे प्रश्न व्यवस्थापित करा",
+    "ADD_QUERY": "प्रश्न जोडा",
+    "TOTAL": "एकूण",
+    "UNREAD_LABEL": "न वाचलेले",
+    "REPLIED_LABEL": "उत्तर दिलेले",
+    "TAB_ALL": "सर्व",
+    "TAB_UNREAD": "न वाचलेले",
+    "TAB_READ": "वाचलेले",
+    "TAB_REPLIED": "उत्तर दिलेले",
+    "NO_QUERIES": "कोणतेही प्रश्न आढळले नाहीत",
+    "OFFLINE_CACHED": "ऑफलाइन मोड — कॅश केलेला डेटा दाखवत आहे",
+    "NO_INTERNET_CACHED": "इंटरनेट नाही — कॅश केलेला डेटा दाखवत आहे",
+    "CONNECT_TO_LOAD": "तुमचे प्रश्न लोड करण्यासाठी इंटरनेटशी कनेक्ट करा.",
+    "NO_QUERIES_YET": "तुमच्याकडे अद्याप कोणतेही प्रश्न नाहीत. सुरुवात करण्यासाठी \"प्रश्न जोडा\" टॅप करा.",
+    "ADMIN_REPLY": "प्रशासक उत्तर",
+    "SUPPORT": "टूरकोकण सपोर्ट",
+    "LOADING_MORE": "अधिक लोड करत आहे..."
+  },
+
+  "DRAWER": {
+    "HOME": "मुखपृष्ठ",
+    "EMERGENCY": "आपत्कालीन",
+    "CONTACT_US": "आमच्याशी संपर्क करा",
+    "SETTINGS": "सेटिंग्ज",
+    "ABOUT": "आमच्याबद्दल",
+    "TAGLINE": "सूर्य, वाळू आणि शांती",
+    "FOOTER": "Probyte Solution LLP द्वारे डिझाइन आणि विकसित."
+  },
+
+  "EDIT_PROFILE": {
+    "TITLE": "प्रोफाईल संपादित करा",
+    "CHANGE_PHOTO": "फोटो बदला",
+    "ACCOUNT_INFO": "खाते माहिती",
+    "FULL_NAME": "पूर्ण नाव",
+    "EMAIL": "ईमेल पत्ता",
+    "PERSONAL_DETAILS": "वैयक्तिक माहिती",
+    "MOBILE": "मोबाईल नंबर",
+    "MOBILE_PLACEHOLDER": "+91 XXXXX XXXXX",
+    "DOB": "जन्मतारीख",
+    "OPTIONAL": "(वैकल्पिक)",
+    "GENDER": "लिंग",
+    "GENDER_PLACEHOLDER": "लिंग निवडा",
+    "GENDER_MALE": "पुरुष",
+    "GENDER_FEMALE": "महिला",
+    "GENDER_OTHER": "इतर",
+    "GENDER_PREFER_NOT": "सांगणे पसंत नाही",
+    "LOCATION": "तुमचे स्थान",
+    "NO_LOCATION": "स्थान सेट करण्यासाठी 'ऑटो डिटेक्ट' टॅप करा",
+    "AUTO_DETECT": "ऑटो डिटेक्ट",
+    "DETECTING": "शोधत आहे...",
+    "SAVE_CHANGES": "बदल जतन करा",
+    "OFFLINE_NOTICE": "तुम्ही ऑफलाइन आहात. बदल जतन करण्यासाठी ऑनलाइन मोडवर जा."
+  },
+
+  "PROFILE_SCREEN": {
+    "MEMBER_SINCE": "सदस्य झाल्यापासून",
+    "YOUR_LOCATION": "तुमचे स्थान",
+    "NO_LOCATION_SET": "अद्याप कोणतेही स्थान सेट केले नाही",
+    "COMPLETE_PROFILE": "प्रोफाइल पूर्ण करा",
+    "COMPLETION_TEXT": "वैयक्तिक शिफारशींसाठी तुमची जन्मतारीख आणि लिंग जोडण्यासाठी खाली \"प्रोफाइल संपादित करा\" टॅप करा!",
+    "PERSONAL_INFO": "वैयक्तिक माहिती",
+    "EDIT": "संपादित करा",
+    "GENDER": "लिंग",
+    "DOB": "जन्मतारीख",
+    "NOT_SET": "सेट केले नाही",
+    "MY_ACTIVITY": "माझी क्रियाकलाप",
+    "FAVORITES": "आवडते",
+    "REVIEWS": "पुनरावलोकने",
+    "BOOKINGS": "बुकिंग",
+    "VISITED": "भेट दिलेले",
+    "PAYMENTS_TITLE": "पेमेंट्स आणि बक्षिसे व्यवस्थापित करा",
+    "WALLET_LABEL": "वॉलेट पॉइंट्स",
+    "WALLET_DESC": "शेअर करून कमवा • बुकिंगसाठी रिडीम करा",
+    "REFER_TITLE": "मित्रांना आमंत्रित करा आणि कमवा",
+    "REFER_SUBTITLE": "तुमचा कोड शेअर करा आणि बक्षिसे मिळवा",
+    "REFERRAL_CODE": "तुमचा रेफरल कोड",
+    "COPY": "कॉपी करा",
+    "SHARE": "शेअर करा",
+    "EDIT_PROFILE": "प्रोफाइल संपादित करा",
+    "PROFILE_HELP": "तुमचे लिंग आणि जन्मतारीख जोडण्यासाठी प्रोफाइल संपादित करा. हे आम्हाला वैयक्तिकृत प्रवास शिफारशी देण्यास मदत करते!",
+    "SIGN_OUT": "साइन आउट करा",
+    "LOGOUT_CONFIRM_TITLE": "साइन आउट करा",
+    "LOGOUT_CONFIRM": "तुम्हाला खरोखर साइन आउट करायचे आहे का?"
+  }
 }

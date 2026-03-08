@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TourKokan — Contact Us</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400;1,600&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,300&display=swap" rel="stylesheet">
+<style>
+:root{--ocean-deep:#0D3D4A;--sand-mid:#C4972A;--earth-mid:#6B4226;--cream:#FAF7F0;--text-dark:#1C1917;--text-mid:#44403C;--white:#FFF;--radius-md:18px}
+*{margin:0;padding:0;box-sizing:border-box}
+html{font-family:'DM Sans',sans-serif;background:#0D1F26}
+body{background:radial-gradient(ellipse at 20% 20%,#0D3D4A88 0%,transparent 60%),radial-gradient(ellipse at 80% 80%,#1A332044 0%,transparent 60%),#0C1A1F;min-height:100vh;padding:40px 20px;display:flex;justify-content:center}
+.screen-wrapper{display:flex;flex-direction:column;align-items:center;gap:16px}
+.screen-label{font-size:11px;font-weight:500;letter-spacing:2px;text-transform:uppercase;color:#B8E4EA;opacity:.7}
+.phone{width:375px;min-height:812px;background:var(--cream);border-radius:44px;overflow:hidden;box-shadow:0 0 0 1px #ffffff18,0 40px 80px #00000088;position:relative}
+.phone-notch{position:absolute;top:0;left:50%;transform:translateX(-50%);width:126px;height:34px;background:#0D1F26;border-radius:0 0 20px 20px;z-index:100}
+.contact-screen{background:var(--cream);min-height:812px;padding-bottom:40px;overflow-y:auto}
+.header{background:linear-gradient(135deg,var(--ocean-deep),#1A3320);padding:50px 20px 32px;position:relative}
+.header::after{content:'';position:absolute;bottom:-1px;left:0;right:0;height:28px;background:var(--cream);clip-path:ellipse(60% 100% at 50% 100%)}
+.header-back{width:36px;height:36px;border-radius:50%;background:#ffffff18;display:flex;align-items:center;justify-content:center;font-size:18px;color:var(--white);margin-bottom:16px;cursor:pointer}
+.header-title{font-family:'Playfair Display',serif;font-size:28px;font-weight:700;color:var(--white)}
+.content{padding:20px}
+.contact-info{background:var(--white);border-radius:var(--radius-md);padding:20px;margin-bottom:20px}
+.info-item{display:flex;gap:14px;padding:12px 0;border-bottom:1px solid #00000008}
+.info-item:last-child{border:none}
+.info-icon{font-size:24px}
+.info-text{flex:1}
+.info-label{font-size:12px;color:#78716C;margin-bottom:4px}
+.info-value{font-size:15px;font-weight:600;color:var(--text-dark)}
+.form-section{background:var(--white);border-radius:var(--radius-md);padding:20px}
+.form-title{font-size:16px;font-weight:600;margin-bottom:16px}
+.form-group{margin-bottom:16px}
+.form-label{font-size:13px;font-weight:600;color:var(--text-mid);margin-bottom:8px;display:block}
+.form-input{width:100%;padding:12px 16px;border:1.5px solid #00000012;border-radius:12px;font-size:15px;font-family:'DM Sans',sans-serif}
+.form-textarea{width:100%;padding:12px 16px;border:1.5px solid #00000012;border-radius:12px;font-size:15px;font-family:'DM Sans',sans-serif;min-height:100px;resize:vertical}
+.submit-btn{width:100%;padding:16px;background:linear-gradient(135deg,var(--sand-mid),var(--earth-mid));color:var(--white);border:none;border-radius:50px;font-size:16px;font-weight:600;cursor:pointer;margin-top:8px}
+</style>
+</head>
+<body>
+<div class="screen-wrapper">
+<div class="screen-label">SCREEN 28 — CONTACT US</div>
+<div class="phone">
+<div class="phone-notch"></div>
+<div class="contact-screen">
+<div class="header">
+<div class="header-back">←</div>
+<h1 class="header-title">💬 Contact Us</h1>
+</div>
+<div class="content">
+<div class="contact-info">
+<div class="info-item">
+<div class="info-icon">📧</div>
+<div class="info-text">
+<div class="info-label">Email</div>
+<div class="info-value">kamblepranav460@gmail.com</div>
+</div>
+</div>
+<div class="info-item">
+<div class="info-icon">📞</div>
+<div class="info-text">
+<div class="info-label">Phone</div>
+<div class="info-value">+91 8888095747</div>
+</div>
+</div>
+<div class="info-item">
+<div class="info-icon">📍</div>
+<div class="info-text">
+<div class="info-label">Address</div>
+<div class="info-value">Kalyan, Maharashtra, India</div>
+</div>
+</div>
+</div>
+<div class="form-section">
+<div class="form-title">Send us a message</div>
+<div class="form-group">
+<label class="form-label">Name</label>
+<input type="text" class="form-input" placeholder="Your name">
+</div>
+<div class="form-group">
+<label class="form-label">Email</label>
+<input type="email" class="form-input" placeholder="your@email.com">
+</div>
+<div class="form-group">
+<label class="form-label">Message</label>
+<textarea class="form-textarea" placeholder="How can we help you?"></textarea>
+</div>
+<button class="submit-btn">Send Message</button>
+</div>
+</div>
+</div>
+</div>
+</div>
+</body>
+</html>

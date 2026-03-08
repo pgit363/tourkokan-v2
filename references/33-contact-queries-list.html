@@ -1,0 +1,973 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TourKokan — Contact Queries</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400;1,600&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,300&display=swap" rel="stylesheet">
+<style>
+:root {
+  --ocean-deep: #0D3D4A;
+  --ocean-mid: #1B6B7B;
+  --ocean-light: #4AABB8;
+  --ocean-foam: #B8E4EA;
+  --sand-dark: #8B6914;
+  --sand-mid: #C4972A;
+  --earth-mid: #6B4226;
+  --forest-deep: #1A3320;
+  --forest-mid: #2E5C3A;
+  --forest-light: #4A7C59;
+  --forest-pale: #D4EDD9;
+  --cream: #FAF7F0;
+  --text-dark: #1C1917;
+  --text-mid: #44403C;
+  --text-light: #78716C;
+  --white: #FFF;
+  --green: #059669;
+  --amber: #F59E0B;
+  --red: #DC2626;
+  --radius-sm: 12px;
+  --radius-md: 18px;
+  --radius-lg: 24px;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  font-family: 'DM Sans', sans-serif;
+  background: #0D1F26;
+}
+
+body {
+  background: radial-gradient(ellipse at 20% 20%, #0D3D4A88 0%, transparent 60%),
+              radial-gradient(ellipse at 80% 80%, #1A332044 0%, transparent 60%),
+              #0C1A1F;
+  min-height: 100vh;
+  padding: 40px 20px;
+  display: flex;
+  justify-content: center;
+}
+
+.screen-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+}
+
+.screen-label {
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: #B8E4EA;
+  opacity: 0.7;
+}
+
+.phone {
+  width: 375px;
+  min-height: 812px;
+  background: var(--cream);
+  border-radius: 44px;
+  overflow: hidden;
+  box-shadow: 0 0 0 1px #ffffff18,
+              0 40px 80px #00000088;
+  position: relative;
+}
+
+.phone-notch {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 126px;
+  height: 34px;
+  background: #0D1F26;
+  border-radius: 0 0 20px 20px;
+  z-index: 100;
+}
+
+.queries-screen {
+  background: var(--cream);
+  min-height: 812px;
+  overflow-y: auto;
+  padding-bottom: 40px;
+}
+
+/* Header */
+.header {
+  background: linear-gradient(135deg, var(--ocean-deep), var(--forest-deep));
+  padding: 50px 20px 32px;
+  position: relative;
+  overflow: hidden;
+}
+
+.header::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  right: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(circle, #ffffff11 0%, transparent 70%);
+  pointer-events: none;
+}
+
+.header::after {
+  content: '';
+  position: absolute;
+  bottom: -1px;
+  left: 0;
+  right: 0;
+  height: 28px;
+  background: var(--cream);
+  clip-path: ellipse(60% 100% at 50% 100%);
+}
+
+.header-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+  position: relative;
+  z-index: 2;
+}
+
+.header-back {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: #ffffff18;
+  backdrop-filter: blur(10px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  color: var(--white);
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.header-back:hover {
+  background: #ffffff28;
+  transform: translateX(-2px);
+}
+
+.add-query-btn {
+  background: linear-gradient(135deg, var(--sand-mid), var(--earth-mid));
+  color: var(--white);
+  padding: 8px 16px;
+  border-radius: 50px;
+  font-size: 13px;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 4px 12px #C4972A44;
+  transition: all 0.3s;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.add-query-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px #C4972A55;
+}
+
+.header-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--white);
+  margin-bottom: 6px;
+  position: relative;
+  z-index: 2;
+}
+
+.header-subtitle {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.9);
+  position: relative;
+  z-index: 2;
+}
+
+/* Filter Tabs */
+.filter-tabs {
+  padding: 16px 20px;
+  background: #ffffff60;
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid #00000008;
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.filter-tabs::-webkit-scrollbar {
+  display: none;
+}
+
+.filter-tab {
+  padding: 8px 16px;
+  border-radius: 50px;
+  background: var(--white);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-mid);
+  border: 1.5px solid #00000008;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.3s;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.filter-tab:hover {
+  border-color: var(--ocean-mid);
+}
+
+.filter-tab.active {
+  background: linear-gradient(135deg, var(--ocean-mid), var(--forest-mid));
+  color: var(--white);
+  border-color: transparent;
+  box-shadow: 0 4px 12px #1B6B7B33;
+}
+
+.filter-badge {
+  background: #ffffff33;
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+/* Content */
+.content {
+  padding: 20px;
+}
+
+.queries-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* Query Card */
+.query-card {
+  background: var(--white);
+  border-radius: var(--radius-md);
+  padding: 16px;
+  box-shadow: 0 2px 8px #0000000a;
+  transition: all 0.3s;
+  position: relative;
+  overflow: hidden;
+}
+
+.query-card::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 4px;
+  background: linear-gradient(180deg, var(--ocean-mid), var(--forest-mid));
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.query-card:hover {
+  box-shadow: 0 6px 16px #00000014;
+}
+
+.query-card:hover::before {
+  opacity: 1;
+}
+
+.query-card.resolved::before {
+  background: var(--green);
+  opacity: 0.5;
+}
+
+.query-card.read::before {
+  background: #4F46E5;
+  opacity: 0.5;
+}
+
+.query-card.unread::before {
+  background: var(--amber);
+  opacity: 0.5;
+}
+
+.query-card.expanded {
+  box-shadow: 0 8px 24px #00000020;
+}
+
+.query-card.expanded::before {
+  opacity: 1;
+}
+
+.query-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 10px;
+  gap: 12px;
+}
+
+.query-subject {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-dark);
+  line-height: 1.4;
+  flex: 1;
+}
+
+.query-status {
+  padding: 4px 10px;
+  border-radius: 50px;
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.query-status.resolved {
+  background: #D1FAE5;
+  color: var(--green);
+}
+
+.query-status.read {
+  background: #E0E7FF;
+  color: #4F46E5;
+}
+
+.query-status.unread {
+  background: #FEF3C7;
+  color: #D97706;
+}
+
+.query-message {
+  font-size: 13px;
+  color: var(--text-mid);
+  line-height: 1.5;
+  margin-bottom: 12px;
+}
+
+.query-message.collapsed {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.query-message.expanded {
+  display: block;
+}
+
+/* Admin Reply Section */
+.admin-reply {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 2px dashed #00000012;
+  display: none;
+}
+
+.admin-reply.show {
+  display: block;
+  animation: slideDown 0.3s ease-out;
+}
+
+.reply-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ocean-mid);
+}
+
+.reply-icon {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--ocean-foam), var(--forest-pale));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+}
+
+.reply-content {
+  background: linear-gradient(135deg, #F0FDF4, #ECFDF5);
+  border-left: 3px solid var(--ocean-mid);
+  padding: 12px;
+  border-radius: 8px;
+  font-size: 13px;
+  color: var(--text-dark);
+  line-height: 1.6;
+}
+
+.reply-meta {
+  font-size: 11px;
+  color: var(--text-light);
+  margin-top: 8px;
+  display: flex;
+  gap: 8px;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.query-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 12px;
+  border-top: 1px solid #00000008;
+}
+
+.query-meta {
+  display: flex;
+  gap: 12px;
+  font-size: 12px;
+  color: var(--text-light);
+}
+
+.query-meta-item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.query-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.query-action {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: #00000005;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.query-action:hover {
+  background: linear-gradient(135deg, var(--ocean-foam), var(--forest-pale));
+  transform: scale(1.1);
+}
+
+.query-action.active {
+  background: linear-gradient(135deg, var(--ocean-mid), var(--forest-mid));
+  color: var(--white);
+}
+
+/* Empty State */
+.empty-state {
+  text-align: center;
+  padding: 60px 20px;
+}
+
+.empty-icon {
+  font-size: 80px;
+  margin-bottom: 20px;
+  opacity: 0.5;
+}
+
+.empty-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text-dark);
+  margin-bottom: 8px;
+}
+
+.empty-text {
+  font-size: 14px;
+  color: var(--text-light);
+  line-height: 1.6;
+}
+
+/* Stats Bar */
+.stats-bar {
+  background: linear-gradient(135deg, #ffffff95, #ffffff80);
+  backdrop-filter: blur(10px);
+  border-radius: var(--radius-md);
+  padding: 16px;
+  margin-bottom: 20px;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
+
+.stat-item {
+  text-align: center;
+}
+
+.stat-value {
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--ocean-mid);
+  margin-bottom: 4px;
+}
+
+.stat-label {
+  font-size: 11px;
+  color: var(--text-light);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Loading Skeleton */
+.skeleton-card {
+  background: var(--white);
+  border-radius: var(--radius-md);
+  padding: 16px;
+  margin-bottom: 12px;
+}
+
+.skeleton-line {
+  background: linear-gradient(90deg, #F3F4F6 25%, #E5E7EB 50%, #F3F4F6 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+  border-radius: 4px;
+}
+
+.skeleton-title {
+  height: 16px;
+  width: 70%;
+  margin-bottom: 10px;
+}
+
+.skeleton-text {
+  height: 12px;
+  width: 100%;
+  margin-bottom: 8px;
+}
+
+.skeleton-footer {
+  height: 12px;
+  width: 40%;
+  margin-top: 12px;
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+/* Responsive */
+@media (max-width: 360px) {
+  .phone {
+    width: 100%;
+    border-radius: 0;
+  }
+  
+  .header-title {
+    font-size: 24px;
+  }
+  
+  .stats-bar {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    padding: 12px;
+  }
+  
+  .stat-value {
+    font-size: 20px;
+  }
+}
+</style>
+</head>
+<body>
+<div class="screen-wrapper">
+  <div class="screen-label">SCREEN 33 — CONTACT QUERIES LIST</div>
+  <div class="phone">
+    <div class="phone-notch"></div>
+    <div class="queries-screen">
+      
+      <!-- Header -->
+      <div class="header">
+        <div class="header-top">
+          <div class="header-back">←</div>
+          <button class="add-query-btn">
+            <span>➕</span>
+            <span>Add Query</span>
+          </button>
+        </div>
+        <h1 class="header-title">💬 Contact Queries</h1>
+        <p class="header-subtitle">Manage all user queries</p>
+      </div>
+
+      <!-- Filter Tabs -->
+      <div class="filter-tabs">
+        <button class="filter-tab active">
+          <span>📋</span>
+          <span>All</span>
+          <span class="filter-badge">24</span>
+        </button>
+        <button class="filter-tab">
+          <span>📭</span>
+          <span>Unread</span>
+          <span class="filter-badge">8</span>
+        </button>
+        <button class="filter-tab">
+          <span>📬</span>
+          <span>Read</span>
+          <span class="filter-badge">12</span>
+        </button>
+        <button class="filter-tab">
+          <span>✅</span>
+          <span>Resolved</span>
+          <span class="filter-badge">4</span>
+        </button>
+      </div>
+
+      <!-- Stats Bar -->
+      <div class="content">
+        <div class="stats-bar">
+          <div class="stat-item">
+            <div class="stat-value">24</div>
+            <div class="stat-label">Total</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-value">8</div>
+            <div class="stat-label">Unread</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-value">4</div>
+            <div class="stat-label">Resolved</div>
+          </div>
+        </div>
+
+        <!-- Queries List -->
+        <div class="queries-list">
+          
+          <!-- Query Card 1 -->
+          <div class="query-card resolved">
+            <div class="query-header">
+              <div class="query-subject">How to book water sports activities at Tarkarli Beach?</div>
+              <span class="query-status resolved">✓ Resolved</span>
+            </div>
+            <div class="query-message collapsed">
+              I want to book scuba diving and parasailing for 4 people. What's the process and pricing? Are there any packages available for groups? Also, do you provide equipment and training for beginners? I would prefer morning slots if available.
+            </div>
+            
+            <!-- Admin Reply -->
+            <div class="admin-reply">
+              <div class="reply-label">
+                <span class="reply-icon">💁</span>
+                <span>Admin Reply</span>
+              </div>
+              <div class="reply-content">
+                Thank you for your query! You can book water sports directly through our partner operators at Tarkarli Beach. Scuba diving costs ₹1,500 per person and parasailing ₹800 per person. For groups of 4+, we offer a 10% discount. All equipment and basic training is included. Morning slots (8-11 AM) are available. You can book through the app or call +91-9876543210.
+              </div>
+              <div class="reply-meta">
+                <span>📅 Replied on Mar 5, 2026</span>
+                <span>👤 TourKokan Support</span>
+              </div>
+            </div>
+            
+            <div class="query-footer">
+              <div class="query-meta">
+                <span class="query-meta-item">📅 Mar 5, 2026</span>
+              </div>
+              <div class="query-actions">
+                <div class="query-action view-btn" title="View full query">👁</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Query Card 2 -->
+          <div class="query-card read">
+            <div class="query-header">
+              <div class="query-subject">MSRTC bus timings from Mumbai to Malvan?</div>
+              <span class="query-status read">📬 Read</span>
+            </div>
+            <div class="query-message collapsed">
+              Need accurate bus timings and fare information for traveling from Mumbai to Malvan this weekend. Also, is online booking available? What are the pick-up points in Mumbai and total journey time? Are there any AC sleeper buses available on this route?
+            </div>
+            
+            <!-- Admin Reply -->
+            <div class="admin-reply">
+              <div class="reply-label">
+                <span class="reply-icon">💁</span>
+                <span>Admin Reply</span>
+              </div>
+              <div class="reply-content">
+                We're checking the latest MSRTC timetable for you. The route has 3 daily buses with fares ranging from ₹450-650. We'll update you within 24 hours with complete details including pick-up points and online booking links.
+              </div>
+              <div class="reply-meta">
+                <span>📅 Replied on Mar 6, 2026</span>
+                <span>👤 TourKokan Support</span>
+              </div>
+            </div>
+            
+            <div class="query-footer">
+              <div class="query-meta">
+                <span class="query-meta-item">📅 Mar 6, 2026</span>
+              </div>
+              <div class="query-actions">
+                <div class="query-action view-btn" title="View full query">👁</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Query Card 3 -->
+          <div class="query-card unread">
+            <div class="query-header">
+              <div class="query-subject">Best time to visit Sindhudurg Fort?</div>
+              <span class="query-status unread">📭 Unread</span>
+            </div>
+            <div class="query-message collapsed">
+              Planning a family trip to Sindhudurg Fort. What's the best time to visit? Are there guided tours available? How much time needed? Also, is it safe for kids and elderly? What about boat timings from the coast?
+            </div>
+            
+            <!-- No Admin Reply Yet -->
+            
+            <div class="query-footer">
+              <div class="query-meta">
+                <span class="query-meta-item">📅 Today</span>
+              </div>
+              <div class="query-actions">
+                <div class="query-action view-btn" title="View full query">👁</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Query Card 4 -->
+          <div class="query-card resolved">
+            <div class="query-header">
+              <div class="query-subject">Hotel recommendations near Devgad Beach</div>
+              <span class="query-status resolved">✓ Resolved</span>
+            </div>
+            <div class="query-message collapsed">
+              Looking for budget-friendly hotels or homestays near Devgad Beach. Need recommendations with sea view if possible. Budget is around ₹2000-3000 per night for 2 people. Also prefer places with in-house restaurant.
+            </div>
+            
+            <!-- Admin Reply -->
+            <div class="admin-reply">
+              <div class="reply-label">
+                <span class="reply-icon">💁</span>
+                <span>Admin Reply</span>
+              </div>
+              <div class="reply-content">
+                For your budget, we recommend: 1) Sea View Homestay (₹2,200/night) - Beautiful sea view, home-cooked meals. 2) Devgad Beach Resort (₹2,800/night) - Restaurant, AC rooms. 3) Coconut Grove Cottage (₹1,900/night) - Budget-friendly, basic amenities. All have great reviews. You can book through our app.
+              </div>
+              <div class="reply-meta">
+                <span>📅 Replied on Mar 4, 2026</span>
+                <span>👤 TourKokan Support</span>
+              </div>
+            </div>
+            
+            <div class="query-footer">
+              <div class="query-meta">
+                <span class="query-meta-item">📅 Mar 4, 2026</span>
+              </div>
+              <div class="query-actions">
+                <div class="query-action view-btn" title="View full query">👁</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Query Card 5 -->
+          <div class="query-card read">
+            <div class="query-header">
+              <div class="query-subject">App not working in offline mode</div>
+              <span class="query-status read">📬 Read</span>
+            </div>
+            <div class="query-message collapsed">
+              Downloaded offline data but app crashes when trying to view places without internet. Please fix this issue urgently. I'm using Android 12, OnePlus 9. This happens every time I try to open any place details offline.
+            </div>
+            
+            <!-- Admin Reply -->
+            <div class="admin-reply">
+              <div class="reply-label">
+                <span class="reply-icon">💁</span>
+                <span>Admin Reply</span>
+              </div>
+              <div class="reply-content">
+                Thank you for reporting this! Our tech team is investigating the offline mode crash issue on Android 12. As a temporary workaround, please clear app cache and re-download offline data. We'll release a fix in the next update (v2.0.4) within 48 hours. Apologies for the inconvenience!
+              </div>
+              <div class="reply-meta">
+                <span>📅 Replied on Mar 6, 2026</span>
+                <span>👤 TourKokan Support</span>
+              </div>
+            </div>
+            
+            <div class="query-footer">
+              <div class="query-meta">
+                <span class="query-meta-item">📅 Mar 6, 2026</span>
+              </div>
+              <div class="query-actions">
+                <div class="query-action view-btn" title="View full query">👁</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Query Card 6 -->
+          <div class="query-card unread">
+            <div class="query-header">
+              <div class="query-subject">Food recommendations in Malvan</div>
+              <span class="query-status unread">📭 Unread</span>
+            </div>
+            <div class="query-message collapsed">
+              First time visiting Malvan. Which are the must-try local dishes and best restaurants? Looking for authentic Malvani cuisine. Also, any specific places for seafood? I'm vegetarian, so also need veg options. What about street food safety?
+            </div>
+            
+            <!-- No Admin Reply Yet -->
+            
+            <div class="query-footer">
+              <div class="query-meta">
+                <span class="query-meta-item">📅 Today</span>
+              </div>
+              <div class="query-actions">
+                <div class="query-action view-btn" title="View full query">👁</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Query Card 7 -->
+          <div class="query-card read">
+            <div class="query-header">
+              <div class="query-subject">Partnership inquiry - Beach resort listing</div>
+              <span class="query-status read">📬 Read</span>
+            </div>
+            <div class="query-message collapsed">
+              We own a beach resort in Vengurla with 15 rooms. Interested in listing our property on TourKokan. What's the process and pricing for business listings? Do you charge commission on bookings or fixed monthly fee? Also, can we manage our own availability calendar?
+            </div>
+            
+            <!-- No Admin Reply Yet -->
+            
+            <div class="query-footer">
+              <div class="query-meta">
+                <span class="query-meta-item">📅 Mar 5, 2026</span>
+              </div>
+              <div class="query-actions">
+                <div class="query-action view-btn" title="View full query">👁</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Query Card 8 -->
+          <div class="query-card resolved">
+            <div class="query-header">
+              <div class="query-subject">Monsoon trek recommendations</div>
+              <span class="query-status resolved">✓ Resolved</span>
+            </div>
+            <div class="query-message collapsed">
+              Which forts and waterfalls are best to visit during monsoon in Sindhudurga? Need difficulty level and safety information for each location. We're a group of 6 people with basic trekking experience. Looking for weekend trips from Pune.
+            </div>
+            
+            <!-- Admin Reply -->
+            <div class="admin-reply">
+              <div class="reply-label">
+                <span class="reply-icon">💁</span>
+                <span>Admin Reply</span>
+              </div>
+              <div class="reply-content">
+                Great choice for monsoon! We recommend: 1) Vijaydurg Fort (Easy) - Perfect for beginners, 2) Amboli Waterfalls (Moderate) - Stunning in monsoon, 3) Sindhudurg Fort (Easy-Moderate) - Requires boat ride. All are 4-6 hours from Pune. Check our app's "Monsoon Special" section for detailed guides, safety tips, and trek leaders' contact info. Best time: July-September.
+              </div>
+              <div class="reply-meta">
+                <span>📅 Replied on Mar 3, 2026</span>
+                <span>👤 TourKokan Support</span>
+              </div>
+            </div>
+            
+            <div class="query-footer">
+              <div class="query-meta">
+                <span class="query-meta-item">📅 Mar 3, 2026</span>
+              </div>
+              <div class="query-actions">
+                <div class="query-action view-btn" title="View full query">👁</div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script>
+// Tab filtering
+document.querySelectorAll('.filter-tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
+    tab.classList.add('active');
+    console.log('Filter changed:', tab.textContent.trim());
+  });
+});
+
+// Query card expand/collapse on eye icon click
+document.querySelectorAll('.view-btn').forEach(btn => {
+  btn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    const card = btn.closest('.query-card');
+    const message = card.querySelector('.query-message');
+    const adminReply = card.querySelector('.admin-reply');
+    
+    // Toggle expanded state
+    card.classList.toggle('expanded');
+    
+    // Toggle message collapsed/expanded
+    if (message.classList.contains('collapsed')) {
+      message.classList.remove('collapsed');
+      message.classList.add('expanded');
+    } else {
+      message.classList.add('collapsed');
+      message.classList.remove('expanded');
+    }
+    
+    // Show/hide admin reply if exists
+    if (adminReply) {
+      if (adminReply.classList.contains('show')) {
+        adminReply.classList.remove('show');
+      } else {
+        adminReply.classList.add('show');
+      }
+    }
+    
+    // Toggle eye icon to indicate state
+    if (btn.classList.contains('active')) {
+      btn.classList.remove('active');
+      btn.innerHTML = '👁';
+      btn.title = 'View full query';
+    } else {
+      btn.classList.add('active');
+      btn.innerHTML = '👁‍🗨';
+      btn.title = 'Collapse query';
+    }
+  });
+});
+
+// Add Query button
+document.querySelector('.add-query-btn').addEventListener('click', () => {
+  console.log('Add new query');
+  // Navigate to add query form
+});
+</script>
+</body>
+</html>

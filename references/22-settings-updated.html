@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TourKokan — Settings</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400;1,600&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,300&display=swap" rel="stylesheet">
+<style>
+:root{--ocean-deep:#0D3D4A;--ocean-mid:#1B6B7B;--ocean-foam:#B8E4EA;--sand-mid:#C4972A;--forest-deep:#1A3320;--forest-pale:#D4EDD9;--cream:#FAF7F0;--text-dark:#1C1917;--text-mid:#44403C;--text-light:#78716C;--white:#FFF;--blue:#3B82F6;--radius-md:18px}
+*{margin:0;padding:0;box-sizing:border-box}
+html{font-family:'DM Sans',sans-serif;background:#0D1F26}
+body{background:radial-gradient(ellipse at 20% 20%,#0D3D4A88 0%,transparent 60%),radial-gradient(ellipse at 80% 80%,#1A332044 0%,transparent 60%),#0C1A1F;min-height:100vh;padding:40px 20px;display:flex;justify-content:center}
+.screen-wrapper{display:flex;flex-direction:column;align-items:center;gap:16px}
+.screen-label{font-size:11px;font-weight:500;letter-spacing:2px;text-transform:uppercase;color:#B8E4EA;opacity:.7}
+.phone{width:375px;min-height:812px;background:var(--cream);border-radius:44px;overflow:hidden;box-shadow:0 0 0 1px #ffffff18,0 40px 80px #00000088;position:relative}
+.phone-notch{position:absolute;top:0;left:50%;transform:translateX(-50%);width:126px;height:34px;background:#0D1F26;border-radius:0 0 20px 20px;z-index:100}
+.settings-screen{background:var(--cream);min-height:812px;overflow-y:auto;padding-bottom:80px}
+.header{background:linear-gradient(135deg,var(--ocean-deep),var(--forest-deep));padding:50px 20px 32px;position:relative}
+.header::after{content:'';position:absolute;bottom:-1px;left:0;right:0;height:28px;background:var(--cream);clip-path:ellipse(60% 100% at 50% 100%)}
+.header-back{width:36px;height:36px;border-radius:50%;background:#ffffff18;backdrop-filter:blur(10px);display:flex;align-items:center;justify-content:center;font-size:18px;color:var(--white);margin-bottom:16px;cursor:pointer}
+.header-title{font-family:'Playfair Display',serif;font-size:28px;font-weight:700;color:var(--white)}
+.content{padding:20px}
+.section{margin-bottom:32px}
+.section-title{font-size:13px;font-weight:600;color:var(--text-light);text-transform:uppercase;letter-spacing:1px;margin-bottom:12px;padding:0 4px}
+.settings-list{display:flex;flex-direction:column;gap:4px}
+.setting-item{background:var(--white);border-radius:var(--radius-md);padding:16px;display:flex;align-items:center;gap:14px;box-shadow:0 2px 8px #0000000a;cursor:pointer;transition:all .3s}
+.setting-item:hover{box-shadow:0 4px 12px #00000014}
+.setting-icon{font-size:22px;width:32px;text-align:center;flex-shrink:0}
+.setting-content{flex:1}
+.setting-label{font-size:15px;font-weight:500;color:var(--text-dark);margin-bottom:2px}
+.setting-desc{font-size:12px;color:var(--text-light)}
+
+/* Language Selector */
+.lang-selector{display:flex;gap:8px}
+.lang-btn{padding:6px 14px;border-radius:50px;font-size:13px;font-weight:600;border:1.5px solid #00000018;background:var(--white);cursor:pointer;transition:all .3s}
+.lang-btn.active{background:linear-gradient(135deg,var(--ocean-mid),#2E5C3A);color:var(--white);border-color:transparent;box-shadow:0 2px 8px #1B6B7B33}
+.lang-btn:hover:not(.active){border-color:var(--ocean-mid)}
+
+/* Toggle Switch */
+.toggle{width:48px;height:28px;border-radius:14px;background:var(--ocean-mid);position:relative;cursor:pointer;transition:all .3s;flex-shrink:0}
+.toggle::after{content:'';position:absolute;top:3px;left:3px;width:22px;height:22px;border-radius:50%;background:var(--white);transition:all .3s;box-shadow:0 2px 4px #00000033}
+.toggle.off{background:#00000018}
+.toggle.off::after{left:23px}
+
+/* Coming Soon Badge */
+.coming-soon{background:#FEF3C7;color:#92400E;padding:4px 10px;border-radius:50px;font-size:11px;font-weight:600;flex-shrink:0}
+
+/* Arrow Icon */
+.arrow-icon{font-size:18px;color:var(--text-light);flex-shrink:0}
+
+/* Modal/Popup */
+.modal{position:fixed;inset:0;background:#00000066;backdrop-filter:blur(4px);display:none;align-items:center;justify-content:center;z-index:1000}
+.modal.show{display:flex}
+.modal-content{background:var(--white);border-radius:var(--radius-md);padding:24px;width:300px;box-shadow:0 20px 60px #00000033;animation:modalSlideUp .3s ease-out}
+.modal-icon{font-size:48px;text-align:center;margin-bottom:16px}
+.modal-title{font-family:'Playfair Display',serif;font-size:20px;font-weight:700;color:var(--text-dark);text-align:center;margin-bottom:8px}
+.modal-message{font-size:14px;color:var(--text-mid);text-align:center;line-height:1.6;margin-bottom:20px}
+.modal-button{width:100%;padding:14px;background:linear-gradient(135deg,var(--sand-mid),#6B4226);color:var(--white);border:none;border-radius:50px;font-size:15px;font-weight:600;cursor:pointer;transition:all .3s}
+.modal-button:hover{transform:translateY(-2px);box-shadow:0 6px 16px #C4972A44}
+.modal-button:active{transform:translateY(0)}
+
+@keyframes modalSlideUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+
+/* Version */
+.version-info{text-align:center;padding:24px 0;color:var(--text-light);font-size:12px}
+
+/* Bottom Nav */
+.bottom-nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:375px;background:var(--white);display:flex;justify-content:space-around;padding:12px 0;box-shadow:0 -4px 24px #0000001a;border-radius:44px 44px 0 0}
+.nav-item{display:flex;flex-direction:column;align-items:center;gap:4px;padding:8px 16px;border-radius:10px;text-decoration:none;color:var(--text-light);font-size:11px;font-weight:500}
+.nav-item.active{background:linear-gradient(135deg,var(--ocean-foam),var(--forest-pale));color:var(--ocean-deep)}
+</style>
+</head>
+<body>
+<div class="screen-wrapper">
+<div class="screen-label">SCREEN 22 — SETTINGS (UPDATED)</div>
+<div class="phone">
+<div class="phone-notch"></div>
+<div class="settings-screen">
+<!-- Header -->
+<div class="header">
+<div class="header-back">←</div>
+<h1 class="header-title">Settings</h1>
+</div>
+
+<!-- Content -->
+<div class="content">
+<!-- Preferences Section -->
+<div class="section">
+<div class="section-title">Preferences</div>
+<div class="settings-list">
+<!-- Language Selector -->
+<div class="setting-item">
+<span class="setting-icon">🌐</span>
+<div class="setting-content">
+<div class="setting-label">Language</div>
+<div class="setting-desc">App display language</div>
+</div>
+<div class="lang-selector">
+<button class="lang-btn active">English</button>
+<button class="lang-btn">मराठी</button>
+</div>
+</div>
+
+<!-- Online Mode (default ON) -->
+<div class="setting-item">
+<span class="setting-icon">📡</span>
+<div class="setting-content">
+<div class="setting-label">Online Mode</div>
+<div class="setting-desc">Always fetch latest data</div>
+</div>
+<div class="toggle" data-toggle="online"></div>
+</div>
+
+<!-- Notifications (Coming Soon) -->
+<div class="setting-item" data-feature="notifications">
+<span class="setting-icon">🔔</span>
+<div class="setting-content">
+<div class="setting-label">Notifications</div>
+<div class="setting-desc">Push notifications</div>
+</div>
+<span class="coming-soon">Coming Soon</span>
+</div>
+</div>
+</div>
+
+<!-- App Section -->
+<div class="section">
+<div class="section-title">App</div>
+<div class="settings-list">
+<!-- App Update -->
+<div class="setting-item" data-feature="update">
+<span class="setting-icon">🔄</span>
+<div class="setting-content">
+<div class="setting-label">Check for Updates</div>
+<div class="setting-desc">Version 2.0.3 (Latest)</div>
+</div>
+<span class="arrow-icon">›</span>
+</div>
+</div>
+</div>
+
+<!-- Legal Section -->
+<div class="section">
+<div class="section-title">Legal</div>
+<div class="settings-list">
+<!-- Privacy Policy -->
+<div class="setting-item" data-link="privacy">
+<span class="setting-icon">📜</span>
+<div class="setting-content">
+<div class="setting-label">Privacy Policy</div>
+</div>
+<span class="arrow-icon">›</span>
+</div>
+
+<!-- Terms of Service -->
+<div class="setting-item" data-link="terms">
+<span class="setting-icon">📝</span>
+<div class="setting-content">
+<div class="setting-label">Terms of Service</div>
+</div>
+<span class="arrow-icon">›</span>
+</div>
+</div>
+</div>
+
+<!-- Version Info -->
+<div class="version-info">Version 2.0.3</div>
+</div>
+
+<!-- Bottom Navigation -->
+<nav class="bottom-nav">
+<a href="#" class="nav-item"><span style="font-size:22px">🏠</span><span>Home</span></a>
+<a href="#" class="nav-item"><span style="font-size:22px">🔍</span><span>Discover</span></a>
+<a href="#" class="nav-item"><span style="font-size:22px">🚌</span><span>MSRTC</span></a>
+<a href="#" class="nav-item"><span style="font-size:22px">❤️</span><span>Saved</span></a>
+<a href="#" class="nav-item active"><span style="font-size:22px">👤</span><span>Profile</span></a>
+</nav>
+</div>
+</div>
+</div>
+
+<!-- Reusable Coming Soon Modal -->
+<div class="modal" id="comingSoonModal">
+<div class="modal-content">
+<div class="modal-icon">🚀</div>
+<div class="modal-title">Coming Soon!</div>
+<div class="modal-message">This feature is under development and will be available in the next update.</div>
+<button class="modal-button" onclick="closeModal()">Got it</button>
+</div>
+</div>
+
+<!-- Reusable Update Modal -->
+<div class="modal" id="updateModal">
+<div class="modal-content">
+<div class="modal-icon">✅</div>
+<div class="modal-title">You're Up to Date!</div>
+<div class="modal-message">You're using the latest version of TourKokan (v2.0.3). We'll notify you when updates are available.</div>
+<button class="modal-button" onclick="closeModal()">Awesome</button>
+</div>
+</div>
+
+<script>
+// Language Selection
+document.querySelectorAll('.lang-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.lang-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    console.log('Language changed to:', btn.textContent);
+    // In React Native: i18n.changeLanguage()
+  });
+});
+
+// Toggle Switches
+document.querySelectorAll('.toggle').forEach(toggle => {
+  toggle.addEventListener('click', () => {
+    toggle.classList.toggle('off');
+    const feature = toggle.dataset.toggle;
+    const isOn = !toggle.classList.contains('off');
+    console.log(`${feature} mode:`, isOn ? 'ON' : 'OFF');
+    // In React Native: updateSettings(feature, isOn)
+  });
+});
+
+// Coming Soon Features
+document.querySelectorAll('[data-feature]').forEach(item => {
+  item.addEventListener('click', () => {
+    const feature = item.dataset.feature;
+    
+    if (feature === 'notifications') {
+      showModal('comingSoonModal');
+    } else if (feature === 'update') {
+      showModal('updateModal');
+    }
+  });
+});
+
+// Legal Links
+document.querySelectorAll('[data-link]').forEach(item => {
+  item.addEventListener('click', () => {
+    const link = item.dataset.link;
+    const url = link === 'privacy' 
+      ? 'https://dev.tourkokan.com/PrivacyPolicy'
+      : 'https://dev.tourkokan.com/Terms';
+    
+    console.log('Open WebView:', url);
+    // In React Native: navigation.navigate('WebView', { url })
+    // OR Linking.openURL(url)
+  });
+});
+
+// Modal Functions
+function showModal(modalId) {
+  const modal = document.getElementById(modalId);
+  modal.classList.add('show');
+}
+
+function closeModal() {
+  document.querySelectorAll('.modal').forEach(m => m.classList.remove('show'));
+}
+
+// Close modal on backdrop click
+document.querySelectorAll('.modal').forEach(modal => {
+  modal.addEventListener('click', (e) => {
+    if (e.target === modal) {
+      closeModal();
+    }
+  });
+});
+
+// Back button
+document.querySelector('.header-back').addEventListener('click', () => {
+  console.log('Navigate back');
+  // In React Native: navigation.goBack()
+});
+</script>
+</body>
+</html>

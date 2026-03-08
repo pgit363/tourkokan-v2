@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TourKokan — Emergency</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400;1,600&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,300&display=swap" rel="stylesheet">
+<style>
+:root{--red:#DC2626;--ocean-deep:#0D3D4A;--ocean-mid:#1B6B7B;--ocean-foam:#B8E4EA;--sand-mid:#C4972A;--forest-pale:#D4EDD9;--cream:#FAF7F0;--text-dark:#1C1917;--text-mid:#44403C;--text-light:#78716C;--white:#FFF;--radius-md:18px}
+*{margin:0;padding:0;box-sizing:border-box}
+html{font-family:'DM Sans',sans-serif;background:#0D1F26}
+body{background:radial-gradient(ellipse at 20% 20%,#0D3D4A88 0%,transparent 60%),radial-gradient(ellipse at 80% 80%,#1A332044 0%,transparent 60%),#0C1A1F;min-height:100vh;padding:40px 20px;display:flex;justify-content:center}
+.screen-wrapper{display:flex;flex-direction:column;align-items:center;gap:16px}
+.screen-label{font-size:11px;font-weight:500;letter-spacing:2px;text-transform:uppercase;color:#B8E4EA;opacity:.7}
+.phone{width:375px;min-height:812px;background:var(--cream);border-radius:44px;overflow:hidden;box-shadow:0 0 0 1px #ffffff18,0 40px 80px #00000088;position:relative}
+.phone-notch{position:absolute;top:0;left:50%;transform:translateX(-50%);width:126px;height:34px;background:#0D1F26;border-radius:0 0 20px 20px;z-index:100}
+.emerg-screen{background:var(--cream);min-height:812px;padding-bottom:80px;overflow-y:auto}
+.header{background:linear-gradient(135deg,var(--red),#B91C1C);padding:50px 20px 32px;position:relative;overflow:hidden}
+.header::before{content:'';position:absolute;top:-50%;right:-50%;width:200%;height:200%;background:radial-gradient(circle,#ffffff11 0%,transparent 70%);pointer-events:none}
+.header::after{content:'';position:absolute;bottom:-1px;left:0;right:0;height:28px;background:var(--cream);clip-path:ellipse(60% 100% at 50% 100%)}
+.header-back{width:36px;height:36px;border-radius:50%;background:#ffffff30;backdrop-filter:blur(10px);display:flex;align-items:center;justify-content:center;font-size:18px;color:var(--white);margin-bottom:16px;cursor:pointer;position:relative;z-index:2}
+.header-title{font-family:'Playfair Display',serif;font-size:28px;font-weight:700;color:var(--white);margin-bottom:6px;position:relative;z-index:2}
+.header-subtitle{font-size:13px;color:rgba(255,255,255,.9);position:relative;z-index:2}
+
+/* Quick Action Buttons */
+.quick-actions{padding:20px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+.quick-btn{background:linear-gradient(135deg,var(--white),#F9FAFB);border:2px solid var(--red);border-radius:var(--radius-md);padding:20px 12px;text-align:center;cursor:pointer;transition:all .3s;box-shadow:0 4px 12px #DC262633;text-decoration:none;display:flex;flex-direction:column;align-items:center;gap:8px}
+.quick-btn:hover{transform:translateY(-4px);box-shadow:0 8px 24px #DC262644;border-color:#B91C1C}
+.quick-btn:active{transform:translateY(-2px)}
+.quick-icon{font-size:36px;margin-bottom:4px}
+.quick-label{font-size:13px;font-weight:700;color:var(--red);text-transform:uppercase;letter-spacing:0.5px}
+.quick-number{font-size:16px;font-weight:700;color:var(--text-dark);margin-top:4px;font-family:'DM Mono',monospace}
+
+/* Info Alert */
+.alert-box{margin:0 20px 20px;background:linear-gradient(135deg,#FEE2E2,#FED7D7);border-left:4px solid var(--red);border-radius:var(--radius-md);padding:16px;display:flex;gap:12px}
+.alert-icon{font-size:24px;flex-shrink:0}
+.alert-text{font-size:13px;line-height:1.5;color:var(--text-dark)}
+.alert-text strong{color:var(--red)}
+
+/* Tabs */
+.tabs{display:flex;gap:8px;padding:0 20px 16px;overflow-x:auto;-ms-overflow-style:none;scrollbar-width:none}
+.tabs::-webkit-scrollbar{display:none}
+.tab{padding:8px 16px;border-radius:50px;background:var(--white);font-size:13px;font-weight:500;border:1.5px solid #00000008;cursor:pointer;white-space:nowrap;transition:all .3s}
+.tab:hover{border-color:var(--ocean-mid)}
+.tab.active{background:linear-gradient(135deg,var(--ocean-mid),#2E5C3A);color:var(--white);border-color:transparent;box-shadow:0 4px 12px #1B6B7B33}
+
+/* Contacts */
+.contacts{padding:0 20px}
+.contact-card{background:var(--white);border-radius:var(--radius-md);padding:16px;margin-bottom:12px;display:flex;gap:14px;box-shadow:0 2px 8px #0000000a;transition:all .3s}
+.contact-card:hover{box-shadow:0 6px 16px #00000014;transform:translateY(-2px)}
+.contact-icon{width:56px;height:56px;border-radius:14px;background:linear-gradient(135deg,#FEE2E2,#FCA5A5);display:flex;align-items:center;justify-content:center;font-size:28px;flex-shrink:0}
+.contact-info{flex:1}
+.contact-name{font-size:16px;font-weight:600;color:var(--text-dark);margin-bottom:4px}
+.contact-meta{font-size:12px;color:var(--text-light);margin-bottom:8px}
+.contact-number{font-size:14px;font-weight:600;color:var(--ocean-mid);font-family:'DM Mono',monospace;margin-bottom:8px}
+.contact-actions{display:flex;gap:8px}
+.action-btn{padding:8px 16px;border-radius:50px;font-size:13px;font-weight:600;border:none;cursor:pointer;transition:all .3s;display:flex;align-items:center;gap:6px}
+.btn-call{background:linear-gradient(135deg,#059669,#10B981);color:var(--white);box-shadow:0 2px 8px #05966933}
+.btn-call:hover{box-shadow:0 4px 12px #05966944;transform:translateY(-1px)}
+.btn-directions{background:#00000008;color:var(--text-dark)}
+.btn-directions:hover{background:#00000012}
+
+/* Bottom Nav */
+.bottom-nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:375px;background:var(--white);display:flex;justify-content:space-around;padding:12px 0;box-shadow:0 -4px 24px #0000001a;border-radius:44px 44px 0 0}
+.nav-item{display:flex;flex-direction:column;align-items:center;gap:4px;padding:8px 16px;border-radius:10px;text-decoration:none;color:var(--text-light);font-size:11px;font-weight:500;transition:all .2s}
+.nav-item.active{background:linear-gradient(135deg,var(--ocean-foam),var(--forest-pale));color:var(--ocean-deep)}
+.nav-icon{font-size:22px}
+</style>
+</head>
+<body>
+<div class="screen-wrapper">
+<div class="screen-label">SCREEN 27 — EMERGENCY CONTACTS</div>
+<div class="phone">
+<div class="phone-notch"></div>
+<div class="emerg-screen">
+<!-- Header -->
+<div class="header">
+<div class="header-back">←</div>
+<h1 class="header-title">🚨 Emergency</h1>
+<p class="header-subtitle">Quick access to emergency services</p>
+</div>
+
+<!-- Quick Action Buttons -->
+<div class="quick-actions">
+<a href="tel:108" class="quick-btn">
+<div class="quick-icon">🚑</div>
+<div class="quick-label">Ambulance</div>
+<div class="quick-number">108</div>
+</a>
+<a href="tel:100" class="quick-btn">
+<div class="quick-icon">👮</div>
+<div class="quick-label">Police</div>
+<div class="quick-number">100</div>
+</a>
+<a href="tel:101" class="quick-btn">
+<div class="quick-icon">🚒</div>
+<div class="quick-label">Fire</div>
+<div class="quick-number">101</div>
+</a>
+</div>
+
+<!-- Alert Box -->
+<div class="alert-box">
+<div class="alert-icon">⚠️</div>
+<div class="alert-text">
+<strong>Emergency?</strong> Use the buttons above for immediate assistance. For non-urgent help, browse contacts below.
+</div>
+</div>
+
+<!-- Tabs -->
+<div class="tabs">
+<button class="tab active">Hospitals</button>
+<button class="tab">Police Stations</button>
+<button class="tab">Fire Stations</button>
+<button class="tab">Other</button>
+</div>
+
+<!-- Contacts List -->
+<div class="contacts">
+<!-- Hospitals -->
+<div class="contact-card">
+<div class="contact-icon">🏥</div>
+<div class="contact-info">
+<div class="contact-name">District Hospital Sindhudurga</div>
+<div class="contact-meta">Oros, Malvan · 24/7 Emergency</div>
+<div class="contact-number">📞 02365-252235</div>
+<div class="contact-actions">
+<button class="action-btn btn-call" onclick="window.location.href='tel:02365252235'">📞 Call Now</button>
+<button class="action-btn btn-directions">📍 Directions</button>
+</div>
+</div>
+</div>
+
+<div class="contact-card">
+<div class="contact-icon">🏥</div>
+<div class="contact-info">
+<div class="contact-name">Jijamata Hospital</div>
+<div class="contact-meta">Malvan · General Hospital</div>
+<div class="contact-number">📞 02365-252066</div>
+<div class="contact-actions">
+<button class="action-btn btn-call" onclick="window.location.href='tel:02365252066'">📞 Call Now</button>
+<button class="action-btn btn-directions">📍 Directions</button>
+</div>
+</div>
+</div>
+
+<div class="contact-card">
+<div class="contact-icon">🏥</div>
+<div class="contact-info">
+<div class="contact-name">Primary Health Center Kankavli</div>
+<div class="contact-meta">Kankavli · PHC</div>
+<div class="contact-number">📞 02363-221224</div>
+<div class="contact-actions">
+<button class="action-btn btn-call" onclick="window.location.href='tel:02363221224'">📞 Call Now</button>
+<button class="action-btn btn-directions">📍 Directions</button>
+</div>
+</div>
+</div>
+
+<div class="contact-card">
+<div class="contact-icon">🏥</div>
+<div class="contact-info">
+<div class="contact-name">PHC Devgad</div>
+<div class="contact-meta">Devgad · Primary Health Center</div>
+<div class="contact-number">📞 02362-252224</div>
+<div class="contact-actions">
+<button class="action-btn btn-call" onclick="window.location.href='tel:02362252224'">📞 Call Now</button>
+<button class="action-btn btn-directions">📍 Directions</button>
+</div>
+</div>
+</div>
+
+<div class="contact-card">
+<div class="contact-icon">🏥</div>
+<div class="contact-info">
+<div class="contact-name">PHC Kudal</div>
+<div class="contact-meta">Kudal · Primary Health Center</div>
+<div class="contact-number">📞 02362-222224</div>
+<div class="contact-actions">
+<button class="action-btn btn-call" onclick="window.location.href='tel:02362222224'">📞 Call Now</button>
+<button class="action-btn btn-directions">📍 Directions</button>
+</div>
+</div>
+</div>
+
+<div class="contact-card">
+<div class="contact-icon">🏥</div>
+<div class="contact-info">
+<div class="contact-name">PHC Sawantwadi</div>
+<div class="contact-meta">Sawantwadi · Primary Health Center</div>
+<div class="contact-number">📞 02363-272224</div>
+<div class="contact-actions">
+<button class="action-btn btn-call" onclick="window.location.href='tel:02363272224'">📞 Call Now</button>
+<button class="action-btn btn-directions">📍 Directions</button>
+</div>
+</div>
+</div>
+
+<!-- Additional Emergency Numbers -->
+<div class="contact-card" style="border:2px solid #DBEAFE;background:linear-gradient(135deg,#EFF6FF,#DBEAFE)">
+<div class="contact-icon" style="background:linear-gradient(135deg,#DBEAFE,#93C5FD)">ℹ️</div>
+<div class="contact-info">
+<div class="contact-name">More Emergency Numbers</div>
+<div class="contact-meta">National helplines</div>
+<div style="font-size:12px;line-height:1.8;color:var(--text-mid);margin-top:8px">
+<strong>Women Helpline:</strong> 1091<br>
+<strong>Child Helpline:</strong> 1098<br>
+<strong>Senior Citizens:</strong> 1291<br>
+<strong>Tourist Helpline:</strong> 1363<br>
+<strong>Disaster Mgmt:</strong> 108
+</div>
+</div>
+</div>
+</div>
+
+<!-- Bottom Navigation -->
+<nav class="bottom-nav">
+<a href="#" class="nav-item">
+<span class="nav-icon">🏠</span>
+<span>Home</span>
+</a>
+<a href="#" class="nav-item">
+<span class="nav-icon">🔍</span>
+<span>Discover</span>
+</a>
+<a href="#" class="nav-item">
+<span class="nav-icon">🚌</span>
+<span>MSRTC</span>
+</a>
+<a href="#" class="nav-item">
+<span class="nav-icon">❤️</span>
+<span>Saved</span>
+</a>
+<a href="#" class="nav-item active">
+<span class="nav-icon">👤</span>
+<span>Profile</span>
+</a>
+</nav>
+</div>
+</div>
+</div>
+
+<script>
+// Tab switching functionality
+document.querySelectorAll('.tab').forEach((tab, index) => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    tab.classList.add('active');
+    // In real app, this would filter contacts by category
+    console.log('Switched to tab:', tab.textContent);
+  });
+});
+</script>
+</body>
+</html>

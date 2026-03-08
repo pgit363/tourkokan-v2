@@ -57,6 +57,7 @@ const STRING = {
   SCREEN: {
     ROOT: 'Root',
     HOME: 'Home',
+    DASHBOARD: 'Dashboard',
     PRICING: 'Pricing',
     REQUEST_PAID_ADVERTISEMENT: 'Request Paid Advertisement',
     CONTACT_US: 'Contact Us',
@@ -102,6 +103,9 @@ const STRING = {
     STOP_DETAILS: 'StopDetails',
     CITY_DETAILS: 'CityDetails',
     GALLERY: 'Gallery',
+    SETTINGS: 'Settings',
+    PRIVACY_POLICY: 'PrivacyPolicy',
+    TERMS: 'Terms',
   },
   STORAGE: {
     ACCESS_TOKEN: 'access_token',

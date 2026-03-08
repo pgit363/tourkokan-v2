@@ -108,7 +108,10 @@
     "PROJECT_DETAILS": "ProjectDetails",
     "STOP_DETAILS": "StopDetails",
     "CITY_DETAILS": "CityDetails",
-    "GALLERY": "Gallery"
+    "GALLERY": "Gallery",
+    "SETTINGS": "Settings",
+    "PRIVACY_POLICY": "PrivacyPolicy",
+    "TERMS": "Terms"
   },
   "STORAGE": {
     "ACCESS_TOKEN": "access_token",
@@ -340,5 +343,159 @@
   "ACCEPT_TNC": "I Accept Terms & Conditions",
   "APP_USAGE": "How would you like to use your app?",
   "NOTE": "Please note: Even in offline mode, a network connection is required initially to complete the login process and load essential data.",
-  "REFER_EARN": "Friends don’t let friends travel unprepared—refer them to TourKokan and get rewarded for every new journey started!"
+  "REFER_EARN": "Friends don’t let friends travel unprepared—refer them to TourKokan and get rewarded for every new journey started!",
+
+  "SETTINGS": {
+    "TITLE": "Settings",
+    "PREFERENCES": "Preferences",
+    "APP_SECTION": "App",
+    "LEGAL": "Legal",
+    "LANGUAGE": "Language",
+    "LANGUAGE_DESC": "App display language",
+    "ONLINE_MODE": "Online Mode",
+    "FETCHING_LIVE": "Fetching live data",
+    "USING_CACHED": "Using cached data",
+    "NOTIFICATIONS": "Notifications",
+    "NOTIFICATIONS_DESC": "Push notifications",
+    "COMING_SOON_BADGE": "Coming Soon",
+    "CHECK_UPDATES": "Check for Updates",
+    "PRIVACY_POLICY": "Privacy Policy",
+    "TERMS": "Terms of Service",
+    "VERSION_PREFIX": "Version",
+    "COMING_SOON_TITLE": "Coming Soon!",
+    "COMING_SOON_MESSAGE": "This feature is under development and will be available in the next update.",
+    "GOT_IT": "Got it"
+  },
+
+  "PRIVACY_POLICY_SCREEN": {
+    "TITLE": "Privacy Policy"
+  },
+
+  "TERMS_SCREEN": {
+    "TITLE": "Terms of Service"
+  },
+
+  "EMERGENCY_SCREEN": {
+    "TITLE": "🚨 Emergency",
+    "SUBTITLE": "Quick access to emergency services",
+    "AMBULANCE": "Ambulance",
+    "POLICE": "Police",
+    "FIRE": "Fire",
+    "ALERT_BOLD": "Emergency?",
+    "ALERT_TEXT": " Use the buttons above for immediate assistance. For non-urgent help, browse contacts below.",
+    "NO_CONTACTS": "No contacts available",
+    "MORE_NUMBERS": "More Emergency Numbers",
+    "NATIONAL_HELPLINES": "National helplines",
+    "WOMEN_HELPLINE": "Women Helpline",
+    "CHILD_HELPLINE": "Child Helpline",
+    "SENIOR_CITIZENS": "Senior Citizens",
+    "TOURIST_HELPLINE": "Tourist Helpline",
+    "DISASTER_MGMT": "Disaster Mgmt"
+  },
+
+  "CATEGORIES_SCREEN": {
+    "TITLE": "Categories",
+    "NO_CATEGORIES": "No categories found",
+    "TRY_AGAIN": "Please try again later.",
+    "OFFLINE_BANNER": "No internet connection. Showing offline data.",
+    "PLACES": "places"
+  },
+
+  "CONTACT_US_SCREEN": {
+    "TITLE": "💬 Contact Us",
+    "SEND_MESSAGE": "Send us a message",
+    "EMAIL": "Email",
+    "PHONE": "Phone",
+    "ADDRESS": "Address",
+    "MESSAGE_LABEL": "Message *",
+    "PLACEHOLDER": "How can we help you?",
+    "SUBMIT": "Submit"
+  },
+
+  "QUERIES_SCREEN": {
+    "TITLE": "💬 Contact Queries",
+    "SUBTITLE": "Manage all user queries",
+    "ADD_QUERY": "Add Query",
+    "TOTAL": "TOTAL",
+    "UNREAD_LABEL": "UNREAD",
+    "REPLIED_LABEL": "REPLIED",
+    "TAB_ALL": "All",
+    "TAB_UNREAD": "Unread",
+    "TAB_READ": "Read",
+    "TAB_REPLIED": "Replied",
+    "NO_QUERIES": "No Queries Found",
+    "OFFLINE_CACHED": "Offline mode — showing cached data",
+    "NO_INTERNET_CACHED": "No internet — showing cached data",
+    "CONNECT_TO_LOAD": "Connect to internet to load your queries.",
+    "NO_QUERIES_YET": "You have no queries yet. Tap \"Add Query\" to get started.",
+    "ADMIN_REPLY": "Admin Reply",
+    "SUPPORT": "TourKokan Support",
+    "LOADING_MORE": "Loading more..."
+  },
+
+  "DRAWER": {
+    "HOME": "Home",
+    "EMERGENCY": "Emergency",
+    "CONTACT_US": "Contact Us",
+    "SETTINGS": "Settings",
+    "ABOUT": "About",
+    "TAGLINE": "Sun, Sand & Serenity",
+    "FOOTER": "Designed and Developed by Probyte Solution LLP."
+  },
+
+  "EDIT_PROFILE": {
+    "TITLE": "Edit Profile",
+    "CHANGE_PHOTO": "Change Photo",
+    "ACCOUNT_INFO": "Account Info",
+    "FULL_NAME": "Full Name",
+    "EMAIL": "Email Address",
+    "PERSONAL_DETAILS": "Personal Details",
+    "MOBILE": "Mobile Number",
+    "MOBILE_PLACEHOLDER": "+91 XXXXX XXXXX",
+    "DOB": "Date of Birth",
+    "OPTIONAL": "(Optional)",
+    "GENDER": "Gender",
+    "GENDER_PLACEHOLDER": "Select Gender",
+    "GENDER_MALE": "Male",
+    "GENDER_FEMALE": "Female",
+    "GENDER_OTHER": "Other",
+    "GENDER_PREFER_NOT": "Prefer not to say",
+    "LOCATION": "Your Location",
+    "NO_LOCATION": "Tap 'Auto Detect' to set your location",
+    "AUTO_DETECT": "Auto Detect",
+    "DETECTING": "Detecting...",
+    "SAVE_CHANGES": "Save Changes",
+    "OFFLINE_NOTICE": "You are offline. Switch to online mode to save changes."
+  },
+
+  "PROFILE_SCREEN": {
+    "MEMBER_SINCE": "Member since",
+    "YOUR_LOCATION": "Your Location",
+    "NO_LOCATION_SET": "No location set yet",
+    "COMPLETE_PROFILE": "Complete Your Profile",
+    "COMPLETION_TEXT": "Tap \"Edit Profile\" below to add your date of birth and gender for personalized recommendations!",
+    "PERSONAL_INFO": "Personal Information",
+    "EDIT": "Edit",
+    "GENDER": "Gender",
+    "DOB": "Date of Birth",
+    "NOT_SET": "Not set",
+    "MY_ACTIVITY": "My Activity",
+    "FAVORITES": "Favorites",
+    "REVIEWS": "Reviews",
+    "BOOKINGS": "Bookings",
+    "VISITED": "Visited",
+    "PAYMENTS_TITLE": "Manage Payments & Rewards",
+    "WALLET_LABEL": "Wallet Points",
+    "WALLET_DESC": "Earn by sharing • Redeem for bookings",
+    "REFER_TITLE": "Invite Friends & Earn",
+    "REFER_SUBTITLE": "Share your code and get rewards",
+    "REFERRAL_CODE": "Your Referral Code",
+    "COPY": "Copy",
+    "SHARE": "Share",
+    "EDIT_PROFILE": "Edit Profile",
+    "PROFILE_HELP": "Edit your profile to add your gender and date of birth. This helps us provide personalized travel recommendations!",
+    "SIGN_OUT": "Sign Out",
+    "LOGOUT_CONFIRM_TITLE": "Sign Out",
+    "LOGOUT_CONFIRM": "Are you sure you want to sign out?"
+  }
 }

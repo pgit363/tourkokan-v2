@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TourKokan — Menu</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400;1,600&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,300&display=swap" rel="stylesheet">
+<style>
+:root{--ocean-deep:#0D3D4A;--ocean-mid:#1B6B7B;--sand-mid:#C4972A;--sand-dark:#8B6914;--cream:#FAF7F0;--text-dark:#1C1917;--text-mid:#44403C;--text-light:#78716C;--white:#FFF;--radius-md:18px}
+*{margin:0;padding:0;box-sizing:border-box}
+html{font-family:'DM Sans',sans-serif;background:#0D1F26}
+body{background:radial-gradient(ellipse at 20% 20%,#0D3D4A88 0%,transparent 60%),radial-gradient(ellipse at 80% 80%,#1A332044 0%,transparent 60%),#0C1A1F;min-height:100vh;padding:40px 20px;display:flex;justify-content:center}
+.screen-wrapper{display:flex;flex-direction:column;align-items:center;gap:16px}
+.screen-label{font-size:11px;font-weight:500;letter-spacing:2px;text-transform:uppercase;color:#B8E4EA;opacity:.7}
+.phone{width:375px;min-height:812px;background:var(--cream);border-radius:44px;overflow:hidden;box-shadow:0 0 0 1px #ffffff18,0 40px 80px #00000088;position:relative}
+.phone-notch{position:absolute;top:0;left:50%;transform:translateX(-50%);width:126px;height:34px;background:#0D1F26;border-radius:0 0 20px 20px;z-index:100}
+.menu-screen{display:flex;min-height:812px;position:relative}
+.overlay{flex:1;background:#00000066;backdrop-filter:blur(4px);cursor:pointer}
+.sidebar{width:280px;background:var(--white);padding:60px 0 0;box-shadow:-4px 0 24px #00000033;display:flex;flex-direction:column}
+.menu-header{padding:0 20px 24px;border-bottom:1px solid #00000008;text-align:center}
+.menu-logo-container{margin-bottom:12px}
+.menu-logo{width:80px;height:80px;margin:0 auto;background:linear-gradient(135deg,var(--ocean-deep),var(--ocean-mid));border-radius:20px;display:flex;align-items:center;justify-content:center;font-size:40px;box-shadow:0 8px 24px #0D3D4A33}
+.menu-tagline{font-family:'Playfair Display',serif;font-size:14px;font-style:italic;color:var(--sand-dark);font-weight:600;letter-spacing:0.5px}
+.menu-list{flex:1;padding:24px 0;overflow-y:auto}
+.menu-item{padding:16px 20px;display:flex;align-items:center;gap:14px;cursor:pointer;transition:all .3s;text-decoration:none;color:var(--text-dark);position:relative}
+.menu-item::before{content:'';position:absolute;left:0;top:0;bottom:0;width:4px;background:linear-gradient(180deg,var(--ocean-mid),#2E5C3A);opacity:0;transition:opacity .3s}
+.menu-item:hover{background:linear-gradient(90deg,#00000006,transparent)}
+.menu-item:hover::before{opacity:1}
+.menu-item.active{background:linear-gradient(90deg,#B8E4EA22,transparent)}
+.menu-item.active::before{opacity:1}
+.menu-icon{font-size:24px;width:36px;text-align:center}
+.menu-text{font-size:16px;font-weight:500;flex:1}
+.menu-footer{padding:20px;border-top:2px solid #00000008;background:linear-gradient(180deg,transparent,#00000003)}
+.social-links{display:flex;justify-content:center;gap:16px;margin-bottom:16px}
+.social-icon{width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,var(--ocean-deep),var(--ocean-mid));display:flex;align-items:center;justify-content:center;font-size:20px;color:var(--white);cursor:pointer;transition:all .3s;box-shadow:0 4px 12px #0D3D4A22}
+.social-icon:hover{transform:translateY(-2px);box-shadow:0 6px 16px #0D3D4A33}
+.social-icon:active{transform:translateY(0)}
+.developed-by{text-align:center;font-size:11px;color:var(--text-light);line-height:1.6;margin-bottom:8px}
+.developer-name{font-weight:600;color:var(--ocean-mid);display:block;margin-top:4px}
+.version{text-align:center;font-size:10px;color:var(--text-light);opacity:.7}
+</style>
+</head>
+<body>
+<div class="screen-wrapper">
+<div class="screen-label">SCREEN 32 — SIDE MENU (DRAWER)</div>
+<div class="phone">
+<div class="phone-notch"></div>
+<div class="menu-screen">
+<div class="overlay"></div>
+<div class="sidebar">
+<!-- Header with Logo -->
+<div class="menu-header">
+<div class="menu-logo-container">
+<div class="menu-logo">🏖</div>
+</div>
+<div class="menu-tagline">Sun, Sand & Serenity</div>
+</div>
+
+<!-- Menu Items -->
+<div class="menu-list">
+<a href="#" class="menu-item active">
+<span class="menu-icon">🏠</span>
+<span class="menu-text">Home</span>
+</a>
+<a href="#" class="menu-item">
+<span class="menu-icon">🚨</span>
+<span class="menu-text">Emergency</span>
+</a>
+<a href="#" class="menu-item">
+<span class="menu-icon">💬</span>
+<span class="menu-text">Contact Us</span>
+</a>
+<a href="#" class="menu-item">
+<span class="menu-icon">⚙️</span>
+<span class="menu-text">Settings</span>
+</a>
+<a href="#" class="menu-item">
+<span class="menu-icon">ℹ️</span>
+<span class="menu-text">About</span>
+</a>
+</div>
+
+<!-- Footer with Social Links -->
+<div class="menu-footer">
+<!-- Social Media Links -->
+<div class="social-links">
+<a href="https://facebook.com/tourkokan" class="social-icon" title="Facebook">
+📘
+</a>
+<a href="https://instagram.com/tourkokan" class="social-icon" title="Instagram">
+📷
+</a>
+</div>
+
+<!-- Designed & Developed By -->
+<div class="developed-by">
+Designed & Developed by
+<span class="developer-name">Pranav Kamble</span>
+</div>
+
+<!-- Version -->
+<div class="version">Version 2.0.3</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+
+<script>
+// Close drawer on overlay click
+document.querySelector('.overlay').addEventListener('click', () => {
+  console.log('Close drawer');
+  // In React Native: navigation.closeDrawer()
+});
+
+// Menu item clicks
+document.querySelectorAll('.menu-item').forEach(item => {
+  item.addEventListener('click', (e) => {
+    e.preventDefault();
+    
+    // Remove active from all
+    document.querySelectorAll('.menu-item').forEach(i => i.classList.remove('active'));
+    
+    // Add active to clicked
+    item.classList.add('active');
+    
+    console.log('Navigate to:', item.querySelector('.menu-text').textContent);
+    // In React Native: navigation.navigate(screenName)
+  });
+});
+
+// Social link clicks
+document.querySelectorAll('.social-icon').forEach(icon => {
+  icon.addEventListener('click', (e) => {
+    e.preventDefault();
+    const url = icon.getAttribute('href');
+    console.log('Open social link:', url);
+    // In React Native: Linking.openURL(url)
+  });
+});
+</script>
+</body>
+</html>

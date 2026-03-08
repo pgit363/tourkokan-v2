@@ -58,7 +58,7 @@ import BannerSkeleton from '../Components/Customs/BannerSkeleton';
 import Loader from '../Components/Customs/Loader';
 import {KeyboardAwareFlatList} from 'react-native-keyboard-aware-scroll-view';
 import DIMENSIONS from '../Services/Constants/DIMENSIONS';
-import ComingSoon from '../Components/Common/ComingSoon';
+import ModePopup from '../Components/Common/ModePopup';
 import Popup from '../Components/Common/Popup';
 import FontAwesome5Icon from 'react-native-vector-icons/FontAwesome5';
 import {FTP_PATH} from '@env';
@@ -387,12 +387,19 @@ const HomeScreen = ({navigation, route, ...props}) => {
       const fetchData = async () => {
         const isUpdated = await AsyncStorage.getItem('isUpdated');
         checkToken();
+
+        // Always sync mode from storage on focus so TopComponent toggle
+        // reflects changes made from other screens (e.g. ModePopup in Categories)
+        const storedMode = JSON.parse(await getFromStorage(t('STORAGE.MODE')));
+        if (storedMode !== null && storedMode !== undefined) {
+          setMode(storedMode);
+          props.setMode(storedMode);
+        }
+
         if (isUpdated === 'true' && props.mode) {
           // setCities([]);
           props.setLoader(true);
           await callLandingPageAPI(); // make sure to `await` this if it’s async
-          const mode = JSON.parse(await getFromStorage(t('STORAGE.MODE')));
-          setMode(mode);
         }
       };
 
@@ -1074,15 +1081,20 @@ const HomeScreen = ({navigation, route, ...props}) => {
           </View>
         </Overlay>
 
-        <ComingSoon
-          message={t('OFFLINE_MODE')}
-          visible={showOffline}
-          toggleOverlay={() => setShowOffline(false)}
-        />
-        <ComingSoon
-          message={t('ONLINE_MODE')}
-          visible={showOnlineMode}
-          toggleOverlay={() => setShowOnlineMode(false)}
+        <ModePopup
+          visible={showOffline || showOnlineMode}
+          currentMode={mode}
+          onClose={() => {
+            setShowOffline(false);
+            setShowOnlineMode(false);
+          }}
+          onModeChange={val => {
+            saveToStorage(t('STORAGE.MODE'), JSON.stringify(val));
+            setMode(val);
+            props.setMode(val);
+            setShowOffline(false);
+            setShowOnlineMode(false);
+          }}
         />
       <Overlay
         isVisible={showSplash}
