@@ -6,6 +6,7 @@ const styles = StyleSheet.create({
   topComponentSkeleton: {
     width: DIMENSIONS.windowWidth,
     height: DIMENSIONS.headerHeight,
+    backgroundColor: '#0D3D4A',
   },
   topComponent: {
     top: 0,

@@ -497,5 +497,31 @@
     "SIGN_OUT": "Sign Out",
     "LOGOUT_CONFIRM_TITLE": "Sign Out",
     "LOGOUT_CONFIRM": "Are you sure you want to sign out?"
+  },
+  "HOME": {
+    "SEARCH_PLACEHOLDER": "Search beaches, forts, food...",
+    "EXPLORE_TALUKAS": "Explore Talukas",
+    "BUS_TITLE": "Check Local Bus Timetable",
+    "BUS_SUBTITLE": "Find MSRTC routes & timings",
+    "POPULAR_SPOTS": "Popular Spots",
+    "NEARBY": "Nearby Places",
+    "AD_LABEL": "Premium Ad",
+    "AD_STANDARD_LABEL": "Standard Ad",
+    "AD_SPACE": "Ad Space Available",
+    "AD_SIZE": "Click to advertise here",
+    "PLACES_COUNT": "places",
+    "KM_AWAY": "km away",
+    "ALL": "All",
+    "BEACHES": "Beaches",
+    "TEMPLES": "Temples",
+    "FORTS": "Forts",
+    "WATERFALLS": "Waterfalls",
+    "FOOD": "Food",
+    "MODE_TITLE": "How would you like to use the app?",
+    "MODE_SUBTITLE": "Choose your experience to get started",
+    "ONLINE_TITLE": "Online Mode",
+    "ONLINE_DESC": "Full experience with live data",
+    "OFFLINE_TITLE": "Offline Mode",
+    "OFFLINE_DESC": "Browse cached content offline"
   }
 }

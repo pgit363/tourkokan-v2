@@ -1,166 +1,185 @@
 import React, {useEffect, useState} from 'react';
-import {StatusBar, View, TouchableOpacity, Image} from 'react-native';
-import styles from './Styles';
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  Image,
+  StyleSheet,
+  StatusBar,
+  Dimensions,
+} from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import COLOR from '../../Services/Constants/COLORS';
-import DIMENSIONS from '../../Services/Constants/DIMENSIONS';
-import GlobalText from '../Customs/Text';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
-import Path from '../../Services/Api/BaseUrl';
-import SearchDropdown from './SearchDropdown';
 import {useTranslation} from 'react-i18next';
-import {Switch} from '@rneui/themed';
-import {connect} from 'react-redux';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import {getFromStorage, saveToStorage} from '../../Services/Api/CommonServices';
-import { FTP_PATH } from '@env';
+import {getFromStorage} from '../../Services/Api/CommonServices';
+import {FTP_PATH} from '@env';
 
-StatusBar.setBarStyle('dark-content');
+const {width: SW} = Dimensions.get('window');
+
+const C = {
+  oceanDeep: '#0D3D4A',
+  white: '#FFFFFF',
+  glass: 'rgba(255,255,255,0.15)',
+  glassBorder: 'rgba(255,255,255,0.22)',
+  whiteDim: 'rgba(255,255,255,0.7)',
+};
+
+const BTN = 44;
 
 const TopComponent = ({
   navigation,
-  openLocationSheet,
   currentCity,
   gotoProfile,
-  cities,
-  setCurrentCity,
-  mode,
-  setMode,
-  ...props
+  showCities,
+  onToggleCities,
 }) => {
   const {t} = useTranslation();
-  // const { SettingsModule } = NativeModules;
-
-  const [showCities, setShowCities] = useState(false);
-  const [isOnline, setIsOnline] = useState(mode);
   const [profilePhoto, setProfilePhoto] = useState(null);
 
   useEffect(() => {
     const fetchProfilePhoto = async () => {
-      let picture = JSON.parse(
-        await getFromStorage(t('STORAGE.PROFILE_PICTURE'))
+      const picture = JSON.parse(
+        await getFromStorage(t('STORAGE.PROFILE_PICTURE')),
       );
       setProfilePhoto(picture);
     };
     fetchProfilePhoto();
-  }, []);  
-
-  const openDrawer = () => {
-    navigation.openDrawer();
-  };
-
-  const openProfile = () => {
-    gotoProfile();
-  };
-
-  const toggleCityDropdown = () => {
-    setShowCities(!showCities);
-  };
-
-  const setCity = v => {
-    toggleCityDropdown();
-    setCurrentCity(v);
-  };
-
-  const changeMode = () => {
-    saveToStorage(t('STORAGE.MODE'), JSON.stringify(!isOnline));
-    setMode(!isOnline);
-    setIsOnline(!isOnline);
-  };
-
-  // const openMobileDataSettings = () => {
-  //     SettingsModule.openMobileDataSettings();
-  //   };
+  }, [t]);
 
   return (
-    <View style={styles.topComponent}>
-      <StatusBar backgroundColor={COLOR.white} />
-      <View style={styles.topMenu}>
-        <View style={styles.locationView}>
-          <Ionicons
-            name="menu"
-            color={COLOR.black}
-            size={DIMENSIONS.userIconSize}
-            style={{marginRight: 10}}
-            onPress={() => openDrawer()}
-          />
+    <View style={s.container}>
+      <StatusBar backgroundColor={C.oceanDeep} barStyle="light-content" />
+
+      <View style={s.row}>
+        {/* Left: menu + location */}
+        <View style={s.left}>
           <TouchableOpacity
-            onPress={() => toggleCityDropdown()}
-            style={styles.locationPill}>
-            <MaterialIcons
-              name="location-pin"
-              color={COLOR.themeBlue}
-              size={DIMENSIONS.iconMedium}
-              style={styles.routeCardIcons}
-            />
-            <GlobalText
-              text={currentCity}
-              style={{fontWeight: '500', textAlign: 'left'}}
-            />
+            style={s.glassBtn}
+            onPress={() => navigation.openDrawer()}
+            activeOpacity={0.75}
+            hitSlop={{top: 8, bottom: 8, left: 8, right: 8}}>
+            <Ionicons name="menu" size={22} color={C.white} />
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={s.locationPill}
+            onPress={onToggleCities}
+            activeOpacity={0.75}>
+            <MaterialIcons name="location-pin" size={16} color={C.white} />
+            <Text style={s.locationText} numberOfLines={1}>
+              {currentCity || t('CITY.SINDHUDURG')}
+            </Text>
             <Ionicons
-              name="chevron-down"
-              color={COLOR.themeBlue}
-              size={DIMENSIONS.iconMedium}
+              name={showCities ? 'chevron-up' : 'chevron-down'}
+              size={14}
+              color={C.whiteDim}
             />
           </TouchableOpacity>
         </View>
-        <View style={{flexDirection: 'row', alignItems: 'center'}}>
-          <GlobalText
-            text={mode ? t('BUTTON.ONLINE') : t('BUTTON.OFFLINE')}
-            style={{fontSize: DIMENSIONS.textSizeSmall}}
-          />
-          <Switch
-            thumbColor={mode ? COLOR.green : COLOR.red}
-            trackColor={{
-              false: COLOR.lightRed,
-              true: COLOR.lightGreen,
-            }}
-            onChange={() => changeMode()}
-            value={mode}
-          />
-        </View>
-        <TouchableOpacity
-          onPress={() => openProfile()}
-          style={styles.profileIconView}>
-          <Image
-            source={{
-              uri: `${
-                profilePhoto
-                  ? FTP_PATH + profilePhoto
-                  : 'https://api-private.atlassian.com/users/2143ab39b9c73bcab4fe6562fff8d23d/avatar'
-              }`,
-            }}
-            style={styles.profileIcon}
-          />
-        </TouchableOpacity>
-      </View>
 
-      {showCities && (
-        <SearchDropdown
-          placesList={cities}
-          style={styles.citiesDropdown}
-          setPlace={v => setCity(v)}
-          closeDropdown={() => toggleCityDropdown()}
-          height={500}
-        />
-      )}
+        {/* Right: bell + profile */}
+        <View style={s.right}>
+          <TouchableOpacity
+            style={s.glassBtn}
+            activeOpacity={0.75}
+            hitSlop={{top: 8, bottom: 8, left: 8, right: 8}}>
+            <Image
+              source={require('../../Assets/Images/bell_icon.webp')}
+              style={s.bellIcon}
+              resizeMode="contain"
+            />
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={s.profileBtn}
+            onPress={gotoProfile}
+            activeOpacity={0.8}>
+            {profilePhoto ? (
+              <Image
+                source={{uri: `${FTP_PATH}${profilePhoto}`}}
+                style={s.profileImg}
+              />
+            ) : (
+              <Ionicons name="person" size={20} color={C.white} />
+            )}
+          </TouchableOpacity>
+        </View>
+      </View>
     </View>
   );
 };
 
-// const mapStateToProps = state => {
-//   return {
-//     access_token: state.commonState.access_token,
-//     mode: state.commonState.mode,
-//   };
-// };
-
-// const mapDispatchToProps = dispatch => {
-//   return {
-//     setLoader: data => {
-//       dispatch(setLoader(data));
-//     },
-//   };
-// };
+const s = StyleSheet.create({
+  container: {
+    backgroundColor: C.oceanDeep,
+  },
+  row: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+  },
+  left: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    flex: 1,
+  },
+  right: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  glassBtn: {
+    width: BTN,
+    height: BTN,
+    borderRadius: BTN / 2,
+    backgroundColor: C.glass,
+    borderWidth: 1,
+    borderColor: C.glassBorder,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  bellIcon: {
+    width: 30,
+    height: 30,
+  },
+  locationPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    backgroundColor: C.glass,
+    borderWidth: 1,
+    borderColor: C.glassBorder,
+    borderRadius: 50,
+    paddingHorizontal: 13,
+    paddingVertical: 9,
+    maxWidth: SW * 0.45,
+    minWidth: 80,
+  },
+  locationText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: C.white,
+    flexShrink: 1,
+  },
+  profileBtn: {
+    width: BTN,
+    height: BTN,
+    borderRadius: BTN / 2,
+    backgroundColor: C.glass,
+    borderWidth: 1,
+    borderColor: C.glassBorder,
+    alignItems: 'center',
+    justifyContent: 'center',
+    overflow: 'hidden',
+  },
+  profileImg: {
+    width: BTN,
+    height: BTN,
+    borderRadius: BTN / 2,
+  },
+});
 
 export default TopComponent;
