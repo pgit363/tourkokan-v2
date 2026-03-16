@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TourKokan — Place Detail</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400;1,600&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,300&display=swap" rel="stylesheet">
+<style>
+:root{--ocean-deep:#0D3D4A;--ocean-mid:#1B6B7B;--ocean-light:#4AABB8;--ocean-foam:#B8E4EA;--sand-dark:#8B6914;--sand-mid:#C4972A;--sand-light:#F2D98B;--forest-deep:#1A3320;--forest-mid:#2E5C3A;--forest-pale:#D4EDD9;--cream:#FAF7F0;--text-dark:#1C1917;--text-mid:#44403C;--text-light:#78716C;--white:#FFF;--radius-sm:10px;--radius-md:18px;--radius-lg:28px}
+*{margin:0;padding:0;box-sizing:border-box}
+html{font-family:'DM Sans',sans-serif;background:#0D1F26}
+body{background:radial-gradient(ellipse at 20% 20%,#0D3D4A88 0%,transparent 60%),radial-gradient(ellipse at 80% 80%,#1A332044 0%,transparent 60%),#0C1A1F;min-height:100vh;padding:40px 20px;display:flex;justify-content:center;align-items:flex-start}
+.screen-wrapper{display:flex;flex-direction:column;align-items:center;gap:16px}
+.screen-label{font-size:11px;font-weight:500;letter-spacing:2px;text-transform:uppercase;color:var(--ocean-foam);opacity:.7}
+.phone{width:375px;min-height:812px;background:var(--cream);border-radius:44px;overflow:hidden;box-shadow:0 0 0 1px #ffffff18,0 40px 80px #00000088,0 0 120px #1B6B7B22;position:relative}
+.phone-notch{position:absolute;top:0;left:50%;transform:translateX(-50%);width:126px;height:34px;background:#0D1F26;border-radius:0 0 20px 20px;z-index:100}
+.detail-screen{background:var(--cream);min-height:812px;overflow-y:auto;padding-bottom:80px}
+.hero-image{height:280px;background:linear-gradient(135deg,var(--ocean-foam),var(--forest-pale));display:flex;align-items:center;justify-content:center;font-size:80px;position:relative;overflow:hidden}
+.hero-image::before{content:'';position:absolute;inset:0;background:radial-gradient(circle at 30% 30%,#ffffff33 0%,transparent 50%),radial-gradient(circle at 70% 70%,#00000011 0%,transparent 50%)}
+.back-btn{position:absolute;top:50px;left:20px;width:40px;height:40px;border-radius:50%;background:#ffffff95;backdrop-filter:blur(10px);display:flex;align-items:center;justify-content:center;font-size:20px;cursor:pointer;z-index:10}
+.favorite-btn{position:absolute;top:50px;right:20px;width:40px;height:40px;border-radius:50%;background:#ffffff95;backdrop-filter:blur(10px);display:flex;align-items:center;justify-content:center;font-size:22px;cursor:pointer;z-index:10}
+.gallery-strip{display:flex;gap:8px;padding:0 20px;margin-top:-30px;position:relative;z-index:10;overflow-x:auto}
+.gallery-thumb{min-width:70px;height:70px;border-radius:var(--radius-sm);background:linear-gradient(135deg,var(--ocean-foam),var(--forest-pale));display:flex;align-items:center;justify-content:center;font-size:28px;border:3px solid var(--white);box-shadow:0 4px 12px #00000020;cursor:pointer}
+.content{padding:20px}
+.badge-row{display:flex;gap:8px;margin-bottom:12px}
+.badge{background:var(--ocean-foam);color:var(--ocean-deep);padding:6px 12px;border-radius:50px;font-size:11px;font-weight:600}
+.place-title{font-family:'Playfair Display',serif;font-size:26px;font-weight:700;color:var(--text-dark);margin-bottom:8px}
+.place-location{font-size:14px;color:var(--text-light);margin-bottom:16px}
+.rating-card{background:var(--white);border-radius:var(--radius-md);padding:16px;margin-bottom:20px;display:flex;gap:20px;box-shadow:0 2px 12px #0000000a}
+.rating-big{font-family:'Playfair Display',serif;font-size:42px;font-weight:700;color:var(--text-dark)}
+.rating-stars{color:#D97706;font-size:18px;margin:4px 0}
+.rating-count{font-size:12px;color:var(--text-light)}
+.quick-info{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:24px}
+.info-pill{background:var(--white);padding:8px 14px;border-radius:50px;font-size:12px;color:var(--text-mid);box-shadow:0 2px 8px #0000000a}
+.tabs{display:flex;gap:8px;border-bottom:2px solid #00000008;margin-bottom:20px}
+.tab{padding:12px 20px;font-size:14px;font-weight:600;color:var(--text-light);cursor:pointer;border-bottom:3px solid transparent;transition:all .3s}
+.tab.active{color:var(--ocean-mid);border-bottom-color:var(--ocean-mid)}
+.description{font-size:14px;line-height:1.6;color:var(--text-mid);margin-bottom:20px}
+.highlights-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:24px}
+.highlight-box{background:var(--white);border-radius:var(--radius-md);padding:16px;text-align:center;box-shadow:0 2px 8px #0000000a}
+.highlight-value{font-size:20px;font-weight:700;color:var(--ocean-mid);margin-bottom:4px}
+.highlight-label{font-size:11px;color:var(--text-light);text-transform:uppercase}
+.booking-bar{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:375px;background:linear-gradient(135deg,var(--sand-mid),var(--earth-mid));padding:16px 20px;display:flex;align-items:center;justify-content:space-between;border-radius:44px 44px 0 0;box-shadow:0 -4px 24px #C4972A44}
+.price-section{color:var(--white)}
+.price-big{font-size:24px;font-weight:700}
+.price-small{font-size:11px;opacity:.85}
+.book-btn{background:var(--white);color:var(--sand-dark);padding:12px 32px;border-radius:50px;font-weight:600;border:none;cursor:pointer;box-shadow:0 4px 12px #00000022}
+</style>
+</head>
+<body>
+<div class="screen-wrapper">
+<div class="screen-label">SCREEN 08 — PLACE DETAIL</div>
+<div class="phone">
+<div class="phone-notch"></div>
+<div class="detail-screen">
+<div class="hero-image">
+<div class="back-btn">←</div>
+<div class="favorite-btn">♡</div>
+🏯
+</div>
+<div class="gallery-strip">
+<div class="gallery-thumb">🏰</div>
+<div class="gallery-thumb">🌊</div>
+<div class="gallery-thumb">📷</div>
+<div class="gallery-thumb" style="background:linear-gradient(135deg,var(--sand-mid),var(--earth-mid));color:var(--white);font-size:14px;font-weight:600">+12</div>
+</div>
+<div class="content">
+<div class="badge-row">
+<span class="badge">🏰 Sea Fort</span>
+<span class="badge">Heritage</span>
+</div>
+<h1 class="place-title">Sindhudurg Fort</h1>
+<p class="place-location">📍 Malvan, Sindhudurga · 3.2 km away</p>
+<div class="rating-card">
+<div>
+<div class="rating-big">4.9</div>
+<div class="rating-stars">★★★★★</div>
+<div class="rating-count">2,418 reviews</div>
+</div>
+<div style="flex:1;border-left:1px solid #00000008;padding-left:20px;display:grid;grid-template-columns:1fr;gap:4px;font-size:11px">
+<div style="display:flex;justify-content:space-between"><span>5⭐</span><div style="flex:1;height:6px;background:#00000008;border-radius:3px;margin:0 8px;overflow:hidden"><div style="width:88%;height:100%;background:#D97706"></div></div><span>88%</span></div>
+<div style="display:flex;justify-content:space-between"><span>4⭐</span><div style="flex:1;height:6px;background:#00000008;border-radius:3px;margin:0 8px;overflow:hidden"><div style="width:9%;height:100%;background:#D97706"></div></div><span>9%</span></div>
+</div>
+</div>
+<div class="quick-info">
+<span class="info-pill">🕐 9am-6pm</span>
+<span class="info-pill">🎫 ₹50</span>
+<span class="info-pill">🚢 15min boat</span>
+<span class="info-pill">🌤 All seasons</span>
+<span class="info-pill">🏃 Half day</span>
+</div>
+<div class="tabs">
+<div class="tab active">About</div>
+<div class="tab">Photos (2.4k)</div>
+<div class="tab">Reviews</div>
+<div class="tab">Nearby</div>
+</div>
+<p class="description">
+Historic sea fort built in 1664 by Chhatrapati Shivaji Maharaj on a rocky island. The fort covers 48 acres and features impressive architecture with temples, sweet water wells, and stunning ocean views. Accessible by boat from Malvan jetty.
+</p>
+<div class="highlights-grid">
+<div class="highlight-box">
+<div class="highlight-value">48 Acres</div>
+<div class="highlight-label">Fort Area</div>
+</div>
+<div class="highlight-box">
+<div class="highlight-value">1664 AD</div>
+<div class="highlight-label">Year Built</div>
+</div>
+<div class="highlight-box">
+<div class="highlight-value">15 min</div>
+<div class="highlight-label">Boat Ride</div>
+</div>
+<div class="highlight-box">
+<div class="highlight-value">🏊 Scuba</div>
+<div class="highlight-label">Activity</div>
+</div>
+</div>
+<div style="background:var(--white);border-radius:var(--radius-md);padding:16px;margin-bottom:16px">
+<h3 style="font-size:16px;font-weight:600;margin-bottom:12px;color:var(--text-dark)">🚌 How to Reach</h3>
+<p style="font-size:13px;line-height:1.6;color:var(--text-mid);margin-bottom:8px">
+<strong>By Bus:</strong> MSRTC to Malvan, then ferry (₹30, every 30min)
+</p>
+<p style="font-size:13px;line-height:1.6;color:var(--text-mid);margin-bottom:8px">
+<strong>By Car:</strong> 100km from Kudal station
+</p>
+<p style="font-size:13px;line-height:1.6;color:var(--text-mid)">
+<strong>By Air:</strong> Goa Airport 130km
+</p>
+</div>
+<div style="background:var(--white);border-radius:var(--radius-md);padding:16px">
+<h3 style="font-size:16px;font-weight:600;margin-bottom:12px;color:var(--text-dark)">💡 Tips & Warnings</h3>
+<p style="font-size:13px;line-height:1.6;color:var(--text-mid);margin-bottom:8px">
+✓ Visit early morning to avoid crowds<br>
+✓ Carry water and snacks<br>
+⚠️ Ferry schedule varies in monsoon
+</p>
+</div>
+</div>
+<div class="booking-bar">
+<div class="price-section">
+<div class="price-big">₹350</div>
+<div class="price-small">per person · incl ferry</div>
+</div>
+<button class="book-btn">Book Now →</button>
+</div>
+</div>
+</div>
+</div>
+</body>
+</html>

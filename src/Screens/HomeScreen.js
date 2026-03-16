@@ -420,6 +420,7 @@ const HomeScreen = ({navigation, route, ...props}) => {
         }
 
         if (isUpdated === 'true' && props.mode) {
+          dispatch({type: 'SET_LOADING', payload: true});
           await callLandingPageAPI();
         }
       };
@@ -556,7 +557,7 @@ const HomeScreen = ({navigation, route, ...props}) => {
   };
 
   const openProfile = () => navigateTo(navigation, t('SCREEN.PROFILE_VIEW'));
-  const getCityDetails = city => navigateTo(navigation, t('SCREEN.CITY_DETAILS'), {city});
+  const getCityDetails = city => navigateTo(navigation, t('SCREEN.SITE_DETAIL'), {city});
   const openLocationSheet = () => refRBSheet.current.open();
   const closeLocationSheet = () => refRBSheet.current.close();
 
@@ -944,12 +945,8 @@ const s = StyleSheet.create({
     borderRadius: 20,
     paddingHorizontal: 18,
     paddingVertical: 14,
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.5)',
-    shadowColor: '#000',
-    shadowOffset: {width: 0, height: 4},
-    shadowOpacity: 0.07,
-    shadowRadius: 12,
+    borderWidth: 2,
+    borderColor: 'rgba(27,107,123,0.22)',
   },
   searchPlaceholder: {
     flex: 1,

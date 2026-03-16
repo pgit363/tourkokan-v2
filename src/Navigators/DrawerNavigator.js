@@ -19,6 +19,7 @@ import QueriesList from '../Screens/ListPages/QueriesList';
 import Settings from '../Screens/Settings';
 import PrivacyPolicyScreen from '../Screens/PrivacyPolicyScreen';
 import TermsScreen from '../Screens/TermsScreen';
+import AboutScreen from '../Screens/AboutScreen';
 import VersionCheck from 'react-native-version-check';
 import STRING from '../Services/Constants/STRINGS';
 import UpdatePopup from '../Components/Common/UpdatePopup';
@@ -87,7 +88,7 @@ const DrawerNavigator = () => {
     {type: 'image', source: require('../Assets/Images/DrawerIcons/emergency.webp'), label: t('DRAWER.EMERGENCY'), screen: STRING.SCREEN.EMERGENCY, navigate: true},
     {type: 'image', source: require('../Assets/Images/DrawerIcons/contact_us.webp'), label: t('DRAWER.CONTACT_US'), screen: STRING.SCREEN.CONTACT_US, navigate: true},
     {type: 'image', source: require('../Assets/Images/DrawerIcons/settings.webp'), label: t('DRAWER.SETTINGS'), screen: STRING.SCREEN.SETTINGS, navigate: true},
-    {type: 'image', source: require('../Assets/Images/DrawerIcons/about.webp'), label: t('DRAWER.ABOUT'), screen: null, navigate: false},
+    {type: 'image', source: require('../Assets/Images/DrawerIcons/about.webp'), label: t('DRAWER.ABOUT'), screen: STRING.SCREEN.ABOUT, navigate: true},
   ];
 
   const CustomDrawerContent = ({navigation, state}) => {
@@ -212,6 +213,7 @@ const DrawerNavigator = () => {
       <Drawer.Screen name={STRING.SCREEN.SETTINGS} component={Settings} />
       <Drawer.Screen name={STRING.SCREEN.PRIVACY_POLICY} component={PrivacyPolicyScreen} />
       <Drawer.Screen name={STRING.SCREEN.TERMS} component={TermsScreen} />
+      <Drawer.Screen name={STRING.SCREEN.ABOUT} component={AboutScreen} />
     </Drawer.Navigator>
   );
 };

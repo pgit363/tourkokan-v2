@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TourKokan — MSRTC Detail</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400;1,600&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,300&display=swap" rel="stylesheet">
+<style>
+:root{--ocean-deep:#0D3D4A;--ocean-mid:#1B6B7B;--ocean-light:#4AABB8;--sand-mid:#C4972A;--forest-mid:#2E5C3A;--cream:#FAF7F0;--text-dark:#1C1917;--text-light:#78716C;--white:#FFF}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:radial-gradient(ellipse at 20% 20%,#0D3D4A88 0%,transparent 60%),radial-gradient(ellipse at 80% 80%,#1A332044 0%,transparent 60%),#0C1A1F;min-height:100vh;padding:40px 20px;display:flex;justify-content:center;font-family:'DM Sans',sans-serif}
+.phone{width:375px;min-height:812px;background:var(--cream);border-radius:44px;overflow:hidden;box-shadow:0 0 0 1px #ffffff18,0 40px 80px #00000088;position:relative}
+.phone-notch{position:absolute;top:0;left:50%;transform:translateX(-50%);width:126px;height:34px;background:#0D1F26;border-radius:0 0 20px 20px;z-index:100}
+.header{background:linear-gradient(135deg,var(--ocean-deep),#1A3320);padding:50px 20px 24px}
+.back-btn{width:36px;height:36px;border-radius:50%;background:#ffffff18;display:flex;align-items:center;justify-content:center;font-size:18px;color:var(--white);margin-bottom:12px}
+.route-info{background:#ffffff15;backdrop-filter:blur(10px);border-radius:18px;padding:16px;color:var(--white);border:1px solid #ffffff22}
+.route-title{font-size:18px;font-weight:600;margin-bottom:8px}
+.route-meta{display:flex;gap:16px;font-size:12px;opacity:.85}
+.timeline{padding:20px}
+.timeline-item{display:flex;gap:12px;position:relative;padding-bottom:24px}
+.timeline-item:last-child{padding-bottom:0}
+.timeline-item:last-child .timeline-line{display:none}
+.timeline-dot{width:14px;height:14px;border-radius:50%;background:linear-gradient(135deg,var(--ocean-mid),var(--forest-mid));border:3px solid var(--white);box-shadow:0 2px 8px #1B6B7B44;flex-shrink:0;margin-top:4px;position:relative;z-index:2}
+.timeline-dot.current{width:20px;height:20px;margin-top:1px;background:linear-gradient(135deg,var(--sand-mid),#8B6914);box-shadow:0 4px 12px #C4972A66}
+.timeline-line{position:absolute;left:6px;top:18px;bottom:-24px;width:2px;background:linear-gradient(180deg,var(--ocean-light),transparent);z-index:1}
+.timeline-content{flex:1}
+.stop-name{font-size:15px;font-weight:600;color:var(--text-dark);margin-bottom:2px}
+.stop-time{font-size:12px;color:var(--text-light)}
+.stop-distance{font-size:11px;color:var(--ocean-mid);font-weight:500;margin-top:2px}
+</style>
+</head>
+<body>
+<div style="text-align:center;color:#B8E4EA;font-size:11px;margin-bottom:16px;letter-spacing:2px;opacity:.7">SCREEN 15 — MSRTC ROUTE DETAIL</div>
+<div class="phone">
+<div class="phone-notch"></div>
+<div class="header">
+<div class="back-btn">←</div>
+<div class="route-info">
+<div class="route-title">🚌 Kankavli → Mumbai Central</div>
+<div class="route-meta">
+<span>516 km</span><span>•</span><span>41 Stops</span><span>•</span><span>Express</span>
+</div>
+</div>
+</div>
+<div class="timeline">
+<div class="timeline-item">
+<div class="timeline-dot"></div>
+<div class="timeline-line"></div>
+<div class="timeline-content">
+<div class="stop-name">Kankavli</div>
+<div class="stop-time">06:00 AM</div>
+<div class="stop-distance">0 km</div>
+</div>
+</div>
+<div class="timeline-item">
+<div class="timeline-dot"></div>
+<div class="timeline-line"></div>
+<div class="timeline-content">
+<div class="stop-name">Malvan</div>
+<div class="stop-time">06:45 AM</div>
+<div class="stop-distance">32 km</div>
+</div>
+</div>
+<div class="timeline-item">
+<div class="timeline-dot current"></div>
+<div class="timeline-line"></div>
+<div class="timeline-content">
+<div class="stop-name">Sawantwadi</div>
+<div class="stop-time">07:30 AM</div>
+<div class="stop-distance">68 km</div>
+</div>
+</div>
+<div class="timeline-item">
+<div class="timeline-dot"></div>
+<div class="timeline-line"></div>
+<div class="timeline-content">
+<div class="stop-name">Ratnagiri</div>
+<div class="stop-time">09:15 AM</div>
+<div class="stop-distance">142 km</div>
+</div>
+</div>
+<div class="timeline-item">
+<div class="timeline-dot"></div>
+<div class="timeline-line"></div>
+<div class="timeline-content">
+<div class="stop-name">Chiplun</div>
+<div class="stop-time">11:00 AM</div>
+<div class="stop-distance">238 km</div>
+</div>
+</div>
+<div class="timeline-item">
+<div class="timeline-dot"></div>
+<div class="timeline-content">
+<div class="stop-name">Mumbai Central</div>
+<div class="stop-time">06:30 PM</div>
+<div class="stop-distance">516 km</div>
+</div>
+</div>
+</div>
+</div>
+</body>
+</html>

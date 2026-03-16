@@ -17,6 +17,7 @@ import RoutesList from '../Screens/ListPages/RoutesList';
 import BusTimings from '../Screens/BusTimings';
 import CategoryProjects from '../Screens/CategoryProjects';
 import CityDetails from '../Screens/DetailPages/CityDetails';
+import SiteDetailPage from '../Screens/DetailPages/SiteDetailPage';
 import CityList from '../Screens/ListPages/CityList';
 import Explore from '../Screens/ListPages/Explore';
 import Categories from '../Screens/ListPages/Categories';
@@ -154,6 +155,10 @@ const StackNavigator = () => {
           <Stack.Screen
             name={t('SCREEN.CITY_DETAILS')}
             component={CityDetails}
+          />
+          <Stack.Screen
+            name={t('SCREEN.SITE_DETAIL')}
+            component={SiteDetailPage}
           />
           <Stack.Screen
             name={t('SCREEN.PLACE_DETAILS')}

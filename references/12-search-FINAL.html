@@ -1,0 +1,821 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TourKokan — Search</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400;1,600&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,300&display=swap" rel="stylesheet">
+<style>
+:root{--ocean-deep:#0D3D4A;--ocean-mid:#1B6B7B;--ocean-foam:#B8E4EA;--sand-mid:#C4972A;--earth-mid:#6B4226;--forest-deep:#1A3320;--forest-mid:#2E5C3A;--forest-pale:#D4EDD9;--cream:#FAF7F0;--text-dark:#1C1917;--text-mid:#44403C;--text-light:#78716C;--white:#FFF;--radius-md:18px}
+*{margin:0;padding:0;box-sizing:border-box}
+html{font-family:'DM Sans',sans-serif;background:#0D1F26}
+body{background:radial-gradient(ellipse at 20% 20%,#0D3D4A88 0%,transparent 60%),radial-gradient(ellipse at 80% 80%,#1A332044 0%,transparent 60%),#0C1A1F;min-height:100vh;padding:40px 20px;display:flex;justify-content:center}
+.screen-wrapper{display:flex;flex-direction:column;align-items:center;gap:16px}
+.screen-label{font-size:11px;font-weight:500;letter-spacing:2px;text-transform:uppercase;color:#B8E4EA;opacity:.7}
+.phone{width:375px;min-height:812px;background:var(--cream);border-radius:44px;overflow:hidden;box-shadow:0 0 0 1px #ffffff18,0 40px 80px #00000088;position:relative}
+.phone-notch{position:absolute;top:0;left:50%;transform:translateX(-50%);width:126px;height:34px;background:#0D1F26;border-radius:0 0 20px 20px;z-index:100}
+.search-screen{background:var(--cream);overflow-y:auto;position:relative}
+
+/* Header - Sticky Glassmorphism */
+.search-header{background:linear-gradient(135deg,rgba(13,61,74,.95),rgba(26,51,32,.95));backdrop-filter:blur(20px);padding:50px 20px 12px;position:sticky;top:0;z-index:90;border-bottom:1px solid rgba(255,255,255,.1);transition:all .3s}
+.search-header.has-suggestions{padding-bottom:0}
+
+/* Back Button - Top Left */
+.header-back{display:flex;align-items:center;margin-bottom:12px}
+.back-btn{width:40px;height:40px;border-radius:50%;background:rgba(255,255,255,.15);backdrop-filter:blur(10px);display:flex;align-items:center;justify-content:center;font-size:20px;color:var(--white);cursor:pointer;border:1px solid rgba(255,255,255,.2);flex-shrink:0;transition:all .3s}
+.back-btn:active{transform:scale(.95)}
+
+/* Search Bar Container - Centered */
+.search-container{position:relative;width:100%}
+.search-bar{background:rgba(255,255,255,.95);backdrop-filter:blur(20px);border-radius:var(--radius-md);padding:14px 16px;display:flex;align-items:center;gap:12px;box-shadow:0 4px 16px rgba(0,0,0,.12);border:2px solid rgba(255,255,255,.5);transition:all .3s}
+.search-bar.focused{border-color:var(--ocean-foam);box-shadow:0 6px 24px rgba(27,107,123,.2);border-radius:18px 18px 0 0}
+.search-icon{font-size:20px;color:var(--ocean-mid);flex-shrink:0}
+.search-input{flex:1;border:none;font-size:15px;color:var(--text-dark);background:transparent;outline:none;font-weight:500}
+.search-input::placeholder{color:var(--text-light)}
+.search-btn{background:linear-gradient(135deg,var(--ocean-mid),var(--forest-mid));color:var(--white);border:none;width:36px;height:36px;border-radius:50%;font-size:16px;cursor:pointer;transition:all .3s;display:none;align-items:center;justify-content:center;flex-shrink:0}
+.search-btn.show{display:flex}
+.search-btn:hover{transform:scale(1.08);box-shadow:0 4px 12px rgba(27,107,123,.3)}
+.search-btn:active{transform:scale(.95)}
+.clear-btn{font-size:18px;color:var(--text-light);cursor:pointer;flex-shrink:0;padding:4px;display:none;transition:all .3s}
+.clear-btn:hover{color:var(--text-dark)}
+.clear-btn.show{display:block}
+
+/* Dropdown Suggestions */
+.suggestions-dropdown{position:absolute;top:100%;left:0;right:0;background:rgba(255,255,255,.98);backdrop-filter:blur(20px);border-radius:0 0 18px 18px;box-shadow:0 8px 32px rgba(0,0,0,.15);border:2px solid var(--ocean-foam);border-top:none;max-height:400px;overflow-y:auto;z-index:100;display:none}
+.suggestions-dropdown.show{display:block}
+.suggestions-dropdown::-webkit-scrollbar{width:6px}
+.suggestions-dropdown::-webkit-scrollbar-track{background:rgba(0,0,0,.05)}
+.suggestions-dropdown::-webkit-scrollbar-thumb{background:var(--ocean-mid);border-radius:3px}
+
+/* Suggestion Sections */
+.suggestion-section{padding:16px 0;border-bottom:1px solid rgba(0,0,0,.05)}
+.suggestion-section:last-child{border-bottom:none}
+.suggestion-header{padding:0 16px 8px;font-size:11px;font-weight:700;color:var(--text-light);text-transform:uppercase;letter-spacing:0.5px}
+
+/* Category Suggestions */
+.category-suggestions{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:0 12px 12px}
+.category-item{background:linear-gradient(135deg,rgba(184,228,234,.15),rgba(212,237,217,.15));border:1.5px solid rgba(27,107,123,.2);border-radius:12px;padding:12px;cursor:pointer;transition:all .3s;display:flex;align-items:center;gap:10px}
+.category-item:hover{background:linear-gradient(135deg,rgba(184,228,234,.3),rgba(212,237,217,.3));border-color:var(--ocean-mid);transform:translateY(-2px)}
+.category-item.highlighted{background:linear-gradient(135deg,var(--ocean-foam),var(--forest-pale));border-color:var(--ocean-mid)}
+.category-icon{font-size:24px}
+.category-info{flex:1}
+.category-name{font-size:13px;font-weight:700;color:var(--text-dark);margin-bottom:2px}
+.category-count{font-size:10px;color:var(--text-light)}
+
+/* Place Suggestions */
+.place-suggestions{padding:0 12px 8px}
+.place-item{padding:12px;border-radius:10px;cursor:pointer;transition:all .3s;display:flex;align-items:center;gap:12px}
+.place-item:hover{background:rgba(27,107,123,.08)}
+.place-item.highlighted{background:rgba(27,107,123,.12)}
+.place-thumb{width:48px;height:48px;border-radius:10px;background:linear-gradient(135deg,var(--ocean-foam),var(--forest-pale));display:flex;align-items:center;justify-content:center;font-size:24px;flex-shrink:0}
+.place-content{flex:1}
+.place-name{font-size:14px;font-weight:600;color:var(--text-dark);margin-bottom:4px}
+.place-name .highlight{background:rgba(196,151,42,.2);padding:0 2px;border-radius:2px;font-weight:700}
+.place-meta{font-size:11px;color:var(--text-light)}
+.place-badge{background:var(--ocean-foam);color:var(--ocean-deep);font-size:9px;font-weight:700;padding:3px 8px;border-radius:50px;text-transform:uppercase;letter-spacing:0.5px}
+
+/* No Results */
+.no-results{padding:32px 20px;text-align:center}
+.no-results-icon{font-size:48px;margin-bottom:12px;opacity:.3}
+.no-results-text{font-size:14px;color:var(--text-mid);margin-bottom:16px}
+.add-place-btn{background:var(--ocean-mid);color:var(--white);border:none;padding:12px 24px;border-radius:50px;font-size:13px;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:8px}
+
+/* Content Area */
+.content{padding:12px 20px}
+
+/* Recent Searches - Horizontal Scroll */
+.recent-section{margin-bottom:16px}
+.section-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+.section-title{font-size:13px;font-weight:700;color:var(--text-dark);text-transform:uppercase;letter-spacing:0.5px}
+.clear-all{font-size:12px;color:var(--ocean-mid);cursor:pointer;font-weight:600}
+.recent-scroll{display:flex;gap:8px;overflow-x:auto;-ms-overflow-style:none;scrollbar-width:none;padding-bottom:4px}
+.recent-scroll::-webkit-scrollbar{display:none}
+.recent-chip{background:rgba(255,255,255,.95);backdrop-filter:blur(15px);border:1.5px solid rgba(0,0,0,.08);border-radius:50px;padding:8px 16px;display:flex;align-items:center;gap:8px;cursor:pointer;white-space:nowrap;transition:all .3s;flex-shrink:0}
+.recent-chip:hover{border-color:var(--ocean-mid);transform:translateY(-2px)}
+.recent-icon{font-size:14px;color:var(--text-light)}
+.recent-text{font-size:13px;color:var(--text-dark);font-weight:500}
+
+/* View Toggle - Three Options */
+.results-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+.results-count{font-size:14px;font-weight:700;color:var(--text-dark)}
+.view-toggle{display:flex;gap:4px;background:rgba(255,255,255,.9);padding:4px;border-radius:10px;border:1px solid rgba(0,0,0,.05)}
+.toggle-btn{width:36px;height:36px;border-radius:8px;background:transparent;border:none;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:16px;color:var(--text-mid);transition:all .3s}
+.toggle-btn.active{background:var(--ocean-mid);color:var(--white);box-shadow:0 2px 8px rgba(27,107,123,.3)}
+
+/* Loading Indicator */
+.loading-indicator{margin:20px 0;opacity:.7}
+
+/* Map View Container */
+.map-view-container{display:none;margin-top:12px}
+.map-view-container.active{display:block}
+.map-wrapper{height:calc(100vh - 350px);min-height:450px;background:linear-gradient(135deg,var(--ocean-foam),var(--forest-pale));position:relative;border-radius:var(--radius-md);overflow:hidden;display:flex;align-items:center;justify-content:center;font-size:72px}
+.map-wrapper::before{content:'';position:absolute;inset:0;background:url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="20" cy="30" r="3" fill="%230D3D4A"/><circle cx="45" cy="25" r="3" fill="%230D3D4A"/><circle cx="60" cy="40" r="3" fill="%230D3D4A"/><circle cx="30" cy="60" r="3" fill="%230D3D4A"/><circle cx="70" cy="55" r="3" fill="%230D3D4A"/><circle cx="50" cy="70" r="3" fill="%230D3D4A"/><circle cx="80" cy="35" r="3" fill="%230D3D4A"/><circle cx="35" cy="80" r="3" fill="%230D3D4A"/></svg>') center/cover;opacity:.25}
+
+/* Map Controls */
+.map-controls{position:absolute;top:12px;right:12px;display:flex;flex-direction:column;gap:8px;z-index:10}
+.map-control-btn{width:40px;height:40px;border-radius:50%;background:rgba(255,255,255,.95);backdrop-filter:blur(10px);display:flex;align-items:center;justify-content:center;font-size:18px;cursor:pointer;box-shadow:0 3px 10px rgba(0,0,0,.15);border:1px solid rgba(255,255,255,.5);transition:all .3s}
+.map-control-btn:hover{transform:scale(1.05);box-shadow:0 5px 15px rgba(0,0,0,.25)}
+.map-control-btn:active{transform:scale(.95)}
+
+/* Map Info Overlay */
+.map-info{position:absolute;top:12px;left:12px;background:rgba(255,255,255,.95);backdrop-filter:blur(10px);padding:8px 14px;border-radius:50px;font-size:12px;font-weight:700;color:var(--ocean-mid);box-shadow:0 3px 10px rgba(0,0,0,.15);border:1px solid rgba(255,255,255,.5);display:flex;align-items:center;gap:6px}
+
+/* Map Filter Chips */
+.map-filters{position:absolute;bottom:12px;left:12px;right:12px;display:flex;gap:6px;overflow-x:auto;-ms-overflow-style:none;scrollbar-width:none}
+.map-filters::-webkit-scrollbar{display:none}
+.map-filter-chip{background:rgba(255,255,255,.95);backdrop-filter:blur(10px);padding:8px 14px;border-radius:50px;font-size:12px;font-weight:600;color:var(--text-dark);box-shadow:0 2px 8px rgba(0,0,0,.15);white-space:nowrap;flex-shrink:0;transition:all .3s;border:1px solid rgba(255,255,255,.5);cursor:pointer}
+.map-filter-chip:hover{transform:translateY(-2px);box-shadow:0 4px 12px rgba(0,0,0,.25)}
+.map-filter-chip.active{background:linear-gradient(135deg,var(--ocean-mid),var(--forest-mid));color:var(--white);border-color:transparent}
+
+/* Map Marker Popup */
+.marker-popup{position:absolute;bottom:80px;left:12px;right:12px;background:rgba(255,255,255,.98);backdrop-filter:blur(20px);border-radius:var(--radius-md);padding:14px;box-shadow:0 -3px 20px rgba(0,0,0,.15);border:1px solid rgba(255,255,255,.5);transform:translateY(100%);opacity:0;transition:all .3s;pointer-events:none}
+.marker-popup.show{transform:translateY(0);opacity:1;pointer-events:all}
+.popup-handle{width:36px;height:4px;background:rgba(0,0,0,.1);border-radius:2px;margin:0 auto 10px}
+.popup-content{display:flex;gap:12px;align-items:center}
+.popup-image{width:60px;height:60px;border-radius:10px;background:linear-gradient(135deg,var(--ocean-foam),var(--forest-pale));display:flex;align-items:center;justify-content:center;font-size:28px;flex-shrink:0}
+.popup-info{flex:1}
+.popup-name{font-size:14px;font-weight:700;color:var(--text-dark);margin-bottom:4px}
+.popup-meta{font-size:11px;color:var(--text-light);margin-bottom:8px}
+.popup-actions{display:flex;gap:6px}
+.popup-btn{padding:7px 14px;border-radius:50px;font-size:11px;font-weight:600;border:none;cursor:pointer;transition:all .3s}
+.popup-btn:hover{transform:translateY(-1px)}
+.popup-btn-primary{background:linear-gradient(135deg,var(--sand-mid),var(--earth-mid));color:var(--white);box-shadow:0 2px 6px rgba(196,151,42,.25)}
+.popup-btn-secondary{background:rgba(0,0,0,.06);color:var(--text-dark)}
+.results-list{display:flex;flex-direction:column;gap:12px}
+.result-card{background:rgba(255,255,255,.95);backdrop-filter:blur(20px);border-radius:var(--radius-md);overflow:hidden;cursor:pointer;box-shadow:0 2px 12px rgba(0,0,0,.08);transition:all .3s;border:1px solid rgba(255,255,255,.5)}
+.result-card:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(0,0,0,.15);border-color:var(--ocean-foam)}
+.result-image{width:100%;height:140px;background:linear-gradient(135deg,var(--ocean-foam),var(--forest-pale));display:flex;align-items:center;justify-content:center;font-size:48px;position:relative}
+.result-badge{position:absolute;top:10px;right:10px;background:rgba(255,255,255,.95);backdrop-filter:blur(10px);padding:6px 12px;border-radius:50px;font-size:11px;font-weight:700;color:var(--ocean-mid);box-shadow:0 2px 8px rgba(0,0,0,.2)}
+.result-info{padding:14px}
+.result-name{font-size:16px;font-weight:700;color:var(--text-dark);margin-bottom:6px}
+.result-location{font-size:12px;color:var(--text-light);margin-bottom:8px;display:flex;align-items:center;gap:4px}
+.result-meta{display:flex;gap:12px;font-size:12px;color:var(--text-mid)}
+
+/* Compact List View */
+.result-compact{background:rgba(255,255,255,.95);backdrop-filter:blur(20px);border-radius:14px;padding:12px;display:flex;gap:12px;cursor:pointer;transition:all .3s;border:1px solid rgba(255,255,255,.5)}
+.result-compact:hover{transform:translateX(4px);border-color:var(--ocean-foam)}
+.result-thumb{width:60px;height:60px;border-radius:10px;background:linear-gradient(135deg,var(--ocean-foam),var(--forest-pale));display:flex;align-items:center;justify-content:center;font-size:28px;flex-shrink:0}
+.result-content{flex:1;display:flex;flex-direction:column;gap:4px;justify-content:center}
+.result-compact-name{font-size:15px;font-weight:700;color:var(--text-dark)}
+.result-compact-meta{font-size:11px;color:var(--text-light)}
+
+/* Add Missing Place Card */
+.add-place-card{background:rgba(255,255,255,.95);backdrop-filter:blur(15px);border:2px dashed var(--ocean-mid);border-radius:14px;padding:16px;display:flex;align-items:center;gap:12px;cursor:pointer;margin-top:16px;transition:all .3s}
+.add-place-card:hover{background:rgba(184,228,234,.2);transform:translateY(-2px)}
+.add-place-icon{width:40px;height:40px;border-radius:50%;background:var(--ocean-foam);display:flex;align-items:center;justify-content:center;font-size:20px}
+.add-place-text{flex:1}
+.add-place-title{font-size:14px;font-weight:700;color:var(--text-dark);margin-bottom:2px}
+.add-place-desc{font-size:11px;color:var(--text-light)}
+
+/* Bottom Nav */
+.bottom-nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:375px;background:rgba(255,255,255,.98);backdrop-filter:blur(20px);display:flex;justify-content:space-around;padding:12px 0;box-shadow:0 -4px 24px rgba(0,0,0,.1);border-radius:44px 44px 0 0;z-index:50;border-top:1px solid rgba(255,255,255,.5)}
+.nav-item{display:flex;flex-direction:column;align-items:center;gap:4px;padding:8px 16px;border-radius:10px;text-decoration:none;color:var(--text-light);font-size:11px;font-weight:500;transition:all .3s}
+.nav-item.active{background:linear-gradient(135deg,rgba(184,228,234,.5),rgba(212,237,217,.5));color:var(--ocean-deep)}
+</style>
+</head>
+<body>
+<div class="screen-wrapper">
+<div class="screen-label">SCREEN 12 — SEARCH (ADVANCED)</div>
+<div class="phone">
+<div class="phone-notch"></div>
+<div class="search-screen">
+
+<!-- Header with Search & Suggestions -->
+<div class="search-header" id="searchHeader">
+<!-- Back Button - Top Left -->
+<div class="header-back">
+<div class="back-btn" onclick="goBack()">←</div>
+</div>
+
+<!-- Search Bar - Centered -->
+<div class="search-container">
+<div class="search-bar" id="searchBar">
+<span class="search-icon">🔍</span>
+<input 
+  type="text" 
+  class="search-input" 
+  id="searchInput" 
+  placeholder="Search places, beaches, forts..." 
+  oninput="handleInput()"
+  onfocus="handleFocus()" 
+  onblur="handleBlur()"
+  onkeypress="handleKeyPress(event)"
+>
+<span class="clear-btn" id="clearBtn" onclick="clearSearch()">✕</span>
+<button class="search-btn" onclick="performSearch()" id="searchButton">
+  🔍
+</button>
+</div>
+
+<!-- Dropdown Suggestions -->
+<div class="suggestions-dropdown" id="suggestionsDropdown">
+  <!-- Category Suggestions -->
+  <div class="suggestion-section">
+    <div class="suggestion-header">Search in Categories</div>
+    <div class="category-suggestions">
+      <div class="category-item" onclick="searchInCategory('beaches')">
+        <span class="category-icon">🏖</span>
+        <div class="category-info">
+          <div class="category-name">Beaches</div>
+          <div class="category-count">25 places</div>
+        </div>
+      </div>
+      <div class="category-item" onclick="searchInCategory('forts')">
+        <span class="category-icon">🏰</span>
+        <div class="category-info">
+          <div class="category-name">Forts</div>
+          <div class="category-count">18 places</div>
+        </div>
+      </div>
+      <div class="category-item" onclick="searchInCategory('temples')">
+        <span class="category-icon">🛕</span>
+        <div class="category-info">
+          <div class="category-name">Temples</div>
+          <div class="category-count">30 places</div>
+        </div>
+      </div>
+      <div class="category-item" onclick="searchInCategory('hotels')">
+        <span class="category-icon">🏨</span>
+        <div class="category-info">
+          <div class="category-name">Hotels</div>
+          <div class="category-count">45 stays</div>
+        </div>
+      </div>
+      <div class="category-item" onclick="searchInCategory('cities')">
+        <span class="category-icon">🏙️</span>
+        <div class="category-info">
+          <div class="category-name">Cities</div>
+          <div class="category-count">8 talukas</div>
+        </div>
+      </div>
+      <div class="category-item" onclick="searchInCategory('waterfalls')">
+        <span class="category-icon">💧</span>
+        <div class="category-info">
+          <div class="category-name">Waterfalls</div>
+          <div class="category-count">12 places</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Matching Places (shown when typing) -->
+  <div class="suggestion-section" id="placesSuggestion" style="display:none">
+    <div class="suggestion-header">Suggested Places</div>
+    <div class="place-suggestions" id="placesList">
+      <!-- Dynamic suggestions populated here -->
+    </div>
+  </div>
+</div>
+</div>
+</div>
+</div>
+
+<!-- Content -->
+<div class="content">
+
+<!-- Recent Searches - Horizontal -->
+<div class="recent-section" id="recentSection">
+<div class="section-header">
+<div class="section-title">Recent Searches</div>
+<div class="clear-all" onclick="clearRecent()">Clear All</div>
+</div>
+<div class="recent-scroll">
+<div class="recent-chip" onclick="searchFor('Malvan')">
+<span class="recent-icon">🕐</span>
+<span class="recent-text">Malvan</span>
+</div>
+<div class="recent-chip" onclick="searchFor('Sindhudurg Fort')">
+<span class="recent-icon">🕐</span>
+<span class="recent-text">Sindhudurg Fort</span>
+</div>
+<div class="recent-chip" onclick="searchFor('beaches')">
+<span class="recent-icon">🕐</span>
+<span class="recent-text">beaches</span>
+</div>
+<div class="recent-chip" onclick="searchFor('waterfall')">
+<span class="recent-icon">🕐</span>
+<span class="recent-text">waterfall</span>
+</div>
+<div class="recent-chip" onclick="searchFor('hotels Vengurla')">
+<span class="recent-icon">🕐</span>
+<span class="recent-text">hotels Vengurla</span>
+</div>
+</div>
+</div>
+
+<!-- Search Results -->
+<div id="resultsSection">
+<div class="results-header">
+<div class="results-count">
+  <span id="resultCount">24 results</span>
+</div>
+<div class="view-toggle">
+<button class="toggle-btn active" onclick="toggleView('grid')" id="gridBtn" title="Grid View">☷</button>
+<button class="toggle-btn" onclick="toggleView('list')" id="listBtn" title="List View">☰</button>
+<button class="toggle-btn" onclick="toggleView('map')" id="mapBtn" title="Map View">🗺</button>
+</div>
+</div>
+
+<!-- Grid View -->
+<div class="results-list" id="gridView">
+<div class="result-card" onclick="openPlace('Tarkarli Beach')">
+<div class="result-image">🏖<div class="result-badge">Beach</div></div>
+<div class="result-info">
+<div class="result-name">Tarkarli Beach</div>
+<div class="result-location">📍 Malvan, Sindhudurga</div>
+<div class="result-meta">
+  <span>⭐ 4.8</span>
+  <span>•</span>
+  <span>5.1 km</span>
+</div>
+</div>
+</div>
+
+<div class="result-card" onclick="openPlace('Sindhudurg Fort')">
+<div class="result-image">🏰<div class="result-badge">Fort</div></div>
+<div class="result-info">
+<div class="result-name">Sindhudurg Fort</div>
+<div class="result-location">📍 Malvan, Sindhudurga</div>
+<div class="result-meta">
+  <span>⭐ 4.9</span>
+  <span>•</span>
+  <span>8 km</span>
+</div>
+</div>
+</div>
+
+<div class="result-card" onclick="openPlace('Vengurla Beach')">
+<div class="result-image">🌊<div class="result-badge">Beach</div></div>
+<div class="result-info">
+<div class="result-name">Vengurla Beach</div>
+<div class="result-location">📍 Vengurla, Sindhudurga</div>
+<div class="result-meta">
+  <span>⭐ 4.7</span>
+  <span>•</span>
+  <span>12 km</span>
+</div>
+</div>
+</div>
+</div>
+
+<!-- List View -->
+<div class="results-list" id="listView" style="display:none">
+<div class="result-compact" onclick="openPlace('Tarkarli Beach')">
+<div class="result-thumb">🏖</div>
+<div class="result-content">
+<div class="result-compact-name">Tarkarli Beach</div>
+<div class="result-compact-meta">📍 Malvan • ⭐ 4.8 • 5.1 km</div>
+</div>
+</div>
+<div class="result-compact" onclick="openPlace('Sindhudurg Fort')">
+<div class="result-thumb">🏰</div>
+<div class="result-content">
+<div class="result-compact-name">Sindhudurg Fort</div>
+<div class="result-compact-meta">📍 Malvan • ⭐ 4.9 • 8 km</div>
+</div>
+</div>
+<div class="result-compact" onclick="openPlace('Vengurla Beach')">
+<div class="result-thumb">🌊</div>
+<div class="result-content">
+<div class="result-compact-name">Vengurla Beach</div>
+<div class="result-compact-meta">📍 Vengurla • ⭐ 4.7 • 12 km</div>
+</div>
+</div>
+</div>
+
+<!-- Map View -->
+<div class="map-view-container" id="mapViewContainer">
+<div class="map-wrapper">
+🗺
+<!-- Map Info Badge -->
+<div class="map-info">
+  <span>📍</span>
+  <span id="mapResultCount">24 places</span>
+</div>
+
+<!-- Map Controls -->
+<div class="map-controls">
+  <div class="map-control-btn" onclick="locateMe()" title="My Location">🎯</div>
+  <div class="map-control-btn" onclick="zoomIn()" title="Zoom In">➕</div>
+  <div class="map-control-btn" onclick="zoomOut()" title="Zoom Out">➖</div>
+</div>
+
+<!-- Map Filters (Category Chips) -->
+<div class="map-filters">
+  <div class="map-filter-chip active" onclick="filterMapView('all')">🌟 All</div>
+  <div class="map-filter-chip" onclick="filterMapView('beaches')">🏖 Beaches</div>
+  <div class="map-filter-chip" onclick="filterMapView('forts')">🏰 Forts</div>
+  <div class="map-filter-chip" onclick="filterMapView('temples')">🛕 Temples</div>
+  <div class="map-filter-chip" onclick="filterMapView('nature')">🌿 Nature</div>
+  <div class="map-filter-chip" onclick="filterMapView('food')">🍽️ Food</div>
+</div>
+</div>
+
+<!-- Marker Popup (shows when marker clicked) -->
+<div class="marker-popup" id="markerPopup">
+<div class="popup-handle"></div>
+<div class="popup-content">
+  <div class="popup-image">🏰</div>
+  <div class="popup-info">
+    <div class="popup-name">Sindhudurg Fort</div>
+    <div class="popup-meta">⭐ 4.9 • 📍 3.2 km away</div>
+    <div class="popup-actions">
+      <button class="popup-btn popup-btn-primary" onclick="getDirections()">Directions</button>
+      <button class="popup-btn popup-btn-secondary" onclick="viewPlaceDetails()">Details</button>
+    </div>
+  </div>
+</div>
+</div>
+</div>
+
+<!-- Infinite Scroll Indicator (Grid/List only) -->
+<div class="loading-indicator" id="loadingIndicator" style="display:none">
+<div style="text-align:center;padding:20px">
+<div style="display:inline-block;width:32px;height:32px;border:3px solid rgba(27,107,123,.2);border-top-color:var(--ocean-mid);border-radius:50%;animation:spin 1s linear infinite"></div>
+<div style="font-size:12px;color:var(--text-light);margin-top:8px">Loading more...</div>
+</div>
+</div>
+
+<style>
+@keyframes spin{to{transform:rotate(360deg)}}
+</style>
+
+<!-- Add Missing Place -->
+<div class="add-place-card" onclick="addPlace()">
+<div class="add-place-icon">📍</div>
+<div class="add-place-text">
+<div class="add-place-title">Can't find what you're looking for?</div>
+<div class="add-place-desc">Add a missing place to help others</div>
+</div>
+<span style="font-size:20px;color:var(--ocean-mid)">→</span>
+</div>
+</div>
+
+</div>
+
+<!-- Bottom Nav -->
+<nav class="bottom-nav">
+<a href="#" class="nav-item"><span style="font-size:22px">🏠</span><span>Home</span></a>
+<a href="#" class="nav-item active"><span style="font-size:22px">🔍</span><span>Discover</span></a>
+<a href="#" class="nav-item"><span style="font-size:22px">🚌</span><span>MSRTC</span></a>
+<a href="#" class="nav-item"><span style="font-size:22px">❤️</span><span>Saved</span></a>
+<a href="#" class="nav-item"><span style="font-size:22px">👤</span><span>Profile</span></a>
+</nav>
+
+</div>
+</div>
+</div>
+
+<script>
+const searchInput = document.getElementById('searchInput');
+const searchBar = document.getElementById('searchBar');
+const clearBtn = document.getElementById('clearBtn');
+const searchButton = document.getElementById('searchButton');
+const suggestionsDropdown = document.getElementById('suggestionsDropdown');
+const placesSuggestion = document.getElementById('placesSuggestion');
+const placesList = document.getElementById('placesList');
+const searchHeader = document.getElementById('searchHeader');
+
+let searchTimeout;
+let currentCategory = null;
+
+// Sample data for suggestions
+const samplePlaces = [
+  { name: 'Malvan', type: 'Taluka', icon: '🏙️', rating: 4.8, count: '38 places' },
+  { name: 'Maldives Beach', type: 'Beach', icon: '🏖', rating: 4.9, distance: '5.1 km' },
+  { name: 'Malaga Fort', type: 'Fort', icon: '🏰', rating: 4.5, distance: '8.2 km' }
+];
+
+// Handle input with debounce
+function handleInput() {
+  const value = searchInput.value.trim();
+  
+  // Show/hide buttons
+  if (value.length > 0) {
+    clearBtn.classList.add('show');
+    searchButton.classList.add('show');
+  } else {
+    clearBtn.classList.remove('show');
+    searchButton.classList.remove('show');
+  }
+  
+  // Debounced search
+  clearTimeout(searchTimeout);
+  searchTimeout = setTimeout(() => {
+    if (value.length >= 2) {
+      showSuggestions(value);
+    } else {
+      hideSuggestions();
+    }
+  }, 300);
+}
+
+// Show suggestions dropdown
+function showSuggestions(query) {
+  suggestionsDropdown.classList.add('show');
+  searchHeader.classList.add('has-suggestions');
+  
+  // Show matching places
+  placesSuggestion.style.display = 'block';
+  
+  // Populate suggestions (mock data)
+  placesList.innerHTML = samplePlaces
+    .map(place => `
+      <div class="place-item" onclick="selectPlace('${place.name}')">
+        <div class="place-thumb">${place.icon}</div>
+        <div class="place-content">
+          <div class="place-name">${highlightMatch(place.name, query)}</div>
+          <div class="place-meta">
+            ${place.type} • ⭐ ${place.rating} • ${place.distance || place.count}
+          </div>
+        </div>
+        <span class="place-badge">${place.type}</span>
+      </div>
+    `).join('');
+  
+  // React Native: Real API call
+  // const results = await searchPlaces(query);
+  console.log('Fetching suggestions for:', query);
+}
+
+// Hide suggestions
+function hideSuggestions() {
+  setTimeout(() => {
+    suggestionsDropdown.classList.remove('show');
+    searchHeader.classList.remove('has-suggestions');
+  }, 200);
+}
+
+// Highlight matching text
+function highlightMatch(text, query) {
+  const regex = new RegExp(`(${query})`, 'gi');
+  return text.replace(regex, '<span class="highlight">$1</span>');
+}
+
+// Focus/blur handlers
+function handleFocus() {
+  searchBar.classList.add('focused');
+  if (searchInput.value.length >= 2) {
+    showSuggestions(searchInput.value);
+  } else {
+    // Show category suggestions by default
+    suggestionsDropdown.classList.add('show');
+    searchHeader.classList.add('has-suggestions');
+    placesSuggestion.style.display = 'none';
+  }
+}
+
+function handleBlur() {
+  setTimeout(() => {
+    searchBar.classList.remove('focused');
+    hideSuggestions();
+  }, 200);
+}
+
+// Handle Enter key
+function handleKeyPress(event) {
+  if (event.key === 'Enter') {
+    performSearch();
+  }
+}
+
+// Perform search (button click or Enter)
+function performSearch() {
+  const query = searchInput.value.trim();
+  if (query.length === 0) return;
+  
+  hideSuggestions();
+  searchInput.blur();
+  
+  console.log('Performing search for:', query, 'Category:', currentCategory);
+  
+  // React Native: API call
+  // const results = await searchPlaces(query, currentCategory);
+  // updateResults(results);
+  
+  // Add to recent searches
+  addToRecent(query);
+}
+
+// Search in specific category
+function searchInCategory(category) {
+  currentCategory = category;
+  const query = searchInput.value.trim();
+  
+  console.log('Search in category:', category, 'Query:', query);
+  
+  // React Native: Filtered search
+  // const results = await searchPlaces(query, category);
+  
+  hideSuggestions();
+  searchInput.blur();
+}
+
+// Select place from suggestions
+function selectPlace(placeName) {
+  searchInput.value = placeName;
+  performSearch();
+}
+
+// Clear search
+function clearSearch() {
+  searchInput.value = '';
+  clearBtn.classList.remove('show');
+  searchButton.style.display = 'none';
+  currentCategory = null;
+  hideSuggestions();
+  searchInput.focus();
+}
+
+// Search for term (from recent)
+function searchFor(term) {
+  searchInput.value = term;
+  handleInput();
+  performSearch();
+}
+
+// Clear recent searches
+function clearRecent() {
+  console.log('Clear recent searches');
+  // React Native: AsyncStorage.removeItem('recentSearches')
+}
+
+// Add to recent searches
+function addToRecent(query) {
+  console.log('Add to recent:', query);
+  // React Native: Save to AsyncStorage
+}
+
+// Toggle view
+let currentView = 'grid';
+function toggleView(view) {
+  currentView = view;
+  const gridView = document.getElementById('gridView');
+  const listView = document.getElementById('listView');
+  const mapViewContainer = document.getElementById('mapViewContainer');
+  const gridBtn = document.getElementById('gridBtn');
+  const listBtn = document.getElementById('listBtn');
+  const mapBtn = document.getElementById('mapBtn');
+  const loadingIndicator = document.getElementById('loadingIndicator');
+  
+  // Hide all views first
+  gridView.style.display = 'none';
+  listView.style.display = 'none';
+  mapViewContainer.classList.remove('active');
+  
+  // Remove active from all buttons
+  gridBtn.classList.remove('active');
+  listBtn.classList.remove('active');
+  mapBtn.classList.remove('active');
+  
+  // Show selected view
+  if (view === 'grid') {
+    gridView.style.display = 'flex';
+    gridBtn.classList.add('active');
+  } else if (view === 'list') {
+    listView.style.display = 'flex';
+    listBtn.classList.add('active');
+  } else if (view === 'map') {
+    mapViewContainer.classList.add('active');
+    mapBtn.classList.add('active');
+    // Hide loading indicator in map view
+    loadingIndicator.style.display = 'none';
+  }
+  
+  console.log('View changed to:', view);
+  // React Native: Update state, render map markers if map view
+}
+
+// Pagination
+let currentPage = 1;
+let isLoading = false;
+let hasMore = true;
+
+// Infinite scroll detection
+function setupInfiniteScroll() {
+  const searchScreen = document.querySelector('.search-screen');
+  
+  searchScreen.addEventListener('scroll', () => {
+    const scrollTop = searchScreen.scrollTop;
+    const scrollHeight = searchScreen.scrollHeight;
+    const clientHeight = searchScreen.clientHeight;
+    
+    // Trigger when user scrolls to 80% of content
+    const scrollPercentage = (scrollTop + clientHeight) / scrollHeight;
+    
+    if (scrollPercentage > 0.8 && !isLoading && hasMore) {
+      loadMoreResults();
+    }
+  });
+}
+
+function loadMoreResults() {
+  if (isLoading || !hasMore) return;
+  
+  isLoading = true;
+  document.getElementById('loadingIndicator').style.display = 'block';
+  
+  console.log('Loading page:', currentPage + 1);
+  
+  // React Native: API call for next page
+  // const nextResults = await searchPlaces(query, category, currentPage + 1);
+  
+  // Simulate API call
+  setTimeout(() => {
+    currentPage++;
+    
+    // Append results to existing list
+    // appendResults(nextResults);
+    
+    // Check if more pages exist
+    // hasMore = nextResults.pagination.has_next_page;
+    
+    isLoading = false;
+    document.getElementById('loadingIndicator').style.display = 'none';
+    
+    console.log('Loaded page:', currentPage);
+  }, 1500);
+}
+
+// Initialize infinite scroll on load
+setupInfiniteScroll();
+
+// Navigation
+function goBack() {
+  console.log('Navigate back');
+  // React Native: navigation.goBack()
+}
+
+function openPlace(name) {
+  console.log('Open place:', name);
+  // React Native: navigation.navigate('PlaceDetail', { place: name })
+}
+
+function addPlace() {
+  console.log('Add missing place');
+  // React Native: navigation.navigate('AddPlace')
+}
+
+// Map View Functions
+function filterMapView(category) {
+  const chips = document.querySelectorAll('.map-filter-chip');
+  chips.forEach(chip => chip.classList.remove('active'));
+  event.target.classList.add('active');
+  
+  console.log('Filter map by:', category);
+  // React Native: Filter markers on map by category
+  // updateMapMarkers(results.filter(r => r.category === category || category === 'all'))
+}
+
+function locateMe() {
+  console.log('Locate user on map');
+  // React Native: Get geolocation, center map on user
+  // const location = await getCurrentPosition();
+  // mapRef.current.animateToRegion(location)
+}
+
+function zoomIn() {
+  console.log('Zoom in map');
+  // React Native: mapRef.current.getCamera().then(cam => mapRef.current.animateCamera({zoom: cam.zoom + 1}))
+}
+
+function zoomOut() {
+  console.log('Zoom out map');
+  // React Native: mapRef.current.getCamera().then(cam => mapRef.current.animateCamera({zoom: cam.zoom - 1}))
+}
+
+function showMarkerPopup(placeName, placeData) {
+  const popup = document.getElementById('markerPopup');
+  popup.classList.add('show');
+  
+  console.log('Show popup for:', placeName, placeData);
+  // React Native: Update popup content with place data
+  // setSelectedPlace(placeData)
+}
+
+function hideMarkerPopup() {
+  const popup = document.getElementById('markerPopup');
+  popup.classList.remove('show');
+}
+
+function getDirections() {
+  console.log('Get directions to selected place');
+  // React Native: Open navigation app or in-app directions
+  // const url = `https://maps.google.com/?daddr=${place.lat},${place.lng}`;
+  // Linking.openURL(url);
+}
+
+function viewPlaceDetails() {
+  console.log('View place details');
+  // React Native: navigation.navigate('PlaceDetail', { placeId: selectedPlace.id })
+}
+
+// On load: Always fetch initial data
+document.addEventListener('DOMContentLoaded', () => {
+  console.log('Loading initial search data...');
+  // React Native: Fetch popular/recent results on mount
+  // const initialData = await loadSearchData();
+});
+</script>
+</body>
+</html>

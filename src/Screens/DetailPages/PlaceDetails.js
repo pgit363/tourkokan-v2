@@ -16,6 +16,7 @@ import {
 import CityCard from '../../Components/Cards/CityCard';
 import GlobalText from '../../Components/Customs/Text';
 import CommentsSheet from '../../Components/Common/CommentsSheet';
+import BottomSheet from '../../Components/Customs/BottomSheet';
 import {useTranslation} from 'react-i18next';
 
 const PlaceDetails = ({navigation, route, ...props}) => {

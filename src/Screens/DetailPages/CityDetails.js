@@ -565,7 +565,7 @@ const CityDetails = ({navigation, route, offline, ...props}) => {
                       style={{width: 100, height: 30}}
                     />
                   </View>
-                ) : city.sites[0] ? (
+                ) : city?.sites?.[0] ? (
                   <View style={styles.flexAround}>
                     <GlobalText
                       text={t('VILLAGES')}

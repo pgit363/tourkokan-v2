@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tourkokan — About Us</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400;1,600&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,300&display=swap" rel="stylesheet">
+<style>
+:root{--ocean-deep:#0D3D4A;--ocean-mid:#1B6B7B;--ocean-foam:#B8E4EA;--sand-mid:#C4972A;--earth-mid:#6B4226;--forest-deep:#1A3320;--forest-mid:#2E5C3A;--forest-pale:#D4EDD9;--cream:#FAF7F0;--text-dark:#1C1917;--text-mid:#44403C;--text-light:#78716C;--white:#FFF;--radius-md:18px}
+*{margin:0;padding:0;box-sizing:border-box}
+html{font-family:'DM Sans',sans-serif;background:#0D1F26}
+body{background:radial-gradient(ellipse at 20% 20%,#0D3D4A88 0%,transparent 60%),radial-gradient(ellipse at 80% 80%,#1A332044 0%,transparent 60%),#0C1A1F;min-height:100vh;padding:40px 20px;display:flex;justify-content:center}
+.screen-wrapper{display:flex;flex-direction:column;align-items:center;gap:16px}
+.screen-label{font-size:11px;font-weight:500;letter-spacing:2px;text-transform:uppercase;color:#B8E4EA;opacity:.7}
+.phone{width:375px;min-height:812px;background:var(--cream);border-radius:44px;overflow:hidden;box-shadow:0 0 0 1px #ffffff18,0 40px 80px #00000088;position:relative}
+.phone-notch{position:absolute;top:0;left:50%;transform:translateX(-50%);width:126px;height:34px;background:#0D1F26;border-radius:0 0 20px 20px;z-index:100}
+.about-screen{background:var(--cream);min-height:812px;padding-bottom:80px;overflow-y:auto}
+
+/* Hero Header */
+.hero-header{background:linear-gradient(135deg,var(--sand-mid),var(--earth-mid));padding:50px 20px 40px;position:relative;text-align:center;overflow:hidden}
+.hero-header::before{content:'';position:absolute;inset:0;background:radial-gradient(circle at 30% 30%,rgba(255,255,255,.15) 0%,transparent 50%);pointer-events:none}
+.hero-header::after{content:'';position:absolute;bottom:-1px;left:0;right:0;height:32px;background:var(--cream);clip-path:ellipse(60% 100% at 50% 100%)}
+.back-btn{position:absolute;top:50px;left:20px;width:40px;height:40px;border-radius:50%;background:rgba(255,255,255,.2);backdrop-filter:blur(10px);display:flex;align-items:center;justify-content:center;font-size:20px;color:var(--white);cursor:pointer;z-index:10;border:1px solid rgba(255,255,255,.3)}
+.logo{font-size:72px;margin-bottom:12px;filter:drop-shadow(0 4px 12px rgba(0,0,0,.2))}
+.app-title{font-family:'Playfair Display',serif;font-size:36px;font-weight:700;color:var(--white);margin-bottom:8px;text-shadow:0 2px 8px rgba(0,0,0,.2)}
+.app-tagline{font-size:15px;color:rgba(255,255,255,.95);font-style:italic;font-weight:500;letter-spacing:0.3px}
+
+/* Content */
+.content{padding:20px}
+
+/* Welcome Section */
+.welcome-section{background:linear-gradient(135deg,rgba(184,228,234,.15),rgba(212,237,217,.15));border-radius:var(--radius-md);padding:20px;margin-bottom:20px;border:1.5px solid rgba(27,107,123,.15)}
+.welcome-title{font-family:'Playfair Display',serif;font-size:22px;font-weight:700;color:var(--ocean-deep);margin-bottom:12px;text-align:center}
+.welcome-text{font-size:14px;line-height:1.8;color:var(--text-mid);text-align:center}
+
+/* Section Cards */
+.section-card{background:rgba(255,255,255,.98);backdrop-filter:blur(15px);border-radius:var(--radius-md);padding:20px;margin-bottom:16px;box-shadow:0 2px 12px rgba(0,0,0,.06);border:1px solid rgba(255,255,255,.5)}
+.section-icon{font-size:40px;text-align:center;margin-bottom:12px}
+.section-title{font-size:18px;font-weight:700;color:var(--text-dark);margin-bottom:12px;display:flex;align-items:center;gap:10px}
+.section-title::before{content:'';width:4px;height:20px;background:linear-gradient(135deg,var(--ocean-mid),var(--forest-mid));border-radius:2px}
+.section-text{font-size:14px;line-height:1.8;color:var(--text-mid);margin-bottom:12px}
+.section-text:last-child{margin-bottom:0}
+
+/* Features List */
+.features-list{margin-top:12px}
+.feature-item{display:flex;align-items:flex-start;gap:10px;margin-bottom:10px;padding:10px;background:rgba(184,228,234,.08);border-radius:10px}
+.feature-item:last-child{margin-bottom:0}
+.feature-icon{font-size:18px;flex-shrink:0;margin-top:2px}
+.feature-text{font-size:13px;line-height:1.6;color:var(--text-mid);font-weight:500}
+
+/* Vision/Mission Cards */
+.vision-card{background:linear-gradient(135deg,rgba(27,107,123,.08),rgba(46,92,58,.08));border-radius:var(--radius-md);padding:18px;margin-bottom:16px;border:1.5px solid rgba(27,107,123,.15)}
+.vision-title{font-size:16px;font-weight:700;color:var(--ocean-deep);margin-bottom:10px;display:flex;align-items:center;gap:8px}
+.vision-text{font-size:13px;line-height:1.7;color:var(--text-mid)}
+
+/* Stats Grid */
+.stats-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:16px}
+.stat-box{background:rgba(184,228,234,.12);border-radius:14px;padding:18px;text-align:center;border:1.5px solid rgba(27,107,123,.15)}
+.stat-icon{font-size:28px;margin-bottom:8px}
+.stat-value{font-size:32px;font-weight:700;color:var(--ocean-mid);margin-bottom:4px;font-family:'Playfair Display',serif}
+.stat-label{font-size:12px;color:var(--text-light);font-weight:600;text-transform:uppercase;letter-spacing:0.5px}
+
+/* Social Links */
+.social-section{text-align:center}
+.social-title{font-size:16px;font-weight:700;color:var(--text-dark);margin-bottom:16px}
+.email-link{display:inline-block;text-decoration:none;padding:20px 32px;background:linear-gradient(135deg,rgba(27,107,123,.08),rgba(46,92,58,.08));border-radius:var(--radius-md);border:2px solid var(--ocean-mid);transition:all .3s}
+.email-link:hover{transform:translateY(-2px);box-shadow:0 6px 16px rgba(27,107,123,.2);border-color:var(--ocean-deep)}
+.email-icon{font-size:48px;margin-bottom:12px}
+.email-text{font-size:16px;font-weight:600;color:var(--ocean-mid);letter-spacing:0.3px}
+
+/* CTA Card */
+.cta-card{background:linear-gradient(135deg,var(--sand-mid),var(--earth-mid));border-radius:var(--radius-md);padding:24px;text-align:center;color:var(--white);box-shadow:0 4px 16px rgba(196,151,42,.3)}
+.cta-title{font-family:'Playfair Display',serif;font-size:20px;font-weight:700;margin-bottom:10px}
+.cta-text{font-size:13px;line-height:1.6;opacity:.95;margin-bottom:16px}
+.cta-btn{background:var(--white);color:var(--sand-mid);padding:12px 28px;border-radius:50px;font-size:14px;font-weight:700;border:none;cursor:pointer;box-shadow:0 4px 12px rgba(0,0,0,.2);transition:all .3s;display:inline-flex;align-items:center;gap:8px}
+.cta-btn:hover{transform:translateY(-2px);box-shadow:0 6px 16px rgba(0,0,0,.3)}
+
+/* Footer */
+.footer{text-align:center;padding:20px;color:var(--text-light);font-size:12px}
+.version{font-weight:600;color:var(--text-mid);margin-bottom:4px}
+.made-with{font-size:11px}
+
+/* Bottom Nav */
+.bottom-nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:375px;background:rgba(255,255,255,.98);backdrop-filter:blur(20px);display:flex;justify-content:space-around;padding:12px 0;box-shadow:0 -4px 24px rgba(0,0,0,.1);border-radius:44px 44px 0 0;z-index:50;border-top:1px solid rgba(255,255,255,.5)}
+.nav-item{display:flex;flex-direction:column;align-items:center;gap:4px;padding:8px 16px;border-radius:10px;text-decoration:none;color:var(--text-light);font-size:11px;font-weight:500}
+.nav-item.active{background:linear-gradient(135deg,rgba(184,228,234,.5),rgba(212,237,217,.5));color:var(--ocean-deep)}
+</style>
+</head>
+<body>
+<div class="screen-wrapper">
+<div class="screen-label">ABOUT TOURKOKAN — REDESIGNED</div>
+<div class="phone">
+<div class="phone-notch"></div>
+<div class="about-screen">
+
+<!-- Hero Header -->
+<div class="hero-header">
+<div class="back-btn" onclick="goBack()">←</div>
+<div class="logo">🏖</div>
+<h1 class="app-title">Tourkokan</h1>
+<p class="app-tagline">Where the coast tells stories</p>
+</div>
+
+<!-- Content -->
+<div class="content">
+
+<!-- Welcome Message -->
+<div class="welcome-section">
+<h2 class="welcome-title">Welcome to Tourkokan</h2>
+<p class="welcome-text">Your ultimate guide to exploring the breathtaking beauty and cultural richness of the Kokan region.</p>
+</div>
+
+<!-- Discover Konkan -->
+<div class="section-card">
+<div class="section-icon">🌊</div>
+<h3 class="section-title">Discover Kokan</h3>
+<p class="section-text">
+The Kokan coast, stretching along the western shores of India, is a treasure trove of natural wonders, historical landmarks, and vibrant culture. From pristine beaches and lush green landscapes to ancient temples and bustling local markets, Kokan has something for every traveler.
+</p>
+<p class="section-text">
+With Tourkokan, you can explore popular destinations like Devgad Beach, Malvan, Ratnagiri, and many more hidden gems waiting to be discovered.
+</p>
+</div>
+
+<!-- Our Vision -->
+<div class="vision-card">
+<div class="vision-title">
+<span>🎯</span>
+<span>Our Vision</span>
+</div>
+<p class="vision-text">
+To showcase the sustainable and authentic real Kokan lifestyle while empowering local communities. We believe in growing local businesses, preserving our cultural heritage, and providing tourists with structured, accessible resources that make exploring Kokan effortless and memorable.
+</p>
+</div>
+
+<!-- Our Mission -->
+<div class="vision-card">
+<div class="vision-title">
+<span>🚀</span>
+<span>Our Mission</span>
+</div>
+<p class="vision-text">
+To promote all local businesses—from small-scale vendors to established enterprises—through our advertising platform, product listings, and tourism services. We encourage authentic Kokan lifestyle experiences while helping local tourism businesses thrive and grow sustainably.
+</p>
+</div>
+
+<!-- Why Choose TourKokan -->
+<div class="section-card">
+<h3 class="section-title">Why Choose Tourkokan?</h3>
+<p class="section-text">
+Tourkokan stands out for its comprehensive approach to travel guidance and commitment to authentic experiences.
+</p>
+<div class="features-list">
+<div class="feature-item">
+<span class="feature-icon">📍</span>
+<span class="feature-text">Detailed information about tourist spots with real-time updates</span>
+</div>
+<div class="feature-item">
+<span class="feature-icon">⭐</span>
+<span class="feature-text">Genuine user reviews from fellow Kokan explorers</span>
+</div>
+<div class="feature-item">
+<span class="feature-icon">🗺️</span>
+<span class="feature-text">Interactive maps with offline access for seamless navigation</span>
+</div>
+<div class="feature-item">
+<span class="feature-icon">🚌</span>
+<span class="feature-text">Live MSRTC bus schedules and timetables</span>
+</div>
+<div class="feature-item">
+<span class="feature-icon">🏪</span>
+<span class="feature-text">Support local businesses through our listings and partnerships</span>
+</div>
+<div class="feature-item">
+<span class="feature-icon">🌱</span>
+<span class="feature-text">Sustainable tourism practices that preserve Kokan's beauty</span>
+</div>
+</div>
+</div>
+
+<!-- What We Offer -->
+<div class="section-card">
+<h3 class="section-title">What We Offer</h3>
+<div class="stats-grid">
+<div class="stat-box">
+  <div class="stat-icon">📍</div>
+  <div class="stat-value">84+</div>
+  <div class="stat-label">Places</div>
+</div>
+<div class="stat-box">
+  <div class="stat-icon">🏘️</div>
+  <div class="stat-value">8</div>
+  <div class="stat-label">Talukas</div>
+</div>
+<div class="stat-box">
+  <div class="stat-icon">🏖️</div>
+  <div class="stat-value">25+</div>
+  <div class="stat-label">Beaches</div>
+</div>
+<div class="stat-box">
+  <div class="stat-icon">🏰</div>
+  <div class="stat-value">18+</div>
+  <div class="stat-label">Forts</div>
+</div>
+</div>
+</div>
+
+<!-- Our Commitment -->
+<div class="section-card">
+<div class="section-icon">💙</div>
+<h3 class="section-title">Our Commitment to You</h3>
+<p class="section-text">
+We are dedicated to enhancing your travel experience with reliable and up-to-date information. Our team continuously works to expand our database with new destinations, updated bus timetables, and the latest events in Kokan.
+</p>
+<p class="section-text">
+Whether you're a Kokan lover returning home, a first-time visitor eager to explore, or someone seeking authentic cultural immersion—Tourkokan ensures you have the best resources at your fingertips. Your satisfaction, safety, and enjoyment are our top priorities.
+</p>
+</div>
+
+<!-- CTA Card -->
+<div class="cta-card">
+<div class="cta-title">Love Kokan? Join Us!</div>
+<div class="cta-text">
+Be part of our community of explorers. Share your experiences, support local businesses, and help preserve the authentic Kokan lifestyle for generations to come.
+</div>
+<button class="cta-btn" onclick="shareStory()">
+<span>📝</span>
+<span>Share Your Story</span>
+</button>
+</div>
+
+<!-- Write to Us -->
+<div class="section-card social-section">
+<h3 class="social-title">Write to Us</h3>
+<p class="section-text" style="text-align:center;margin-bottom:16px">
+We love hearing from our users! Whether you have questions, need assistance, or want to share your travel stories, reach out to us.
+</p>
+<div style="text-align:center">
+<a href="mailto:support@tourkokan.com" class="email-link">
+<div class="email-icon">✉️</div>
+<div class="email-text">support@tourkokan.com</div>
+</a>
+</div>
+</div>
+
+<!-- Footer -->
+<div class="footer">
+<div class="version" id="appVersion">Tourkokan v2.0.3</div>
+<div class="made-with">Made with ❤️ for Kokan lovers</div>
+<div style="font-size:10px;margin-top:8px;opacity:.7">Empowering local businesses • Preserving authentic culture</div>
+</div>
+
+</div>
+
+<!-- Bottom Nav -->
+<nav class="bottom-nav">
+<a href="#" class="nav-item"><span style="font-size:22px">🏠</span><span>Home</span></a>
+<a href="#" class="nav-item"><span style="font-size:22px">🔍</span><span>Discover</span></a>
+<a href="#" class="nav-item"><span style="font-size:22px">🚌</span><span>MSRTC</span></a>
+<a href="#" class="nav-item"><span style="font-size:22px">❤️</span><span>Saved</span></a>
+<a href="#" class="nav-item active"><span style="font-size:22px">👤</span><span>Profile</span></a>
+</nav>
+
+</div>
+</div>
+</div>
+
+<script>
+// Fetch app version dynamically
+function getAppVersion() {
+  // React Native: Get version from app config
+  // import DeviceInfo from 'react-native-device-info';
+  // const version = DeviceInfo.getVersion();
+  // const buildNumber = DeviceInfo.getBuildNumber();
+  // return `Tourkokan v${version} (${buildNumber})`;
+  
+  // Web fallback
+  const versionElement = document.getElementById('appVersion');
+  
+  // Try to fetch from API or package
+  fetch('/api/version')
+    .then(response => response.json())
+    .then(data => {
+      if (data.version) {
+        versionElement.textContent = `Tourkokan v${data.version}`;
+      }
+    })
+    .catch(() => {
+      // Fallback to default if API fails
+      console.log('Using default version');
+    });
+}
+
+function goBack() {
+  console.log('Navigate back');
+  // React Native: navigation.goBack()
+}
+
+function shareStory() {
+  console.log('Share your story');
+  // React Native: navigation.navigate('ShareStory')
+}
+
+// Load version on mount
+document.addEventListener('DOMContentLoaded', getAppVersion);
+</script>
+
+</body>
+</html>

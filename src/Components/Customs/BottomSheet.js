@@ -14,17 +14,14 @@ const BottomSheet = ({
     <View>
       <RBSheet
         ref={refRBSheet}
-        closeOnDragDown={true}
-        closeOnPressMask={true}
         height={height}
         openDuration={250}
+        draggable
+        draggableIcon
+        closeOnPressMask
         customStyles={{
-          wrapper: {
-            backgroundColor: 'transparent',
-          },
-          draggableIcon: {
-            backgroundColor: COLOR.themeBlue,
-          },
+          wrapper: {backgroundColor: 'transparent'},
+          draggableIcon: {backgroundColor: COLOR.themeBlue},
         }}>
         {Component}
       </RBSheet>

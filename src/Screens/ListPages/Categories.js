@@ -326,7 +326,10 @@ const Categories = ({route, navigation, ...props}) => {
   };
 
   const goToSubCats = subCat => {
-    navigateTo(navigation, t('SCREEN.CITY_LIST'), {subCat});
+    navigateTo(navigation, t('SCREEN.CITY_PLACE_SEARCH'), {
+      initialCategoryKey: subCat.name,
+      initialCityName: subCat.name,
+    });
   };
 
   const handleModeChange = async newMode => {

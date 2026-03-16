@@ -106,6 +106,7 @@ const STRING = {
     SETTINGS: 'Settings',
     PRIVACY_POLICY: 'PrivacyPolicy',
     TERMS: 'Terms',
+    ABOUT: 'About',
   },
   STORAGE: {
     ACCESS_TOKEN: 'access_token',

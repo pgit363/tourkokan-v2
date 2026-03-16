@@ -1,225 +1,264 @@
 import React, {useState, useEffect} from 'react';
 import {
-  FlatList,
   View,
-  Platform,
+  Text,
+  TextInput,
   TouchableOpacity,
+  FlatList,
+  ActivityIndicator,
+  Image,
+  StyleSheet,
   KeyboardAvoidingView,
+  Platform,
 } from 'react-native';
-import GlobalText from '../Customs/Text';
-import styles from './Styles';
-import {Comment} from '../../Services/Constants/FIELDS';
-import TextField from '../Customs/TextField';
-import DIMENSIONS from '../../Services/Constants/DIMENSIONS';
-import ImageButton from '../Customs/Buttons/ImageButton';
-import {comnPost} from '../../Services/Api/CommonServices';
-import Loader from '../Customs/Loader';
-import FontAwesome from 'react-native-vector-icons/FontAwesome';
-import COLOR from '../../Services/Constants/COLORS';
+import {FTP_PATH} from '@env';
+import Ionicons from 'react-native-vector-icons/Ionicons';
 import {connect} from 'react-redux';
-import {setLoader} from '../../Reducers/CommonActions';
 import {useTranslation} from 'react-i18next';
+import {comnPost} from '../../Services/Api/CommonServices';
+import {setLoader} from '../../Reducers/CommonActions';
+
+const C = {
+  oceanDeep: '#0D3D4A', oceanMid: '#1B6B7B', oceanFoam: '#B8E4EA',
+  cream: '#FAF7F0', white: '#FFFFFF',
+  textDark: '#1C1917', textMid: '#44403C', textLight: '#78716C',
+};
 
 const CommentsSheet = ({
   openCommentsSheet,
   closeCommentsSheet,
   reload,
-  key,
   commentable_id,
   commentable_type,
-  ...props
 }) => {
   const {t} = useTranslation();
-
   const [comments, setComments] = useState([]);
   const [newComment, setNewComment] = useState('');
-  const [isActive, setIsActive] = useState(false);
-  const [page, setPage] = useState(1);
+  const [loading, setLoading] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
     getComments();
   }, []);
 
   const getComments = () => {
-    props.setLoader(true);
-    const data = {
-      commentable_type,
-      commentable_id,
-    };
-    comnPost(`v2/comments?per_page=10&page=${page}`, data)
+    setLoading(true);
+    comnPost('v2/comments?per_page=20&page=1', {commentable_type, commentable_id})
       .then(res => {
-        setComments(res.data.data.data);
-        props.setLoader(false);
+        setComments(res?.data?.data?.data || []);
+        setLoading(false);
       })
-      .catch(err => {
-        props.setLoader(false);
-      });
+      .catch(() => setLoading(false));
   };
 
   const addComment = () => {
-    // if (newComment.trim() !== '') {
-    //     setComments([...comments, { id: comments.length + 1, text: newComment }]);
-    //     setNewComment('');
-    // }
-    props.setLoader(true);
-    const newData = {
+    if (!newComment.trim() || submitting) return;
+    setSubmitting(true);
+    comnPost('v2/comment', {
       comment: newComment,
       commentable_type: t('TABLE.SITE'),
       commentable_id,
-    };
-    comnPost('v2/comment', newData)
-      .then(res => {
-        getComments();
+    })
+      .then(() => {
         setNewComment('');
-        props.setLoader(false);
+        getComments();
+        reload?.();
+        setSubmitting(false);
       })
-      .catch(err => {
-        props.setLoader(false);
-      });
+      .catch(() => setSubmitting(false));
   };
 
   const deleteComment = id => {
-    props.setLoader(true);
-    const data = {
-      id,
-    };
-    comnPost('v2/deleteComment', data)
-      .then(res => {
+    comnPost('v2/deleteComment', {id})
+      .then(() => {
         getComments();
-        props.setLoader(false);
+        reload?.();
       })
-      .catch(err => {
-        props.setLoader(false);
-      });
+      .catch(() => {});
   };
 
-  const renderComments = ({item}) => {
+  const getUserInitials = user => {
+    if (!user?.name) return '?';
+    return user.name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
+  };
+
+  const renderComment = ({item}) => {
+    // users can be array (getSite API) or object (comments API); item.user is a fallback key
+    const raw = item.users ?? item.user;
+    const user = Array.isArray(raw) ? raw[0] : raw;
     return (
-      <View>
-        <View
-          style={{
-            paddingHorizontal: 10,
-            flexDirection: 'row',
-            alignItems: 'center',
-          }}>
-          <View style={{top: 8}}>
-            <ImageButton
-              key={item.id}
-              image={item.users?.profile_picture}
-              imageButtonCircle={styles.commentUser}
-              buttonIcon={styles.commentUserIcon}
+      <View style={cs.commentRow}>
+        <View style={cs.avatarWrap}>
+          {user?.profile_picture ? (
+            <Image
+              source={{uri: `${FTP_PATH}${user.profile_picture}`}}
+              style={cs.avatar}
             />
-          </View>
-          <View>
-            <GlobalText
-              text={item.users?.name}
-              style={styles.commentUserName}
-            />
-            <GlobalText text={item.comment} style={styles.userComment} />
-          </View>
-          {/* <FlatList
-                    data={item.comments}
-                    keyExtractor={(item) => item.id.toString()}
-                    renderItem={renderSubComments}
-                /> */}
+          ) : (
+            <View style={cs.avatarFallback}>
+              <Text style={cs.avatarInitials}>{getUserInitials(user)}</Text>
+            </View>
+          )}
         </View>
-        <View style={{paddingHorizontal: 10, flexDirection: 'row'}}>
-          <TouchableOpacity onPress={() => deleteComment(item.id)}>
-            <GlobalText text={'Delete'} style={styles.deleteComment} />
-          </TouchableOpacity>
-          {/* <TouchableOpacity>
-                        <GlobalText text={"Edit"} style={styles.deleteComment} />
-                    </TouchableOpacity> */}
+        <View style={cs.commentBubble}>
+          <View style={cs.commentTop}>
+            <View style={cs.commentNameRow}>
+              <Text style={cs.commentName}>{user?.name || 'Traveler'}</Text>
+              <View style={cs.verifiedBadge}>
+                <Ionicons name="checkmark-circle" size={11} color={C.oceanMid} />
+                <Text style={cs.verifiedText}>Verified</Text>
+              </View>
+            </View>
+            <TouchableOpacity
+              onPress={() => deleteComment(item.id)}
+              hitSlop={{top: 8, bottom: 8, left: 8, right: 8}}>
+              <Ionicons name="trash-outline" size={14} color="#E57373" />
+            </TouchableOpacity>
+          </View>
+          <Text style={cs.commentText}>{item.comment}</Text>
         </View>
       </View>
     );
-  };
-
-  const renderSubComments = ({item}) => {
-    return (
-      <View style={{padding: 10}}>
-        <GlobalText text={item.comment} style={{textAlign: 'left'}} />
-      </View>
-    );
-  };
-
-  const setComment = val => {
-    setNewComment(val);
-    if (val != null || val != '') setIsActive(true);
-    else setIsActive(false);
   };
 
   return (
-    <KeyboardAvoidingView style={{zIndex: 100, position: 'relative'}}>
-      <Loader />
-      <View>
-        <View style={styles.commentsHeader}>
-          <GlobalText text={t('HEADER.COMMENTS')} style={styles.fontBold} />
-        </View>
+    <KeyboardAvoidingView
+      style={cs.container}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      keyboardVerticalOffset={20}>
+
+      {/* Header */}
+      <View style={cs.header}>
+        <View style={cs.headerDot} />
+        <Text style={cs.headerTitle}>{t('HEADER.COMMENTS')}</Text>
+        <TouchableOpacity
+          onPress={closeCommentsSheet}
+          hitSlop={{top: 8, bottom: 8, left: 8, right: 8}}>
+          <Ionicons name="close" size={22} color={C.textLight} />
+        </TouchableOpacity>
       </View>
-      <View style={{overflowY: 'scroll', zIndex: 100}}>
-        {comments ? (
-          <FlatList
-            nestedScrollEnabled={true}
-            data={comments}
-            keyExtractor={item => item.id.toString()}
-            renderItem={renderComments}
-          />
-        ) : (
-          <View style={[styles.noComments, {flex: 1}]}>
-            <GlobalText text={t('NO_COMMENTS')} style={styles.fontBold} />
-            <GlobalText text={t('START_CONVO')} />
-          </View>
-        )}
-        <KeyboardAvoidingView
-          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-          style={styles.commentInputBox}>
-          {Comment.map((field, index) => (
-            <TextField
-              key={index}
-              name={field.name}
-              label={field.name}
-              placeholder={field.placeholder}
-              fieldType={field.type}
-              length={field.length}
-              required={field.required}
-              disabled={
-                index === 1 && (source?.name === '' || source?.name === null)
-              }
-              value={newComment}
-              setChild={val => setComment(val)}
-              style={styles.routesSearchPanelField}
-              containerStyle={styles.commentTextContainerStyle}
-              inputContainerStyle={styles.commentInputContainerStyle}
-              rightIcon={
-                <FontAwesome
-                  style={styles.sendIcon}
-                  name="send"
-                  color={isActive ? COLOR.themeBlue : COLOR.grey}
-                  size={DIMENSIONS.iconBig}
-                  onPress={isActive ? addComment : null}
-                />
-              }
-            />
-          ))}
-        </KeyboardAvoidingView>
+
+      {/* Comments list */}
+      {loading ? (
+        <View style={cs.loadingWrap}>
+          <ActivityIndicator color={C.oceanMid} size="large" />
+          <Text style={cs.loadingText}>Loading reviews…</Text>
+        </View>
+      ) : comments?.length > 0 ? (
+        <FlatList
+          data={comments}
+          keyExtractor={item => item.id.toString()}
+          renderItem={renderComment}
+          style={cs.list}
+          contentContainerStyle={cs.listContent}
+          showsVerticalScrollIndicator={false}
+        />
+      ) : (
+        <View style={cs.emptyWrap}>
+          <Text style={cs.emptyIcon}>💬</Text>
+          <Text style={cs.emptyTitle}>{t('NO_COMMENTS')}</Text>
+          <Text style={cs.emptySubText}>{t('START_CONVO')}</Text>
+        </View>
+      )}
+
+      {/* Input row */}
+      <View style={cs.inputRow}>
+        <TextInput
+          style={cs.input}
+          placeholder="Share your experience…"
+          placeholderTextColor={C.textLight}
+          value={newComment}
+          onChangeText={setNewComment}
+          multiline
+          maxLength={300}
+        />
+        <TouchableOpacity
+          style={[cs.sendBtn, (!newComment.trim() || submitting) && cs.sendBtnDisabled]}
+          onPress={addComment}
+          disabled={!newComment.trim() || submitting}
+          activeOpacity={0.85}>
+          {submitting ? (
+            <ActivityIndicator size="small" color={C.white} />
+          ) : (
+            <Ionicons name="send" size={18} color={C.white} />
+          )}
+        </TouchableOpacity>
       </View>
     </KeyboardAvoidingView>
   );
 };
 
-const mapStateToProps = state => {
-  return {
-    access_token: state.commonState.access_token,
-  };
-};
+const cs = StyleSheet.create({
+  container: {flex: 1, backgroundColor: C.cream},
 
-const mapDispatchToProps = dispatch => {
-  return {
-    setLoader: data => {
-      dispatch(setLoader(data));
-    },
-  };
-};
+  // Header
+  header: {
+    flexDirection: 'row', alignItems: 'center', gap: 10,
+    paddingHorizontal: 16, paddingVertical: 14,
+    borderBottomWidth: 1, borderBottomColor: 'rgba(0,0,0,0.07)',
+    backgroundColor: C.white,
+  },
+  headerDot: {width: 4, height: 18, borderRadius: 2, backgroundColor: C.oceanMid},
+  headerTitle: {flex: 1, fontSize: 16, fontWeight: '700', color: C.textDark},
+
+  // States
+  loadingWrap: {flex: 1, alignItems: 'center', justifyContent: 'center', gap: 12},
+  loadingText: {fontSize: 13, color: C.textLight},
+  emptyWrap: {flex: 1, alignItems: 'center', justifyContent: 'center', paddingVertical: 40},
+  emptyIcon: {fontSize: 42, marginBottom: 12, opacity: 0.4},
+  emptyTitle: {fontSize: 14, fontWeight: '600', color: C.textMid, marginBottom: 4},
+  emptySubText: {fontSize: 12, color: C.textLight},
+
+  // List
+  list: {flex: 1},
+  listContent: {paddingHorizontal: 16, paddingTop: 12, paddingBottom: 8},
+
+  // Comment row
+  commentRow: {flexDirection: 'row', gap: 10, marginBottom: 12, alignItems: 'flex-start'},
+  avatarWrap: {flexShrink: 0, marginTop: 2},
+  avatar: {width: 38, height: 38, borderRadius: 19},
+  avatarFallback: {
+    width: 38, height: 38, borderRadius: 19,
+    backgroundColor: C.oceanMid, alignItems: 'center', justifyContent: 'center',
+  },
+  avatarInitials: {fontSize: 14, fontWeight: '700', color: C.white},
+  commentBubble: {
+    flex: 1, backgroundColor: C.white, borderRadius: 14,
+    paddingHorizontal: 12, paddingVertical: 10,
+    borderWidth: 1, borderColor: 'rgba(0,0,0,0.06)',
+  },
+  commentTop: {
+    flexDirection: 'row', alignItems: 'center',
+    justifyContent: 'space-between', marginBottom: 5,
+  },
+  commentNameRow: {flexDirection: 'row', alignItems: 'center', gap: 6},
+  commentName: {fontSize: 13, fontWeight: '700', color: C.textDark},
+  verifiedBadge: {flexDirection: 'row', alignItems: 'center', gap: 3},
+  verifiedText: {fontSize: 10, color: C.oceanMid, fontWeight: '600'},
+  commentText: {fontSize: 13, lineHeight: 19, color: C.textMid},
+
+  // Input
+  inputRow: {
+    flexDirection: 'row', alignItems: 'flex-end', gap: 10,
+    paddingHorizontal: 16, paddingVertical: 12,
+    borderTopWidth: 1, borderTopColor: 'rgba(0,0,0,0.07)',
+    backgroundColor: C.white,
+  },
+  input: {
+    flex: 1, minHeight: 44, maxHeight: 100,
+    paddingHorizontal: 14, paddingVertical: 10,
+    backgroundColor: C.cream, borderRadius: 14,
+    borderWidth: 1, borderColor: 'rgba(27,107,123,0.2)',
+    fontSize: 14, color: C.textDark, lineHeight: 20,
+  },
+  sendBtn: {
+    width: 44, height: 44, borderRadius: 22,
+    backgroundColor: C.oceanMid, alignItems: 'center', justifyContent: 'center',
+  },
+  sendBtnDisabled: {backgroundColor: C.oceanFoam},
+});
+
+const mapStateToProps = state => ({access_token: state.commonState.access_token});
+const mapDispatchToProps = dispatch => ({setLoader: data => dispatch(setLoader(data))});
 
 export default connect(mapStateToProps, mapDispatchToProps)(CommentsSheet);

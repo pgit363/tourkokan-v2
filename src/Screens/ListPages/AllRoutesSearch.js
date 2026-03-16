@@ -1,363 +1,759 @@
-import React, {useEffect, useState, useCallback} from 'react';
-import {FlatList, View, Text} from 'react-native';
-import Header from '../../Components/Common/Header';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
+import {
+  ActivityIndicator,
+  Animated,
+  Dimensions,
+  FlatList,
+  Image,
+  Platform,
+  StatusBar,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
+import {useSafeAreaInsets} from 'react-native-safe-area-context';
+import LinearGradient from 'react-native-linear-gradient';
+import NetInfo from '@react-native-community/netinfo';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import COLOR from '../../Services/Constants/COLORS';
-import DIMENSIONS from '../../Services/Constants/DIMENSIONS';
 import {connect} from 'react-redux';
+import {useTranslation} from 'react-i18next';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import {useFocusEffect} from '@react-navigation/native';
 import {
   comnPost,
-  dataSync,
   getFromStorage,
   saveToStorage,
 } from '../../Services/Api/CommonServices';
 import {setLoader, setMode} from '../../Reducers/CommonActions';
-import Loader from '../../Components/Customs/Loader';
 import {
   backPage,
   checkLogin,
   goBackHandler,
   navigateTo,
 } from '../../Services/CommonMethods';
-import GlobalText from '../../Components/Customs/Text';
-import RouteHeadCard from '../../Components/Cards/RouteHeadCard';
-import styles from '../Styles';
-import NetInfo from '@react-native-community/netinfo';
-import CheckNet from '../../Components/Common/CheckNet';
-import RoutesSearchPanel from '../../Components/Common/RoutesSearchPanel';
-import RoutesSearchPanelSkeleton from '../../Components/Common/RoutesSearchPanelSkeleton';
-import RouteHeadCardSkeleton from '../../Components/Cards/RouteHeadCardSkeleton';
-import {useTranslation} from 'react-i18next';
-import {useFocusEffect} from '@react-navigation/native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import ComingSoon from '../../Components/Common/ComingSoon';
-import Popup from '../../Components/Common/Popup';
 import Banner from '../../Components/Customs/Banner';
-import {SafeAreaView} from 'react-native-safe-area-context';
 
-const AllRoutesSearch = ({navigation, route, ...props}) => {
+// ─── Constants ────────────────────────────────────────────────────────────────
+
+const {width: SW} = Dimensions.get('window');
+const BANNER_H = Math.round(SW / 3);
+
+const C = {
+  oceanDeep: '#0D3D4A',
+  oceanMid: '#1B6B7B',
+  forestDeep: '#1A3320',
+  sandMid: '#C4972A',
+  sandPale: '#FBF3DC',
+  cream: '#FAF7F0',
+  white: '#FFFFFF',
+  textDark: '#1C1917',
+  textMid: '#44403C',
+  textLight: '#78716C',
+  offlineBg: '#FEF3CD',
+  offlineBorder: '#F59E0B',
+  offlineText: '#92400E',
+};
+
+const RECENT_KEY = 'recent_routes';
+const MAX_RECENT = 5;
+
+// ─── Bus image map (static requires for Metro bundler) ────────────────────────
+
+const BUS_IMAGES = {
+  shivshahi: require('../../Assets/Images/Buses/Shivshahi.png'),
+  hirkaniSemi: require('../../Assets/Images/Buses/Hirkani Semi Luxury.png'),
+  hirkani: require('../../Assets/Images/Buses/Hirkani.png'),
+  volvo: require('../../Assets/Images/Buses/Volvo Ac.png'),
+  shivnery: require('../../Assets/Images/Buses/AC-Shivnery.png'),
+  ashwamedh: require('../../Assets/Images/Buses/AC-Ashwamedh.png'),
+  sheetal: require('../../Assets/Images/Buses/AC-Sheetal.png'),
+  nightExpress: require('../../Assets/Images/Buses/Night Express.png'),
+  dayOrdinary: require('../../Assets/Images/Buses/Day Ordinary.png'),
+  default: require('../../Assets/Images/Buses/OrdinaryExpress.png'),
+};
+
+const getBusImage = (typeName = '') => {
+  const n = typeName.toLowerCase();
+  if (n.includes('shivshahi')) return BUS_IMAGES.shivshahi;
+  if (n.includes('semi luxury') || n.includes('hirkani semi'))
+    return BUS_IMAGES.hirkaniSemi;
+  if (n.includes('hirkani')) return BUS_IMAGES.hirkani;
+  if (n.includes('volvo')) return BUS_IMAGES.volvo;
+  if (n.includes('shivnery')) return BUS_IMAGES.shivnery;
+  if (n.includes('ashwamedh')) return BUS_IMAGES.ashwamedh;
+  if (n.includes('sheetal')) return BUS_IMAGES.sheetal;
+  if (n.includes('night')) return BUS_IMAGES.nightExpress;
+  if (n.includes('day ordinary') || (n.includes('day') && n.includes('ordinary')))
+    return BUS_IMAGES.dayOrdinary;
+  return BUS_IMAGES.default;
+};
+
+const getBadgeColor = (metaData = '') => {
+  try {
+    const parsed = JSON.parse(metaData);
+    return parsed?.[0]?.color_code || C.oceanMid;
+  } catch {
+    return C.oceanMid;
+  }
+};
+
+// ─── Shimmer hook ─────────────────────────────────────────────────────────────
+
+const useShimmer = () => {
+  const anim = useRef(new Animated.Value(0)).current;
+  useEffect(() => {
+    const loop = Animated.loop(
+      Animated.sequence([
+        Animated.timing(anim, {toValue: 1, duration: 800, useNativeDriver: true}),
+        Animated.timing(anim, {toValue: 0, duration: 800, useNativeDriver: true}),
+      ]),
+    );
+    loop.start();
+    return () => loop.stop();
+  }, [anim]);
+  return anim.interpolate({inputRange: [0, 1], outputRange: [0.35, 0.82]});
+};
+
+// ─── Skeleton ─────────────────────────────────────────────────────────────────
+
+const SkeletonCard = ({opacity}) => (
+  <Animated.View style={[sk.card, {opacity}]}>
+    {/* Type bar skeleton */}
+    <View style={sk.typeBar} />
+    {/* Body */}
+    <View style={sk.body}>
+      <View style={sk.headerRow}>
+        <View style={sk.icon} />
+        <View style={sk.titleBlock}>
+          <View style={sk.titleLine} />
+          <View style={sk.titleLineSm} />
+        </View>
+      </View>
+      <View style={sk.divider} />
+      <View style={sk.statsRow}>
+        <View style={sk.statBlock} />
+        <View style={sk.statBlock} />
+        <View style={sk.statBlock} />
+      </View>
+    </View>
+  </Animated.View>
+);
+
+const SkeletonList = () => {
+  const opacity = useShimmer();
+  return (
+    <>
+      {Array.from({length: 5}).map((_, i) => (
+        <SkeletonCard key={i} opacity={opacity} />
+      ))}
+    </>
+  );
+};
+
+const sk = StyleSheet.create({
+  card: {
+    backgroundColor: C.white,
+    borderRadius: 18,
+    marginHorizontal: 20,
+    marginBottom: 12,
+    overflow: 'hidden',
+    borderWidth: 1.5,
+    borderColor: 'rgba(0,0,0,0.07)',
+  },
+  typeBar: {height: 34, backgroundColor: '#E5E7EB'},
+  body: {padding: 16},
+  headerRow: {flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 12},
+  icon: {width: 82, height: 82, borderRadius: 8, backgroundColor: '#F3F4F6'},
+  titleBlock: {flex: 1, gap: 8},
+  titleLine: {height: 16, width: '75%', backgroundColor: '#E5E7EB', borderRadius: 7},
+  titleLineSm: {height: 14, width: '55%', backgroundColor: '#F3F4F6', borderRadius: 7},
+  divider: {height: 1, backgroundColor: '#F3F4F6', marginBottom: 12},
+  statsRow: {flexDirection: 'row', gap: 8},
+  statBlock: {flex: 1, height: 40, backgroundColor: '#F3F4F6', borderRadius: 10},
+});
+
+// ─── Route Card ───────────────────────────────────────────────────────────────
+
+const RouteCard = ({item, onPress, t}) => {
+  const busImage = getBusImage(item?.bus_type?.type || '');
+  const badgeColor = getBadgeColor(item?.bus_type?.meta_data || '');
+  const routeName = `${item?.source_place?.name || ''} → ${item?.destination_place?.name || ''}`;
+  const stopsCount = item?.route_stops?.length ?? 0;
+  const distance = item?.distance != null ? `${parseFloat(item.distance).toFixed(1)} km` : '—';
+  const departure = item?.start_time || '—';
+  const busType = item?.bus_type?.type || '';
+
+  return (
+    <TouchableOpacity
+      style={s.card}
+      onPress={onPress}
+      activeOpacity={0.75}>
+
+      {/* ── Colored type bar at top (mirrors old RouteHeadCard bottom bar) ── */}
+      <View style={[s.cardTypeBar, {backgroundColor: badgeColor}]}>
+        <Text style={s.cardTypeBarText}>{busType}</Text>
+      </View>
+
+      {/* ── Card body ── */}
+      <View style={s.cardBody}>
+        {/* Bus icon + route name */}
+        <View style={s.cardHeader}>
+          <View style={s.busIconWrap}>
+            <View style={s.busIconBg} />
+            <Image source={busImage} style={s.busIcon} resizeMode="contain" />
+          </View>
+          <Text style={s.cardRouteName} numberOfLines={2}>{routeName}</Text>
+        </View>
+
+        {/* Divider */}
+        <View style={s.cardDivider} />
+
+        {/* Stats row */}
+        <View style={s.statsRow}>
+          <View style={s.statItem}>
+            <Text style={s.statValue}>{distance}</Text>
+            <Text style={s.statLabel}>{t('ALL_ROUTES_SCREEN.DISTANCE')}</Text>
+          </View>
+          <View style={s.statDivider} />
+          <View style={s.statItem}>
+            <Text style={s.statValue}>{stopsCount}</Text>
+            <Text style={s.statLabel}>{t('ALL_ROUTES_SCREEN.STOPS')}</Text>
+          </View>
+          <View style={s.statDivider} />
+          <View style={s.statItem}>
+            <Text style={s.statValue}>{departure}</Text>
+            <Text style={s.statLabel}>{t('ALL_ROUTES_SCREEN.DEPARTURE')}</Text>
+          </View>
+        </View>
+      </View>
+    </TouchableOpacity>
+  );
+};
+
+// ─── Main Component ────────────────────────────────────────────────────────────
+
+const AllRoutesSearch = ({navigation, route}) => {
   const {t} = useTranslation();
+  const insets = useSafeAreaInsets();
+
+  const source = route?.params?.source;
+  const destination = route?.params?.destination;
 
   const [list, setList] = useState([]);
-  const [offline, setOffline] = useState(false);
-  const [nextPage, setNextPage] = useState(1);
-  const [nextUrl, setNextUrl] = useState(1);
-  const [source, setSource] = useState(route?.params?.source);
-  const [destination, setDestination] = useState(route?.params?.destination);
-  const [isFirstTime, setIsFirstTime] = useState(true);
   const [isLoading, setIsLoading] = useState(true);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [isOffline, setIsOffline] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
   const [lastPage, setLastPage] = useState(null);
-  const [showOffline, setShowOffline] = useState(false);
-  const [isAlert, setIsAlert] = useState(false);
-  const [alertMessage, setAlertMessage] = useState('');
   const [bannerObject, setBannerObject] = useState({});
+  const isMounted = useRef(true);
+
+  // ── Init ───────────────────────────────────────────────────────────────────
 
   useEffect(() => {
-    let isMounted = true;
     const backHandler = goBackHandler(navigation);
     checkLogin(navigation);
 
     const init = async () => {
-      // 1. Load local data immediately for fast render
-      const localData = await getFromStorage(t('STORAGE.ROUTES_RESPONSE'));
-      if (localData) {
-        const parsed = JSON.parse(localData);
-        if (parsed && parsed.data && parsed.data.data) {
-          setList(parsed.data.data.data);
-          setIsLoading(false);
-          setIsFirstTime(false);
-        }
-      } else {
-        props.setLoader(true);
-      }
+      const netState = await NetInfo.fetch();
+      setIsOffline(!netState.isConnected);
+      await loadBanner();
 
-      // 2. Sync with API
-      const unsubscribe = NetInfo.addEventListener(async state => {
-        if (!isMounted) return;
-        
-        dataSync(t('STORAGE.ROUTES_RESPONSE'), () => searchRoute(), props.mode).then(resp => {
-          if (resp) {
-            let res = JSON.parse(resp);
-            if (res.data && res.data.data && Array.isArray(res.data.data.data)) {
-              setList(res.data.data.data);
-            }
+      // Show cached data immediately — no long skeleton wait
+      const cached = await getFromStorage(t('STORAGE.ROUTES_RESPONSE'));
+      if (cached) {
+        try {
+          const parsed = JSON.parse(cached);
+          const pageData = parsed?.data?.data?.data;
+          if (Array.isArray(pageData) && pageData.length > 0 && isMounted.current) {
+            setList(pageData);
             setIsLoading(false);
           }
-          props.setLoader(false);
-        });
-      });
-      return unsubscribe;
-    };
+        } catch {}
+      }
 
-    const sub = init();
+      // Fetch fresh from API in background (updates silently if cache was shown)
+      await fetchRoutes(false);
+    };
+    init();
 
     return () => {
+      isMounted.current = false;
       backHandler.remove();
-      if (typeof sub === 'function') sub();
-      isMounted = false;
     };
   }, []);
 
-  useEffect(() => {
-    const getBanners = async () => {
-      const landingData = await getFromStorage(t('STORAGE.LANDING_RESPONSE'));
-      if (landingData) {
-        const parsedData = JSON.parse(landingData);
-        if (parsedData?.banners) {
-          setBannerObject(parsedData.banners);
-        }
-      }
-    };
-    getBanners();
-  }, []);
-
+  // Re-search if language changed
   useFocusEffect(
-    React.useCallback(() => {
+    useCallback(() => {
       const checkLangChange = async () => {
-        const isLangChanged = await AsyncStorage.getItem('isLangChanged');
-        if (isLangChanged === 'true') {
-          searchRoute();
-        }
+        const changed = await AsyncStorage.getItem('isLangChanged');
+        if (changed === 'true') fetchRoutes(false);
       };
       checkLangChange();
-    }, [])
+    }, []),
   );
-  
-  const getRoutesList = useCallback((item) => {
-    navigateTo(navigation, t('SCREEN.ROUTES_LIST'), {item});
-  }, [navigation, t]);
 
-  const searchRoute = async (a, b, isNext) => {
+  const loadBanner = async () => {
+    try {
+      const raw = await getFromStorage(t('STORAGE.LANDING_RESPONSE'));
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (parsed?.banners && isMounted.current) setBannerObject(parsed.banners);
+      }
+    } catch {}
+  };
+
+  // ── API ────────────────────────────────────────────────────────────────────
+
+  const fetchRoutes = async (loadMore = false) => {
     AsyncStorage.setItem('isLangChanged', 'false');
+    const page = loadMore ? currentPage + 1 : 1;
 
-    if (nextPage >= 1) {
-      if (list.length === 0 || isNext) props.setLoader(true);
-      const data = {
-        source_place_id: a || source?.id,
-        destination_place_id: b || destination?.id,
-      };
+    if (loadMore) setIsLoadingMore(true);
+    else setIsLoading(true);
 
-      return comnPost(`v2/routes?page=${isNext ? nextPage : 1}`, data, navigation)
-        .then(res => {
-          if (res.data.success) {
-            if (res && res.data.data.data[0]) {
-              saveToStorage(t('STORAGE.ROUTES_RESPONSE'), JSON.stringify(res));
-              let myNextUrl = res.data.data.next_page_url;
-              setNextUrl(myNextUrl);
-              if (myNextUrl) {
-                nextPage !== myNextUrl[myNextUrl.length - 1] && isNext
-                  ? setList([...list, ...res.data.data.data])
-                  : setList([...res.data.data.data]);
-              } else {
-                setList([...res.data.data.data]);
-              }
-              setNextPage(res.data.data.current_page + 1);
-              setLastPage(res.data.data.last_page);
-              setIsLoading(false);
-              setIsFirstTime(false);
-              props.setLoader(false);
-              return res;
-            } else {
-              setIsLoading(false);
-              setIsFirstTime(false);
-              setList([]);
-              props.setLoader(false);
-              return res;
-            }
-          } else {
-            setIsLoading(false);
-            setIsFirstTime(false);
-            setList([]);
-            props.setLoader(false);
+    const payload = {
+      source_place_id: source?.id,
+      destination_place_id: destination?.id,
+    };
+
+    try {
+      const res = await comnPost(`v2/routes?page=${page}`, payload, navigation);
+      if (!isMounted.current) return;
+
+      if (res?.data?.success) {
+        const pageData = res.data.data?.data || [];
+        const last = res.data.data?.last_page ?? 1;
+        const current = res.data.data?.current_page ?? 1;
+
+        if (loadMore) {
+          setList(prev => [...prev, ...pageData]);
+        } else {
+          setList(pageData);
+          saveToStorage(t('STORAGE.ROUTES_RESPONSE'), JSON.stringify(res));
+
+          // Save to recent routes for MSRTCSearch history
+          if (source?.id && destination?.id) {
+            try {
+              const raw = await AsyncStorage.getItem(RECENT_KEY);
+              const existing = raw ? JSON.parse(raw) : [];
+              const entry = {
+                sourceId: source.id,
+                sourceName: source.name,
+                destId: destination.id,
+                destName: destination.name,
+                ts: Date.now(),
+              };
+              // Remove duplicate same route then prepend
+              const filtered = existing.filter(
+                r => !(r.sourceId === entry.sourceId && r.destId === entry.destId),
+              );
+              await AsyncStorage.setItem(
+                RECENT_KEY,
+                JSON.stringify([entry, ...filtered].slice(0, MAX_RECENT)),
+              );
+            } catch {}
           }
-        })
-        .catch(err => {
-          setIsLoading(false);
-          setIsFirstTime(false);
-          props.setLoader(false);
-        });
+        }
+        setCurrentPage(current);
+        setLastPage(last);
+      }
+    } catch {
+      // If first load failed, try cache
+      if (!loadMore) {
+        try {
+          const cached = await getFromStorage(t('STORAGE.ROUTES_RESPONSE'));
+          if (cached && isMounted.current) {
+            const parsed = JSON.parse(cached);
+            const pageData = parsed?.data?.data?.data;
+            if (Array.isArray(pageData)) {
+              setList(pageData);
+              setIsOffline(true);
+            }
+          }
+        } catch {}
+      }
+    } finally {
+      if (isMounted.current) {
+        setIsLoading(false);
+        setIsLoadingMore(false);
+      }
     }
   };
 
-  const loadMoreRoutes = async () => {
-    const mode = JSON.parse(await getFromStorage(t('STORAGE.MODE')));
-    // Check the internet connectivity state
-    const state = await NetInfo.fetch();
-    const isConnected = state.isConnected;
-
-    // Combined condition for all three cases
-    if (
-      (isConnected && !mode) || // Case 1: Internet is available but mode is offline
-      (!isConnected && !mode) || // Case 2: Internet is not available and mode is offline
-      (!isConnected && mode) // Case 3: Internet is not available but mode is online
-    ) {
-      // The user should be alerted based on their mode and connectivity status
-      setIsAlert(true);
-      setAlertMessage(
-        !isConnected && !mode
-          ? t('ALERT.NETWORK') // Alert: Network is available but mode is offline
-          : !isConnected && mode
-          ? t('ALERT.NO_INTERNET_AVAILABLE_MODE_ONLINE') // Alert: Mode is offline, you need to set it to online
-          : isConnected && !mode
-          ? t('ALERT.INTERNET_AVAILABLE_MODE_OFFLINE') // Alert: No internet available but mode is online
-          : '', // Default case (optional), if none of the conditions match
-      );
-
-      return;
-    }
-
-    if (!props.mode) {
-      setShowOffline(true);
-    } else if (!isLoading && nextPage <= lastPage) {
-      searchRoute(source, destination, true);
+  const onEndReached = () => {
+    if (!isLoadingMore && lastPage && currentPage < lastPage) {
+      fetchRoutes(true);
     }
   };
 
-  const closePopup = () => {
-    setIsAlert(false);
-  };
+  const openRouteDetail = useCallback(
+    item => navigateTo(navigation, t('SCREEN.ROUTES_LIST'), {item}),
+    [navigation, t],
+  );
 
-  const renderRouteItem = useCallback(({item}) => (
-    <RouteHeadCard
-      data={item}
-      cardClick={() => getRoutesList(item)}
-      style={styles.routeHeadCard}
-    />
-  ), [getRoutesList]);
+  // ── Render helpers ─────────────────────────────────────────────────────────
 
-  return (
-    <SafeAreaView edges={['top']} style={{backgroundColor: COLOR.white, flex: 1}}>
-      <CheckNet isOff={offline} />
-      {!isFirstTime && (
-        <View style={{position: 'absolute', width: 0, height: 0}}>
-          <Loader />
+  const hasBannerFooter = bannerObject?.ROUTE_LIST_FOOTER?.length > 0;
+
+  const headerTitle =
+    source?.name && destination?.name
+      ? `${source.name} → ${destination.name}`
+      : t('HEADER.ROUTES');
+
+  const ListHeader = () => (
+    <>
+      {isOffline && (
+        <View style={s.offlineBanner}>
+          <Ionicons name="cloud-offline-outline" size={15} color={C.offlineText} />
+          <Text style={s.offlineText}>{t('ALL_ROUTES_SCREEN.OFFLINE_MSG')}</Text>
         </View>
       )}
-      <Header
-        name={t('HEADER.ROUTES')}
-        goBack={() => backPage(navigation)}
-        startIcon={
-          <Ionicons
-            name="chevron-back-outline"
-            color={COLOR.black}
-            size={DIMENSIONS.userIconSize}
-            onPress={() => backPage(navigation)}
-          />
-        }
-      />
-      {/* <Loader /> */}
-      <View style={styles.routesSearchPanelView}>
-        {isFirstTime && isLoading ? (
-          <RoutesSearchPanelSkeleton />
-        ) : (
-          <RoutesSearchPanel
-            mySource={source}
-            myDestination={destination}
-            setSourceId={v => setSource(v)}
-            setDestinationId={v => setDestination(v)}
-            route={route}
-            navigation={navigation}
-            from={t('SCREEN.ALL_ROUTES_SEARCH')}
-            searchRoutes={(a, b) => searchRoute(a, b)}
-            onSwap={(a, b) => searchRoute(a, b)}
-          />
-        )}
-      </View>
-      <View
-        style={{
-          flex: 1,
-          marginBottom:
-            !isLoading &&
-            bannerObject?.ROUTE_LIST_FOOTER &&
-            bannerObject.ROUTE_LIST_FOOTER.length > 0
-              ? DIMENSIONS.windowWidth / 3
-              : 0,
-        }}>
-        {isFirstTime && isLoading ? (
-          <>
-            <RouteHeadCardSkeleton />
-            <RouteHeadCardSkeleton />
-            <RouteHeadCardSkeleton />
-            <RouteHeadCardSkeleton />
-            <RouteHeadCardSkeleton />
-          </>
-        ) : list.length > 0 ? (
-          <FlatList
-            keyExtractor={item => item.id.toString()}
-            initialNumToRender={5}
-            maxToRenderPerBatch={5}
-            windowSize={3}
-            removeClippedSubviews={true}
-            data={list}
-            onEndReached={() => loadMoreRoutes()}
-            contentContainerStyle={{paddingBottom: 20}}
-            onEndReachedThreshold={0.5}
-            ListHeaderComponent={
-              // !isLoading &&
-              // bannerObject?.ROUTE_LIST_MIDDLE &&
-              // bannerObject.ROUTE_LIST_MIDDLE.length > 0 ? (
-              //   <View style={{marginTop: 10, marginBottom: 10, width: '100%'}}>
-              //     <Banner
-              //       bannerImages={bannerObject.ROUTE_LIST_MIDDLE}
-              //     />
-              //   </View>
-              // ) : null
-              null
-            }
-            ListFooterComponent={null}
-            renderItem={renderRouteItem}
-          />
-        ) : (
-          <View style={{alignItems: 'center', padding: 50}}>
-            <GlobalText
-              style={{fontWeight: 'bold'}}
-              text={
-                offline
-                  ? t('NO_INTERNET')
-                  : !props.isLoading
-                  ? t('NO_DATA')
-                  : ''
-              }
-            />
+    </>
+  );
+
+  const ListFooter = () => (
+    <>
+      {isLoadingMore && (
+        <View style={s.loadMoreRow}>
+          <ActivityIndicator size="small" color={C.oceanMid} />
+          <Text style={s.loadMoreText}>{t('ALL_ROUTES_SCREEN.LOADING_MORE')}</Text>
+        </View>
+      )}
+      {hasBannerFooter && (
+        <View style={s.adBannerOuter}>
+          <View style={s.adLabelBadge}>
+            <Text style={s.adLabelText}>Premium Ad</Text>
           </View>
-        )}
-      </View>
-      {!isLoading &&
-        bannerObject?.ROUTE_LIST_FOOTER &&
-        bannerObject.ROUTE_LIST_FOOTER.length > 0 && (
-          <View style={{position: 'absolute', bottom: 0, width: '100%'}}>
+          <View style={s.bannerWrap}>
             <Banner
               bannerImages={bannerObject.ROUTE_LIST_FOOTER}
-              style={{height: DIMENSIONS.windowWidth / 3, marginBottom: 0}}
+              style={{height: BANNER_H}}
             />
           </View>
+        </View>
+      )}
+      <View style={{height: insets.bottom + 24}} />
+    </>
+  );
+
+  const renderEmpty = () => {
+    if (isLoading) return null;
+    return (
+      <View style={s.emptyWrap}>
+        <Text style={s.emptyIcon}>🚌</Text>
+        <Text style={s.emptyTitle}>{t('ALL_ROUTES_SCREEN.NO_ROUTES')}</Text>
+        <Text style={s.emptySub}>{t('ALL_ROUTES_SCREEN.NO_ROUTES_SUB')}</Text>
+      </View>
+    );
+  };
+
+  const renderItem = useCallback(
+    ({item}) => (
+      <RouteCard item={item} onPress={() => openRouteDetail(item)} t={t} />
+    ),
+    [openRouteDetail, t],
+  );
+
+  // ── JSX ────────────────────────────────────────────────────────────────────
+
+  return (
+    <View style={s.root}>
+      <StatusBar backgroundColor={C.oceanDeep} barStyle="light-content" />
+
+      {/* ── Header ── */}
+      <LinearGradient
+        colors={[C.oceanDeep, C.forestDeep]}
+        start={{x: 0, y: 0}}
+        end={{x: 1, y: 1}}
+        style={[s.header, {paddingTop: insets.top + 10}]}>
+
+        <TouchableOpacity
+          style={s.backBtn}
+          onPress={() => backPage(navigation)}
+          activeOpacity={0.8}
+          hitSlop={{top: 8, bottom: 8, left: 8, right: 8}}>
+          <Ionicons name="arrow-back" size={20} color={C.white} />
+        </TouchableOpacity>
+
+        <Text style={s.headerTitle} numberOfLines={2}>{headerTitle}</Text>
+        {!isLoading && (
+          <Text style={s.headerSubtitle}>
+            {list.length} {t('ALL_ROUTES_SCREEN.ROUTES_AVAILABLE')}
+          </Text>
         )}
-      <Popup message={alertMessage} onPress={closePopup} visible={isAlert} />
-      <ComingSoon
-        message={t('GET_MORE_DATA')}
-        visible={showOffline}
-        toggleOverlay={() => setShowOffline(false)}
-      />
-    </SafeAreaView>
+
+        <View style={s.headerCurve} pointerEvents="none" />
+      </LinearGradient>
+
+      {/* ── List ── */}
+      {isLoading ? (
+        <FlatList
+          style={s.list}
+          contentContainerStyle={s.listContent}
+          data={[]}
+          renderItem={null}
+          ListHeaderComponent={<SkeletonList />}
+          showsVerticalScrollIndicator={false}
+        />
+      ) : (
+        <FlatList
+          style={s.list}
+          contentContainerStyle={[
+            s.listContent,
+            list.length === 0 && s.emptyContainer,
+          ]}
+          data={list}
+          keyExtractor={item => item.id.toString()}
+          renderItem={renderItem}
+          onEndReached={onEndReached}
+          onEndReachedThreshold={0.5}
+          ListHeaderComponent={<ListHeader />}
+          ListFooterComponent={<ListFooter />}
+          ListEmptyComponent={renderEmpty}
+          initialNumToRender={8}
+          maxToRenderPerBatch={8}
+          windowSize={5}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+        />
+      )}
+    </View>
   );
 };
 
-const mapStateToProps = state => {
-  return {
-    mode: state.commonState.mode,
-    isLoading: state.commonState.isLoading,
-  };
-};
+// ─── Styles ────────────────────────────────────────────────────────────────────
 
-const mapDispatchToProps = dispatch => {
-  return {
-    setLoader: data => {
-      dispatch(setLoader(data));
-    },
-    setMode: data => {
-      dispatch(setMode(data));
-    },
-  };
-};
+const s = StyleSheet.create({
+  root: {flex: 1, backgroundColor: C.cream},
+
+  // Header
+  header: {
+    paddingHorizontal: 20,
+    paddingBottom: 48,
+    position: 'relative',
+    overflow: 'hidden',
+  },
+  backBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: 'rgba(255,255,255,0.18)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 14,
+  },
+  headerTitle: {
+    fontSize: 22,
+    fontWeight: '700',
+    color: C.white,
+    letterSpacing: 0.2,
+    marginBottom: 4,
+  },
+  headerSubtitle: {
+    fontSize: 12,
+    color: '#B8E4EA',
+    opacity: 0.9,
+  },
+  headerCurve: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    height: 36,
+    backgroundColor: C.cream,
+    borderTopLeftRadius: 28,
+    borderTopRightRadius: 28,
+  },
+
+  // List
+  list: {flex: 1},
+  listContent: {paddingTop: 12},
+  emptyContainer: {flex: 1},
+
+  // Offline banner
+  offlineBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginHorizontal: 20,
+    marginBottom: 12,
+    padding: 12,
+    backgroundColor: C.offlineBg,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: C.offlineBorder,
+  },
+  offlineText: {
+    flex: 1,
+    fontSize: 12,
+    color: C.offlineText,
+    fontWeight: '500',
+  },
+
+  // Route card
+  card: {
+    backgroundColor: C.white,
+    borderRadius: 18,
+    marginHorizontal: 20,
+    marginBottom: 12,
+    overflow: 'hidden',
+    borderWidth: 1.5,
+    borderColor: 'rgba(0,0,0,0.10)',
+    ...Platform.select({
+      ios: {
+        shadowColor: '#0D3D4A',
+        shadowOffset: {width: 0, height: 4},
+        shadowOpacity: 0.1,
+        shadowRadius: 14,
+      },
+    }),
+  },
+  cardTypeBar: {
+    paddingHorizontal: 16,
+    paddingVertical: 6,
+  },
+  cardTypeBarText: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: C.white,
+    textTransform: 'uppercase',
+    letterSpacing: 0.6,
+  },
+  cardBody: {
+    padding: 12,
+  },
+  cardHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    marginBottom: 8,
+  },
+  busIconWrap: {
+    width: 80,
+    height: 80,
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexShrink: 0,
+  },
+  busIconBg: {
+    position: 'absolute',
+    width: 63,
+    height: 63,
+    borderRadius: 16,
+    backgroundColor: 'rgba(27,107,123,0.10)',
+  },
+  busIcon: {width: 82, height: 82},
+  cardRouteName: {
+    flex: 1,
+    fontSize: 17,
+    fontWeight: '600',
+    color: C.textDark,
+    lineHeight: 23,
+  },
+  // Divider inside card
+  cardDivider: {
+    height: 1,
+    backgroundColor: 'rgba(0,0,0,0.05)',
+    marginBottom: 8,
+  },
+
+  // Stats
+  statsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  statItem: {
+    flex: 1,
+    alignItems: 'center',
+  },
+  statDivider: {
+    width: 1,
+    height: 28,
+    backgroundColor: 'rgba(0,0,0,0.07)',
+  },
+  statValue: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: C.oceanMid,
+    marginBottom: 2,
+  },
+  statLabel: {
+    fontSize: 10,
+    color: C.textLight,
+    textTransform: 'uppercase',
+    letterSpacing: 0.3,
+  },
+
+  // Load more footer
+  loadMoreRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    paddingVertical: 20,
+  },
+  loadMoreText: {fontSize: 13, color: C.textLight},
+
+  // Empty state
+  emptyWrap: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 80,
+  },
+  emptyIcon: {fontSize: 48, marginBottom: 16},
+  emptyTitle: {fontSize: 17, fontWeight: '700', color: C.textDark, marginBottom: 6},
+  emptySub: {fontSize: 14, color: C.textLight, textAlign: 'center', paddingHorizontal: 32},
+
+  // Banner — dashed outline matches MSRTCSearch ad-banner style
+  adBannerOuter: {
+    marginHorizontal: 20,
+    marginTop: 16,
+    backgroundColor: C.sandPale,
+    borderRadius: 18,
+    borderWidth: 2,
+    borderColor: C.sandMid,
+    borderStyle: 'dashed',
+    overflow: 'hidden',
+    position: 'relative',
+  },
+  adLabelBadge: {
+    position: 'absolute',
+    top: 10,
+    right: 10,
+    zIndex: 10,
+    backgroundColor: C.sandMid,
+    borderRadius: 50,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+  },
+  adLabelText: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: C.white,
+    textTransform: 'uppercase',
+    letterSpacing: 0.6,
+  },
+  bannerWrap: {
+    borderRadius: 16,
+    overflow: 'hidden',
+    height: BANNER_H,
+  },
+});
+
+// ─── Redux ─────────────────────────────────────────────────────────────────────
+
+const mapStateToProps = state => ({
+  mode: state.commonState.mode,
+  isLoading: state.commonState.isLoading,
+});
+
+const mapDispatchToProps = dispatch => ({
+  setLoader: data => dispatch(setLoader(data)),
+  setMode: data => dispatch(setMode(data)),
+});
 
 export default connect(mapStateToProps, mapDispatchToProps)(AllRoutesSearch);
