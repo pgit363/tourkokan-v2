@@ -5,6 +5,7 @@ import {
   SetLoader,
   SetSource,
   SetMode,
+  ResetStore,
 } from './Types';
 
 const saveLoginUser = data => {
@@ -49,6 +50,8 @@ const setMode = data => {
   };
 };
 
+const resetStore = () => ({type: ResetStore});
+
 export {
   saveLoginUser,
   saveAccess_token,
@@ -56,4 +59,5 @@ export {
   setSource,
   setDestination,
   setMode,
+  resetStore,
 };

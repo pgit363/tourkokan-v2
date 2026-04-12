@@ -5,7 +5,6 @@ import {
   BackHandler,
   RefreshControl,
   Share,
-  Alert,
   Modal,
   Pressable,
   TouchableOpacity,
@@ -17,6 +16,7 @@ import {useFocusEffect} from '@react-navigation/native';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {Image} from '@rneui/themed';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import {isGuestUser} from '../Components/Common/GuestGateModal';
 import {connect} from 'react-redux';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import {useTranslation} from 'react-i18next';
@@ -29,7 +29,7 @@ import {
   saveToStorage,
   getFromStorage,
 } from '../Services/Api/CommonServices';
-import {setLoader} from '../Reducers/CommonActions';
+import {setLoader, resetStore} from '../Reducers/CommonActions';
 import {checkLogin, backPage} from '../Services/CommonMethods';
 import STRING from '../Services/Constants/STRINGS';
 import MapView, {Marker} from 'react-native-maps';
@@ -244,14 +244,19 @@ const ProfileView = ({navigation, ...props}) => {
 
     const init = async () => {
       const localData = await getFromStorage(t('STORAGE.PROFILE_RESPONSE'));
+      const currentUserId = await AsyncStorage.getItem(t('STORAGE.USER_ID'));
       if (localData && isMounted) {
         const res = JSON.parse(localData);
-        setProfile(res);
-        if (res?.addresses?.length > 0) {
-          setLocationMap(res.addresses[0].latitude, res.addresses[0].longitude);
+        // Only use cached profile if it belongs to the currently logged-in user
+        const cachedUserId = res?.id ? JSON.stringify(res.id) : null;
+        if (cachedUserId && cachedUserId === currentUserId) {
+          setProfile(res);
+          if (res?.addresses?.length > 0) {
+            setLocationMap(res.addresses[0].latitude, res.addresses[0].longitude);
+          }
+          fadeIn();
+          props.setLoader(false);
         }
-        fadeIn();
-        props.setLoader(false);
       }
 
       unsubscribeNetInfo = NetInfo.addEventListener(state => {
@@ -369,31 +374,17 @@ const ProfileView = ({navigation, ...props}) => {
 
   const confirmLogout = async () => {
     setLogoutVisible(false);
+    props.setLoader(true);
     try {
-      const state = await NetInfo.fetch();
-      const isConnected = state.isConnected;
-      const mode = JSON.parse(await getFromStorage(t('STORAGE.MODE')));
-      if ((!isConnected && !mode) || (!isConnected && mode) || (isConnected && !mode)) {
-        const alertMsg =
-          !isConnected && !mode
-            ? t('ALERT.NETWORK')
-            : !isConnected && mode
-            ? t('ALERT.NO_INTERNET_AVAILABLE_MODE_ONLINE')
-            : t('ALERT.INTERNET_AVAILABLE_MODE_OFFLINE');
-        Alert.alert('', alertMsg, [{text: 'OK'}]);
-        return;
-      }
-      props.setLoader(true);
-      const res = await comnPost('v2/logout');
-      if (res.data.success) {
-        await GoogleSignin.signOut();
-        await AsyncStorage.clear();
-        navigation.reset({index: 0, routes: [{name: STRING.SCREEN.EMAIL}]});
-      }
-    } catch (err) {
-      console.error('Logout error:', err);
+      // Fire API logout in background — don't block on result
+      comnPost('v2/logout').catch(() => {});
+      try { await GoogleSignin.signOut(); } catch {}
     } finally {
+      // Always clear everything regardless of API/network result
+      await AsyncStorage.clear();
+      props.resetStore();
       props.setLoader(false);
+      navigation.reset({index: 0, routes: [{name: STRING.SCREEN.EMAIL}]});
     }
   };
 
@@ -416,7 +407,19 @@ const ProfileView = ({navigation, ...props}) => {
     }
   };
 
-  const handleEditProfile = () => {
+  const [isGuestPopup, setIsGuestPopup] = useState(false);
+
+  const handleGuestLogin = async () => {
+    setIsGuestPopup(false);
+    await AsyncStorage.clear();
+    navigation.reset({index: 0, routes: [{name: STRING.SCREEN.EMAIL}]});
+  };
+
+  const handleEditProfile = async () => {
+    if (await isGuestUser()) {
+      setIsGuestPopup(true);
+      return;
+    }
     navigation.navigate(STRING.SCREEN.PROFILE);
   };
 
@@ -802,6 +805,38 @@ const ProfileView = ({navigation, ...props}) => {
             </View>
           </Pressable>
         </Pressable>
+      </Modal>
+
+      {/* ── Guest Gate Modal ── */}
+      <Modal
+        visible={isGuestPopup}
+        transparent
+        animationType="fade"
+        statusBarTranslucent
+        onRequestClose={() => setIsGuestPopup(false)}>
+        <View style={guestSt.backdrop}>
+          <View style={guestSt.card}>
+            <View style={guestSt.iconWrap}>
+              <Text style={guestSt.iconText}>🔒</Text>
+            </View>
+            <Text style={guestSt.title}>Members Only</Text>
+            <Text style={guestSt.message}>
+              Please register or login to edit your profile.
+            </Text>
+            <TouchableOpacity
+              style={guestSt.loginBtn}
+              onPress={handleGuestLogin}
+              activeOpacity={0.85}>
+              <Text style={guestSt.loginBtnText}>Login / Register</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={guestSt.cancelBtn}
+              onPress={() => setIsGuestPopup(false)}
+              activeOpacity={0.7}>
+              <Text style={guestSt.cancelBtnText}>Continue as Guest</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
       </Modal>
 
     </SafeAreaView>
@@ -1375,6 +1410,77 @@ const mapStateToProps = state => ({
 
 const mapDispatchToProps = dispatch => ({
   setLoader: data => dispatch(setLoader(data)),
+  resetStore: () => dispatch(resetStore()),
+});
+
+const guestSt = StyleSheet.create({
+  backdrop: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.55)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 28,
+  },
+  card: {
+    width: '100%',
+    backgroundColor: '#FFFFFF',
+    borderRadius: 24,
+    paddingHorizontal: 24,
+    paddingTop: 32,
+    paddingBottom: 24,
+    alignItems: 'center',
+  },
+  iconWrap: {
+    width: 72,
+    height: 72,
+    borderRadius: 36,
+    backgroundColor: '#EEF6FF',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 16,
+  },
+  iconText: {fontSize: 34},
+  title: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#0D3D4A',
+    marginBottom: 8,
+    textAlign: 'center',
+  },
+  message: {
+    fontSize: 14,
+    color: '#78716C',
+    textAlign: 'center',
+    lineHeight: 20,
+    marginBottom: 28,
+  },
+  loginBtn: {
+    width: '100%',
+    backgroundColor: '#1B6B7B',
+    borderRadius: 50,
+    paddingVertical: 15,
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  loginBtnText: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: '#FFFFFF',
+    letterSpacing: 0.3,
+  },
+  cancelBtn: {
+    width: '100%',
+    borderRadius: 50,
+    paddingVertical: 13,
+    alignItems: 'center',
+    borderWidth: 1.5,
+    borderColor: 'rgba(0,0,0,0.1)',
+  },
+  cancelBtnText: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: '#78716C',
+  },
 });
 
 export default connect(mapStateToProps, mapDispatchToProps)(ProfileView);

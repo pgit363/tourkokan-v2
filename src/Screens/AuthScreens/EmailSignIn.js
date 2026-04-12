@@ -257,6 +257,7 @@ const EmailSignIn = ({navigation, route, ...props}) => {
             t('STORAGE.IS_FIRST_TIME'),
             JSON.stringify(true),
           );
+          AsyncStorage.setItem('IS_GUEST', JSON.stringify(!!res.data.data.isGuest));
           saveToStorage(t('STORAGE.MODE'), JSON.stringify(true));
           props.setMode(true);
           navigateTo(navigation, t('SCREEN.HOME'));

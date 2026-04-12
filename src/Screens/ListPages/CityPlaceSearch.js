@@ -30,6 +30,7 @@ import {FTP_PATH} from '@env';
 
 import {comnPost} from '../../Services/Api/CommonServices';
 import {navigateTo} from '../../Services/CommonMethods';
+import {useGuestGate, isGuestUser, GUEST_KEYS, incrementGuestCount, getGuestCount} from '../../Components/Common/GuestGateModal';
 
 const RECENT_KEY = 'recentSearches_v2';
 const MAX_RECENT = 8;
@@ -62,6 +63,8 @@ const CityPlaceSearch = ({navigation, route}) => {
   const currentSearch = useRef({search: '', categoryKey: null});
   const isLoadingMoreRef = useRef(false);
   const viewabilityConfig = useRef({itemVisiblePercentThreshold: 60});
+
+  const {show: showGuestPopup, modal: guestModal} = useGuestGate(navigation);
 
   const [query, setQuery] = useState('');
   const [offline, setOffline] = useState(false);
@@ -252,6 +255,13 @@ const CityPlaceSearch = ({navigation, route}) => {
   const performSearch = useCallback(
     async (val, categoryKey, silent = false, filterLabel = null) => {
       const term = val !== undefined ? val : query;
+      if (!silent && categoryKey) {
+        const count = await incrementGuestCount(GUEST_KEYS.FILTER_COUNT);
+        if (count > 2 && (await isGuestUser())) {
+          showGuestPopup('Login to use more filters.');
+          return;
+        }
+      }
       if (!silent) {
         Keyboard.dismiss();
         setIsFocused(false);
@@ -293,6 +303,10 @@ const CityPlaceSearch = ({navigation, route}) => {
   const loadMore = useCallback(async () => {
     // useRef guard prevents duplicate calls from stale useCallback closures
     if (isLoadingMoreRef.current || !hasMore || isSearching) return;
+    if (currentPage >= 2 && (await isGuestUser())) {
+      showGuestPopup('Login to explore more places beyond page 2.');
+      return;
+    }
     isLoadingMoreRef.current = true;
     setIsLoadingMore(true);
     const nextPage = currentPage + 1;
@@ -792,6 +806,7 @@ const CityPlaceSearch = ({navigation, route}) => {
           }
         />
       )}
+      {guestModal}
     </View>
   );
 };

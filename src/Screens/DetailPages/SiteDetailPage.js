@@ -13,6 +13,7 @@ import {
   StyleSheet,
   Linking,
   Share,
+  Modal,
 } from 'react-native';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import LinearGradient from 'react-native-linear-gradient';
@@ -21,12 +22,14 @@ import {connect} from 'react-redux';
 import {useTranslation} from 'react-i18next';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import {isGuestUser} from '../../Components/Common/GuestGateModal';
 import NetInfo from '@react-native-community/netinfo';
 import StarRating from 'react-native-star-rating-widget';
 import {FTP_PATH} from '@env';
 
 import {comnPost, getFromStorage} from '../../Services/Api/CommonServices';
 import {navigateTo} from '../../Services/CommonMethods';
+import STRING from '../../Services/Constants/STRINGS';
 import Banner from '../../Components/Customs/Banner';
 import Popup from '../../Components/Common/Popup';
 import BottomSheet from '../../Components/Customs/BottomSheet';
@@ -177,6 +180,7 @@ const SiteDetailPage = ({navigation, route}) => {
   const [alertMessage, setAlertMessage] = useState('');
   const [descExpanded, setDescExpanded] = useState(false);
   const [userRating, setUserRating] = useState(0);
+  const [isGuestPopup, setIsGuestPopup] = useState(false);
 
   // ── Back handler ─────────────────────────────────────────────────────────────
   useEffect(() => {
@@ -228,9 +232,17 @@ const SiteDetailPage = ({navigation, route}) => {
     }
   };
 
+  // ── Guest helper ─────────────────────────────────────────────────────────────
+  const handleGuestLogin = async () => {
+    setIsGuestPopup(false);
+    await AsyncStorage.clear();
+    navigation.reset({index: 0, routes: [{name: STRING.SCREEN.EMAIL}]});
+  };
+
   // ── Favourite ────────────────────────────────────────────────────────────────
   const onFavPress = async () => {
     try {
+      if (await isGuestUser()) { setIsGuestPopup(true); return; }
       const storedMode = JSON.parse(await getFromStorage(t('STORAGE.MODE')));
       const net = await NetInfo.fetch();
       if (!net.isConnected || !storedMode) {
@@ -255,6 +267,7 @@ const SiteDetailPage = ({navigation, route}) => {
   // ── Star rating submit ────────────────────────────────────────────────────────
   const onStarRatingPress = async rate => {
     try {
+      if (await isGuestUser()) { setIsGuestPopup(true); return; }
       const storedMode = JSON.parse(await getFromStorage(t('STORAGE.MODE')));
       const net = await NetInfo.fetch();
       if (!net.isConnected || !storedMode) {
@@ -690,7 +703,10 @@ const SiteDetailPage = ({navigation, route}) => {
         {/* Write a review CTA */}
         <TouchableOpacity
           style={st.writeReviewBtn}
-          onPress={() => refRBSheet.current?.open()}
+          onPress={async () => {
+            if (await isGuestUser()) { setIsGuestPopup(true); return; }
+            refRBSheet.current?.open();
+          }}
           activeOpacity={0.85}>
           <Ionicons name="create-outline" size={16} color={C.oceanMid} />
           <Text style={st.writeReviewBtnText}>Write a Review</Text>
@@ -954,6 +970,38 @@ const SiteDetailPage = ({navigation, route}) => {
           />
         }
       />
+
+      {/* ── Guest Gate Modal ── */}
+      <Modal
+        visible={isGuestPopup}
+        transparent
+        animationType="fade"
+        statusBarTranslucent
+        onRequestClose={() => setIsGuestPopup(false)}>
+        <View style={guestSt.backdrop}>
+          <View style={guestSt.card}>
+            <View style={guestSt.iconWrap}>
+              <Text style={guestSt.iconText}>🔒</Text>
+            </View>
+            <Text style={guestSt.title}>Members Only</Text>
+            <Text style={guestSt.message}>
+              Please register or login to like, rate, and comment on places.
+            </Text>
+            <TouchableOpacity
+              style={guestSt.loginBtn}
+              onPress={handleGuestLogin}
+              activeOpacity={0.85}>
+              <Text style={guestSt.loginBtnText}>Login / Register</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={guestSt.cancelBtn}
+              onPress={() => setIsGuestPopup(false)}
+              activeOpacity={0.7}>
+              <Text style={guestSt.cancelBtnText}>Continue as Guest</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 };
@@ -1300,6 +1348,77 @@ const st = StyleSheet.create({
     borderWidth: 1.5, borderColor: 'rgba(27,107,123,0.25)',
   },
   bottomBtnSecondaryText: {fontSize: 14, fontWeight: '700', color: C.oceanMid},
+});
+
+// ─── Guest Modal styles ───────────────────────────────────────────────────────
+const guestSt = StyleSheet.create({
+  backdrop: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.55)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 28,
+  },
+  card: {
+    width: '100%',
+    backgroundColor: '#FFFFFF',
+    borderRadius: 24,
+    paddingHorizontal: 24,
+    paddingTop: 32,
+    paddingBottom: 24,
+    alignItems: 'center',
+  },
+  iconWrap: {
+    width: 72,
+    height: 72,
+    borderRadius: 36,
+    backgroundColor: '#EEF6FF',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 16,
+  },
+  iconText: {fontSize: 34},
+  title: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#0D3D4A',
+    marginBottom: 8,
+    textAlign: 'center',
+  },
+  message: {
+    fontSize: 14,
+    color: '#78716C',
+    textAlign: 'center',
+    lineHeight: 20,
+    marginBottom: 28,
+  },
+  loginBtn: {
+    width: '100%',
+    backgroundColor: '#1B6B7B',
+    borderRadius: 50,
+    paddingVertical: 15,
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  loginBtnText: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: '#FFFFFF',
+    letterSpacing: 0.3,
+  },
+  cancelBtn: {
+    width: '100%',
+    borderRadius: 50,
+    paddingVertical: 13,
+    alignItems: 'center',
+    borderWidth: 1.5,
+    borderColor: 'rgba(0,0,0,0.1)',
+  },
+  cancelBtnText: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: '#78716C',
+  },
 });
 
 // ─── Redux ────────────────────────────────────────────────────────────────────

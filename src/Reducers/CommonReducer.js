@@ -5,6 +5,7 @@ import {
   SetLoader,
   SetMode,
   SetSource,
+  ResetStore,
 } from './Types';
 
 const initialState = {
@@ -49,6 +50,8 @@ const commonReducer = (state = initialState, action) => {
         mode: action.payload,
       };
     }
+    case ResetStore:
+      return {...initialState};
     default:
       return state;
   }

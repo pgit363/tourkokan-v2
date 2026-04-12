@@ -1,387 +1,537 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, {useEffect, useState, useCallback, useRef} from 'react';
 import {
   View,
-  TouchableOpacity,
-  ActivityIndicator,
-  ScrollView,
-  RefreshControl,
-  Dimensions,
   Text,
+  TouchableOpacity,
+  StyleSheet,
+  FlatList,
+  Dimensions,
+  Animated,
+  TextInput,
+  Platform,
+  StatusBar,
+  RefreshControl,
 } from 'react-native';
-import { ResponsiveGrid } from 'react-native-flexible-grid';
+import LinearGradient from 'react-native-linear-gradient';
+import NetInfo from '@react-native-community/netinfo';
+import ImageViewing from 'react-native-image-viewing';
 import ProgressImage from 'react-native-image-progress';
 import * as Progress from 'react-native-progress';
-import ImageViewing from 'react-native-image-viewing';
-import styles from './Styles';
-import Path from '../../Services/Api/BaseUrl';
+import {connect} from 'react-redux';
+import {useTranslation} from 'react-i18next';
+import Ionicons from 'react-native-vector-icons/Ionicons';
+import {useFocusEffect} from '@react-navigation/native';
+import {FTP_PATH} from '@env';
+
 import {
   comnPost,
   dataSync,
   saveToStorage,
   getFromStorage,
 } from '../../Services/Api/CommonServices';
-import Loader from '../../Components/Customs/Loader';
-import { checkLogin, goBackHandler } from '../../Services/CommonMethods';
-import CheckNet from '../../Components/Common/CheckNet';
-import NetInfo from '@react-native-community/netinfo';
-import { connect } from 'react-redux';
-import {
-  setDestination,
-  setLoader,
-  setSource,
-} from '../../Reducers/CommonActions';
-import Header from '../../Components/Common/Header';
-import Search from '../../Components/Customs/Search';
-import { useTranslation } from 'react-i18next';
-import GlobalText from '../../Components/Customs/Text';
-import DIMENSIONS from '../../Services/Constants/DIMENSIONS';
-import ComingSoon from '../../Components/Common/ComingSoon';
+import {setDestination, setLoader, setSource} from '../../Reducers/CommonActions';
+import {checkLogin, goBackHandler} from '../../Services/CommonMethods';
 import Popup from '../../Components/Common/Popup';
-import { FTP_PATH } from '@env';
-import { useFocusEffect } from '@react-navigation/native';
-import {SafeAreaView} from 'react-native-safe-area-context';
-import COLOR from '../../Services/Constants/COLORS';
+import {useGuestGate, isGuestUser} from '../../Components/Common/GuestGateModal';
 
-const { height: screenHeight } = Dimensions.get('window');
+// ─── Constants ────────────────────────────────────────────────────────────────
 
-const ExploreGrid = ({ route, navigation, ...props }) => {
-  const { t } = useTranslation();
+// Computed once after all imports — avoids layout flash caused by hook re-renders
+const TOP_INSET = Platform.OS === 'ios' ? 44 : (StatusBar.currentHeight ?? 24);
+
+const NUM_COLS = 3;
+const CELL_GAP = 8;
+const H_PAD = 20;
+
+const {width: SW} = Dimensions.get('window');
+const CELL_SIZE = Math.floor((SW - H_PAD * 2 - CELL_GAP * (NUM_COLS + 1)) / NUM_COLS);
+
+const C = {
+  oceanDeep: '#0D3D4A',
+  oceanMid: '#1B6B7B',
+  oceanFoam: '#B8E4EA',
+  forestDeep: '#1A3320',
+  cream: '#FAF7F0',
+  white: '#FFFFFF',
+  textLight: '#78716C',
+  textMid: '#44403C',
+  textDark: '#1C1917',
+  sandMid: '#C4972A',
+};
+
+// ─── Shimmer hook ─────────────────────────────────────────────────────────────
+
+const useShimmer = () => {
+  const anim = useRef(new Animated.Value(0)).current;
+  useEffect(() => {
+    const loop = Animated.loop(
+      Animated.sequence([
+        Animated.timing(anim, {toValue: 1, duration: 900, useNativeDriver: true}),
+        Animated.timing(anim, {toValue: 0, duration: 900, useNativeDriver: true}),
+      ]),
+    );
+    loop.start();
+    return () => loop.stop();
+  }, [anim]);
+  return anim.interpolate({inputRange: [0, 1], outputRange: [0.3, 0.8]});
+};
+
+// ─── Skeleton grid ────────────────────────────────────────────────────────────
+
+const SkeletonGrid = () => {
+  const opacity = useShimmer();
+  return (
+    <Animated.View style={[sk.grid, {opacity}]}>
+      {Array.from({length: 30}).map((_, i) => (
+        <View key={i} style={sk.cell} />
+      ))}
+    </Animated.View>
+  );
+};
+
+const sk = StyleSheet.create({
+  grid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    paddingHorizontal: H_PAD - CELL_GAP / 2,
+    marginTop: 4,
+  },
+  cell: {
+    width: CELL_SIZE,
+    height: CELL_SIZE,
+    margin: CELL_GAP / 2,
+    borderRadius: 12,
+    backgroundColor: '#C8D0D8',
+  },
+});
+
+// ─── Main Screen ──────────────────────────────────────────────────────────────
+
+const ExploreGrid = ({route, navigation, ...props}) => {
+  const {t} = useTranslation();
+  const {show: showGuestPopup, modal: guestModal} = useGuestGate(navigation);
   const [gallery, setGallery] = useState([]);
   const [offline, setOffline] = useState(false);
   const [searchValue, setSearchValue] = useState('');
-  const [currentPage, setCurrentPage] = useState(1);
-  const [lastPage, setLastPage] = useState(1);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [isModalVisible, setIsModalVisible] = useState(false);
-  const [selectedImage, setSelectedImage] = useState(null);
+  const [selectedImageIdx, setSelectedImageIdx] = useState(0);
   const [refreshing, setRefreshing] = useState(false);
-  const [showOnlineMode, setShowOnlineMode] = useState(false);
-  const [errorMessage, setErrorMessage] = useState('');
-  const [alertMessage, setAlertMessage] = useState('');
-  const [isAlert, setIsAlert] = useState(false);
   const [hasMore, setHasMore] = useState(true);
-  const [nextPage, setNextPage] = useState(1);
+  const [nextPage, setNextPage] = useState(2);
+  const [isAlert, setIsAlert] = useState(false);
+  const [alertMessage] = useState('');
+
+  // ── Init ────────────────────────────────────────────────────────────────
 
   useEffect(() => {
-    const backHandler = goBackHandler(navigation);
     checkLogin(navigation);
-    setLoading(true);
-    props.setLoader(true);
+    const backHandler = goBackHandler(navigation);
 
     const unsubscribe = NetInfo.addEventListener(state => {
       setOffline(!state.isConnected);
-      dataSync(t('STORAGE.GALLERY'), fetchData(1, true), props.mode).then(
-        resp => {
-          if (resp) {
-            let res = JSON.parse(resp);
-            const newGallery = res;
-            setGallery(newGallery);
-          }
-          props.setLoader(false);
-          setLoading(false);
-        },
-      );
+      dataSync(t('STORAGE.GALLERY'), fetchData(1, true), props.mode).then(resp => {
+        if (resp) {
+          try {
+            setGallery(JSON.parse(resp));
+          } catch {}
+        }
+        props.setLoader(false);
+        setLoading(false);
+      });
     });
 
     return () => {
       backHandler.remove();
       unsubscribe();
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  useFocusEffect(
+    useCallback(() => {
+      setSearchValue(route?.params?.cityName || '');
+    }, [route?.params?.cityName]),
+  );
 
   useEffect(() => {
     fetchData(1, true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchValue]);
 
-  useFocusEffect(
-    React.useCallback(() => {
-      const setValue = async () => {
-        setSearchValue(route?.params?.cityName || '');
-      };
-      setValue();
-    }, [route?.params?.cityName])
-  );
+  // ── Data fetching ────────────────────────────────────────────────────────
 
   const fetchData = async (page, reset = false) => {
     const mode = JSON.parse(await getFromStorage(t('STORAGE.MODE')));
+    if (!mode) return;
+    if (loading && !reset) return;
 
-    if (mode) {
-      if (loading) {
-        setRefreshing(false);
-        return;
-      }
-
-      setLoading(true);
-      const data = {
-        apitype: 'list',
-        global: 1,
-        search: searchValue,
-        per_page: 20,
-        page: page,
-      };
-      comnPost(`v2/getGallery`, data)
-        .then(res => {
-          if (res.data.success) {
-            props.setLoader(false);
-            const newGallery = res.data.data.data;
-            console.log(newGallery);
-            
-            if (reset) {
-              setGallery(newGallery);
-              saveToStorage(t('STORAGE.GALLERY'), JSON.stringify(newGallery));
-            } else {
-              setGallery(prevGallery => [...prevGallery, ...newGallery]);
-            }
-            setHasMore(!!res.data.data.next_page_url); // Check if there's more data
-            setNextPage(page + 1);
+    setLoading(true);
+    comnPost('v2/getGallery', {
+      apitype: 'list',
+      global: 1,
+      search: searchValue,
+      per_page: 20,
+      page,
+    })
+      .then(res => {
+        if (res.data.success) {
+          const newGallery = res.data.data.data;
+          if (reset) {
+            setGallery(newGallery);
+            saveToStorage(t('STORAGE.GALLERY'), JSON.stringify(newGallery));
+          } else {
+            setGallery(prev => [...prev, ...newGallery]);
           }
-          setLoading(false);
-          setRefreshing(false);
-        })
-        .catch(err => {
-          props.setLoader(false);
-          setLoading(false);
-          setRefreshing(false);
-        });
-    }
+          setHasMore(!!res.data.data.next_page_url);
+          setNextPage(page + 1);
+        }
+      })
+      .catch(() => {})
+      .finally(() => {
+        props.setLoader(false);
+        setLoading(false);
+        setRefreshing(false);
+      });
   };
 
   const onRefresh = () => {
     setRefreshing(true);
     setSearchValue('');
-    if (props.mode) {
-      fetchData(1, true);
-    } else {
-      setShowOnlineMode(true);
-      setRefreshing(false);
-    }
-  };
-
-  const loadMoreData = () => {
-    if (!props.mode) {
-      setErrorMessage(t('GET_MORE_DATA'));
-      setShowOnlineMode(true);
-    } else if (!loading && hasMore) {
-      fetchData(nextPage);
-      setSearchValue('');
-    }
-  };
-
-  const handleSearch = value => {
-    setSearchValue(value);
-    setCurrentPage(1);
-    setLastPage(1);
     fetchData(1, true);
   };
 
-  const openImageViewer = image => {
-    setSelectedImage(image);
+  const loadMore = async () => {
+    if (!loading && hasMore) {
+      if (nextPage >= 3 && (await isGuestUser())) {
+        showGuestPopup('Login to explore more gallery photos beyond page 2.');
+        return;
+      }
+      fetchData(nextPage);
+    }
+  };
+
+  // ── Image viewer ─────────────────────────────────────────────────────────
+
+  const openViewer = idx => {
+    setSelectedImageIdx(idx);
     setIsModalVisible(true);
   };
 
-  const closeImageViewer = () => {
-    setIsModalVisible(false);
-    setSelectedImage(null);
-  };
+  // ── Render cell ──────────────────────────────────────────────────────────
 
-  const closePopup = () => {
-    setIsAlert(false);
-  };
-
-  const renderItem = ({ item }) => {
-    const imageUri = FTP_PATH + item.path;
-    return (
-      <TouchableOpacity
-        onPress={() => openImageViewer(item)}
-        style={styles.imageGridBoxContainer} // Ensure touchable covers full area
-        activeOpacity={0.7}>
-        <View>
+  const renderItem = useCallback(
+    ({item, index}) => {
+      const uri = FTP_PATH + item.path;
+      const label = item.galleryable?.name || '';
+      return (
+        <TouchableOpacity
+          style={s.cell}
+          onPress={() => openViewer(index)}
+          activeOpacity={0.82}>
           <ProgressImage
-            source={{ uri: imageUri }}
-            style={styles.imageGridBox}
+            source={{uri}}
+            style={s.cellImage}
             indicator={Progress.Circle}
             indicatorProps={{
-              size: 30,
+              size: 22,
               borderWidth: 0,
-              color: 'rgba(150, 150, 150, 1)',
-              unfilledColor: 'rgba(200, 200, 200, 0.2)',
+              color: C.oceanFoam,
+              unfilledColor: 'rgba(255,255,255,0.2)',
             }}
             resizeMode="cover"
-            onError={error => console.warn('Image load error for', imageUri, ':', error)}
           />
-          {item.galleryable?.name && (
-            <View
-              style={{
-                position: 'absolute',
-                bottom: 0,
-                left: 0,
-                right: 0,
-                backgroundColor: 'rgba(0, 0, 0, 0.5)',
-                padding: 4,
-                borderBottomLeftRadius: 5,
-                borderBottomRightRadius: 5,
-              }}>
-              <GlobalText
-                text={item.galleryable.name}
-                style={{
-                  color: 'white',
-                  fontSize: 10,
-                  textAlign: 'center',
-                  fontWeight: 'bold',
-                }}
-                numberOfLines={1}
-              />
+          {!!label && (
+            <View style={s.cellOverlay} pointerEvents="none">
+              <Text style={s.cellLabel} numberOfLines={1}>
+                {label}
+              </Text>
             </View>
           )}
-        </View>
-      </TouchableOpacity>
-    );
-  };
+        </TouchableOpacity>
+      );
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [],
+  );
 
   const renderFooter = () => {
-    if (!loading || !hasMore) return null;
-    return (
-      <View style={{ paddingVertical: 20 }}>
-        <ActivityIndicator size="small" color={COLOR.primary} />
+    if (!hasMore) return null;
+    return loading ? (
+      <View style={s.footerLoader}>
+        <View style={sk.cell} />
       </View>
-    );
+    ) : null;
   };
 
-  const imageIndex = gallery.findIndex(img => img.id === selectedImage?.id);
+  // ── Render ───────────────────────────────────────────────────────────────
 
   return (
-    <SafeAreaView edges={['top']} style={{flex: 1, backgroundColor: COLOR.white}}>
-      
-      {/* <ScrollView
-        style={{ flex: 1 }}
-        refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-        }
-        onScroll={loadMoreData}
-        scrollEventThrottle={16}>
-        <CheckNet isOff={offline} />
-        {loading && !gallery.length ? (
-          <ExploreGridSkeleton />
-        ) : gallery.length ? (
-          <ResponsiveGrid
-            maxItemsPerColumn={3}
-            data={gallery}
-            renderItem={renderItem}
-            showScrollIndicator={false}
-            style={{ padding: 5, marginBottom: 70 }}
-            keyExtractor={item => item.id.toString()}
-            ListFooterComponent={renderFooter}
-          />
-        ) : (
-          <View
-            style={{
-              height: screenHeight,
-              justifyContent: 'center', // Vertically center content
-              alignItems: 'center', // Horizontally center content
-              padding: 10,
-            }}>
-            {offline ? (
-              <GlobalText
-                style={{ fontWeight: 'bold' }}
-                text={t('NO_INTERNET')}
-              />
-            ) : (
-              <ExploreGridSkeleton />
-            )}
+    <View style={s.root}>
+      <StatusBar backgroundColor={C.oceanDeep} barStyle="light-content" />
+
+      {/* ── Header ── */}
+      <LinearGradient
+        colors={[C.oceanDeep, C.forestDeep]}
+        start={{x: 0, y: 0}}
+        end={{x: 1, y: 1}}
+        style={[s.header, {paddingTop: TOP_INSET + 12}]}>
+
+        <TouchableOpacity
+          style={s.backBtn}
+          onPress={() => navigation.goBack()}
+          activeOpacity={0.8}>
+          <Ionicons name="arrow-back" size={20} color={C.white} />
+        </TouchableOpacity>
+
+        <View style={s.headerContent}>
+          <Text style={s.headerTitle}>{t('GALLERY_SCREEN.TITLE')}</Text>
+          <Text style={s.headerSubtitle}>{t('GALLERY_SCREEN.SUBTITLE')}</Text>
+          {gallery.length > 0 && (
+            <Text style={s.headerCount}>
+              {gallery.length} {t('GALLERY_SCREEN.PHOTO_COUNT')}
+            </Text>
+          )}
+        </View>
+
+        {/* Curved bottom */}
+        <View style={s.headerCurve} pointerEvents="none" />
+      </LinearGradient>
+
+      {/* ── Search bar — floats over header curve ── */}
+      <View style={s.searchOuter}>
+        {offline && (
+          <View style={s.offlineBadge}>
+            <Text style={s.offlineBadgeText}>{t('GALLERY_SCREEN.OFFLINE_MSG')}</Text>
           </View>
         )}
-        {selectedImage && (
-          <ImageViewing
-            images={gallery.map(image => ({
-              uri: FTP_PATH + image.path,
-            }))}
-            imageIndex={imageIndex}
-            visible={isModalVisible}
-            onRequestClose={closeImageViewer}
+        <View style={s.searchWrap}>
+          <Text style={s.searchIcon}>🔍</Text>
+          <TextInput
+            style={s.searchInput}
+            value={searchValue}
+            onChangeText={v => setSearchValue(v)}
+            placeholder={t('GALLERY_SCREEN.SEARCH_PLACEHOLDER')}
+            placeholderTextColor={C.textLight}
+            clearButtonMode="while-editing"
+            returnKeyType="search"
           />
-        )}
-        <ComingSoon
-          message={t('ONLINE_MODE')}
-          visible={showOnlineMode}
-          toggleOverlay={() => setShowOnlineMode(false)}
-        />
-        <ComingSoon
-          message={errorMessage}
-          visible={showOnlineMode}
-          toggleOverlay={() => setShowOnlineMode(false)}
-        />
-        <Popup message={alertMessage} onPress={closePopup} visible={isAlert} />
-      </ScrollView> */}
-      <>
-        <Header
-          Component={
-            <Search
-              style={styles.homeSearchBar}
-              placeholder={t('Search')}
-              value={searchValue}
-              onChangeText={handleSearch}
+          {searchValue.length > 0 && Platform.OS === 'android' && (
+            <TouchableOpacity
+              onPress={() => setSearchValue('')}
+              hitSlop={{top: 8, bottom: 8, left: 8, right: 8}}>
+              <Ionicons name="close-circle" size={18} color={C.textLight} />
+            </TouchableOpacity>
+          )}
+        </View>
+      </View>
+
+      {/* ── Grid ── */}
+      {loading && gallery.length === 0 ? (
+        <SkeletonGrid />
+      ) : gallery.length === 0 ? (
+        <View style={s.emptyState}>
+          <Text style={s.emptyIcon}>🏞</Text>
+          <Text style={s.emptyText}>{t('GALLERY_SCREEN.EMPTY_TITLE')}</Text>
+          <Text style={s.emptySubText}>{t('GALLERY_SCREEN.EMPTY_SUB')}</Text>
+        </View>
+      ) : (
+        <FlatList
+          data={gallery}
+          renderItem={renderItem}
+          keyExtractor={item => item.id.toString()}
+          numColumns={NUM_COLS}
+          contentContainerStyle={s.gridContent}
+          columnWrapperStyle={s.gridRow}
+          showsVerticalScrollIndicator={false}
+          initialNumToRender={12}
+          onEndReached={loadMore}
+          onEndReachedThreshold={0.5}
+          ListFooterComponent={renderFooter}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+              tintColor={C.oceanMid}
+              colors={[C.oceanMid]}
             />
           }
         />
-        <Loader />
-        {loading && !gallery.length ? (
-          <View style={{flex: 1, backgroundColor: COLOR.white}} />
-        ) : gallery.length ? (
-          <ResponsiveGrid
-            maxItemsPerColumn={3}
-            data={gallery}
-            renderItem={renderItem}
-            keyExtractor={item => item.id.toString()}
-            showScrollIndicator={false}
-            style={{ padding: 5, marginBottom: 70 }}
-            ListFooterComponent={renderFooter}
-            refreshControl={
-              <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-            }
-            onEndReached={loadMoreData}
-            onEndReachedThreshold={0.5}
-          />
-        ) : (
-          <View
-            style={{
-              height: screenHeight,
-              justifyContent: 'center',
-              alignItems: 'center',
-              padding: 10,
-            }}>
-            {offline ? (
-              <GlobalText style={{ fontWeight: 'bold' }} text={t('NO_INTERNET')} />
-            ) : (
-              <View style={{flex: 1, backgroundColor: COLOR.white}} />
-            )}
-          </View>
-        )}
+      )}
 
-        {selectedImage && (
-          <ImageViewing
-            images={gallery.map(image => ({ uri: FTP_PATH + image.path }))}
-            imageIndex={imageIndex}
-            visible={isModalVisible}
-            onRequestClose={closeImageViewer}
-          />
-        )}
-        <CheckNet isOff={offline} />
-        <ComingSoon
-          message={t('ONLINE_MODE')}
-          visible={showOnlineMode}
-          toggleOverlay={() => setShowOnlineMode(false)}
-        />
-        <ComingSoon
-          message={errorMessage}
-          visible={showOnlineMode}
-          toggleOverlay={() => setShowOnlineMode(false)}
-        />
-        <Popup message={alertMessage} onPress={closePopup} visible={isAlert} />
-      </>
+      {/* ── Fullscreen viewer ── */}
+      <ImageViewing
+        images={gallery.map(img => ({uri: FTP_PATH + img.path}))}
+        imageIndex={selectedImageIdx}
+        visible={isModalVisible}
+        onRequestClose={() => setIsModalVisible(false)}
+        swipeToCloseEnabled
+        doubleTapToZoomEnabled
+      />
 
-    </SafeAreaView>
+      <Popup message={alertMessage} onPress={() => setIsAlert(false)} visible={isAlert} />
+      {guestModal}
+    </View>
   );
 };
+
+// ─── Styles ───────────────────────────────────────────────────────────────────
+
+const s = StyleSheet.create({
+  root: {
+    flex: 1,
+    backgroundColor: C.cream,
+  },
+
+  // Header
+  header: {
+    paddingHorizontal: H_PAD,
+    paddingBottom: 40,
+    position: 'relative',
+  },
+  backBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: 'rgba(255,255,255,0.18)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 14,
+  },
+  headerContent: {
+    alignItems: 'center',
+  },
+  headerTitle: {
+    fontSize: 26,
+    fontWeight: '700',
+    color: C.white,
+    marginBottom: 4,
+    letterSpacing: 0.3,
+  },
+  headerSubtitle: {
+    fontSize: 13,
+    color: C.oceanFoam,
+    opacity: 0.9,
+    marginBottom: 6,
+  },
+  headerCount: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: C.oceanFoam,
+    opacity: 0.7,
+    letterSpacing: 0.5,
+    textTransform: 'uppercase',
+  },
+  headerCurve: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    height: 28,
+    backgroundColor: C.cream,
+    borderTopLeftRadius: 28,
+    borderTopRightRadius: 28,
+  },
+
+  // Search
+  searchOuter: {
+    marginTop: -20,
+    marginHorizontal: H_PAD,
+    zIndex: 10,
+    marginBottom: 14,
+  },
+  offlineBadge: {
+    backgroundColor: '#7C3AED',
+    borderRadius: 8,
+    paddingVertical: 5,
+    paddingHorizontal: 10,
+    marginBottom: 6,
+  },
+  offlineBadgeText: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: C.white,
+    textAlign: 'center',
+  },
+  searchWrap: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: C.white,
+    borderRadius: 16,
+    paddingHorizontal: 14,
+    paddingVertical: Platform.OS === 'ios' ? 12 : 4,
+    borderWidth: 1,
+    borderColor: 'rgba(0,0,0,0.07)',
+  },
+  searchIcon: {fontSize: 15, marginRight: 8},
+  searchInput: {flex: 1, fontSize: 14, color: C.textDark},
+
+  // Grid
+  gridContent: {
+    paddingHorizontal: H_PAD - CELL_GAP / 2,
+    paddingBottom: 40,
+  },
+  gridRow: {
+    justifyContent: 'flex-start',
+  },
+  footerLoader: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    paddingHorizontal: H_PAD - CELL_GAP / 2,
+    marginBottom: 8,
+  },
+
+  // Cell
+  cell: {
+    width: CELL_SIZE,
+    height: CELL_SIZE,
+    margin: CELL_GAP / 2,
+    borderRadius: 12,
+    overflow: 'hidden',
+    backgroundColor: '#D1D5DB',
+  },
+  cellImage: {
+    width: '100%',
+    height: '100%',
+  },
+  cellOverlay: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    paddingVertical: 6,
+    paddingHorizontal: 6,
+    backgroundColor: 'rgba(0,0,0,0.52)',
+  },
+  cellLabel: {
+    fontSize: 10,
+    fontWeight: '600',
+    color: C.white,
+    textAlign: 'center',
+  },
+
+  // Empty
+  emptyState: {
+    flex: 1,
+    paddingTop: 60,
+    alignItems: 'center',
+  },
+  emptyIcon: {fontSize: 48, marginBottom: 14},
+  emptyText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: C.textDark,
+    marginBottom: 6,
+  },
+  emptySubText: {
+    fontSize: 13,
+    color: C.textLight,
+    textAlign: 'center',
+    paddingHorizontal: 32,
+  },
+});
+
+// ─── Redux ────────────────────────────────────────────────────────────────────
 
 const mapStateToProps = state => ({
   source: state.commonState.source,

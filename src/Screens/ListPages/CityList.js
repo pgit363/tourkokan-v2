@@ -33,6 +33,7 @@ import {useTranslation} from 'react-i18next';
 import styles from './Styles';
 import ComingSoon from '../../Components/Common/ComingSoon';
 import Popup from '../../Components/Common/Popup';
+import {useGuestGate, isGuestUser} from '../../Components/Common/GuestGateModal';
 import FlatListSkeleton from './FlatListSkeleton';
 import CityCardSmall from '../../Components/Cards/CityCardSmall';
 import PlaceCard from '../../Components/Cards/PlaceCard';
@@ -47,6 +48,7 @@ const CityList = ({navigation, route, ...props}) => {
   const [error, setError] = useState(null); // State to store error message
   const [isLandingDataFetched, setIsLandingDataFetched] = useState(false);
   const [offline, setOffline] = useState(false);
+  const {show: showGuestPopup, modal: guestModal} = useGuestGate(navigation);
   const [nextPage, setNextPage] = useState(1);
   const [loading, setLoading] = useState(false);
   const [lastPage, setLastPage] = useState(null);
@@ -187,6 +189,10 @@ const CityList = ({navigation, route, ...props}) => {
   ), [getCityDetails]);
 
   const loadMoreCities = async () => {
+    if (nextPage >= 3 && (await isGuestUser())) {
+      showGuestPopup('Login to explore more cities beyond page 2.');
+      return;
+    }
     const mode = JSON.parse(await getFromStorage(t('STORAGE.MODE')));
     // Check the internet connectivity state
     const state = await NetInfo.fetch();
@@ -292,6 +298,7 @@ const CityList = ({navigation, route, ...props}) => {
         visible={showOnlineMode}
         toggleOverlay={() => setShowOnlineMode(false)}
       />
+      {guestModal}
     </SafeAreaView>
   );
 };

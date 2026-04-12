@@ -18,9 +18,11 @@ import GlobalText from '../../Components/Customs/Text';
 import CommentsSheet from '../../Components/Common/CommentsSheet';
 import BottomSheet from '../../Components/Customs/BottomSheet';
 import {useTranslation} from 'react-i18next';
+import {useGuestGate, isGuestUser} from '../../Components/Common/GuestGateModal';
 
 const PlaceDetails = ({navigation, route, ...props}) => {
   const {t} = useTranslation();
+  const {show: showGuestPopup, modal: guestModal} = useGuestGate(navigation);
   const refRBSheet = useRef();
 
   const [place, setPlace] = useState([]); // State to store city
@@ -54,7 +56,11 @@ const PlaceDetails = ({navigation, route, ...props}) => {
       });
   };
 
-  const openCommentsSheet = () => {
+  const openCommentsSheet = async () => {
+    if (await isGuestUser()) {
+      showGuestPopup('Login to add comments.');
+      return;
+    }
     refRBSheet.current.open();
   };
 
@@ -133,6 +139,7 @@ const PlaceDetails = ({navigation, route, ...props}) => {
         openCommentsSheet={() => openCommentsSheet()}
         closeCommentsSheet={() => closeCommentsSheet()}
       />
+      {guestModal}
     </ScrollView>
   );
 };

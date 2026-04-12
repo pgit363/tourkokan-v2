@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TourKokan - Welcome</title>
+  <link rel="stylesheet" href="design-system.css">
+  <style>
+    .login-screen {
+      height: 100vh;
+      background-image: linear-gradient(180deg, rgba(13,61,74,0) 0%, rgba(13,61,74,0.7) 100%),
+                        url('https://images.unsplash.com/photo-1559827260-dc66d52bef19?w=1200');
+      background-size: cover;
+      background-position: center;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 60px 24px 40px;
+    }
+    
+    .logo-section {
+      text-align: center;
+      color: white;
+    }
+    
+    .logo {
+      font-size: 120px;
+      margin-bottom: 16px;
+      animation: float 3s ease-in-out infinite;
+    }
+    
+    .tagline {
+      font-family: var(--font-display);
+      font-size: 18px;
+      font-style: italic;
+      opacity: 0.9;
+    }
+    
+    .login-card {
+      background: rgba(255, 255, 255, 0.12);
+      backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: var(--radius-xl);
+      padding: 32px 24px;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+    }
+    
+    .login-heading {
+      font-family: var(--font-display);
+      font-size: 28px;
+      color: white;
+      margin-bottom: 8px;
+      text-align: center;
+    }
+    
+    .login-subtext {
+      color: rgba(255, 255, 255, 0.8);
+      text-align: center;
+      margin-bottom: 32px;
+      font-size: 14px;
+    }
+    
+    .google-btn {
+      width: 100%;
+      background: white;
+      color: var(--gray-700);
+      padding: 14px 24px;
+      border-radius: var(--radius-md);
+      border: none;
+      font-size: 16px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      margin-bottom: 20px;
+      transition: all 0.2s ease;
+    }
+    
+    .google-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+    }
+    
+    .divider {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin: 20px 0;
+    }
+    
+    .divider-line {
+      flex: 1;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+    }
+    
+    .divider-text {
+      color: rgba(255, 255, 255, 0.7);
+      font-size: 12px;
+      font-weight: 600;
+    }
+    
+    .guest-btn {
+      width: 100%;
+      background: rgba(255, 255, 255, 0.15);
+      backdrop-filter: blur(10px);
+      color: white;
+      padding: 14px 24px;
+      border-radius: var(--radius-md);
+      border: 1.5px solid rgba(255, 255, 255, 0.3);
+      font-size: 16px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      cursor: pointer;
+      margin-bottom: 20px;
+      transition: all 0.2s ease;
+    }
+    
+    .guest-btn:hover {
+      background: rgba(255, 255, 255, 0.25);
+      border-color: rgba(255, 255, 255, 0.5);
+    }
+    
+    .feature-pills {
+      display: flex;
+      gap: 8px;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin-bottom: 20px;
+    }
+    
+    .feature-pill {
+      background: rgba(255, 255, 255, 0.12);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      padding: 6px 12px;
+      border-radius: var(--radius-full);
+      font-size: 11px;
+      color: rgba(255, 255, 255, 0.9);
+    }
+    
+    .footer-links {
+      text-align: center;
+      font-size: 12px;
+      color: rgba(255, 255, 255, 0.6);
+    }
+    
+    .footer-links a {
+      color: rgba(255, 255, 255, 0.8);
+      text-decoration: none;
+      margin: 0 8px;
+    }
+    
+    .back-link {
+      display: block;
+      text-align: center;
+      margin-top: 16px;
+      color: rgba(255, 255, 255, 0.7);
+      text-decoration: none;
+      font-size: 14px;
+    }
+  </style>
+</head>
+<body>
+  <div class="login-screen">
+    <div class="logo-section">
+      <div class="logo">🏖</div>
+      <div class="tagline">Where the coast tells stories</div>
+    </div>
+    
+    <div class="login-card">
+      <h2 class="login-heading">Welcome to Kokan</h2>
+      <p class="login-subtext">Sign in to save places & book stays</p>
+      
+      <button class="google-btn" onclick="alert('Google Sign-In')">
+        <svg width="18" height="18" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/><path fill="none" d="M0 0h48v48H0z"/></svg>
+        Continue with Google
+      </button>
+      
+      <div class="divider">
+        <div class="divider-line"></div>
+        <div class="divider-text">OR</div>
+        <div class="divider-line"></div>
+      </div>
+      
+      <button class="guest-btn" onclick="window.location.href='06-home.html'">
+        <span style="font-size: 20px;">👤</span>
+        Continue as Guest
+      </button>
+      
+      <div class="feature-pills">
+        <span class="feature-pill">🗺 Offline Maps</span>
+        <span class="feature-pill">🚌 MSRTC Buses</span>
+        <span class="feature-pill">🏖 84 Places</span>
+      </div>
+      
+      <div class="footer-links">
+        <a href="30-privacy.html">Privacy Policy</a> · 
+        <a href="31-terms.html">Terms of Service</a>
+      </div>
+      
+      <a href="index.html" class="back-link">← Back to Index</a>
+    </div>
+  </div>
+</body>
+</html>

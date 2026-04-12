@@ -12,6 +12,8 @@ import {useTranslation} from 'react-i18next';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import {setSource, setDestination, setLoader} from '../../Reducers/CommonActions';
 import {navigateTo} from '../../Services/CommonMethods';
+import STRING from '../../Services/Constants/STRINGS';
+import {useGuestGate, isGuestUser, GUEST_KEYS, incrementGuestCount} from './GuestGateModal';
 
 // ─── Design tokens ────────────────────────────────────────────────────────────
 
@@ -32,6 +34,7 @@ const C = {
 
 const MSRTCSearchPanel = ({navigation, ...props}) => {
   const {t} = useTranslation();
+  const {show: showGuestPopup, modal: guestModal} = useGuestGate(navigation);
   const [errorText, setErrorText] = useState('');
 
   // Sync Redux state when returning from SearchPlace screen
@@ -48,14 +51,14 @@ const MSRTCSearchPanel = ({navigation, ...props}) => {
 
   const pressedSource = () => {
     navigateTo(navigation, t('SCREEN.SEARCH_PLACE'), {
-      type: t('LABEL.SOURCE'),
+      type: STRING.LABEL.SOURCE,
       from: t('SCREEN.ROUTES'),
     });
   };
 
   const pressedDest = () => {
     navigateTo(navigation, t('SCREEN.SEARCH_PLACE'), {
-      type: t('LABEL.DESTINATION'),
+      type: STRING.LABEL.DESTINATION,
       from: t('SCREEN.ROUTES'),
     });
   };
@@ -74,9 +77,14 @@ const MSRTCSearchPanel = ({navigation, ...props}) => {
     setErrorText('');
   };
 
-  const handleSearch = () => {
+  const handleSearch = async () => {
     if (!isValid) {
       setErrorText(t('ALERT.SOURCE_DESTINATION_REQUIRED'));
+      return;
+    }
+    const count = await incrementGuestCount(GUEST_KEYS.ROUTE_SEARCH_COUNT);
+    if (count > 2 && (await isGuestUser())) {
+      showGuestPopup('Login to search more routes. Guest users are limited to 2 searches.');
       return;
     }
     setErrorText('');
@@ -182,6 +190,7 @@ const MSRTCSearchPanel = ({navigation, ...props}) => {
         <Text style={s.searchBtnText}>{t('MSRTC_SCREEN.SEARCH_BTN')}</Text>
       </TouchableOpacity>
 
+      {guestModal}
     </View>
   );
 };

@@ -444,7 +444,8 @@ const HomeScreen = ({navigation, route, ...props}) => {
       // Only show skeleton on initial load (no cached data).
       // When called as background refresh, update data silently.
       const res = await comnPost('v2/landingpage', data, navigation);
-
+      console.log(res);
+      
       if (res?.data?.data) {
         if (i18n.language !== res.data.language) i18n.changeLanguage(res.data.language);
 
@@ -716,7 +717,7 @@ const HomeScreen = ({navigation, route, ...props}) => {
   ), [bannerObject, cities, trending, activeSpotTab, filteredSpots, SPOT_TABS, validTrendingKeys, offline]);
 
   const listFooter = useMemo(() => (
-    <View style={[s.sectionPad, {paddingBottom: 32}]}>
+    <View style={[s.sectionPad, {paddingBottom: 100}]}>
       <AdBanner
         bannerImages={bannerObject?.HOME_FOOTER}
         label={t('HOME.AD_STANDARD_LABEL')}

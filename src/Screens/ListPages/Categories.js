@@ -327,7 +327,7 @@ const Categories = ({route, navigation, ...props}) => {
 
   const goToSubCats = subCat => {
     navigateTo(navigation, t('SCREEN.CITY_PLACE_SEARCH'), {
-      initialCategoryKey: subCat.name,
+      initialCategoryKey: subCat.code || subCat.name,
       initialCityName: subCat.name,
     });
   };

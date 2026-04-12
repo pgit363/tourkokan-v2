@@ -6,6 +6,9 @@ import {
   TouchableOpacity,
   Share,
   FlatList,
+  Modal,
+  Text,
+  StyleSheet,
 } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import COLOR from '../../Services/Constants/COLORS';
@@ -16,6 +19,7 @@ import {setLoader} from '../../Reducers/CommonActions';
 import Loader from '../../Components/Customs/Loader';
 import Header from '../../Components/Common/Header';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import {isGuestUser} from '../../Components/Common/GuestGateModal';
 import {
   backPage,
   checkLogin,
@@ -46,6 +50,7 @@ import {useFocusEffect} from '@react-navigation/native';
 import PackageCard from '../../Components/Cards/PackageCard';
 import PackageCardSkeleton from '../../Components/Cards/PackageCardSkeleton';
 import Banner from '../../Components/Customs/Banner';
+import STRING from '../../Services/Constants/STRINGS';
 
 const CityDetails = ({navigation, route, offline, ...props}) => {
   const {t} = useTranslation();
@@ -67,6 +72,7 @@ const CityDetails = ({navigation, route, offline, ...props}) => {
 
   const [isAlert, setIsAlert] = useState(false);
   const [alertMessage, setAlertMessage] = useState('');
+  const [isGuestPopup, setIsGuestPopup] = useState(false);
 
   useEffect(() => {
     const backHandler = goBackHandler(navigation);
@@ -151,6 +157,10 @@ const CityDetails = ({navigation, route, offline, ...props}) => {
   };
 
   const onHeartClick = async () => {
+    if (await isGuestUser()) {
+      setIsGuestPopup(true);
+      return;
+    }
     const mode = JSON.parse(await getFromStorage(t('STORAGE.MODE')));
     // Check the internet connectivity state
     const state = await NetInfo.fetch();
@@ -202,6 +212,10 @@ const CityDetails = ({navigation, route, offline, ...props}) => {
   };
 
   const onStarRatingPress = async rate => {
+    if (await isGuestUser()) {
+      setIsGuestPopup(true);
+      return;
+    }
     const mode = JSON.parse(await getFromStorage(t('STORAGE.MODE')));
     // Check the internet connectivity state
     const state = await NetInfo.fetch();
@@ -250,7 +264,11 @@ const CityDetails = ({navigation, route, offline, ...props}) => {
     }
   };
 
-  const openCommentsSheet = () => {
+  const openCommentsSheet = async () => {
+    if (await isGuestUser()) {
+      setIsGuestPopup(true);
+      return;
+    }
     refRBSheet.current.open();
   };
 
@@ -344,6 +362,12 @@ const CityDetails = ({navigation, route, offline, ...props}) => {
 
   const closePopup = () => {
     setIsAlert(false);
+  };
+
+  const handleGuestLogin = async () => {
+    setIsGuestPopup(false);
+    await AsyncStorage.clear();
+    navigation.reset({index: 0, routes: [{name: STRING.SCREEN.EMAIL}]});
   };
 
   const goToCityImages = () => {
@@ -638,6 +662,44 @@ const CityDetails = ({navigation, route, offline, ...props}) => {
           toggleOverlay={() => setShowOnlineMode(false)}
         />
       </ScrollView>
+
+      {/* ── Guest Gate Modal ── */}
+      <Modal
+        visible={isGuestPopup}
+        transparent
+        animationType="fade"
+        statusBarTranslucent
+        onRequestClose={() => setIsGuestPopup(false)}>
+        <View style={guestStyles.backdrop}>
+          <View style={guestStyles.card}>
+            {/* Icon */}
+            <View style={guestStyles.iconWrap}>
+              <Text style={guestStyles.iconText}>🔒</Text>
+            </View>
+
+            {/* Title & message */}
+            <Text style={guestStyles.title}>Members Only</Text>
+            <Text style={guestStyles.message}>
+              Please register or login to like, rate, and comment on places.
+            </Text>
+
+            {/* Buttons */}
+            <TouchableOpacity
+              style={guestStyles.loginBtn}
+              onPress={handleGuestLogin}
+              activeOpacity={0.85}>
+              <Text style={guestStyles.loginBtnText}>Login / Register</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={guestStyles.cancelBtn}
+              onPress={() => setIsGuestPopup(false)}
+              activeOpacity={0.7}>
+              <Text style={guestStyles.cancelBtnText}>Continue as Guest</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </>
   );
 };
@@ -656,5 +718,77 @@ const mapDispatchToProps = dispatch => {
     },
   };
 };
+
+const guestStyles = StyleSheet.create({
+  backdrop: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.55)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 28,
+  },
+  card: {
+    width: '100%',
+    backgroundColor: '#FFFFFF',
+    borderRadius: 24,
+    paddingHorizontal: 24,
+    paddingTop: 32,
+    paddingBottom: 24,
+    alignItems: 'center',
+  },
+  iconWrap: {
+    width: 72,
+    height: 72,
+    borderRadius: 36,
+    backgroundColor: '#EEF6FF',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 16,
+  },
+  iconText: {
+    fontSize: 34,
+  },
+  title: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#0D3D4A',
+    marginBottom: 8,
+    textAlign: 'center',
+  },
+  message: {
+    fontSize: 14,
+    color: '#78716C',
+    textAlign: 'center',
+    lineHeight: 20,
+    marginBottom: 28,
+  },
+  loginBtn: {
+    width: '100%',
+    backgroundColor: '#1B6B7B',
+    borderRadius: 50,
+    paddingVertical: 15,
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  loginBtnText: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: '#FFFFFF',
+    letterSpacing: 0.3,
+  },
+  cancelBtn: {
+    width: '100%',
+    borderRadius: 50,
+    paddingVertical: 13,
+    alignItems: 'center',
+    borderWidth: 1.5,
+    borderColor: 'rgba(0,0,0,0.1)',
+  },
+  cancelBtnText: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: '#78716C',
+  },
+});
 
 export default connect(mapStateToProps, mapDispatchToProps)(CityDetails);

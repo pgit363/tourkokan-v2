@@ -26,6 +26,7 @@ import {
   saveToStorage,
 } from '../../Services/Api/CommonServices';
 import {setLoader, setMode} from '../../Reducers/CommonActions';
+import {useGuestGate, isGuestUser} from '../../Components/Common/GuestGateModal';
 import {
   backPage,
   checkLogin,
@@ -242,6 +243,7 @@ const AllRoutesSearch = ({navigation, route}) => {
 
   const [list, setList] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  const {show: showGuestPopup, modal: guestModal} = useGuestGate(navigation);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [isOffline, setIsOffline] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
@@ -383,8 +385,12 @@ const AllRoutesSearch = ({navigation, route}) => {
     }
   };
 
-  const onEndReached = () => {
+  const onEndReached = async () => {
     if (!isLoadingMore && lastPage && currentPage < lastPage) {
+      if (currentPage >= 2 && (await isGuestUser())) {
+        showGuestPopup('Login to explore more routes beyond page 2.');
+        return;
+      }
       fetchRoutes(true);
     }
   };
@@ -520,6 +526,7 @@ const AllRoutesSearch = ({navigation, route}) => {
           keyboardShouldPersistTaps="handled"
         />
       )}
+      {guestModal}
     </View>
   );
 };

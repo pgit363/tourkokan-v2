@@ -115,6 +115,9 @@ const Email = ({navigation, route, ...props}) => {
           t('STORAGE.IS_FIRST_TIME'),
           JSON.stringify(true),
         );
+        const isGuestValGoogle = !!res.data.data.isGuest;
+        console.log('[GoogleLogin] IS_GUEST =', isGuestValGoogle, '| raw isGuest =', res.data.data.isGuest);
+        AsyncStorage.setItem('IS_GUEST', JSON.stringify(isGuestValGoogle));
         saveToStorage(t('STORAGE.MODE'), JSON.stringify(true));
         props.setMode(true);
         navigateTo(navigation, t('SCREEN.HOME'));
@@ -329,7 +332,9 @@ const Email = ({navigation, route, ...props}) => {
             t('STORAGE.USER_NAME'),
             res.data.data.user.name || '',
           );
-          AsyncStorage.setItem('IS_GUEST', JSON.stringify(true));
+          const isGuestVal = !!res.data.data.isGuest;
+          console.log('[GuestLogin] IS_GUEST =', isGuestVal, '| raw isGuest =', res.data.data.isGuest);
+          AsyncStorage.setItem('IS_GUEST', JSON.stringify(isGuestVal));
           props.setLoader(false);
           AsyncStorage.setItem(t('STORAGE.IS_FIRST_TIME'), JSON.stringify(true));
           saveToStorage(t('STORAGE.MODE'), JSON.stringify(true));

@@ -18,6 +18,7 @@ import {comnPost} from '../Services/Api/CommonServices';
 import {setDestination, setSource} from '../Reducers/CommonActions';
 import {checkLogin, goBackHandler} from '../Services/CommonMethods';
 import STRING from '../Services/Constants/STRINGS';
+import {useGuestGate, isGuestUser} from '../Components/Common/GuestGateModal';
 
 // ─── Design tokens ─────────────────────────────────────────────────────────────
 
@@ -96,6 +97,8 @@ const SearchPlace = ({navigation, route, ...props}) => {
   const fieldType = route.params?.type || '';
   const isSource = fieldType === STRING.LABEL.SOURCE;
 
+  const {show: showGuestPopup, modal: guestModal} = useGuestGate(navigation);
+
   const [searchValue, setSearchValue] = useState('');
   const [placesList, setPlacesList] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -147,8 +150,12 @@ const SearchPlace = ({navigation, route, ...props}) => {
     }, 350);
   };
 
-  const onEndReached = () => {
+  const onEndReached = async () => {
     if (!isLoadingMore && hasMore) {
+      if (currentPage >= 2 && (await isGuestUser())) {
+        showGuestPopup('Login to see more bus stops.');
+        return;
+      }
       fetchPlaces(searchValue, currentPage + 1, true);
     }
   };
@@ -290,6 +297,7 @@ const SearchPlace = ({navigation, route, ...props}) => {
           contentContainerStyle={placesList.length === 0 && s.emptyContainer}
         />
       )}
+      {guestModal}
     </View>
   );
 };

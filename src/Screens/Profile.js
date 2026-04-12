@@ -697,6 +697,7 @@ const Profile = ({navigation, ...props}) => {
 
       {/* ── Result popup ── */}
       <Popup message={alertMessage} visible={isAlert} onPress={closePopup} />
+
     </View>
   );
 };

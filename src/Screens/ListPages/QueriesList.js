@@ -6,6 +6,7 @@ import React, {
 } from 'react';
 import {useFocusEffect} from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import {isGuestUser} from '../../Components/Common/GuestGateModal';
 import {
   View,
   Text,
@@ -19,6 +20,7 @@ import {
   LayoutAnimation,
   Platform,
   UIManager,
+  Modal,
 } from 'react-native';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import Ionicons from 'react-native-vector-icons/Ionicons';
@@ -242,6 +244,22 @@ const QueriesList = ({navigation, route, ...props}) => {
   const [isOnline, setIsOnline] = useState(true);
   const [step, setStep] = useState(route.params?.step || 0);
   const [errorMessage, setErrorMessage] = useState('');
+  const [showGuestPopup, setShowGuestPopup] = useState(false);
+
+  const handleAddQuery = async () => {
+    if (await isGuestUser()) {
+      setShowGuestPopup(true);
+      return;
+    }
+    setStep(1);
+    setLoading(false);
+  };
+
+  const handleGuestLogin = async () => {
+    setShowGuestPopup(false);
+    await AsyncStorage.clear();
+    navigation.reset({index: 0, routes: [{name: STRING.SCREEN.EMAIL}]});
+  };
 
   // Keep modeRef current so NetInfo listener always reads the latest mode
   useEffect(() => {
@@ -631,10 +649,7 @@ const QueriesList = ({navigation, route, ...props}) => {
             </TouchableOpacity>
             <TouchableOpacity
               style={styles.addQueryBtn}
-              onPress={() => {
-                setStep(1);
-                setLoading(false);
-              }}
+              onPress={handleAddQuery}
               activeOpacity={0.85}>
               <Text style={styles.addQueryBtnText}>➕  {t('QUERIES_SCREEN.ADD_QUERY')}</Text>
             </TouchableOpacity>
@@ -718,6 +733,38 @@ const QueriesList = ({navigation, route, ...props}) => {
         onClose={() => setShowModePopup(false)}
         onModeChange={handleModeChange}
       />
+
+      {/* ── Guest Gate Modal ── */}
+      <Modal
+        visible={showGuestPopup}
+        transparent
+        animationType="fade"
+        statusBarTranslucent
+        onRequestClose={() => setShowGuestPopup(false)}>
+        <View style={guestSt.backdrop}>
+          <View style={guestSt.card}>
+            <View style={guestSt.iconWrap}>
+              <Text style={guestSt.iconText}>🔒</Text>
+            </View>
+            <Text style={guestSt.title}>Members Only</Text>
+            <Text style={guestSt.message}>
+              Please register or login to raise a query.
+            </Text>
+            <TouchableOpacity
+              style={guestSt.loginBtn}
+              onPress={handleGuestLogin}
+              activeOpacity={0.85}>
+              <Text style={guestSt.loginBtnText}>Login / Register</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={guestSt.cancelBtn}
+              onPress={() => setShowGuestPopup(false)}
+              activeOpacity={0.7}>
+              <Text style={guestSt.cancelBtnText}>Continue as Guest</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 };
@@ -1158,6 +1205,76 @@ const mapStateToProps = state => ({
 const mapDispatchToProps = dispatch => ({
   setLoader: data => dispatch(setLoader(data)),
   setMode: data => dispatch(setMode(data)),
+});
+
+const guestSt = StyleSheet.create({
+  backdrop: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.55)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 28,
+  },
+  card: {
+    width: '100%',
+    backgroundColor: '#FFFFFF',
+    borderRadius: 24,
+    paddingHorizontal: 24,
+    paddingTop: 32,
+    paddingBottom: 24,
+    alignItems: 'center',
+  },
+  iconWrap: {
+    width: 72,
+    height: 72,
+    borderRadius: 36,
+    backgroundColor: '#EEF6FF',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 16,
+  },
+  iconText: {fontSize: 34},
+  title: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#0D3D4A',
+    marginBottom: 8,
+    textAlign: 'center',
+  },
+  message: {
+    fontSize: 14,
+    color: '#78716C',
+    textAlign: 'center',
+    lineHeight: 20,
+    marginBottom: 28,
+  },
+  loginBtn: {
+    width: '100%',
+    backgroundColor: '#1B6B7B',
+    borderRadius: 50,
+    paddingVertical: 15,
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  loginBtnText: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: '#FFFFFF',
+    letterSpacing: 0.3,
+  },
+  cancelBtn: {
+    width: '100%',
+    borderRadius: 50,
+    paddingVertical: 13,
+    alignItems: 'center',
+    borderWidth: 1.5,
+    borderColor: 'rgba(0,0,0,0.1)',
+  },
+  cancelBtnText: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: '#78716C',
+  },
 });
 
 export default connect(mapStateToProps, mapDispatchToProps)(QueriesList);

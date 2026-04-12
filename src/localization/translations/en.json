@@ -190,6 +190,7 @@
     "NO_INTERNET_AVAILABLE_MODE_ONLINE": "No internet connection available, but the mode is set to online. Please check your network.",
     "INTERNET_AVAILABLE_MODE_OFFLINE": "Internet is available, but mode is set to offline, Please check your mode.",
     "NETWORK": "No internet connection available.",
+    "REGISTER_FIRST": "Please register or login to continue.",
     "THANK_YOU": "Thank You",
     "VISIT_AGAIN": "Thank you for using the Tourkokan...!  Please visit again...",
     "TNC": "Please accept the Terms and Conditions.",
@@ -635,6 +636,16 @@
     "NO_STOPS": "No stops found",
     "NO_STOPS_SUB": "This route has no stop data",
     "CONTACT_BTN": "Contact"
+  },
+
+  "GALLERY_SCREEN": {
+    "TITLE": "Photo Gallery",
+    "SUBTITLE": "Explore beautiful Konkan moments",
+    "SEARCH_PLACEHOLDER": "Search by location...",
+    "OFFLINE_MSG": "You are offline. Showing cached photos.",
+    "PHOTO_COUNT": "photos",
+    "EMPTY_TITLE": "No photos found",
+    "EMPTY_SUB": "Try a different search term"
   },
 
   "SITE_DETAIL": {

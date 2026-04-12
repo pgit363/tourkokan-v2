@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TourKokan — Gallery</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400;1,600&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,300&display=swap" rel="stylesheet">
+<style>
+:root{--ocean-deep:#0D3D4A;--ocean-mid:#1B6B7B;--ocean-foam:#B8E4EA;--sand-mid:#C4972A;--forest-deep:#1A3320;--forest-pale:#D4EDD9;--cream:#FAF7F0;--text-dark:#1C1917;--text-light:#78716C;--white:#FFF;--radius-md:18px}
+*{margin:0;padding:0;box-sizing:border-box}
+html{font-family:'DM Sans',sans-serif;background:#0D1F26}
+body{background:radial-gradient(ellipse at 20% 20%,#0D3D4A88 0%,transparent 60%),radial-gradient(ellipse at 80% 80%,#1A332044 0%,transparent 60%),#0C1A1F;min-height:100vh;padding:40px 20px;display:flex;justify-content:center}
+.screen-wrapper{display:flex;flex-direction:column;align-items:center;gap:16px}
+.screen-label{font-size:11px;font-weight:500;letter-spacing:2px;text-transform:uppercase;color:#B8E4EA;opacity:.7}
+.phone{width:375px;min-height:812px;background:var(--cream);border-radius:44px;overflow:hidden;box-shadow:0 0 0 1px #ffffff18,0 40px 80px #00000088;position:relative}
+.phone-notch{position:absolute;top:0;left:50%;transform:translateX(-50%);width:126px;height:34px;background:#0D1F26;border-radius:0 0 20px 20px;z-index:100}
+.gallery-screen{background:var(--cream);min-height:812px;overflow-y:auto;padding-bottom:80px}
+.header{background:linear-gradient(135deg,var(--ocean-deep),var(--forest-deep));padding:50px 20px 32px;position:relative}
+.header::after{content:'';position:absolute;bottom:-1px;left:0;right:0;height:28px;background:var(--cream);clip-path:ellipse(60% 100% at 50% 100%)}
+.header-title{font-family:'Playfair Display',serif;font-size:28px;font-weight:700;color:var(--white);margin-bottom:6px}
+.header-subtitle{font-size:13px;color:var(--ocean-foam);opacity:.85}
+.search-bar{padding:0 20px;margin-top:-20px;margin-bottom:20px;position:relative;z-index:10}
+.search-input{width:100%;padding:12px 18px;border:none;border-radius:var(--radius-md);font-size:14px;box-shadow:0 4px 16px #00000018}
+.photo-grid{padding:0 20px;display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.photo-item{aspect-ratio:1;border-radius:12px;background:linear-gradient(135deg,var(--ocean-foam),var(--forest-pale));display:flex;align-items:center;justify-content:center;font-size:40px;cursor:pointer;position:relative;overflow:hidden;box-shadow:0 2px 8px #0000000a}
+.photo-item::before{content:'';position:absolute;inset:0;background:radial-gradient(circle at 30% 30%,#ffffff33 0%,transparent 50%)}
+.photo-label{position:absolute;bottom:0;left:0;right:0;background:linear-gradient(transparent,#00000088);color:var(--white);padding:8px;font-size:10px;font-weight:600;text-align:center}
+.bottom-nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:375px;background:var(--white);display:flex;justify-content:space-around;padding:12px 0;box-shadow:0 -4px 24px #0000001a;border-radius:44px 44px 0 0}
+.nav-item{display:flex;flex-direction:column;align-items:center;gap:4px;padding:8px 16px;border-radius:10px;text-decoration:none;color:var(--text-light);font-size:11px;font-weight:500}
+.nav-item.active{background:linear-gradient(135deg,var(--ocean-foam),var(--forest-pale));color:var(--ocean-deep)}
+</style>
+</head>
+<body>
+<div class="screen-wrapper">
+<div class="screen-label">SCREEN 09 — GALLERY</div>
+<div class="phone">
+<div class="phone-notch"></div>
+<div class="gallery-screen">
+<div class="header">
+<h1 class="header-title">Photo Gallery</h1>
+<p class="header-subtitle">Explore beautiful Konkan moments</p>
+</div>
+<div class="search-bar">
+<input type="text" class="search-input" placeholder="🔍 Search by location...">
+</div>
+<div class="photo-grid">
+<div class="photo-item">🏰<div class="photo-label">Sindhudurg Fort</div></div>
+<div class="photo-item">🌊<div class="photo-label">Tarkarli Beach</div></div>
+<div class="photo-item">🏞<div class="photo-label">Amboli Ghat</div></div>
+<div class="photo-item">🙏<div class="photo-label">Kunkeshwar</div></div>
+<div class="photo-item">🌅<div class="photo-label">Devgad Sunset</div></div>
+<div class="photo-item">⛰<div class="photo-label">Sawantwadi</div></div>
+<div class="photo-item">🏖<div class="photo-label">Vengurla Beach</div></div>
+<div class="photo-item">🌴<div class="photo-label">Malvan Coast</div></div>
+<div class="photo-item">🏯<div class="photo-label">Vijaydurg Fort</div></div>
+<div class="photo-item">🌊<div class="photo-label">Tsunami Island</div></div>
+<div class="photo-item">🏞<div class="photo-label">Girye Waterfall</div></div>
+<div class="photo-item">📷<div class="photo-label">Rock Garden</div></div>
+</div>
+<nav class="bottom-nav">
+<a href="#" class="nav-item"><span style="font-size:22px">🏠</span><span>Home</span></a>
+<a href="#" class="nav-item active"><span style="font-size:22px">🔍</span><span>Discover</span></a>
+<a href="#" class="nav-item"><span style="font-size:22px">🚌</span><span>MSRTC</span></a>
+<a href="#" class="nav-item"><span style="font-size:22px">❤️</span><span>Saved</span></a>
+<a href="#" class="nav-item"><span style="font-size:22px">👤</span><span>Profile</span></a>
+</nav>
+</div>
+</div>
+</div>
+</body>
+</html>
