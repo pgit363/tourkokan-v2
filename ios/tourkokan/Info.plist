@@ -26,14 +26,13 @@
 	<true/>
 	<key>NSAppTransportSecurity</key>
 	<dict>
-	  <!-- Do not change NSAllowsArbitraryLoads to true, or you will risk app rejection! -->
 		<key>NSAllowsArbitraryLoads</key>
 		<false/>
 		<key>NSAllowsLocalNetworking</key>
 		<true/>
 	</dict>
 	<key>NSLocationWhenInUseUsageDescription</key>
-	<string></string>
+	<string/>
 	<key>UILaunchStoryboardName</key>
 	<string>LaunchScreen</string>
 	<key>UIRequiredDeviceCapabilities</key>
@@ -48,5 +47,46 @@
 	</array>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<false/>
+	<key>UIAppFonts</key>
+	<array>
+		<string>NotoSansDevanagari_ExtraCondensed-ExtraLight.ttf</string>
+		<string>NotoSansDevanagari-Light.ttf</string>
+		<string>NotoSansDevanagari-Medium.ttf</string>
+		<string>NotoSansDevanagari_ExtraCondensed-Regular.ttf</string>
+		<string>NotoSansDevanagari-SemiBold.ttf</string>
+		<string>NotoSansDevanagari_SemiCondensed-SemiBold.ttf</string>
+		<string>NotoSansDevanagari_ExtraCondensed-Light.ttf</string>
+		<string>NotoSansDevanagari_ExtraCondensed-SemiBold.ttf</string>
+		<string>NotoSansDevanagari-Bold.ttf</string>
+		<string>NotoSansDevanagari_Condensed-Black.ttf</string>
+		<string>NotoSansDevanagari-ExtraBold.ttf</string>
+		<string>NotoSansDevanagari_SemiCondensed-Light.ttf</string>
+		<string>NotoSansDevanagari-Thin.ttf</string>
+		<string>NotoSansDevanagari_SemiCondensed-Medium.ttf</string>
+		<string>NotoSansDevanagari_Condensed-ExtraBold.ttf</string>
+		<string>NotoSansDevanagari_Condensed-ExtraLight.ttf</string>
+		<string>NotoSansDevanagari_SemiCondensed-ExtraBold.ttf</string>
+		<string>NotoSansDevanagari_SemiCondensed-ExtraLight.ttf</string>
+		<string>NotoSansDevanagari_ExtraCondensed-Thin.ttf</string>
+		<string>NotoSansDevanagari_SemiCondensed-Black.ttf</string>
+		<string>NotoSansDevanagari_Condensed-Thin.ttf</string>
+		<string>NotoSansDevanagari_ExtraCondensed-Black.ttf</string>
+		<string>NotoSansDevanagari_Condensed-Bold.ttf</string>
+		<string>NotoSansDevanagari_Condensed-Regular.ttf</string>
+		<string>NotoSansDevanagari_ExtraCondensed-Bold.ttf</string>
+		<string>NotoSansDevanagari_ExtraCondensed-ExtraBold.ttf</string>
+		<string>NotoSansDevanagari-Regular.ttf</string>
+		<string>NotoSansDevanagari_Condensed-Light.ttf</string>
+		<string>NotoSansDevanagari_SemiCondensed-Thin.ttf</string>
+		<string>NotoSansDevanagari-ExtraLight.ttf</string>
+		<string>NotoSansDevanagari_SemiCondensed-Bold.ttf</string>
+		<string>NotoSansDevanagari_Condensed-Medium.ttf</string>
+		<string>NotoSansDevanagari-Black.ttf</string>
+		<string>NotoSansDevanagari_SemiCondensed-Regular.ttf</string>
+		<string>NotoSansDevanagari_Condensed-SemiBold.ttf</string>
+		<string>NotoSansDevanagari_ExtraCondensed-Medium.ttf</string>
+		<string>NotoSansDevanagari-VariableFont_wdth,wght.ttf</string>
+		<string>Pacifico-Regular.ttf</string>
+	</array>
 </dict>
 </plist>

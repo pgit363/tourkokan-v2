@@ -2,10 +2,9 @@ import React, {useEffect} from 'react';
 import {useState} from 'react';
 import {
   View,
+  Text,
   TouchableOpacity,
   BackHandler,
-  ImageBackground,
-  KeyboardAvoidingView,
   Image,
   StatusBar,
 } from 'react-native';
@@ -29,6 +28,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import COLOR from '../../Services/Constants/COLORS';
 import {navigateTo} from '../../Services/CommonMethods';
 import GlobalText from '../../Components/Customs/Text';
+import AnimatedTagline from '../../Components/Common/AnimatedTagline';
 // import SQLite from 'react-native-sqlite-storage';
 import Popup from '../../Components/Common/Popup';
 import Feather from 'react-native-vector-icons/Feather';
@@ -41,7 +41,6 @@ import {
 } from '@react-native-google-signin/google-signin';
 import AntDesign from 'react-native-vector-icons/AntDesign';
 import DIMENSIONS from '../../Services/Constants/DIMENSIONS';
-import LottieView from 'lottie-react-native';
 import {GOOGLE_WEB_CLIENT_ID} from '@env';
 import STRING from '../../Services/Constants/STRINGS';
 import Ionicons from 'react-native-vector-icons/Ionicons';
@@ -60,10 +59,9 @@ const Email = ({navigation, route, ...props}) => {
   const [isOtpSent, setIsOtpSent] = useState(false);
   const [isButtonDisabled, setIsButtonDisabled] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
 
   GoogleSignin.configure({
-    scopes: ['profile', 'email'], // Specify any additional scopes you need
+    scopes: ['profile', 'email'],
     webClientId: GOOGLE_WEB_CLIENT_ID,
   });
 
@@ -91,30 +89,14 @@ const Email = ({navigation, route, ...props}) => {
 
       const res = await comnPost('v2/auth/googleAuth', $payload);
       console.log(res);
-      
+
       if (res.data.success) {
-        AsyncStorage.setItem(
-          t('STORAGE.ACCESS_TOKEN'),
-          res.data.data.access_token,
-        );
-        AsyncStorage.setItem(
-          t('STORAGE.USER_ID'),
-          JSON.stringify(res.data.data.user.id),
-        );
-        AsyncStorage.setItem(
-          t('STORAGE.USER_EMAIL'),
-          res.data.data.user.email || '',
-        );
-        AsyncStorage.setItem(
-          t('STORAGE.USER_NAME'),
-          res.data.data.user.name || '',
-        );
-        // props.saveAccess_token(res.data.data.access_token);
+        AsyncStorage.setItem(t('STORAGE.ACCESS_TOKEN'), res.data.data.access_token);
+        AsyncStorage.setItem(t('STORAGE.USER_ID'), JSON.stringify(res.data.data.user.id));
+        AsyncStorage.setItem(t('STORAGE.USER_EMAIL'), res.data.data.user.email || '');
+        AsyncStorage.setItem(t('STORAGE.USER_NAME'), res.data.data.user.name || '');
         props.setLoader(false);
-        AsyncStorage.setItem(
-          t('STORAGE.IS_FIRST_TIME'),
-          JSON.stringify(true),
-        );
+        AsyncStorage.setItem(t('STORAGE.IS_FIRST_TIME'), JSON.stringify(true));
         const isGuestValGoogle = !!res.data.data.isGuest;
         console.log('[GoogleLogin] IS_GUEST =', isGuestValGoogle, '| raw isGuest =', res.data.data.isGuest);
         AsyncStorage.setItem('IS_GUEST', JSON.stringify(isGuestValGoogle));
@@ -134,8 +116,6 @@ const Email = ({navigation, route, ...props}) => {
   };
 
   useEffect(() => {
-    // openDB()
-    // createUserTable();
     getAsyncValues();
     const backHandler = BackHandler.addEventListener(
       t('EVENT.HARDWARE_BACK_PRESS'),
@@ -153,25 +133,7 @@ const Email = ({navigation, route, ...props}) => {
     let mode = await getFromStorage(t('STORAGE.MODE'));
     i18n.changeLanguage(language);
     props.setMode(mode);
-    let token = await getFromStorage(t('STORAGE.ACCESS_TOKEN'));
-    if (token) {
-      navigateTo(navigation, t('SCREEN.HOME'));
-    } else {
-      setIsLoading(false);
-    }
   };
-
-  // const openDB = () => {
-  //   const db = SQLite.openDatabase({
-  //     name: 'mydb.db',
-  //     createFromLocation: '~mydata.db',
-  //   });
-  //   if (db) {
-  //     // Database initialization successful, proceed with queries
-  //   } else {
-  //     console.error('Failed to initialize the database.');
-  //   }
-  // };
 
   const createUserTable = () => {
     db.transaction(tx => {
@@ -215,7 +177,6 @@ const Email = ({navigation, route, ...props}) => {
         setEmail(val.trim());
         break;
     }
-
     setIsButtonDisabled(false);
   };
 
@@ -273,9 +234,7 @@ const Email = ({navigation, route, ...props}) => {
       props.setLoader(false);
       return;
     }
-    const data = {
-      email,
-    };
+    const data = {email};
     comnPost('v2/auth/sendOtp', data)
       .then(res => {
         if (res.data?.success) {
@@ -316,22 +275,10 @@ const Email = ({navigation, route, ...props}) => {
     comnPost('v2/auth/register', data)
       .then(res => {
         if (res.data.success) {
-          AsyncStorage.setItem(
-            t('STORAGE.ACCESS_TOKEN'),
-            res.data.data.access_token,
-          );
-          AsyncStorage.setItem(
-            t('STORAGE.USER_ID'),
-            JSON.stringify(res.data.data.user.id),
-          );
-          AsyncStorage.setItem(
-            t('STORAGE.USER_EMAIL'),
-            res.data.data.user.email || '',
-          );
-          AsyncStorage.setItem(
-            t('STORAGE.USER_NAME'),
-            res.data.data.user.name || '',
-          );
+          AsyncStorage.setItem(t('STORAGE.ACCESS_TOKEN'), res.data.data.access_token);
+          AsyncStorage.setItem(t('STORAGE.USER_ID'), JSON.stringify(res.data.data.user.id));
+          AsyncStorage.setItem(t('STORAGE.USER_EMAIL'), res.data.data.user.email || '');
+          AsyncStorage.setItem(t('STORAGE.USER_NAME'), res.data.data.user.name || '');
           const isGuestVal = !!res.data.data.isGuest;
           console.log('[GuestLogin] IS_GUEST =', isGuestVal, '| raw isGuest =', res.data.data.isGuest);
           AsyncStorage.setItem('IS_GUEST', JSON.stringify(isGuestVal));
@@ -354,96 +301,108 @@ const Email = ({navigation, route, ...props}) => {
   };
 
   return (
-    <View style={{flex: 1, backgroundColor: COLOR.white}}>
-      <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent={true} />
+    <View style={{flex: 1, backgroundColor: '#FFFFFF'}}>
+      <StatusBar barStyle="light-content" backgroundColor="transparent" translucent={true} />
+
       <Loader />
-      <ImageBackground
-        style={styles.loginImage}
-        source={require('../../Assets/Images/Intro/login_background.png')}
+
+      {/* Background image — top half */}
+      <Image
+        source={require('../../Assets/Images/beach_bg.jpg')}
+        style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          width: DIMENSIONS.screenWidth,
+          height: DIMENSIONS.screenHeight * 0.52,
+        }}
+        resizeMode="cover"
       />
 
-      {isLoading ? (
-        <View style={styles.middleFlexImage}>
-          <LottieView
-            source={{
-              uri: 'https://lottie.host/e62be0da-7e40-4ec5-9087-a6d04b0dbbaf/AjOP12tbTd.json',
-            }}
-            autoPlay
-            loop
-            style={styles.lottie}
+      {/* Logo section — top half of screen */}
+      <View style={styles.authContentContainer}>
+        <View style={styles.logoSection}>
+          <Image
+            source={require('../../Assets/Images/Logos/tourkokan-logo.png')}
+            style={styles.loginLogo}
+            resizeMode="contain"
           />
+          <AnimatedTagline text="Sun, Sand & Serenity" />
         </View>
-      ) : (
-        <View style={styles.authContentContainer}>
-          {/* Logo Section */}
-          <View style={styles.logoSection}>
-            <Image
-              source={require('../../Assets/Images/Logos/tourkokan-logo.png')}
-              style={styles.loginLogo}
-              resizeMode="contain"
-            />
-            <GlobalText
-              text="Where the coast tells stories"
-              style={styles.subTagline}
-            />
-          </View>
+      </View>
 
-          {/* Login Section */}
-          <View style={styles.loginSection}>
-            <GlobalText text="Welcome to Kokan" style={styles.loginTitle} />
+      {/* White card pinned to bottom */}
+      <View style={{
+        position: 'absolute',
+        top: DIMENSIONS.screenHeight * 0.48,
+        bottom: 0,
+        left: 0,
+        right: 0,
+        backgroundColor: '#FFFFFF',
+        borderTopLeftRadius: 36,
+        borderTopRightRadius: 36,
+        paddingBottom: 32,
+      }}>
+        {/* gold notch */}
+        <View style={{width: 44, height: 5, borderRadius: 3, backgroundColor: '#C4972A', alignSelf: 'center', marginTop: 12, marginBottom: 20}} />
 
-            {/* Google Button */}
-            <TouchableOpacity
-              style={styles.customGoogleBtn}
-              onPress={() => signInWithGoogle()}
-              activeOpacity={0.8}>
+        <View style={styles.loginSection}>
+          <GlobalText text="Welcome to Kokan" style={styles.loginTitle} />
+
+          {/* Google Button */}
+          <TouchableOpacity
+            style={styles.customGoogleBtn}
+            onPress={() => signInWithGoogle()}
+            activeOpacity={0.8}>
+            <View style={{backgroundColor: '#FFFFFF', borderRadius: 50, padding: 5}}>
               <Image
                 source={{uri: 'https://developers.google.com/identity/images/g-logo.png'}}
-                style={{width: 24, height: 24}}
+                style={{width: 20, height: 20}}
               />
-              <GlobalText
-                text="Sign in with Google"
-                style={styles.googleBtnText}
-              />
-            </TouchableOpacity>
-
-            {/* Divider */}
-            <View style={styles.dividerContainer}>
-              <View style={styles.dividerLine} />
-              <GlobalText text="OR" style={styles.dividerText} />
-              <View style={styles.dividerLine} />
             </View>
+            <GlobalText
+              text="Continue with Google"
+              style={styles.googleBtnText}
+            />
+          </TouchableOpacity>
 
-            {/* Guest Button */}
-            <TouchableOpacity
-              style={styles.guestBtn}
-              onPress={() => guestLogin()}
-              activeOpacity={0.8}>
-              <Ionicons name="person-outline" size={20} color={COLOR.themeBlue} />
-              <GlobalText
-                text="Continue as Guest"
-                style={styles.guestBtnText}
-              />
-            </TouchableOpacity>
+          {/* Divider */}
+          <View style={styles.dividerContainer}>
+            <View style={styles.dividerLine} />
+            <GlobalText text="OR" style={styles.dividerText} />
+            <View style={styles.dividerLine} />
+          </View>
 
-            {/* Features */}
-            <View style={styles.featuresContainer}>
-              <View style={styles.featureBadge}>
-                <Ionicons name="map-outline" size={14} color={COLOR.themeBlue} />
-                <GlobalText text="Offline Maps" style={styles.featureText} />
-              </View>
-              <View style={styles.featureBadge}>
-                <Ionicons name="bus-outline" size={14} color={COLOR.themeBlue} />
-                <GlobalText text="MSRTC Buses" style={styles.featureText} />
-              </View>
-              <View style={styles.featureBadge}>
-                <Ionicons name="image-outline" size={14} color={COLOR.themeBlue} />
-                <GlobalText text="Kokan Places" style={styles.featureText} />
-              </View>
+          {/* Guest Button */}
+          <TouchableOpacity
+            style={styles.guestBtn}
+            onPress={() => guestLogin()}
+            activeOpacity={0.8}>
+            <Ionicons name="person-outline" size={20} color={COLOR.themeBlue} />
+            <GlobalText
+              text="Continue as Guest"
+              style={styles.guestBtnText}
+            />
+          </TouchableOpacity>
+
+          {/* Features */}
+          <View style={styles.featuresContainer}>
+            <View style={styles.featureBadge}>
+              <Ionicons name="map-outline" size={14} color={COLOR.themeBlue} />
+              <GlobalText text="Offline Maps" style={styles.featureText} />
+            </View>
+            <View style={styles.featureBadge}>
+              <Ionicons name="bus-outline" size={14} color={COLOR.themeBlue} />
+              <GlobalText text="MSRTC Buses" style={styles.featureText} />
+            </View>
+            <View style={styles.featureBadge}>
+              <Ionicons name="image-outline" size={14} color={COLOR.themeBlue} />
+              <GlobalText text="Kokan Places" style={styles.featureText} />
             </View>
           </View>
         </View>
-      )}
+      </View>
+
       <Popup message={alertMessage} onPress={closePopup} visible={isAlert} />
     </View>
   );

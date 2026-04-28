@@ -252,7 +252,14 @@ const MSRTCSearch = ({navigation, route, ...props}) => {
               </View>
             )}
 
-            {/* ── Ad Banner at end of scroll content ── */}
+            {/* ── Mid Banner ── */}
+            {bannerObject?.ROUTE_LIST_MIDDLE?.length > 0 && (
+              <View style={s.bannerWrap}>
+                <AdBanner bannerImages={bannerObject.ROUTE_LIST_MIDDLE} />
+              </View>
+            )}
+
+            {/* ── Footer Banner ── */}
             <View style={s.bannerWrap}>
               <AdBanner bannerImages={bannerObject?.ROUTE_LIST_FOOTER} />
             </View>

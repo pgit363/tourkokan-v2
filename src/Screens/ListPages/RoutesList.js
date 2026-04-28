@@ -413,8 +413,9 @@ const RoutesList = ({navigation, route}) => {
     return () => backHandler.remove();
   }, []);
 
-  const hasBannerFooter =
-    bannerObject?.ROUTE_DETAIL_FOOTER?.length > 0;
+  const hasBannerFooter = bannerObject?.ROUTE_DETAIL_FOOTER?.length > 0;
+  const hasBannerMiddle = bannerObject?.ROUTE_DETAIL_MIDDLE?.length > 0;
+  const midBannerIndex = Math.floor(stops.length / 2);
 
   // ── Render ─────────────────────────────────────────────────────────────────
 
@@ -524,7 +525,17 @@ const RoutesList = ({navigation, route}) => {
             item?.id?.toString() || index.toString()
           }
           renderItem={({item, index}) => (
-            <TimelineStop item={item} index={index} total={stops.length} />
+            <>
+              <TimelineStop item={item} index={index} total={stops.length} />
+              {index === midBannerIndex && hasBannerMiddle && (
+                <View style={s.bannerWrap}>
+                  <Banner
+                    bannerImages={bannerObject.ROUTE_DETAIL_MIDDLE}
+                    style={{height: BANNER_H}}
+                  />
+                </View>
+              )}
+            </>
           )}
           ListHeaderComponent={<ListHeader />}
           ListFooterComponent={<ListFooter />}

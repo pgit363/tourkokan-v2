@@ -27,17 +27,16 @@ export const comnGet = async (url, apiToken, navigation) => {
 export const comnPost = async (url, data, navigation) => {
   const myUrl = API_PATH + url;
   const token = await AsyncStorage.getItem(STRING.STORAGE.ACCESS_TOKEN);
-  const config = {
-    headers: {
-      Authorization: `Bearer ${token}`,
-      'Content-Type': 'application/json',
-    },
-  };
-  console.log(myUrl);
+  const headers = {'Content-Type': 'application/json'};
+  if (token) headers.Authorization = `Bearer ${token}`;
+  const config = {headers};
+  // console.log(myUrl);
   try {
     const res = await axios.post(myUrl, data, config);
     return res;
   } catch (err) {
+    console.log(err);
+    
     if (err.response?.status == 401) {
       await AsyncStorage.clear();
       if (navigation) {
@@ -51,12 +50,9 @@ export const comnPost = async (url, data, navigation) => {
 export const comnPut = async (url, data, navigation) => {
   const myUrl = API_PATH + url;
   const token = await AsyncStorage.getItem(STRING.STORAGE.ACCESS_TOKEN);
-  const config = {
-    headers: {
-      Authorization: `Bearer ${token}`,
-      'Content-Type': 'application/json',
-    },
-  };
+  const headers = {'Content-Type': 'application/json'};
+  if (token) headers.Authorization = `Bearer ${token}`;
+  const config = {headers};
   console.log(myUrl);
   try {
     const res = await axios.put(myUrl, data, config);
@@ -73,12 +69,9 @@ export const comnPut = async (url, data, navigation) => {
 export const comnDel = async (url, data, navigation) => {
   const myUrl = API_PATH + url;
   const token = await AsyncStorage.getItem(STRING.STORAGE.ACCESS_TOKEN);
-  const config = {
-    headers: {
-      Authorization: `Bearer ${token}`,
-      'Content-Type': 'application/json',
-    },
-  };
+  const headers = {'Content-Type': 'application/json'};
+  if (token) headers.Authorization = `Bearer ${token}`;
+  const config = {headers};
   console.log(myUrl);
   try {
     const res = await axios.delete(myUrl, {data, ...config});

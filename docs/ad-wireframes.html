@@ -1,0 +1,875 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<title>Tourkokan — Ad Placement Wireframes</title>
+<style>
+/* ── Reset ─────────────────────────────────────────────── */
+*{box-sizing:border-box;margin:0;padding:0;}
+body{
+  font-family:'Segoe UI',system-ui,sans-serif;
+  background:#E8EDF0;
+  padding:40px 32px 80px;
+}
+
+/* ── Page header ─────────────────────────────────────────*/
+.page-title{
+  font-size:26px;font-weight:800;color:#0D3D4A;
+  margin-bottom:4px;letter-spacing:-0.3px;
+}
+.page-sub{font-size:13px;color:#78716C;margin-bottom:28px;}
+
+/* ── Theme strip ─────────────────────────────────────────*/
+.theme-strip{
+  display:flex;gap:0;border-radius:12px;overflow:hidden;
+  width:fit-content;margin-bottom:12px;
+  box-shadow:0 2px 12px rgba(0,0,0,.12);
+}
+.swatch{
+  display:flex;flex-direction:column;
+  align-items:center;justify-content:flex-end;
+  width:72px;height:52px;padding-bottom:6px;
+  font-size:9px;font-weight:700;
+}
+.swatch span{
+  background:rgba(255,255,255,0.85);
+  border-radius:4px;padding:1px 5px;color:#1C1917;
+  font-size:8px;
+}
+
+/* ── Legend ──────────────────────────────────────────────*/
+.legend{
+  display:flex;flex-wrap:wrap;gap:16px;
+  margin-bottom:36px;margin-top:10px;
+}
+.leg{display:flex;align-items:center;gap:7px;font-size:11px;font-weight:600;color:#44403C;}
+.leg-box{width:22px;height:14px;border-radius:4px;}
+.l-ad  {background:#F59E0B;border:2px dashed #92400E;}
+.l-header{background:#0D3D4A;}
+.l-card{background:#E9F0F2;border:1.5px solid #CBD5E1;}
+.l-content{background:#F1F5F9;border:1px solid #D1D5DB;}
+.l-search{background:#EFF6F7;border:1.5px solid #1B6B7B;}
+
+/* ── 2×2 grid ───────────────────────────────────────────*/
+.grid-2x2{
+  display:grid;
+  grid-template-columns:repeat(2,1fr);
+  gap:48px 40px;
+  max-width:1000px;
+}
+
+/* ── Phone ───────────────────────────────────────────────*/
+.phone-wrap{display:flex;flex-direction:column;align-items:center;}
+.screen-name{
+  font-size:13px;font-weight:800;color:#0D3D4A;
+  margin-bottom:12px;text-transform:uppercase;letter-spacing:0.6px;
+}
+.phone{
+  width:300px;
+  background:#FAF7F0;
+  border-radius:36px;
+  border:4px solid #0D3D4A;
+  overflow:hidden;
+  box-shadow:0 16px 48px rgba(13,61,74,.22);
+  position:relative;
+}
+.status-bar{
+  height:36px;background:#0D3D4A;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 18px;
+  font-size:10px;font-weight:700;color:rgba(255,255,255,.8);
+}
+.notch-pill{
+  width:70px;height:18px;background:#000;
+  border-radius:0 0 14px 14px;
+  position:absolute;top:0;left:50%;transform:translateX(-50%);
+  z-index:10;
+}
+
+/* ── Generic block helpers ───────────────────────────────*/
+.b{
+  display:flex;align-items:center;justify-content:center;
+  font-size:10px;font-weight:600;text-align:center;
+  padding:0 10px;
+}
+/* header gradient */
+.hdr{
+  background:linear-gradient(135deg,#0D3D4A,#1A3320);
+  color:#fff;padding:12px 14px 32px;position:relative;
+  overflow:hidden;
+}
+.hdr-curve{
+  position:absolute;bottom:0;left:0;right:0;height:24px;
+  background:#FAF7F0;border-radius:24px 24px 0 0;
+}
+.hdr-row{display:flex;align-items:center;gap:10px;margin-bottom:6px;}
+.back-btn{
+  width:28px;height:28px;border-radius:14px;
+  background:rgba(255,255,255,.18);
+  display:flex;align-items:center;justify-content:center;
+  font-size:12px;color:#fff;flex-shrink:0;
+}
+.hdr-title{font-size:14px;font-weight:800;color:#fff;flex:1;}
+.hdr-sub{font-size:10px;color:#B8E4EA;margin-top:2px;}
+.hdr-action{
+  font-size:9px;font-weight:700;color:#fff;
+  background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.3);
+  border-radius:12px;padding:4px 10px;
+}
+
+.search-bar{
+  background:#fff;border-radius:12px;margin:0 12px;
+  padding:8px 12px;display:flex;align-items:center;gap:8px;
+  border:1.5px solid #E2E8F0;
+  font-size:10px;color:#78716C;font-weight:500;
+}
+
+.section-hdr{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:10px 14px 4px;
+}
+.sec-title{font-size:10px;font-weight:800;color:#0D3D4A;text-transform:uppercase;letter-spacing:.6px;}
+.sec-link{font-size:9px;color:#1B6B7B;font-weight:700;}
+
+.chip-row{
+  display:flex;gap:6px;padding:4px 12px 6px;overflow:hidden;
+}
+.chip{
+  background:#EFF6F7;border:1.5px solid #1B6B7B;border-radius:20px;
+  padding:3px 10px;font-size:9px;font-weight:700;color:#1B6B7B;
+  white-space:nowrap;
+}
+.chip.active{background:#0D3D4A;color:#fff;border-color:#0D3D4A;}
+
+.card{
+  background:#fff;border-radius:14px;
+  margin:4px 12px;padding:10px 12px;
+  border:1.5px solid rgba(0,0,0,.08);
+  box-shadow:0 2px 8px rgba(13,61,74,.06);
+}
+.card-row{display:flex;align-items:center;gap:8px;}
+.bus-thumb{
+  width:52px;height:52px;border-radius:10px;
+  background:linear-gradient(135deg,#EFF6F7,#D1E8EC);
+  display:flex;align-items:center;justify-content:center;
+  font-size:22px;flex-shrink:0;
+}
+.card-info{flex:1;}
+.card-title{font-size:11px;font-weight:700;color:#1C1917;margin-bottom:2px;}
+.card-sub{font-size:9px;color:#78716C;}
+.stat-row{
+  display:flex;margin-top:8px;padding-top:8px;
+  border-top:1px solid rgba(0,0,0,.06);
+}
+.stat{flex:1;text-align:center;}
+.stat-val{font-size:11px;font-weight:700;color:#1B6B7B;}
+.stat-lbl{font-size:8px;color:#78716C;text-transform:uppercase;letter-spacing:.3px;}
+.stat-div{width:1px;background:rgba(0,0,0,.07);}
+
+.list-item{
+  background:#fff;border-radius:10px;
+  margin:3px 12px;padding:8px 10px;
+  border:1px solid rgba(0,0,0,.07);
+  display:flex;align-items:center;gap:8px;
+}
+.li-dot{
+  width:8px;height:8px;border-radius:50%;
+  background:#1B6B7B;flex-shrink:0;
+}
+.li-dot.end{background:#C4972A;width:12px;height:12px;}
+.li-line-col{
+  display:flex;flex-direction:column;align-items:center;
+  flex-shrink:0;width:12px;
+}
+.li-line{width:2px;height:20px;background:#B8E4EA;margin-top:2px;}
+.li-text{font-size:10px;font-weight:600;color:#1C1917;}
+.li-sub{font-size:8px;color:#78716C;}
+.li-icon{font-size:14px;flex-shrink:0;}
+
+/* timeline */
+.tl-row{
+  display:flex;align-items:flex-start;
+  padding:0 14px;margin-bottom:0;
+}
+.tl-dot-col{display:flex;flex-direction:column;align-items:center;width:20px;flex-shrink:0;padding-top:3px;}
+.tl-dot{width:10px;height:10px;border-radius:50%;background:#1B6B7B;border:2px solid #fff;z-index:2;}
+.tl-dot.ep{width:14px;height:14px;background:#C4972A;}
+.tl-line{width:2px;flex:1;background:#B8E4EA;min-height:18px;margin-top:1px;}
+.tl-content{flex:1;padding-left:8px;padding-bottom:14px;}
+.tl-name{font-size:10px;font-weight:700;color:#1C1917;}
+.tl-name.ep{color:#0D3D4A;}
+.tl-meta{font-size:8px;color:#78716C;margin-top:1px;}
+
+.view-toggle{
+  display:flex;margin:4px 12px;gap:4px;
+  background:#E9F0F2;border-radius:10px;padding:3px;
+}
+.vt-btn{
+  flex:1;height:24px;border-radius:7px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:9px;font-weight:700;color:#78716C;gap:4px;
+}
+.vt-btn.active{background:#0D3D4A;color:#fff;}
+
+.place-grid{
+  display:grid;grid-template-columns:1fr 1fr;gap:6px;
+  padding:0 12px 6px;
+}
+.place-card{
+  border-radius:10px;overflow:hidden;
+  border:1px solid rgba(0,0,0,.08);
+  background:#fff;
+}
+.place-img{height:50px;background:linear-gradient(135deg,#D1E8EC,#B8E4EA);display:flex;align-items:center;justify-content:center;font-size:18px;}
+.place-name{font-size:9px;font-weight:700;color:#1C1917;padding:4px 6px 5px;}
+
+.offline-bar{
+  background:#FEF3CD;border:1px solid #F59E0B;border-radius:8px;
+  margin:4px 12px;padding:5px 10px;
+  display:flex;align-items:center;gap:6px;
+  font-size:9px;font-weight:600;color:#92400E;
+}
+
+.spacer{height:8px;}
+
+/* ── AD block ─────────────────────────────────────────── */
+@keyframes adPulse {
+  0%   { box-shadow: 0 0 0 0 rgba(245,158,11,0.7), 0 0 0 0 rgba(245,158,11,0.3); border-color:#F59E0B; }
+  50%  { box-shadow: 0 0 18px 6px rgba(245,158,11,0.5), 0 0 36px 12px rgba(245,158,11,0.15); border-color:#D97706; }
+  100% { box-shadow: 0 0 0 0 rgba(245,158,11,0), 0 0 0 0 rgba(245,158,11,0); border-color:#F59E0B; }
+}
+@keyframes adGlow {
+  0%,100% { background: linear-gradient(135deg,#FFFBEB,#FDE68A); }
+  50%      { background: linear-gradient(135deg,#FEF3C7,#FCD34D); }
+}
+@keyframes adShimmer {
+  0%   { background-position: -200% center; }
+  100% { background-position: 200% center; }
+}
+@keyframes heroPulse {
+  0%,100% { border-bottom-color:#F59E0B; box-shadow: 0 4px 0 0 rgba(245,158,11,0.4); }
+  50%      { border-bottom-color:#D97706; box-shadow: 0 6px 24px 0 rgba(245,158,11,0.5); }
+}
+@keyframes tagBounce {
+  0%,100% { transform: scale(1); }
+  50%      { transform: scale(1.08); }
+}
+
+.ad{
+  margin:6px 12px;border-radius:12px;
+  background:linear-gradient(135deg,#FFFBEB,#FDE68A);
+  border:2px dashed #F59E0B;
+  display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+  gap:3px;padding:8px;
+  position:relative;
+  animation: adPulse 2s ease-in-out infinite, adGlow 2s ease-in-out infinite;
+}
+.ad-hero{
+  margin:0;border-radius:0;
+  border:none;border-bottom:3px dashed #F59E0B;
+  animation: heroPulse 2s ease-in-out infinite, adGlow 2s ease-in-out infinite;
+}
+.ad-label{
+  position:absolute;top:6px;right:8px;
+  background:#F59E0B;color:#fff;
+  font-size:8px;font-weight:800;
+  border-radius:8px;padding:1px 7px;
+  text-transform:uppercase;letter-spacing:.4px;
+  animation: tagBounce 2s ease-in-out infinite;
+}
+.ad-tag{
+  background:#F59E0B;color:#fff;
+  font-size:8px;font-weight:800;
+  border-radius:8px;padding:2px 9px;
+  text-transform:uppercase;letter-spacing:.5px;
+  animation: tagBounce 2s ease-in-out infinite;
+}
+.ad-desc{font-size:9px;color:#92400E;font-weight:600;}
+.ad-h-hero{height:100px;}
+.ad-h-mid {height:58px;}
+.ad-h-foot{height:54px;}
+
+/* ── Summary table ────────────────────────────────────── */
+.summary{
+  max-width:1000px;margin-top:64px;
+}
+.summary h2{font-size:18px;font-weight:800;color:#0D3D4A;margin-bottom:14px;}
+table{
+  width:100%;border-collapse:collapse;
+  background:#fff;border-radius:14px;overflow:hidden;
+  box-shadow:0 4px 20px rgba(0,0,0,.08);font-size:12px;
+}
+thead tr{background:#0D3D4A;color:#fff;}
+th{padding:11px 16px;text-align:left;font-weight:700;letter-spacing:.3px;}
+td{padding:10px 16px;border-bottom:1px solid #F1F5F9;color:#44403C;}
+tbody tr:last-child td{border-bottom:none;}
+tbody tr:nth-child(even){background:#F8FAFC;}
+.key{font-weight:800;color:#92400E;font-family:monospace;font-size:11px;}
+</style>
+</head>
+<body>
+
+<div class="page-title">Tourkokan — Screen &amp; Ad Placement Wireframes</div>
+<p class="page-sub">Complete app screens with component structure and advertising slot positions</p>
+
+<!-- Theme -->
+<div class="theme-strip">
+  <div class="swatch" style="background:#0D3D4A"><span>oceanDeep</span></div>
+  <div class="swatch" style="background:#1B6B7B"><span>oceanMid</span></div>
+  <div class="swatch" style="background:#B8E4EA;"><span style="color:#0D3D4A">oceanFoam</span></div>
+  <div class="swatch" style="background:#1A3320"><span>forestDeep</span></div>
+  <div class="swatch" style="background:#2E5C3A"><span>forestMid</span></div>
+  <div class="swatch" style="background:#C4972A"><span>sandMid</span></div>
+  <div class="swatch" style="background:#FBF3DC;"><span style="color:#0D3D4A">sandPale</span></div>
+  <div class="swatch" style="background:#FAF7F0;border-right:1px solid #ddd"><span style="color:#0D3D4A">cream</span></div>
+  <div class="swatch" style="background:#1C1917"><span>textDark</span></div>
+  <div class="swatch" style="background:#44403C"><span>textMid</span></div>
+  <div class="swatch" style="background:#78716C"><span>textLight</span></div>
+</div>
+
+<div class="legend">
+  <div class="leg"><div class="leg-box l-ad"></div>Ad / Banner Slot</div>
+  <div class="leg"><div class="leg-box l-header"></div>Header / Nav</div>
+  <div class="leg"><div class="leg-box l-card"></div>Card Component</div>
+  <div class="leg"><div class="leg-box l-content"></div>Content / List</div>
+  <div class="leg"><div class="leg-box l-search"></div>Search / Input</div>
+</div>
+
+<!-- ═══════════ SPLASH (full width) ═══════════ -->
+<div style="margin-bottom:40px;">
+  <div style="font-size:13px;font-weight:800;color:#0D3D4A;margin-bottom:12px;text-transform:uppercase;letter-spacing:0.6px;text-align:center;">⓪ App Splash Screen</div>
+  <div style="display:flex;justify-content:center;">
+  <div class="phone" style="width:300px;">
+    <div class="status-bar" style="background:#000;">
+      <span>9:41</span><div class="notch-pill"></div><span>●●● 100%</span>
+    </div>
+    <!-- Full-screen splash banner -->
+    <div class="ad ad-hero" style="height:460px;border-bottom:none;background:linear-gradient(180deg,#0D3D4A 0%,#1A3320 60%,#0D3D4A 100%);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;">
+      <div style="font-size:36px;">🌊</div>
+      <div style="font-size:16px;font-weight:800;color:#fff;letter-spacing:1px;">TOURKOKAN</div>
+      <div style="font-size:9px;color:#B8E4EA;margin-bottom:16px;">Explore Sindhudurg</div>
+      <div class="ad-desc" style="color:#FDE68A;font-size:10px;">Full-screen Splash Ad</div>
+      <div class="ad-tag">APP_SPLASH</div>
+      <div style="position:absolute;bottom:18px;right:14px;background:rgba(255,255,255,.2);border-radius:10px;padding:3px 10px;font-size:9px;color:#fff;font-weight:700;">Skip ✕</div>
+    </div>
+  </div>
+  </div>
+</div>
+
+<!-- ═══════════ 2×2 GRID ═══════════ -->
+<div class="grid-2x2">
+
+<!-- ─────────────── SCREEN 1: HOME ─────────────── -->
+<div class="phone-wrap">
+  <div class="screen-name">① Home Screen</div>
+  <div class="phone">
+    <div class="status-bar">
+      <span>9:41</span><div class="notch-pill"></div><span>●●● 100%</span>
+    </div>
+
+    <!-- HOME_HERO -->
+    <div class="ad ad-hero ad-h-hero">
+      <div class="ad-label">HOME_HERO</div>
+      <div style="font-size:20px">🏖️</div>
+      <div class="ad-desc">Hero Carousel Banner</div>
+      <div class="ad-tag">HOME_HERO</div>
+    </div>
+
+    <!-- Search bar -->
+    <div style="padding:10px 12px 0;">
+      <div class="search-bar">
+        <span>🔍</span><span>Search city, place, attraction…</span>
+      </div>
+    </div>
+
+    <!-- Explore Talukas -->
+    <div class="section-hdr">
+      <span class="sec-title">Explore Talukas</span>
+      <span class="sec-link">View all →</span>
+    </div>
+    <div class="chip-row">
+      <span class="chip active">Sindhudurg</span>
+      <span class="chip">Malvan</span>
+      <span class="chip">Kudal</span>
+      <span class="chip">Sawantwadi</span>
+    </div>
+
+    <!-- Taluka card -->
+    <div class="card">
+      <div class="card-row">
+        <div class="bus-thumb">🌊</div>
+        <div class="card-info">
+          <div class="card-title">Sindhudurg District</div>
+          <div class="card-sub">⭐ 4.8 · Coastal · Heritage</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bus Search -->
+    <div class="section-hdr">
+      <span class="sec-title">🚌 Bus Route Search</span>
+    </div>
+    <div class="card">
+      <div style="font-size:9px;color:#78716C;margin-bottom:4px;font-weight:600;">📍 Source Stop</div>
+      <div style="background:#F1F5F9;border-radius:8px;padding:6px 10px;font-size:10px;color:#1C1917;font-weight:600;margin-bottom:6px;">Kolhapur</div>
+      <div style="font-size:9px;color:#78716C;margin-bottom:4px;font-weight:600;">🏁 Destination Stop</div>
+      <div style="background:#F1F5F9;border-radius:8px;padding:6px 10px;font-size:10px;color:#1C1917;font-weight:600;margin-bottom:8px;">Sindhudurg</div>
+      <div style="background:#0D3D4A;border-radius:8px;padding:7px;text-align:center;font-size:10px;font-weight:800;color:#fff;">Search Routes</div>
+    </div>
+
+    <!-- HOME_MIDDLE -->
+    <div class="ad ad-h-mid">
+      <div class="ad-label">HOME_MIDDLE</div>
+      <div class="ad-desc">📢 Mid-page Promo Banner</div>
+      <div class="ad-tag">HOME_MIDDLE</div>
+    </div>
+
+    <!-- Categories -->
+    <div class="section-hdr">
+      <span class="sec-title">Categories</span>
+      <span class="sec-link">See all</span>
+    </div>
+    <div class="chip-row">
+      <span class="chip active">Beaches</span>
+      <span class="chip">Forts</span>
+      <span class="chip">Temples</span>
+      <span class="chip">Food</span>
+    </div>
+    <div class="spacer"></div>
+    <div class="list-item"><div class="li-icon">🏖️</div><div><div class="li-text">Tarkarli Beach</div><div class="li-sub">Malvan · 4.9 ⭐</div></div></div>
+    <div class="list-item"><div class="li-icon">🏰</div><div><div class="li-text">Sindhudurg Fort</div><div class="li-sub">Malvan · 4.7 ⭐</div></div></div>
+
+    <!-- HOME_FOOTER -->
+    <div class="ad ad-h-foot" style="margin-top:8px;">
+      <div class="ad-label">HOME_FOOTER</div>
+      <div class="ad-desc">📣 Footer Promo Banner</div>
+      <div class="ad-tag">HOME_FOOTER</div>
+    </div>
+    <div class="spacer"></div>
+  </div>
+</div>
+
+<!-- ─────────────── SCREEN 2: MSRTC + ALL ROUTES ─────────────── -->
+<div class="phone-wrap">
+  <div class="screen-name">② MSRTC Search + Route List</div>
+  <div class="phone">
+    <div class="status-bar">
+      <span>9:41</span><div class="notch-pill"></div><span>●●● 100%</span>
+    </div>
+
+    <!-- Header -->
+    <div class="hdr">
+      <div class="hdr-row">
+        <div class="back-btn">←</div>
+        <div class="hdr-title">Bus Route Search</div>
+      </div>
+      <div class="hdr-sub">Find MSRTC routes</div>
+      <div class="hdr-curve"></div>
+    </div>
+
+    <!-- Search inputs -->
+    <div style="margin-top:-12px;">
+      <div class="card">
+        <div style="font-size:9px;color:#78716C;margin-bottom:3px;font-weight:600;">📍 SOURCE STOP</div>
+        <div style="background:#F1F5F9;border-radius:8px;padding:6px 10px;font-size:10px;font-weight:700;color:#1C1917;margin-bottom:6px;">Kolhapur</div>
+        <div style="font-size:9px;color:#78716C;margin-bottom:3px;font-weight:600;">🏁 DESTINATION</div>
+        <div style="background:#F1F5F9;border-radius:8px;padding:6px 10px;font-size:10px;font-weight:700;color:#1C1917;margin-bottom:8px;">Sindhudurg</div>
+        <div style="background:#1A3320;border-radius:8px;padding:7px;text-align:center;font-size:10px;font-weight:800;color:#fff;">🔍 Search Routes</div>
+      </div>
+    </div>
+
+    <!-- Recent -->
+    <div class="section-hdr">
+      <span class="sec-title">Recent Searches</span>
+      <span class="sec-link">Clear</span>
+    </div>
+    <div class="list-item"><span style="font-size:11px;">↩</span><div><div class="li-text">Pune → Malvan</div><div class="li-sub">2 routes found</div></div></div>
+    <div class="list-item"><span style="font-size:11px;">↩</span><div><div class="li-text">Mumbai → Kudal</div><div class="li-sub">4 routes found</div></div></div>
+
+    <div style="height:1px;background:#E2E8F0;margin:10px 12px;"></div>
+
+    <!-- Results header (after search) -->
+    <div class="hdr" style="padding:10px 14px 24px;">
+      <div class="hdr-row">
+        <div class="back-btn">←</div>
+        <div>
+          <div class="hdr-title" style="font-size:12px;">Kolhapur → Sindhudurg</div>
+          <div class="hdr-sub">6 routes available</div>
+        </div>
+      </div>
+      <div class="hdr-curve"></div>
+    </div>
+
+    <!-- Route cards -->
+    <div style="margin-top:-10px;">
+      <div class="card" style="padding:0;overflow:hidden;margin-bottom:5px;">
+        <div style="background:#1B6B7B;padding:4px 10px;font-size:9px;font-weight:800;color:#fff;letter-spacing:.5px;text-transform:uppercase;">Shivshahi</div>
+        <div class="card-row" style="padding:8px 10px 4px;">
+          <div class="bus-thumb" style="width:42px;height:42px;">🚌</div>
+          <div class="card-info"><div class="card-title">Kolhapur → Sindhudurg</div></div>
+        </div>
+        <div class="stat-row" style="margin:0 10px 8px;padding-top:6px;">
+          <div class="stat"><div class="stat-val">120km</div><div class="stat-lbl">Distance</div></div>
+          <div class="stat-div"></div>
+          <div class="stat"><div class="stat-val">22</div><div class="stat-lbl">Stops</div></div>
+          <div class="stat-div"></div>
+          <div class="stat"><div class="stat-val">07:30</div><div class="stat-lbl">Depart</div></div>
+        </div>
+      </div>
+
+      <div class="card" style="padding:0;overflow:hidden;margin-bottom:5px;">
+        <div style="background:#2E5C3A;padding:4px 10px;font-size:9px;font-weight:800;color:#fff;text-transform:uppercase;">Hirkani</div>
+        <div class="card-row" style="padding:8px 10px 4px;">
+          <div class="bus-thumb" style="width:42px;height:42px;">🚌</div>
+          <div class="card-info"><div class="card-title">Kolhapur → Sindhudurg</div></div>
+        </div>
+        <div class="stat-row" style="margin:0 10px 8px;padding-top:6px;">
+          <div class="stat"><div class="stat-val">118km</div><div class="stat-lbl">Distance</div></div>
+          <div class="stat-div"></div>
+          <div class="stat"><div class="stat-val">19</div><div class="stat-lbl">Stops</div></div>
+          <div class="stat-div"></div>
+          <div class="stat"><div class="stat-val">09:00</div><div class="stat-lbl">Depart</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ROUTE_LIST_MIDDLE (after 5th route card) -->
+    <div class="ad ad-h-mid">
+      <div class="ad-label">ROUTE_LIST_MIDDLE</div>
+      <div class="ad-desc">📢 After 5th Route — Mid Banner</div>
+      <div class="ad-tag">ROUTE_LIST_MIDDLE</div>
+    </div>
+
+    <div class="card" style="padding:0;overflow:hidden;margin-bottom:5px;">
+      <div style="background:#C4972A;padding:4px 10px;font-size:9px;font-weight:800;color:#fff;text-transform:uppercase;">Volvo AC</div>
+      <div class="card-row" style="padding:8px 10px 4px;">
+        <div class="bus-thumb" style="width:42px;height:42px;">🚌</div>
+        <div class="card-info"><div class="card-title">Kolhapur → Sindhudurg</div></div>
+      </div>
+      <div class="stat-row" style="margin:0 10px 8px;padding-top:6px;">
+        <div class="stat"><div class="stat-val">121km</div><div class="stat-lbl">Distance</div></div>
+        <div class="stat-div"></div>
+        <div class="stat"><div class="stat-val">15</div><div class="stat-lbl">Stops</div></div>
+        <div class="stat-div"></div>
+        <div class="stat"><div class="stat-val">06:45</div><div class="stat-lbl">Depart</div></div>
+      </div>
+    </div>
+
+    <!-- ROUTE_LIST_FOOTER -->
+    <div class="ad ad-h-foot">
+      <div class="ad-label">ROUTE_LIST_FOOTER</div>
+      <div class="ad-desc">📣 Route List Footer Banner</div>
+      <div class="ad-tag">ROUTE_LIST_FOOTER</div>
+    </div>
+    <div class="spacer"></div>
+  </div>
+</div>
+
+<!-- ─────────────── SCREEN 3: ROUTE DETAIL ─────────────── -->
+<div class="phone-wrap">
+  <div class="screen-name">③ Route Detail — Stops</div>
+  <div class="phone">
+    <div class="status-bar">
+      <span>9:41</span><div class="notch-pill"></div><span>●●● 100%</span>
+    </div>
+
+    <!-- Header -->
+    <div class="hdr">
+      <div class="hdr-row">
+        <div class="back-btn">←</div>
+        <div class="hdr-title">Route Details</div>
+        <div class="hdr-action">Contact</div>
+      </div>
+      <div class="hdr-curve"></div>
+    </div>
+
+    <!-- Route summary card (overlaps header) -->
+    <div style="margin-top:-14px;margin-bottom:2px;">
+      <div class="card" style="padding:0;overflow:hidden;">
+        <div style="background:#1B6B7B;padding:4px 10px;font-size:9px;font-weight:800;color:#fff;text-transform:uppercase;letter-spacing:.5px;">Shivshahi</div>
+        <div class="card-row" style="padding:8px 10px 4px;">
+          <div class="bus-thumb">🚌</div>
+          <div class="card-info"><div class="card-title">Kolhapur → Sindhudurg</div><div class="card-sub">AC Semi-Luxury</div></div>
+        </div>
+        <div class="stat-row" style="margin:0 10px 8px;padding-top:6px;">
+          <div class="stat"><div class="stat-val">120km</div><div class="stat-lbl">Distance</div></div>
+          <div class="stat-div"></div>
+          <div class="stat"><div class="stat-val">22</div><div class="stat-lbl">Stops</div></div>
+          <div class="stat-div"></div>
+          <div class="stat"><div class="stat-val">07:30</div><div class="stat-lbl">Depart</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Section label -->
+    <div class="section-hdr"><span class="sec-title">22 Stops</span></div>
+
+    <!-- Timeline -->
+    <div class="tl-row">
+      <div class="tl-dot-col"><div class="tl-dot ep"></div><div class="tl-line"></div></div>
+      <div class="tl-content"><div class="tl-name ep">Kolhapur (Origin)</div><div class="tl-meta">07:30 · 0 km</div></div>
+    </div>
+    <div class="tl-row">
+      <div class="tl-dot-col"><div class="tl-dot"></div><div class="tl-line"></div></div>
+      <div class="tl-content"><div class="tl-name">Ichalkaranji</div><div class="tl-meta">07:55 · 28 km</div></div>
+    </div>
+    <div class="tl-row">
+      <div class="tl-dot-col"><div class="tl-dot"></div><div class="tl-line"></div></div>
+      <div class="tl-content"><div class="tl-name">Jaysingpur</div><div class="tl-meta">08:15 · 44 km</div></div>
+    </div>
+    <div class="tl-row">
+      <div class="tl-dot-col"><div class="tl-dot"></div><div class="tl-line"></div></div>
+      <div class="tl-content"><div class="tl-name">Kagal</div><div class="tl-meta">08:35 · 58 km</div></div>
+    </div>
+    <div class="tl-row">
+      <div class="tl-dot-col"><div class="tl-dot"></div><div class="tl-line"></div></div>
+      <div class="tl-content"><div class="tl-name">Kasba Sangli</div><div class="tl-meta">09:00 · 74 km</div></div>
+    </div>
+    <div class="tl-row">
+      <div class="tl-dot-col"><div class="tl-dot"></div><div class="tl-line"></div></div>
+      <div class="tl-content"><div class="tl-name">Tasgaon</div><div class="tl-meta">09:20 · 88 km</div></div>
+    </div>
+    <!-- ROUTE_DETAIL_MIDDLE (after ~50% of stops) -->
+    <div class="ad ad-h-mid">
+      <div class="ad-label">ROUTE_DETAIL_MIDDLE</div>
+      <div class="ad-desc">📢 Mid-timeline Banner</div>
+      <div class="ad-tag">ROUTE_DETAIL_MIDDLE</div>
+    </div>
+
+    <div class="tl-row">
+      <div class="tl-dot-col"><div class="tl-dot"></div><div class="tl-line"></div></div>
+      <div class="tl-content"><div class="tl-name">Bambavade Ghat</div><div class="tl-meta">10:00 · 102 km</div></div>
+    </div>
+    <div class="tl-row">
+      <div class="tl-dot-col"><div class="tl-dot ep"></div></div>
+      <div class="tl-content" style="padding-bottom:4px;"><div class="tl-name ep">Sindhudurg (Destination)</div><div class="tl-meta">11:30 · 120 km</div></div>
+    </div>
+
+    <!-- ROUTE_DETAIL_FOOTER -->
+    <div class="ad ad-h-foot" style="margin-top:8px;">
+      <div class="ad-label">ROUTE_DETAIL_FOOTER</div>
+      <div class="ad-desc">📣 Route Detail Footer Banner</div>
+      <div class="ad-tag">ROUTE_DETAIL_FOOTER</div>
+    </div>
+    <div class="spacer"></div>
+  </div>
+</div>
+
+<!-- ─────────────── SCREEN 4: CITY DETAIL ─────────────── -->
+<div class="phone-wrap">
+  <div class="screen-name">④ City / Place Detail</div>
+  <div class="phone">
+    <div class="status-bar">
+      <span>9:41</span><div class="notch-pill"></div><span>●●● 100%</span>
+    </div>
+
+    <!-- Header -->
+    <div class="hdr" style="padding-bottom:24px;">
+      <div class="hdr-row">
+        <div class="back-btn">←</div>
+        <div class="hdr-title">Sindhudurg</div>
+        <div class="hdr-action">♡ Save</div>
+      </div>
+      <div class="hdr-curve"></div>
+    </div>
+
+    <!-- Hero image -->
+    <div style="margin:-14px 12px 6px;border-radius:14px;overflow:hidden;height:90px;background:linear-gradient(135deg,#0D3D4A,#1B6B7B);display:flex;align-items:center;justify-content:center;font-size:28px;">🌊</div>
+
+    <!-- Title + meta -->
+    <div class="card" style="padding:8px 12px;">
+      <div style="font-size:13px;font-weight:800;color:#1C1917;margin-bottom:3px;">Sindhudurg District</div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;">
+        <span style="background:#EFF6F7;color:#1B6B7B;font-size:8px;font-weight:700;border-radius:6px;padding:2px 7px;">Coastal</span>
+        <span style="background:#EFF6F7;color:#1B6B7B;font-size:8px;font-weight:700;border-radius:6px;padding:2px 7px;">Heritage</span>
+        <span style="color:#C4972A;font-size:9px;font-weight:700;">⭐ 4.8 · 120 places</span>
+      </div>
+    </div>
+
+    <!-- About -->
+    <div class="section-hdr"><span class="sec-title">About</span></div>
+    <div style="padding:0 12px 6px;font-size:9px;color:#78716C;line-height:1.5;">Known for pristine beaches, the historic Sindhudurg Fort and rich coastal culture…</div>
+
+    <!-- Places -->
+    <div class="section-hdr">
+      <span class="sec-title">Places</span>
+      <span class="sec-link">View all</span>
+    </div>
+    <div class="place-grid">
+      <div class="place-card"><div class="place-img">🏖️</div><div class="place-name">Tarkarli Beach</div></div>
+      <div class="place-card"><div class="place-img">🏰</div><div class="place-name">Sindhudurg Fort</div></div>
+    </div>
+
+    <!-- CITY_MIDDLE -->
+    <div class="ad ad-h-mid">
+      <div class="ad-label">CITY_MIDDLE</div>
+      <div class="ad-desc">📢 City Mid-page Banner</div>
+      <div class="ad-tag">CITY_MIDDLE</div>
+    </div>
+
+    <!-- More places -->
+    <div class="place-grid" style="margin-top:4px;">
+      <div class="place-card"><div class="place-img">🐬</div><div class="place-name">Devbagh</div></div>
+      <div class="place-card"><div class="place-img">⛵</div><div class="place-name">Malvan Marine</div></div>
+    </div>
+
+    <!-- CITY_FOOTER -->
+    <div class="ad ad-h-foot" style="margin-top:8px;">
+      <div class="ad-label">CITY_FOOTER</div>
+      <div class="ad-desc">📣 City Footer Banner</div>
+      <div class="ad-tag">CITY_FOOTER</div>
+    </div>
+    <div class="spacer"></div>
+  </div>
+</div>
+
+<!-- ─────────────── SCREEN 5: GLOBAL SEARCH ─────────────── -->
+<div class="phone-wrap">
+  <div class="screen-name">⑤ Global Search &amp; Filter</div>
+  <div class="phone">
+    <div class="status-bar">
+      <span>9:41</span><div class="notch-pill"></div><span>●●● 100%</span>
+    </div>
+
+    <!-- Header -->
+    <div class="hdr" style="padding-bottom:24px;">
+      <div class="hdr-row">
+        <div class="back-btn">←</div>
+        <div class="hdr-title">Search &amp; Filter</div>
+      </div>
+      <div class="hdr-curve"></div>
+    </div>
+
+    <!-- Search bar -->
+    <div style="padding:0 12px 8px;margin-top:-10px;">
+      <div class="search-bar" style="border-color:#1B6B7B;">
+        🔍 <span>Search city, place, attraction…</span>
+      </div>
+    </div>
+
+    <!-- Category filter chips -->
+    <div class="chip-row">
+      <span class="chip active">All</span>
+      <span class="chip">Beaches</span>
+      <span class="chip">Forts</span>
+      <span class="chip">Temples</span>
+    </div>
+
+    <!-- View toggle: list → grid → map -->
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:4px 12px;">
+      <span style="font-size:9px;color:#78716C;font-weight:600;">42 / 120 results</span>
+      <div class="view-toggle" style="width:90px;margin:0;">
+        <div class="vt-btn active">≡ List</div>
+        <div class="vt-btn">⊞</div>
+        <div class="vt-btn">🗺</div>
+      </div>
+    </div>
+
+    <!-- List results -->
+    <div class="list-item"><div class="li-icon">🏖️</div><div><div class="li-text">Tarkarli Beach</div><div class="li-sub">Malvan · Beach · 4.9 ⭐</div></div></div>
+    <div class="list-item"><div class="li-icon">🏰</div><div><div class="li-text">Sindhudurg Fort</div><div class="li-sub">Malvan · Heritage · 4.7 ⭐</div></div></div>
+    <div class="list-item"><div class="li-icon">🐬</div><div><div class="li-text">Devbagh Beach</div><div class="li-sub">Kudal · Nature · 4.8 ⭐</div></div></div>
+    <div class="list-item"><div class="li-icon">⛵</div><div><div class="li-text">Malvan Marine Sanctuary</div><div class="li-sub">Malvan · Nature · 4.6 ⭐</div></div></div>
+    <div class="list-item"><div class="li-icon">🪸</div><div><div class="li-text">Vengurla Rocks</div><div class="li-sub">Vengurla · Nature · 4.5 ⭐</div></div></div>
+    <div class="list-item"><div class="li-icon">🏛️</div><div><div class="li-text">Rock Garden Malvan</div><div class="li-sub">Malvan · Park · 4.4 ⭐</div></div></div>
+
+    <div class="spacer"></div>
+    <div style="text-align:center;padding:10px;font-size:9px;color:#94A3B8;font-style:italic;">No ad slot on this screen</div>
+    <div class="spacer"></div>
+  </div>
+</div>
+
+<!-- ─────────────── SCREEN 6: SITE DETAIL ─────────────── -->
+<div class="phone-wrap">
+  <div class="screen-name">⑥ Site / Place Detail</div>
+  <div class="phone">
+    <div class="status-bar">
+      <span>9:41</span><div class="notch-pill"></div><span>●●● 100%</span>
+    </div>
+
+    <!-- Header -->
+    <div class="hdr" style="padding-bottom:24px;">
+      <div class="hdr-row">
+        <div class="back-btn">←</div>
+        <div class="hdr-title">Place Details</div>
+        <div class="hdr-action">♡</div>
+      </div>
+      <div class="hdr-curve"></div>
+    </div>
+
+    <!-- Hero image -->
+    <div style="margin:-14px 12px 6px;border-radius:14px;overflow:hidden;height:90px;background:linear-gradient(135deg,#1A3320,#2E5C3A);display:flex;align-items:center;justify-content:center;font-size:32px;">🏖️</div>
+
+    <!-- Info card -->
+    <div class="card" style="padding:8px 12px;">
+      <div style="font-size:13px;font-weight:800;color:#1C1917;margin-bottom:2px;">Tarkarli Beach</div>
+      <div style="font-size:9px;color:#78716C;margin-bottom:4px;">Malvan, Sindhudurg · Beach</div>
+      <div style="display:flex;gap:6px;">
+        <span style="background:#FBF3DC;color:#C4972A;font-size:8px;font-weight:700;border-radius:6px;padding:2px 7px;">⭐ 4.9</span>
+        <span style="background:#EFF6F7;color:#1B6B7B;font-size:8px;font-weight:700;border-radius:6px;padding:2px 7px;">Open Now</span>
+        <span style="background:#EFF6F7;color:#1B6B7B;font-size:8px;font-weight:700;border-radius:6px;padding:2px 7px;">Free Entry</span>
+      </div>
+    </div>
+
+    <!-- About -->
+    <div class="section-hdr"><span class="sec-title">About</span></div>
+    <div style="padding:0 12px 4px;font-size:9px;color:#78716C;line-height:1.5;">Tarkarli Beach is famous for its crystal-clear water, ideal for snorkelling and scuba diving…</div>
+
+    <!-- Map -->
+    <div style="margin:4px 12px;height:60px;background:linear-gradient(135deg,#D1FAE5,#A7F3D0);border-radius:10px;display:flex;align-items:center;justify-content:center;border:1px solid #6EE7B7;font-size:10px;color:#065F46;font-weight:700;">📍 View on Map</div>
+
+    <!-- CITY_MIDDLE -->
+    <div class="ad ad-h-mid">
+      <div class="ad-label">CITY_MIDDLE</div>
+      <div class="ad-desc">📢 Site Mid-page Banner</div>
+      <div class="ad-tag">CITY_MIDDLE</div>
+    </div>
+
+    <!-- Nearby -->
+    <div class="section-hdr"><span class="sec-title">Nearby Places</span></div>
+    <div class="list-item"><div class="li-icon">🏰</div><div><div class="li-text">Sindhudurg Fort</div><div class="li-sub">2.1 km away</div></div></div>
+    <div class="list-item"><div class="li-icon">🐬</div><div><div class="li-text">Devbagh Beach</div><div class="li-sub">4.5 km away</div></div></div>
+
+    <!-- CITY_FOOTER -->
+    <div class="ad ad-h-foot" style="margin-top:6px;">
+      <div class="ad-label">CITY_FOOTER</div>
+      <div class="ad-desc">📣 Site Footer Banner</div>
+      <div class="ad-tag">CITY_FOOTER</div>
+    </div>
+    <div class="spacer"></div>
+  </div>
+</div>
+
+</div><!-- end grid -->
+
+<!-- ═══════════ SUMMARY TABLE ═══════════ -->
+<div class="summary">
+  <h2>Ad Slot Summary — All 10 Placements</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>Banner Key</th>
+        <th>Screen(s)</th>
+        <th>Position</th>
+        <th>In Code</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr><td>1</td><td class="key">APP_SPLASH</td><td>App Launch</td><td>Full-screen overlay on app open</td><td style="color:green;font-weight:700;">✅</td></tr>
+      <tr><td>2</td><td class="key">HOME_HERO</td><td>Home Screen</td><td>Top hero carousel (above fold, full-width)</td><td style="color:green;font-weight:700;">✅</td></tr>
+      <tr><td>3</td><td class="key">HOME_MIDDLE</td><td>Home Screen</td><td>Between Bus Search and Categories</td><td style="color:green;font-weight:700;">✅</td></tr>
+      <tr><td>4</td><td class="key">HOME_FOOTER</td><td>Home Screen</td><td>Bottom of scroll (after categories list)</td><td style="color:green;font-weight:700;">✅</td></tr>
+      <tr><td>5</td><td class="key">CITY_MIDDLE</td><td>City Detail · Site Detail</td><td>Mid-scroll between content sections</td><td style="color:green;font-weight:700;">✅</td></tr>
+      <tr><td>6</td><td class="key">CITY_FOOTER</td><td>City Detail · Site Detail</td><td>Bottom of scroll</td><td style="color:green;font-weight:700;">✅</td></tr>
+      <tr><td>7</td><td class="key">ROUTE_LIST_MIDDLE</td><td>MSRTC Search · All Routes List</td><td>After 5th route card (mid-list)</td><td style="color:green;font-weight:700;">✅ added</td></tr>
+      <tr><td>8</td><td class="key">ROUTE_LIST_FOOTER</td><td>MSRTC Search · All Routes List</td><td>Below all route cards (scroll end)</td><td style="color:green;font-weight:700;">✅</td></tr>
+      <tr><td>9</td><td class="key">ROUTE_DETAIL_MIDDLE</td><td>Route Detail (Stops)</td><td>After ~50% of stops in timeline</td><td style="color:green;font-weight:700;">✅ added</td></tr>
+      <tr><td>10</td><td class="key">ROUTE_DETAIL_FOOTER</td><td>Route Detail (Stops)</td><td>Below last stop in timeline</td><td style="color:green;font-weight:700;">✅</td></tr>
+    </tbody>
+  </table>
+</div>
+
+</body>
+</html>

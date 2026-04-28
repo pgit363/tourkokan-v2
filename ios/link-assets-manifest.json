@@ -1,0 +1,165 @@
+{
+  "migIndex": 1,
+  "data": [
+    {
+      "path": "src/Assets/Fonts/Noto_Sans_Devanagari/NotoSansDevanagari-VariableFont_wdth,wght.ttf",
+      "sha1": "8f487b78423bcd48cae9f4072a03bd0677e7e1fe"
+    },
+    {
+      "path": "src/Assets/Fonts/Noto_Sans_Devanagari/OFL.txt",
+      "sha1": "70674842776e7b2be432019ef5a072c20368deac"
+    },
+    {
+      "path": "src/Assets/Fonts/Noto_Sans_Devanagari/README.txt",
+      "sha1": "36c2bdcb9a493b2580330d42110a185faf958db3"
+    },
+    {
+      "path": "src/Assets/Fonts/Noto_Sans_Devanagari/static/NotoSansDevanagari_Condensed-Black.ttf",
+      "sha1": "c509afa3e4e84572c9b1eb7557bdc884f2ade65a"
+    },
+    {
+      "path": "src/Assets/Fonts/Noto_Sans_Devanagari/static/NotoSansDevanagari_Condensed-Bold.ttf",
+      "sha1": "0359089aaa97b5e608ebaccf54bfe8e87afb711c"
+    },
+    {
+      "path": "src/Assets/Fonts/Noto_Sans_Devanagari/static/NotoSansDevanagari_Condensed-ExtraBold.ttf",
+      "sha1": "a330f2e53dbb4461bee2c5ba5ee5f0b155076944"
+    },
+    {
+      "path": "src/Assets/Fonts/Noto_Sans_Devanagari/static/NotoSansDevanagari_Condensed-ExtraLight.ttf",
+      "sha1": "48c4bacdb1e23fe11ae683da0f5444c2862b381d"
+    },
+    {
+      "path": "src/Assets/Fonts/Noto_Sans_Devanagari/static/NotoSansDevanagari_Condensed-Light.ttf",
+      "sha1": "052f8a500e7bca9a977a20a52fe3bebb02be3f7d"
+    },
+    {
+      "path": "src/Assets/Fonts/Noto_Sans_Devanagari/static/NotoSansDevanagari_Condensed-Medium.ttf",
+      "sha1": "0952232086f9527e402042f89ef304feda991014"
+    },
+    {
+      "path": "src/Assets/Fonts/Noto_Sans_Devanagari/static/NotoSansDevanagari_Condensed-Regular.ttf",
+      "sha1": "400d9a6b56f66f7486c180f9e8266e6bf1d607c7"
+    },
+    {
+      "path": "src/Assets/Fonts/Noto_Sans_Devanagari/static/NotoSansDevanagari_Condensed-SemiBold.ttf",
+      "sha1": "7149e9263354fd75743e0686dc24f7106a17e632"
+    },
+    {
+      "path": "src/Assets/Fonts/Noto_Sans_Devanagari/static/NotoSansDevanagari_Condensed-Thin.ttf",
+      "sha1": "ebfe4432599ab83eb03caac5635e7fefc4ae6be8"
+    },
+    {
+      "path": "src/Assets/Fonts/Noto_Sans_Devanagari/static/NotoSansDevanagari_ExtraCondensed-Black.ttf",
+      "sha1": "9873e910d65088ffd7c61a4dc68e7cffc0922366"
+    },
+    {
+      "path": "src/Assets/Fonts/Noto_Sans_Devanagari/static/NotoSansDevanagari_ExtraCondensed-Bold.ttf",
+      "sha1": "16eeea22fa91f6fcd08fedcc6e4b7ce29b9717d9"
+    },
+    {
+      "path": "src/Assets/Fonts/Noto_Sans_Devanagari/static/NotoSansDevanagari_ExtraCondensed-ExtraBold.ttf",
+      "sha1": "1a498d4fef8b6e4bf00eea6f9ecda3a983a3dd13"
+    },
+    {
+      "path": "src/Assets/Fonts/Noto_Sans_Devanagari/static/NotoSansDevanagari_ExtraCondensed-ExtraLight.ttf",
+      "sha1": "3563b19a2fa69e4becca6a1f5dc29c19397a1803"
+    },
+    {
+      "path": "src/Assets/Fonts/Noto_Sans_Devanagari/static/NotoSansDevanagari_ExtraCondensed-Light.ttf",
+      "sha1": "1733cc19adeb8ca9671cf7b8a2d32ea98288094e"
+    },
+    {
+      "path": "src/Assets/Fonts/Noto_Sans_Devanagari/static/NotoSansDevanagari_ExtraCondensed-Medium.ttf",
+      "sha1": "5f9ba614468048c3f21730c84c14c34aec515891"
+    },
+    {
+      "path": "src/Assets/Fonts/Noto_Sans_Devanagari/static/NotoSansDevanagari_ExtraCondensed-Regular.ttf",
+      "sha1": "351f62d608d1fd5a476f2e8c6bed9b234b9d5b2b"
+    },
+    {
+      "path": "src/Assets/Fonts/Noto_Sans_Devanagari/static/NotoSansDevanagari_ExtraCondensed-SemiBold.ttf",
+      "sha1": "e10c21c672a89ea4e7c54e13b84131f5f18ff742"
+    },
+    {
+      "path": "src/Assets/Fonts/Noto_Sans_Devanagari/static/NotoSansDevanagari_ExtraCondensed-Thin.ttf",
+      "sha1": "2248859bf5444455e611ee440cb7780752f9f810"
+    },
+    {
+      "path": "src/Assets/Fonts/Noto_Sans_Devanagari/static/NotoSansDevanagari_SemiCondensed-Black.ttf",
+      "sha1": "2b8a75a00476dea6fad62d68191e6e53cd1d252a"
+    },
+    {
+      "path": "src/Assets/Fonts/Noto_Sans_Devanagari/static/NotoSansDevanagari_SemiCondensed-Bold.ttf",
+      "sha1": "4c9ce8c89bad372fca791fd6f36b4ac6e10b4e21"
+    },
+    {
+      "path": "src/Assets/Fonts/Noto_Sans_Devanagari/static/NotoSansDevanagari_SemiCondensed-ExtraBold.ttf",
+      "sha1": "53a95f0125314612f16a9e4b80c4c914d3f860e8"
+    },
+    {
+      "path": "src/Assets/Fonts/Noto_Sans_Devanagari/static/NotoSansDevanagari_SemiCondensed-ExtraLight.ttf",
+      "sha1": "b68c26c92a521ac7d41dfaba59cecd8aafb3b11d"
+    },
+    {
+      "path": "src/Assets/Fonts/Noto_Sans_Devanagari/static/NotoSansDevanagari_SemiCondensed-Light.ttf",
+      "sha1": "9d70e3913b34c38a7162ce973f098f6de74700bc"
+    },
+    {
+      "path": "src/Assets/Fonts/Noto_Sans_Devanagari/static/NotoSansDevanagari_SemiCondensed-Medium.ttf",
+      "sha1": "b88876a2ad746ac39238798e63bfff1588c9aa55"
+    },
+    {
+      "path": "src/Assets/Fonts/Noto_Sans_Devanagari/static/NotoSansDevanagari_SemiCondensed-Regular.ttf",
+      "sha1": "5f4f59ad05529e6f6e04a73d94706f13c7ca6b12"
+    },
+    {
+      "path": "src/Assets/Fonts/Noto_Sans_Devanagari/static/NotoSansDevanagari_SemiCondensed-SemiBold.ttf",
+      "sha1": "19a8498a139763207df07fe1f3620cee7350d44b"
+    },
+    {
+      "path": "src/Assets/Fonts/Noto_Sans_Devanagari/static/NotoSansDevanagari_SemiCondensed-Thin.ttf",
+      "sha1": "b1cc2fc11ca6ec1c0fa35be84c3c78f41604ac84"
+    },
+    {
+      "path": "src/Assets/Fonts/Noto_Sans_Devanagari/static/NotoSansDevanagari-Black.ttf",
+      "sha1": "06c9950c2127adcd12772176e6cad0ffd521ed8e"
+    },
+    {
+      "path": "src/Assets/Fonts/Noto_Sans_Devanagari/static/NotoSansDevanagari-Bold.ttf",
+      "sha1": "766d9165412be7b62608217a3fbd0dd5dd31bc44"
+    },
+    {
+      "path": "src/Assets/Fonts/Noto_Sans_Devanagari/static/NotoSansDevanagari-ExtraBold.ttf",
+      "sha1": "2c56c8fb557e499ab8d325ff55b5f8e47d6d204a"
+    },
+    {
+      "path": "src/Assets/Fonts/Noto_Sans_Devanagari/static/NotoSansDevanagari-ExtraLight.ttf",
+      "sha1": "327dbeb114e4caee04588c06acdfb59cf23793b0"
+    },
+    {
+      "path": "src/Assets/Fonts/Noto_Sans_Devanagari/static/NotoSansDevanagari-Light.ttf",
+      "sha1": "895d5ede0b8125e72b1235497aca357348b0bbed"
+    },
+    {
+      "path": "src/Assets/Fonts/Noto_Sans_Devanagari/static/NotoSansDevanagari-Medium.ttf",
+      "sha1": "6ee799788c1d0bf44344d53a1b785eb535d0c10c"
+    },
+    {
+      "path": "src/Assets/Fonts/Noto_Sans_Devanagari/static/NotoSansDevanagari-Regular.ttf",
+      "sha1": "69253a2722f999ba4205f2e679d0b75e3b17109f"
+    },
+    {
+      "path": "src/Assets/Fonts/Noto_Sans_Devanagari/static/NotoSansDevanagari-SemiBold.ttf",
+      "sha1": "aa57ea1dc00ec2f145503784470fce3414f6c80d"
+    },
+    {
+      "path": "src/Assets/Fonts/Noto_Sans_Devanagari/static/NotoSansDevanagari-Thin.ttf",
+      "sha1": "768b1880e81f70ef876b682c2a41971905a1f736"
+    },
+    {
+      "path": "src/Assets/Fonts/Pacifico-Regular.ttf",
+      "sha1": "3d0b9eb17e645ac34f83c49c3f988372b242173a"
+    }
+  ]
+}

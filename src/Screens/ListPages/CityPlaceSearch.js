@@ -74,7 +74,7 @@ const CityPlaceSearch = ({navigation, route}) => {
   const [showDropdown, setShowDropdown] = useState(true);
   const [results, setResults] = useState([]);
   const [recentSearches, setRecentSearches] = useState([]);
-  const [activeView, setActiveView] = useState('grid');
+  const [activeView, setActiveView] = useState('list');
   const [hasSearched, setHasSearched] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [hasMore, setHasMore] = useState(false);
@@ -740,8 +740,8 @@ const CityPlaceSearch = ({navigation, route}) => {
             </Text>
             <View style={s.viewToggle}>
               {[
-                {id: 'grid', icon: 'grid-outline'},
                 {id: 'list', icon: 'list-outline'},
+                {id: 'grid', icon: 'grid-outline'},
                 {id: 'map',  icon: 'map-outline'},
               ].map(tab => (
                 <TouchableOpacity

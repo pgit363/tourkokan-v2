@@ -85,6 +85,7 @@ export const useGuestGate = navigation => {
   const handleLogin = async () => {
     hide();
     await AsyncStorage.clear();
+    await AsyncStorage.setItem('IS_FIRST_TIME', 'false');
     navigation.reset({index: 0, routes: [{name: STRING.SCREEN.EMAIL}]});
   };
 

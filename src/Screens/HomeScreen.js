@@ -277,6 +277,11 @@ const HomeScreen = ({navigation, route, ...props}) => {
     [sindhudurg, cities],
   );
 
+  const sortedCities = useMemo(
+    () => [...cities].sort((a, b) => (b.is_favorite ? 1 : 0) - (a.is_favorite ? 1 : 0)),
+    [cities],
+  );
+
   // Spot tabs: use trending keys from API if available, else use static tabs
   const SPOT_TABS = useMemo(() => {
     if (validTrendingKeys.length > 0) return validTrendingKeys;
@@ -287,6 +292,18 @@ const HomeScreen = ({navigation, route, ...props}) => {
     if (activeSpotTab === 'all') return STATIC_SPOTS;
     return STATIC_SPOTS.filter(s => s.type === activeSpotTab);
   }, [activeSpotTab]);
+
+  // ── Re-translate city label when language changes ──
+  // `t` reference changes whenever i18n language switches — use it as the trigger
+  useEffect(() => {
+    setSindh({id: 0, name: t('CITY.SINDHUDURG')});
+    getSelectedCity().then(selectedCity => {
+      if (!selectedCity || selectedCity.id === 0) {
+        setCurrentCity(t('CITY.SINDHUDURG'));
+      }
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [t]);
 
   // ── Update context ──
   useEffect(() => {
@@ -604,7 +621,7 @@ const HomeScreen = ({navigation, route, ...props}) => {
         <Text style={s.sectionTitle}>{t('HOME.EXPLORE_TALUKAS')}</Text>
         <FlatList
           horizontal
-          data={cities}
+          data={sortedCities}
           keyExtractor={(item, i) => `${item.id}_${i}`}
           renderItem={({item}) => (
             <TalukaCard item={item} onPress={() => getCityDetails(item)} />

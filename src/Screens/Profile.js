@@ -127,6 +127,7 @@ const Profile = ({navigation, ...props}) => {
   const [alertMessage, setAlertMessage] = useState('');
   const [isAlert, setIsAlert] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
 
   // ── Back handler (same pattern as Settings / TermsScreen)
   useFocusEffect(
@@ -309,6 +310,7 @@ const Profile = ({navigation, ...props}) => {
     }
 
     props.setLoader(true);
+    setIsSaving(true);
     const data = {
       mobile: mobile || null,
       dob: formatDateToAPI(dob),
@@ -323,6 +325,7 @@ const Profile = ({navigation, ...props}) => {
       .then(res => {
         console.log('[Profile] POST updateProfile ← response:', JSON.stringify(res?.data, null, 2));
         props.setLoader(false);
+        setIsSaving(false);
         AsyncStorage.setItem('isUpdated', 'true');
         setAlertMessage(res.data.message);
         setIsAlert(true);
@@ -352,6 +355,7 @@ const Profile = ({navigation, ...props}) => {
       .catch(err => {
         console.error('[Profile] POST updateProfile ✗ error:', err);
         props.setLoader(false);
+        setIsSaving(false);
         setAlertMessage(t('ALERT.FAILED'));
         setIsAlert(true);
         setIsSuccess(false);
@@ -677,13 +681,17 @@ const Profile = ({navigation, ...props}) => {
 
         {/* ── Save button ── */}
         <TouchableOpacity
-          style={[s.saveBtn, !hasChanges() && s.saveBtnDisabled]}
+          style={[s.saveBtn, (!hasChanges() || isSaving) && s.saveBtnDisabled]}
           onPress={handleSave}
-          disabled={!hasChanges()}
+          disabled={!hasChanges() || isSaving}
           activeOpacity={0.85}>
-          <Text style={[s.saveBtnText, !hasChanges() && s.saveBtnTextDisabled]}>
-            {t('EDIT_PROFILE.SAVE_CHANGES')}
-          </Text>
+          {isSaving ? (
+            <ActivityIndicator size="small" color="#FFFFFF" />
+          ) : (
+            <Text style={[s.saveBtnText, !hasChanges() && s.saveBtnTextDisabled]}>
+              {t('EDIT_PROFILE.SAVE_CHANGES')}
+            </Text>
+          )}
         </TouchableOpacity>
       </ScrollView>
 

@@ -11,6 +11,46 @@
 		13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 13B07FB51A68108700A75B9A /* Images.xcassets */; };
 		761780ED2CA45674006654EE /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 761780EC2CA45674006654EE /* AppDelegate.swift */; };
 		81AB9BB82411601600AC10FF /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */; };
+		F73E351BEAC54090835D433E /* NotoSansDevanagari_ExtraCondensed-ExtraLight.ttf in Resources */ = {isa = PBXBuildFile; fileRef = B51B6197ECFC4E8582B8AA72 /* NotoSansDevanagari_ExtraCondensed-ExtraLight.ttf */; };
+		BC5052C7035C43B18D0FAEEC /* NotoSansDevanagari-Light.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 292C249477234472A3971D26 /* NotoSansDevanagari-Light.ttf */; };
+		AF91357FF14F41959BB1A0BE /* NotoSansDevanagari-Medium.ttf in Resources */ = {isa = PBXBuildFile; fileRef = D3761AEE0E6846F4AEB5A3DA /* NotoSansDevanagari-Medium.ttf */; };
+		DB2258DB30EF4F73A5D4ECD9 /* NotoSansDevanagari_ExtraCondensed-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = D37F8D5580184ECC9EBF85FC /* NotoSansDevanagari_ExtraCondensed-Regular.ttf */; };
+		670204F42962456080457065 /* NotoSansDevanagari-SemiBold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 91F751803A714168BF61F94E /* NotoSansDevanagari-SemiBold.ttf */; };
+		F1A509E2865E437393D6ED84 /* NotoSansDevanagari_SemiCondensed-SemiBold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = F975E6A9253D402197A03E96 /* NotoSansDevanagari_SemiCondensed-SemiBold.ttf */; };
+		0CEC2105669E44808B97E2EC /* NotoSansDevanagari_ExtraCondensed-Light.ttf in Resources */ = {isa = PBXBuildFile; fileRef = D7BED75D49914E1497BFC681 /* NotoSansDevanagari_ExtraCondensed-Light.ttf */; };
+		D0F15AE5897B4358927E4D67 /* NotoSansDevanagari_ExtraCondensed-SemiBold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = DA1EE438CD5F4B44A68EECC6 /* NotoSansDevanagari_ExtraCondensed-SemiBold.ttf */; };
+		5AB50C6E66914AD781ABE210 /* NotoSansDevanagari-Bold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 0C22E6041CB748C7AA604CB4 /* NotoSansDevanagari-Bold.ttf */; };
+		D3084C68A57C4805BBC1B391 /* NotoSansDevanagari_Condensed-Black.ttf in Resources */ = {isa = PBXBuildFile; fileRef = EF1728C645D6415787C95C29 /* NotoSansDevanagari_Condensed-Black.ttf */; };
+		65DC0939BF3145D3B1FD61E6 /* NotoSansDevanagari-ExtraBold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 7372FE8A0DD648F185BEACEC /* NotoSansDevanagari-ExtraBold.ttf */; };
+		47CEFA54171848AC97D27B06 /* NotoSansDevanagari_SemiCondensed-Light.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 1590181F78974343BF181891 /* NotoSansDevanagari_SemiCondensed-Light.ttf */; };
+		B4A4BB6B1D6247E386501943 /* NotoSansDevanagari-Thin.ttf in Resources */ = {isa = PBXBuildFile; fileRef = DF67FC3DFEC84552BDCC0C7D /* NotoSansDevanagari-Thin.ttf */; };
+		4B9407F27FF84893A41C2BDE /* NotoSansDevanagari_SemiCondensed-Medium.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 1FFC85634E9E4894A6753EFC /* NotoSansDevanagari_SemiCondensed-Medium.ttf */; };
+		0648E9D398954632B92AD825 /* NotoSansDevanagari_Condensed-ExtraBold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 93108F19109746BC87BC32BC /* NotoSansDevanagari_Condensed-ExtraBold.ttf */; };
+		45BF664C363846DAAE87DBB9 /* NotoSansDevanagari_Condensed-ExtraLight.ttf in Resources */ = {isa = PBXBuildFile; fileRef = F203C3D205FA477D83012110 /* NotoSansDevanagari_Condensed-ExtraLight.ttf */; };
+		7DF4EEC7C9BA47178CE4D90D /* NotoSansDevanagari_SemiCondensed-ExtraBold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 2EED3FD904D845E38926E272 /* NotoSansDevanagari_SemiCondensed-ExtraBold.ttf */; };
+		383844BC2D694F34A6F8048C /* NotoSansDevanagari_SemiCondensed-ExtraLight.ttf in Resources */ = {isa = PBXBuildFile; fileRef = DF06471821F94B1FB233F4E9 /* NotoSansDevanagari_SemiCondensed-ExtraLight.ttf */; };
+		99A55D2AFB9C4F14A55D5A7A /* NotoSansDevanagari_ExtraCondensed-Thin.ttf in Resources */ = {isa = PBXBuildFile; fileRef = B3DF0C9A87B84991A9A0EB8C /* NotoSansDevanagari_ExtraCondensed-Thin.ttf */; };
+		30FE5E2B7D05452C9B3DCF53 /* NotoSansDevanagari_SemiCondensed-Black.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 86880938021B4BBF820C4215 /* NotoSansDevanagari_SemiCondensed-Black.ttf */; };
+		09A2B0771AD34E5C9C80D8C4 /* NotoSansDevanagari_Condensed-Thin.ttf in Resources */ = {isa = PBXBuildFile; fileRef = F6A966F4D73645878D3BCAAE /* NotoSansDevanagari_Condensed-Thin.ttf */; };
+		3B7BCCE42178463FB08FACCB /* NotoSansDevanagari_ExtraCondensed-Black.ttf in Resources */ = {isa = PBXBuildFile; fileRef = AD6FD6D2FCD84C2FA3AC6CE2 /* NotoSansDevanagari_ExtraCondensed-Black.ttf */; };
+		74EE870265F34FECB822E5CC /* NotoSansDevanagari_Condensed-Bold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = B78821599AD04A71B30F6B7D /* NotoSansDevanagari_Condensed-Bold.ttf */; };
+		B927B6DEEE8B47859EAF7501 /* NotoSansDevanagari_Condensed-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 94077F69669947A895A8B1F3 /* NotoSansDevanagari_Condensed-Regular.ttf */; };
+		FFD613E0556D41BD92486AAB /* NotoSansDevanagari_ExtraCondensed-Bold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 74DFE38973324725B5D9B65E /* NotoSansDevanagari_ExtraCondensed-Bold.ttf */; };
+		BB4B10D84FBA423298F6B134 /* NotoSansDevanagari_ExtraCondensed-ExtraBold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 05E16A54EC594F7D8A7DA4A3 /* NotoSansDevanagari_ExtraCondensed-ExtraBold.ttf */; };
+		DCC8C3CDB019447CBEE47320 /* NotoSansDevanagari-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 05FE2576F96948A3A4CF6942 /* NotoSansDevanagari-Regular.ttf */; };
+		EF0CEE1CD6E448219785D0A3 /* NotoSansDevanagari_Condensed-Light.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 496D61FA4D284761BDDC881E /* NotoSansDevanagari_Condensed-Light.ttf */; };
+		D718CDA887C647F38C15559E /* NotoSansDevanagari_SemiCondensed-Thin.ttf in Resources */ = {isa = PBXBuildFile; fileRef = A14BCD0B56424EAB8A98C5A9 /* NotoSansDevanagari_SemiCondensed-Thin.ttf */; };
+		1A72E9B9194F4555B31494A2 /* NotoSansDevanagari-ExtraLight.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 6F8F65D201124D0B919D5DCF /* NotoSansDevanagari-ExtraLight.ttf */; };
+		9498F17FEE934D0CA3D8935E /* NotoSansDevanagari_SemiCondensed-Bold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 6D4EC241C4E8474EABA21F99 /* NotoSansDevanagari_SemiCondensed-Bold.ttf */; };
+		FB1F6B8599A5439DADE0C6AE /* NotoSansDevanagari_Condensed-Medium.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 9FF7E8C88D524A5092FB24D4 /* NotoSansDevanagari_Condensed-Medium.ttf */; };
+		0E0DBC40A75B43769CC86A0D /* NotoSansDevanagari-Black.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 083B10273FEB4C08A8082E1F /* NotoSansDevanagari-Black.ttf */; };
+		D5E1FABE99B7474BA116ACDC /* NotoSansDevanagari_SemiCondensed-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 317804B7F9E4411FAE7429F8 /* NotoSansDevanagari_SemiCondensed-Regular.ttf */; };
+		D78FA82A9FC045399B9B81BD /* NotoSansDevanagari_Condensed-SemiBold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 5EE9E5DD6A644518BB9F12C5 /* NotoSansDevanagari_Condensed-SemiBold.ttf */; };
+		F52003759454444B9378A983 /* NotoSansDevanagari_ExtraCondensed-Medium.ttf in Resources */ = {isa = PBXBuildFile; fileRef = D163D1738D804BC2A39E5FAE /* NotoSansDevanagari_ExtraCondensed-Medium.ttf */; };
+		53B68638C9094D7FB4C2D492 /* NotoSansDevanagari-VariableFont_wdth,wght.ttf in Resources */ = {isa = PBXBuildFile; fileRef = DA58D76B66D944CFA93A8E38 /* NotoSansDevanagari-VariableFont_wdth,wght.ttf */; };
+		E7BD1DC7973F45509C499417 /* Pacifico-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 8AC988A96A194E83BC2E3CDE /* Pacifico-Regular.ttf */; };
+		EF4426B8513044B28E4A1085 /* OFL.txt in Resources */ = {isa = PBXBuildFile; fileRef = DAC22DEE3D204A76A3FB015C /* OFL.txt */; };
+		7EE0D952A569410C886AFF7C /* README.txt in Resources */ = {isa = PBXBuildFile; fileRef = 3643E8D897B54D7EB2FBBE31 /* README.txt */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -35,6 +75,46 @@
 		761780EC2CA45674006654EE /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = AppDelegate.swift; path = tourkokan/AppDelegate.swift; sourceTree = "<group>"; };
 		81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; name = LaunchScreen.storyboard; path = tourkokan/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		ED297162215061F000B7C4FE /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
+		B51B6197ECFC4E8582B8AA72 /* NotoSansDevanagari_ExtraCondensed-ExtraLight.ttf */ = {isa = PBXFileReference; name = "NotoSansDevanagari_ExtraCondensed-ExtraLight.ttf"; path = "../src/Assets/Fonts/Noto_Sans_Devanagari/static/NotoSansDevanagari_ExtraCondensed-ExtraLight.ttf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
+		292C249477234472A3971D26 /* NotoSansDevanagari-Light.ttf */ = {isa = PBXFileReference; name = "NotoSansDevanagari-Light.ttf"; path = "../src/Assets/Fonts/Noto_Sans_Devanagari/static/NotoSansDevanagari-Light.ttf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
+		D3761AEE0E6846F4AEB5A3DA /* NotoSansDevanagari-Medium.ttf */ = {isa = PBXFileReference; name = "NotoSansDevanagari-Medium.ttf"; path = "../src/Assets/Fonts/Noto_Sans_Devanagari/static/NotoSansDevanagari-Medium.ttf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
+		D37F8D5580184ECC9EBF85FC /* NotoSansDevanagari_ExtraCondensed-Regular.ttf */ = {isa = PBXFileReference; name = "NotoSansDevanagari_ExtraCondensed-Regular.ttf"; path = "../src/Assets/Fonts/Noto_Sans_Devanagari/static/NotoSansDevanagari_ExtraCondensed-Regular.ttf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
+		91F751803A714168BF61F94E /* NotoSansDevanagari-SemiBold.ttf */ = {isa = PBXFileReference; name = "NotoSansDevanagari-SemiBold.ttf"; path = "../src/Assets/Fonts/Noto_Sans_Devanagari/static/NotoSansDevanagari-SemiBold.ttf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
+		F975E6A9253D402197A03E96 /* NotoSansDevanagari_SemiCondensed-SemiBold.ttf */ = {isa = PBXFileReference; name = "NotoSansDevanagari_SemiCondensed-SemiBold.ttf"; path = "../src/Assets/Fonts/Noto_Sans_Devanagari/static/NotoSansDevanagari_SemiCondensed-SemiBold.ttf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
+		D7BED75D49914E1497BFC681 /* NotoSansDevanagari_ExtraCondensed-Light.ttf */ = {isa = PBXFileReference; name = "NotoSansDevanagari_ExtraCondensed-Light.ttf"; path = "../src/Assets/Fonts/Noto_Sans_Devanagari/static/NotoSansDevanagari_ExtraCondensed-Light.ttf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
+		DA1EE438CD5F4B44A68EECC6 /* NotoSansDevanagari_ExtraCondensed-SemiBold.ttf */ = {isa = PBXFileReference; name = "NotoSansDevanagari_ExtraCondensed-SemiBold.ttf"; path = "../src/Assets/Fonts/Noto_Sans_Devanagari/static/NotoSansDevanagari_ExtraCondensed-SemiBold.ttf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
+		0C22E6041CB748C7AA604CB4 /* NotoSansDevanagari-Bold.ttf */ = {isa = PBXFileReference; name = "NotoSansDevanagari-Bold.ttf"; path = "../src/Assets/Fonts/Noto_Sans_Devanagari/static/NotoSansDevanagari-Bold.ttf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
+		EF1728C645D6415787C95C29 /* NotoSansDevanagari_Condensed-Black.ttf */ = {isa = PBXFileReference; name = "NotoSansDevanagari_Condensed-Black.ttf"; path = "../src/Assets/Fonts/Noto_Sans_Devanagari/static/NotoSansDevanagari_Condensed-Black.ttf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
+		7372FE8A0DD648F185BEACEC /* NotoSansDevanagari-ExtraBold.ttf */ = {isa = PBXFileReference; name = "NotoSansDevanagari-ExtraBold.ttf"; path = "../src/Assets/Fonts/Noto_Sans_Devanagari/static/NotoSansDevanagari-ExtraBold.ttf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
+		1590181F78974343BF181891 /* NotoSansDevanagari_SemiCondensed-Light.ttf */ = {isa = PBXFileReference; name = "NotoSansDevanagari_SemiCondensed-Light.ttf"; path = "../src/Assets/Fonts/Noto_Sans_Devanagari/static/NotoSansDevanagari_SemiCondensed-Light.ttf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
+		DF67FC3DFEC84552BDCC0C7D /* NotoSansDevanagari-Thin.ttf */ = {isa = PBXFileReference; name = "NotoSansDevanagari-Thin.ttf"; path = "../src/Assets/Fonts/Noto_Sans_Devanagari/static/NotoSansDevanagari-Thin.ttf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
+		1FFC85634E9E4894A6753EFC /* NotoSansDevanagari_SemiCondensed-Medium.ttf */ = {isa = PBXFileReference; name = "NotoSansDevanagari_SemiCondensed-Medium.ttf"; path = "../src/Assets/Fonts/Noto_Sans_Devanagari/static/NotoSansDevanagari_SemiCondensed-Medium.ttf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
+		93108F19109746BC87BC32BC /* NotoSansDevanagari_Condensed-ExtraBold.ttf */ = {isa = PBXFileReference; name = "NotoSansDevanagari_Condensed-ExtraBold.ttf"; path = "../src/Assets/Fonts/Noto_Sans_Devanagari/static/NotoSansDevanagari_Condensed-ExtraBold.ttf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
+		F203C3D205FA477D83012110 /* NotoSansDevanagari_Condensed-ExtraLight.ttf */ = {isa = PBXFileReference; name = "NotoSansDevanagari_Condensed-ExtraLight.ttf"; path = "../src/Assets/Fonts/Noto_Sans_Devanagari/static/NotoSansDevanagari_Condensed-ExtraLight.ttf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
+		2EED3FD904D845E38926E272 /* NotoSansDevanagari_SemiCondensed-ExtraBold.ttf */ = {isa = PBXFileReference; name = "NotoSansDevanagari_SemiCondensed-ExtraBold.ttf"; path = "../src/Assets/Fonts/Noto_Sans_Devanagari/static/NotoSansDevanagari_SemiCondensed-ExtraBold.ttf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
+		DF06471821F94B1FB233F4E9 /* NotoSansDevanagari_SemiCondensed-ExtraLight.ttf */ = {isa = PBXFileReference; name = "NotoSansDevanagari_SemiCondensed-ExtraLight.ttf"; path = "../src/Assets/Fonts/Noto_Sans_Devanagari/static/NotoSansDevanagari_SemiCondensed-ExtraLight.ttf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
+		B3DF0C9A87B84991A9A0EB8C /* NotoSansDevanagari_ExtraCondensed-Thin.ttf */ = {isa = PBXFileReference; name = "NotoSansDevanagari_ExtraCondensed-Thin.ttf"; path = "../src/Assets/Fonts/Noto_Sans_Devanagari/static/NotoSansDevanagari_ExtraCondensed-Thin.ttf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
+		86880938021B4BBF820C4215 /* NotoSansDevanagari_SemiCondensed-Black.ttf */ = {isa = PBXFileReference; name = "NotoSansDevanagari_SemiCondensed-Black.ttf"; path = "../src/Assets/Fonts/Noto_Sans_Devanagari/static/NotoSansDevanagari_SemiCondensed-Black.ttf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
+		F6A966F4D73645878D3BCAAE /* NotoSansDevanagari_Condensed-Thin.ttf */ = {isa = PBXFileReference; name = "NotoSansDevanagari_Condensed-Thin.ttf"; path = "../src/Assets/Fonts/Noto_Sans_Devanagari/static/NotoSansDevanagari_Condensed-Thin.ttf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
+		AD6FD6D2FCD84C2FA3AC6CE2 /* NotoSansDevanagari_ExtraCondensed-Black.ttf */ = {isa = PBXFileReference; name = "NotoSansDevanagari_ExtraCondensed-Black.ttf"; path = "../src/Assets/Fonts/Noto_Sans_Devanagari/static/NotoSansDevanagari_ExtraCondensed-Black.ttf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
+		B78821599AD04A71B30F6B7D /* NotoSansDevanagari_Condensed-Bold.ttf */ = {isa = PBXFileReference; name = "NotoSansDevanagari_Condensed-Bold.ttf"; path = "../src/Assets/Fonts/Noto_Sans_Devanagari/static/NotoSansDevanagari_Condensed-Bold.ttf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
+		94077F69669947A895A8B1F3 /* NotoSansDevanagari_Condensed-Regular.ttf */ = {isa = PBXFileReference; name = "NotoSansDevanagari_Condensed-Regular.ttf"; path = "../src/Assets/Fonts/Noto_Sans_Devanagari/static/NotoSansDevanagari_Condensed-Regular.ttf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
+		74DFE38973324725B5D9B65E /* NotoSansDevanagari_ExtraCondensed-Bold.ttf */ = {isa = PBXFileReference; name = "NotoSansDevanagari_ExtraCondensed-Bold.ttf"; path = "../src/Assets/Fonts/Noto_Sans_Devanagari/static/NotoSansDevanagari_ExtraCondensed-Bold.ttf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
+		05E16A54EC594F7D8A7DA4A3 /* NotoSansDevanagari_ExtraCondensed-ExtraBold.ttf */ = {isa = PBXFileReference; name = "NotoSansDevanagari_ExtraCondensed-ExtraBold.ttf"; path = "../src/Assets/Fonts/Noto_Sans_Devanagari/static/NotoSansDevanagari_ExtraCondensed-ExtraBold.ttf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
+		05FE2576F96948A3A4CF6942 /* NotoSansDevanagari-Regular.ttf */ = {isa = PBXFileReference; name = "NotoSansDevanagari-Regular.ttf"; path = "../src/Assets/Fonts/Noto_Sans_Devanagari/static/NotoSansDevanagari-Regular.ttf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
+		496D61FA4D284761BDDC881E /* NotoSansDevanagari_Condensed-Light.ttf */ = {isa = PBXFileReference; name = "NotoSansDevanagari_Condensed-Light.ttf"; path = "../src/Assets/Fonts/Noto_Sans_Devanagari/static/NotoSansDevanagari_Condensed-Light.ttf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
+		A14BCD0B56424EAB8A98C5A9 /* NotoSansDevanagari_SemiCondensed-Thin.ttf */ = {isa = PBXFileReference; name = "NotoSansDevanagari_SemiCondensed-Thin.ttf"; path = "../src/Assets/Fonts/Noto_Sans_Devanagari/static/NotoSansDevanagari_SemiCondensed-Thin.ttf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
+		6F8F65D201124D0B919D5DCF /* NotoSansDevanagari-ExtraLight.ttf */ = {isa = PBXFileReference; name = "NotoSansDevanagari-ExtraLight.ttf"; path = "../src/Assets/Fonts/Noto_Sans_Devanagari/static/NotoSansDevanagari-ExtraLight.ttf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
+		6D4EC241C4E8474EABA21F99 /* NotoSansDevanagari_SemiCondensed-Bold.ttf */ = {isa = PBXFileReference; name = "NotoSansDevanagari_SemiCondensed-Bold.ttf"; path = "../src/Assets/Fonts/Noto_Sans_Devanagari/static/NotoSansDevanagari_SemiCondensed-Bold.ttf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
+		9FF7E8C88D524A5092FB24D4 /* NotoSansDevanagari_Condensed-Medium.ttf */ = {isa = PBXFileReference; name = "NotoSansDevanagari_Condensed-Medium.ttf"; path = "../src/Assets/Fonts/Noto_Sans_Devanagari/static/NotoSansDevanagari_Condensed-Medium.ttf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
+		083B10273FEB4C08A8082E1F /* NotoSansDevanagari-Black.ttf */ = {isa = PBXFileReference; name = "NotoSansDevanagari-Black.ttf"; path = "../src/Assets/Fonts/Noto_Sans_Devanagari/static/NotoSansDevanagari-Black.ttf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
+		317804B7F9E4411FAE7429F8 /* NotoSansDevanagari_SemiCondensed-Regular.ttf */ = {isa = PBXFileReference; name = "NotoSansDevanagari_SemiCondensed-Regular.ttf"; path = "../src/Assets/Fonts/Noto_Sans_Devanagari/static/NotoSansDevanagari_SemiCondensed-Regular.ttf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
+		5EE9E5DD6A644518BB9F12C5 /* NotoSansDevanagari_Condensed-SemiBold.ttf */ = {isa = PBXFileReference; name = "NotoSansDevanagari_Condensed-SemiBold.ttf"; path = "../src/Assets/Fonts/Noto_Sans_Devanagari/static/NotoSansDevanagari_Condensed-SemiBold.ttf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
+		D163D1738D804BC2A39E5FAE /* NotoSansDevanagari_ExtraCondensed-Medium.ttf */ = {isa = PBXFileReference; name = "NotoSansDevanagari_ExtraCondensed-Medium.ttf"; path = "../src/Assets/Fonts/Noto_Sans_Devanagari/static/NotoSansDevanagari_ExtraCondensed-Medium.ttf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
+		DA58D76B66D944CFA93A8E38 /* NotoSansDevanagari-VariableFont_wdth,wght.ttf */ = {isa = PBXFileReference; name = "NotoSansDevanagari-VariableFont_wdth,wght.ttf"; path = "../src/Assets/Fonts/Noto_Sans_Devanagari/NotoSansDevanagari-VariableFont_wdth,wght.ttf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
+		8AC988A96A194E83BC2E3CDE /* Pacifico-Regular.ttf */ = {isa = PBXFileReference; name = "Pacifico-Regular.ttf"; path = "../src/Assets/Fonts/Pacifico-Regular.ttf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
+		DAC22DEE3D204A76A3FB015C /* OFL.txt */ = {isa = PBXFileReference; name = "OFL.txt"; path = "../src/Assets/Fonts/Noto_Sans_Devanagari/OFL.txt"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
+		3643E8D897B54D7EB2FBBE31 /* README.txt */ = {isa = PBXFileReference; name = "README.txt"; path = "../src/Assets/Fonts/Noto_Sans_Devanagari/README.txt"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -93,6 +173,7 @@
 				83CBBA001A601CBA00E9B192 /* Products */,
 				2D16E6871FA4F8E400B85C8A /* Frameworks */,
 				BBD78D7AC51CEA395F1C20DB /* Pods */,
+				D03E22866C1449C0945E6319 /* Resources */,
 			);
 			indentWidth = 2;
 			sourceTree = "<group>";
@@ -115,6 +196,54 @@
 			);
 			path = Pods;
 			sourceTree = "<group>";
+		};
+		D03E22866C1449C0945E6319 /* Resources */ = {
+			isa = "PBXGroup";
+			children = (
+				B51B6197ECFC4E8582B8AA72 /* NotoSansDevanagari_ExtraCondensed-ExtraLight.ttf */,
+				292C249477234472A3971D26 /* NotoSansDevanagari-Light.ttf */,
+				D3761AEE0E6846F4AEB5A3DA /* NotoSansDevanagari-Medium.ttf */,
+				D37F8D5580184ECC9EBF85FC /* NotoSansDevanagari_ExtraCondensed-Regular.ttf */,
+				91F751803A714168BF61F94E /* NotoSansDevanagari-SemiBold.ttf */,
+				F975E6A9253D402197A03E96 /* NotoSansDevanagari_SemiCondensed-SemiBold.ttf */,
+				D7BED75D49914E1497BFC681 /* NotoSansDevanagari_ExtraCondensed-Light.ttf */,
+				DA1EE438CD5F4B44A68EECC6 /* NotoSansDevanagari_ExtraCondensed-SemiBold.ttf */,
+				0C22E6041CB748C7AA604CB4 /* NotoSansDevanagari-Bold.ttf */,
+				EF1728C645D6415787C95C29 /* NotoSansDevanagari_Condensed-Black.ttf */,
+				7372FE8A0DD648F185BEACEC /* NotoSansDevanagari-ExtraBold.ttf */,
+				1590181F78974343BF181891 /* NotoSansDevanagari_SemiCondensed-Light.ttf */,
+				DF67FC3DFEC84552BDCC0C7D /* NotoSansDevanagari-Thin.ttf */,
+				1FFC85634E9E4894A6753EFC /* NotoSansDevanagari_SemiCondensed-Medium.ttf */,
+				93108F19109746BC87BC32BC /* NotoSansDevanagari_Condensed-ExtraBold.ttf */,
+				F203C3D205FA477D83012110 /* NotoSansDevanagari_Condensed-ExtraLight.ttf */,
+				2EED3FD904D845E38926E272 /* NotoSansDevanagari_SemiCondensed-ExtraBold.ttf */,
+				DF06471821F94B1FB233F4E9 /* NotoSansDevanagari_SemiCondensed-ExtraLight.ttf */,
+				B3DF0C9A87B84991A9A0EB8C /* NotoSansDevanagari_ExtraCondensed-Thin.ttf */,
+				86880938021B4BBF820C4215 /* NotoSansDevanagari_SemiCondensed-Black.ttf */,
+				F6A966F4D73645878D3BCAAE /* NotoSansDevanagari_Condensed-Thin.ttf */,
+				AD6FD6D2FCD84C2FA3AC6CE2 /* NotoSansDevanagari_ExtraCondensed-Black.ttf */,
+				B78821599AD04A71B30F6B7D /* NotoSansDevanagari_Condensed-Bold.ttf */,
+				94077F69669947A895A8B1F3 /* NotoSansDevanagari_Condensed-Regular.ttf */,
+				74DFE38973324725B5D9B65E /* NotoSansDevanagari_ExtraCondensed-Bold.ttf */,
+				05E16A54EC594F7D8A7DA4A3 /* NotoSansDevanagari_ExtraCondensed-ExtraBold.ttf */,
+				05FE2576F96948A3A4CF6942 /* NotoSansDevanagari-Regular.ttf */,
+				496D61FA4D284761BDDC881E /* NotoSansDevanagari_Condensed-Light.ttf */,
+				A14BCD0B56424EAB8A98C5A9 /* NotoSansDevanagari_SemiCondensed-Thin.ttf */,
+				6F8F65D201124D0B919D5DCF /* NotoSansDevanagari-ExtraLight.ttf */,
+				6D4EC241C4E8474EABA21F99 /* NotoSansDevanagari_SemiCondensed-Bold.ttf */,
+				9FF7E8C88D524A5092FB24D4 /* NotoSansDevanagari_Condensed-Medium.ttf */,
+				083B10273FEB4C08A8082E1F /* NotoSansDevanagari-Black.ttf */,
+				317804B7F9E4411FAE7429F8 /* NotoSansDevanagari_SemiCondensed-Regular.ttf */,
+				5EE9E5DD6A644518BB9F12C5 /* NotoSansDevanagari_Condensed-SemiBold.ttf */,
+				D163D1738D804BC2A39E5FAE /* NotoSansDevanagari_ExtraCondensed-Medium.ttf */,
+				DA58D76B66D944CFA93A8E38 /* NotoSansDevanagari-VariableFont_wdth,wght.ttf */,
+				8AC988A96A194E83BC2E3CDE /* Pacifico-Regular.ttf */,
+				DAC22DEE3D204A76A3FB015C /* OFL.txt */,
+				3643E8D897B54D7EB2FBBE31 /* README.txt */,
+			);
+			name = Resources;
+			sourceTree = "<group>";
+			path = "";
 		};
 /* End PBXGroup section */
 
@@ -185,6 +314,46 @@
 			files = (
 				81AB9BB82411601600AC10FF /* LaunchScreen.storyboard in Resources */,
 				13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */,
+				F73E351BEAC54090835D433E /* NotoSansDevanagari_ExtraCondensed-ExtraLight.ttf in Resources */,
+				BC5052C7035C43B18D0FAEEC /* NotoSansDevanagari-Light.ttf in Resources */,
+				AF91357FF14F41959BB1A0BE /* NotoSansDevanagari-Medium.ttf in Resources */,
+				DB2258DB30EF4F73A5D4ECD9 /* NotoSansDevanagari_ExtraCondensed-Regular.ttf in Resources */,
+				670204F42962456080457065 /* NotoSansDevanagari-SemiBold.ttf in Resources */,
+				F1A509E2865E437393D6ED84 /* NotoSansDevanagari_SemiCondensed-SemiBold.ttf in Resources */,
+				0CEC2105669E44808B97E2EC /* NotoSansDevanagari_ExtraCondensed-Light.ttf in Resources */,
+				D0F15AE5897B4358927E4D67 /* NotoSansDevanagari_ExtraCondensed-SemiBold.ttf in Resources */,
+				5AB50C6E66914AD781ABE210 /* NotoSansDevanagari-Bold.ttf in Resources */,
+				D3084C68A57C4805BBC1B391 /* NotoSansDevanagari_Condensed-Black.ttf in Resources */,
+				65DC0939BF3145D3B1FD61E6 /* NotoSansDevanagari-ExtraBold.ttf in Resources */,
+				47CEFA54171848AC97D27B06 /* NotoSansDevanagari_SemiCondensed-Light.ttf in Resources */,
+				B4A4BB6B1D6247E386501943 /* NotoSansDevanagari-Thin.ttf in Resources */,
+				4B9407F27FF84893A41C2BDE /* NotoSansDevanagari_SemiCondensed-Medium.ttf in Resources */,
+				0648E9D398954632B92AD825 /* NotoSansDevanagari_Condensed-ExtraBold.ttf in Resources */,
+				45BF664C363846DAAE87DBB9 /* NotoSansDevanagari_Condensed-ExtraLight.ttf in Resources */,
+				7DF4EEC7C9BA47178CE4D90D /* NotoSansDevanagari_SemiCondensed-ExtraBold.ttf in Resources */,
+				383844BC2D694F34A6F8048C /* NotoSansDevanagari_SemiCondensed-ExtraLight.ttf in Resources */,
+				99A55D2AFB9C4F14A55D5A7A /* NotoSansDevanagari_ExtraCondensed-Thin.ttf in Resources */,
+				30FE5E2B7D05452C9B3DCF53 /* NotoSansDevanagari_SemiCondensed-Black.ttf in Resources */,
+				09A2B0771AD34E5C9C80D8C4 /* NotoSansDevanagari_Condensed-Thin.ttf in Resources */,
+				3B7BCCE42178463FB08FACCB /* NotoSansDevanagari_ExtraCondensed-Black.ttf in Resources */,
+				74EE870265F34FECB822E5CC /* NotoSansDevanagari_Condensed-Bold.ttf in Resources */,
+				B927B6DEEE8B47859EAF7501 /* NotoSansDevanagari_Condensed-Regular.ttf in Resources */,
+				FFD613E0556D41BD92486AAB /* NotoSansDevanagari_ExtraCondensed-Bold.ttf in Resources */,
+				BB4B10D84FBA423298F6B134 /* NotoSansDevanagari_ExtraCondensed-ExtraBold.ttf in Resources */,
+				DCC8C3CDB019447CBEE47320 /* NotoSansDevanagari-Regular.ttf in Resources */,
+				EF0CEE1CD6E448219785D0A3 /* NotoSansDevanagari_Condensed-Light.ttf in Resources */,
+				D718CDA887C647F38C15559E /* NotoSansDevanagari_SemiCondensed-Thin.ttf in Resources */,
+				1A72E9B9194F4555B31494A2 /* NotoSansDevanagari-ExtraLight.ttf in Resources */,
+				9498F17FEE934D0CA3D8935E /* NotoSansDevanagari_SemiCondensed-Bold.ttf in Resources */,
+				FB1F6B8599A5439DADE0C6AE /* NotoSansDevanagari_Condensed-Medium.ttf in Resources */,
+				0E0DBC40A75B43769CC86A0D /* NotoSansDevanagari-Black.ttf in Resources */,
+				D5E1FABE99B7474BA116ACDC /* NotoSansDevanagari_SemiCondensed-Regular.ttf in Resources */,
+				D78FA82A9FC045399B9B81BD /* NotoSansDevanagari_Condensed-SemiBold.ttf in Resources */,
+				F52003759454444B9378A983 /* NotoSansDevanagari_ExtraCondensed-Medium.ttf in Resources */,
+				53B68638C9094D7FB4C2D492 /* NotoSansDevanagari-VariableFont_wdth,wght.ttf in Resources */,
+				E7BD1DC7973F45509C499417 /* Pacifico-Regular.ttf in Resources */,
+				EF4426B8513044B28E4A1085 /* OFL.txt in Resources */,
+				7EE0D952A569410C886AFF7C /* README.txt in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

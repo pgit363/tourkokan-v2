@@ -49,13 +49,14 @@ const linking = {
   },
 };
 
-const StackNavigator = () => {
+const StackNavigator = ({initialRoute}) => {
   const {t} = useTranslation();
   const [isLoggedIn, setIsLoggedIn] = useState(true);
 
   return (
     <NavigationContainer linking={linking}>
       <Stack.Navigator
+        initialRouteName={initialRoute}
         screenOptions={{
           cardStyle: {backgroundColor: '#fff'},
           keyboardHandlingEnabled: true,

@@ -382,6 +382,8 @@ const ProfileView = ({navigation, ...props}) => {
     } finally {
       // Always clear everything regardless of API/network result
       await AsyncStorage.clear();
+      // Preserve onboarding completion so intro slider never shows again
+      await AsyncStorage.setItem(STRING.STORAGE.IS_FIRST_TIME, 'false');
       props.resetStore();
       props.setLoader(false);
       navigation.reset({index: 0, routes: [{name: STRING.SCREEN.EMAIL}]});
@@ -412,6 +414,7 @@ const ProfileView = ({navigation, ...props}) => {
   const handleGuestLogin = async () => {
     setIsGuestPopup(false);
     await AsyncStorage.clear();
+    await AsyncStorage.setItem(STRING.STORAGE.IS_FIRST_TIME, 'false');
     navigation.reset({index: 0, routes: [{name: STRING.SCREEN.EMAIL}]});
   };
 

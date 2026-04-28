@@ -250,6 +250,9 @@ const AllRoutesSearch = ({navigation, route}) => {
   const [lastPage, setLastPage] = useState(null);
   const [bannerObject, setBannerObject] = useState({});
   const isMounted = useRef(true);
+  const currentPageRef = useRef(1);
+  const lastPageRef = useRef(null);
+  const isLoadingMoreRef = useRef(false);
 
   // ── Init ───────────────────────────────────────────────────────────────────
 
@@ -267,9 +270,16 @@ const AllRoutesSearch = ({navigation, route}) => {
       if (cached) {
         try {
           const parsed = JSON.parse(cached);
-          const pageData = parsed?.data?.data?.data;
+          const paginatedData = parsed?.data?.data;
+          const pageData = paginatedData?.data;
           if (Array.isArray(pageData) && pageData.length > 0 && isMounted.current) {
+            const cachedCurrent = paginatedData?.current_page ?? 1;
+            const cachedLast = paginatedData?.last_page ?? null;
             setList(pageData);
+            setCurrentPage(cachedCurrent);
+            setLastPage(cachedLast);
+            currentPageRef.current = cachedCurrent;
+            lastPageRef.current = cachedLast;
             setIsLoading(false);
           }
         } catch {}
@@ -311,10 +321,14 @@ const AllRoutesSearch = ({navigation, route}) => {
 
   const fetchRoutes = async (loadMore = false) => {
     AsyncStorage.setItem('isLangChanged', 'false');
-    const page = loadMore ? currentPage + 1 : 1;
+    const page = loadMore ? currentPageRef.current + 1 : 1;
 
-    if (loadMore) setIsLoadingMore(true);
-    else setIsLoading(true);
+    if (loadMore) {
+      isLoadingMoreRef.current = true;
+      setIsLoadingMore(true);
+    } else {
+      setIsLoading(true);
+    }
 
     const payload = {
       source_place_id: source?.id,
@@ -361,6 +375,8 @@ const AllRoutesSearch = ({navigation, route}) => {
         }
         setCurrentPage(current);
         setLastPage(last);
+        currentPageRef.current = current;
+        lastPageRef.current = last;
       }
     } catch {
       // If first load failed, try cache
@@ -381,13 +397,18 @@ const AllRoutesSearch = ({navigation, route}) => {
       if (isMounted.current) {
         setIsLoading(false);
         setIsLoadingMore(false);
+        isLoadingMoreRef.current = false;
       }
     }
   };
 
   const onEndReached = async () => {
-    if (!isLoadingMore && lastPage && currentPage < lastPage) {
-      if (currentPage >= 2 && (await isGuestUser())) {
+    if (
+      !isLoadingMoreRef.current &&
+      lastPageRef.current &&
+      currentPageRef.current < lastPageRef.current
+    ) {
+      if (currentPageRef.current >= 2 && (await isGuestUser())) {
         showGuestPopup('Login to explore more routes beyond page 2.');
         return;
       }
@@ -403,6 +424,7 @@ const AllRoutesSearch = ({navigation, route}) => {
   // ── Render helpers ─────────────────────────────────────────────────────────
 
   const hasBannerFooter = bannerObject?.ROUTE_LIST_FOOTER?.length > 0;
+  const hasBannerMiddle = bannerObject?.ROUTE_LIST_MIDDLE?.length > 0;
 
   const headerTitle =
     source?.name && destination?.name
@@ -457,10 +479,25 @@ const AllRoutesSearch = ({navigation, route}) => {
   };
 
   const renderItem = useCallback(
-    ({item}) => (
-      <RouteCard item={item} onPress={() => openRouteDetail(item)} t={t} />
+    ({item, index}) => (
+      <>
+        <RouteCard item={item} onPress={() => openRouteDetail(item)} t={t} />
+        {index === 4 && hasBannerMiddle && (
+          <View style={s.adBannerOuter}>
+            <View style={s.adLabelBadge}>
+              <Text style={s.adLabelText}>Premium Ad</Text>
+            </View>
+            <View style={s.bannerWrap}>
+              <Banner
+                bannerImages={bannerObject.ROUTE_LIST_MIDDLE}
+                style={{height: BANNER_H}}
+              />
+            </View>
+          </View>
+        )}
+      </>
     ),
-    [openRouteDetail, t],
+    [openRouteDetail, t, hasBannerMiddle, bannerObject],
   );
 
   // ── JSX ────────────────────────────────────────────────────────────────────

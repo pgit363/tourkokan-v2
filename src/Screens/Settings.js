@@ -171,6 +171,9 @@ const Settings = ({navigation, mode, setMode: reduxSetMode}) => {
     await AsyncStorage.setItem(STRING.STORAGE.LANGUAGE, lang);
     await AsyncStorage.setItem('isLangChanged', 'true');
     setLangLoading(false);
+    // Navigate home immediately so the landing page re-fetches with the new language
+    // before the user can switch to offline mode (which would block the API call)
+    navigation.navigate(STRING.SCREEN.DASHBOARD);
   };
 
   // ─── Online Mode ─────────────────────────────────────────────────────────────
