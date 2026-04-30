@@ -69,12 +69,12 @@ const TAB_META = [
   {
     icon: (focused) => (
       <Image
-        source={{uri: 'https://img.icons8.com/3d-fluency/375/map-marker.png'}}
+        source={{uri: 'https://img.icons8.com/?size=100&id=52971&format=png&color=000000'}}
         style={{width: focused ? 30 : 26, height: focused ? 30 : 26}}
         resizeMode="contain"
       />
     ),
-    label: 'Map',
+    label: 'Events',
   },
 ];
 

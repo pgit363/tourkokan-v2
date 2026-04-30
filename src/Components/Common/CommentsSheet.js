@@ -1,4 +1,4 @@
-import React, {useState, useEffect} from 'react';
+import React, {useState, useEffect, useRef} from 'react';
 import {
   View,
   Text,
@@ -10,18 +10,24 @@ import {
   StyleSheet,
   KeyboardAvoidingView,
   Platform,
+  Animated,
 } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import {FTP_PATH} from '@env';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import {connect} from 'react-redux';
 import {useTranslation} from 'react-i18next';
 import {comnPost} from '../../Services/Api/CommonServices';
 import {setLoader} from '../../Reducers/CommonActions';
+import {isGuestUser} from './GuestGateModal';
+import GuestGateModal from './GuestGateModal';
+import STRING from '../../Services/Constants/STRINGS';
 
 const C = {
   oceanDeep: '#0D3D4A', oceanMid: '#1B6B7B', oceanFoam: '#B8E4EA',
   cream: '#FAF7F0', white: '#FFFFFF',
   textDark: '#1C1917', textMid: '#44403C', textLight: '#78716C',
+  danger: '#E57373', successBg: '#E8F5E9', successText: '#2E7D32',
 };
 
 const CommentsSheet = ({
@@ -30,16 +36,35 @@ const CommentsSheet = ({
   reload,
   commentable_id,
   commentable_type,
+  navigation,
 }) => {
   const {t} = useTranslation();
   const [comments, setComments] = useState([]);
   const [newComment, setNewComment] = useState('');
   const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [currentUserId, setCurrentUserId] = useState(null);
+  const [replyTo, setReplyTo] = useState(null); // {id, name}
+  const [editMode, setEditMode] = useState(null); // {id, text}
+  const [guestModalVisible, setGuestModalVisible] = useState(false);
+  const [toast, setToast] = useState(null); // {msg, type: 'success'|'info'}
+  const toastOpacity = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
+    AsyncStorage.getItem(STRING.STORAGE.USER_ID).then(id => {
+      if (id) setCurrentUserId(parseInt(id, 10));
+    });
     getComments();
   }, []);
+
+  const showToast = (msg, type = 'success') => {
+    setToast({msg, type});
+    Animated.sequence([
+      Animated.timing(toastOpacity, {toValue: 1, duration: 250, useNativeDriver: true}),
+      Animated.delay(2500),
+      Animated.timing(toastOpacity, {toValue: 0, duration: 300, useNativeDriver: true}),
+    ]).start(() => setToast(null));
+  };
 
   const getComments = () => {
     setLoading(true);
@@ -51,19 +76,46 @@ const CommentsSheet = ({
       .catch(() => setLoading(false));
   };
 
-  const addComment = () => {
-    if (!newComment.trim() || submitting) return;
+  const addComment = async () => {
+    const text = newComment.trim();
+    if (!text || submitting) return;
+
+    const guest = await isGuestUser();
+    if (guest) {
+      setGuestModalVisible(true);
+      return;
+    }
+
     setSubmitting(true);
-    comnPost('v2/comment', {
-      comment: newComment,
-      commentable_type: t('TABLE.SITE'),
+    const payload = {
+      comment: text,
+      commentable_type,
       commentable_id,
-    })
+    };
+    if (replyTo) payload.parent_id = replyTo.id;
+
+    comnPost('v2/comment', payload)
       .then(() => {
         setNewComment('');
+        setReplyTo(null);
         getComments();
         reload?.();
         setSubmitting(false);
+        showToast('Comment submitted and awaiting approval.');
+      })
+      .catch(() => setSubmitting(false));
+  };
+
+  const saveEdit = async () => {
+    if (!editMode?.text?.trim() || submitting) return;
+    setSubmitting(true);
+    comnPost('v2/updateComment', {id: editMode.id, comment: editMode.text.trim()})
+      .then(() => {
+        setEditMode(null);
+        getComments();
+        reload?.();
+        setSubmitting(false);
+        showToast('Comment updated.');
       })
       .catch(() => setSubmitting(false));
   };
@@ -77,17 +129,35 @@ const CommentsSheet = ({
       .catch(() => {});
   };
 
+  const handleGuestLogin = async () => {
+    setGuestModalVisible(false);
+    await AsyncStorage.clear();
+    await AsyncStorage.setItem('IS_FIRST_TIME', 'false');
+    if (navigation) {
+      navigation.reset({index: 0, routes: [{name: STRING.SCREEN.EMAIL}]});
+    }
+  };
+
   const getUserInitials = user => {
     if (!user?.name) return '?';
     return user.name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
   };
 
-  const renderComment = ({item}) => {
-    // users can be array (getSite API) or object (comments API); item.user is a fallback key
+  const isOwn = item => {
     const raw = item.users ?? item.user;
     const user = Array.isArray(raw) ? raw[0] : raw;
+    return currentUserId && user?.id === currentUserId;
+  };
+
+  const renderComment = ({item, index}) => {
+    const raw = item.users ?? item.user;
+    const user = Array.isArray(raw) ? raw[0] : raw;
+    const own = isOwn(item);
+    const isReply = !!item.parent_id;
+
     return (
-      <View style={cs.commentRow}>
+      <View style={[cs.commentRow, isReply && cs.commentRowReply]}>
+        {isReply && <View style={cs.replyLine} />}
         <View style={cs.avatarWrap}>
           {user?.profile_picture ? (
             <Image
@@ -104,22 +174,63 @@ const CommentsSheet = ({
           <View style={cs.commentTop}>
             <View style={cs.commentNameRow}>
               <Text style={cs.commentName}>{user?.name || 'Traveler'}</Text>
-              <View style={cs.verifiedBadge}>
-                <Ionicons name="checkmark-circle" size={11} color={C.oceanMid} />
-                <Text style={cs.verifiedText}>Verified</Text>
-              </View>
+              {!isReply && (
+                <View style={cs.verifiedBadge}>
+                  <Ionicons name="checkmark-circle" size={11} color={C.oceanMid} />
+                  <Text style={cs.verifiedText}>Verified</Text>
+                </View>
+              )}
             </View>
-            <TouchableOpacity
-              onPress={() => deleteComment(item.id)}
-              hitSlop={{top: 8, bottom: 8, left: 8, right: 8}}>
-              <Ionicons name="trash-outline" size={14} color="#E57373" />
-            </TouchableOpacity>
+            <View style={cs.commentActions}>
+              <TouchableOpacity
+                onPress={() => {
+                  setReplyTo({id: item.id, name: user?.name || 'Traveler'});
+                  setEditMode(null);
+                }}
+                hitSlop={{top: 8, bottom: 8, left: 8, right: 8}}
+                style={cs.actionBtn}>
+                <Ionicons name="return-down-forward-outline" size={14} color={C.oceanMid} />
+              </TouchableOpacity>
+              {own && (
+                <>
+                  <TouchableOpacity
+                    onPress={() => {
+                      setEditMode({id: item.id, text: item.comment});
+                      setReplyTo(null);
+                    }}
+                    hitSlop={{top: 8, bottom: 8, left: 8, right: 8}}
+                    style={cs.actionBtn}>
+                    <Ionicons name="pencil-outline" size={14} color={C.oceanMid} />
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    onPress={() => deleteComment(item.id)}
+                    hitSlop={{top: 8, bottom: 8, left: 8, right: 8}}
+                    style={cs.actionBtn}>
+                    <Ionicons name="trash-outline" size={14} color={C.danger} />
+                  </TouchableOpacity>
+                </>
+              )}
+            </View>
           </View>
           <Text style={cs.commentText}>{item.comment}</Text>
         </View>
       </View>
     );
   };
+
+  const inputPlaceholder = replyTo
+    ? `Replying to ${replyTo.name}…`
+    : editMode
+    ? 'Edit your comment…'
+    : 'Share your experience…';
+
+  const currentInputText = editMode ? editMode.text : newComment;
+  const onChangeText = text => {
+    if (editMode) setEditMode(prev => ({...prev, text}));
+    else setNewComment(text);
+  };
+  const onSend = editMode ? saveEdit : addComment;
+  const canSend = currentInputText.trim().length > 0 && !submitting;
 
   return (
     <KeyboardAvoidingView
@@ -137,6 +248,14 @@ const CommentsSheet = ({
           <Ionicons name="close" size={22} color={C.textLight} />
         </TouchableOpacity>
       </View>
+
+      {/* Toast */}
+      {toast && (
+        <Animated.View style={[cs.toast, {opacity: toastOpacity}]}>
+          <Ionicons name="checkmark-circle" size={15} color={C.successText} />
+          <Text style={cs.toastText}>{toast.msg}</Text>
+        </Animated.View>
+      )}
 
       {/* Comments list */}
       {loading ? (
@@ -161,29 +280,59 @@ const CommentsSheet = ({
         </View>
       )}
 
+      {/* Reply/edit context banner */}
+      {(replyTo || editMode) && (
+        <View style={cs.contextBanner}>
+          <Ionicons
+            name={replyTo ? 'return-down-forward-outline' : 'pencil-outline'}
+            size={14}
+            color={C.oceanMid}
+          />
+          <Text style={cs.contextText}>
+            {replyTo ? `Replying to ${replyTo.name}` : 'Editing comment'}
+          </Text>
+          <TouchableOpacity
+            onPress={() => {
+              setReplyTo(null);
+              setEditMode(null);
+            }}
+            hitSlop={{top: 8, bottom: 8, left: 8, right: 8}}>
+            <Ionicons name="close-circle" size={16} color={C.textLight} />
+          </TouchableOpacity>
+        </View>
+      )}
+
       {/* Input row */}
       <View style={cs.inputRow}>
         <TextInput
           style={cs.input}
-          placeholder="Share your experience…"
+          placeholder={inputPlaceholder}
           placeholderTextColor={C.textLight}
-          value={newComment}
-          onChangeText={setNewComment}
+          value={currentInputText}
+          onChangeText={onChangeText}
           multiline
           maxLength={300}
         />
         <TouchableOpacity
-          style={[cs.sendBtn, (!newComment.trim() || submitting) && cs.sendBtnDisabled]}
-          onPress={addComment}
-          disabled={!newComment.trim() || submitting}
+          style={[cs.sendBtn, !canSend && cs.sendBtnDisabled]}
+          onPress={onSend}
+          disabled={!canSend}
           activeOpacity={0.85}>
           {submitting ? (
             <ActivityIndicator size="small" color={C.white} />
           ) : (
-            <Ionicons name="send" size={18} color={C.white} />
+            <Ionicons name={editMode ? 'checkmark' : 'send'} size={18} color={C.white} />
           )}
         </TouchableOpacity>
       </View>
+
+      {/* Guest gate modal */}
+      <GuestGateModal
+        visible={guestModalVisible}
+        message="Please login to post a comment."
+        onClose={() => setGuestModalVisible(false)}
+        onLogin={handleGuestLogin}
+      />
     </KeyboardAvoidingView>
   );
 };
@@ -191,7 +340,6 @@ const CommentsSheet = ({
 const cs = StyleSheet.create({
   container: {flex: 1, backgroundColor: C.cream},
 
-  // Header
   header: {
     flexDirection: 'row', alignItems: 'center', gap: 10,
     paddingHorizontal: 16, paddingVertical: 14,
@@ -201,7 +349,14 @@ const cs = StyleSheet.create({
   headerDot: {width: 4, height: 18, borderRadius: 2, backgroundColor: C.oceanMid},
   headerTitle: {flex: 1, fontSize: 16, fontWeight: '700', color: C.textDark},
 
-  // States
+  toast: {
+    flexDirection: 'row', alignItems: 'center', gap: 6,
+    marginHorizontal: 16, marginTop: 8, marginBottom: 4,
+    backgroundColor: C.successBg, borderRadius: 10,
+    paddingHorizontal: 12, paddingVertical: 8,
+  },
+  toastText: {fontSize: 13, color: C.successText, flex: 1},
+
   loadingWrap: {flex: 1, alignItems: 'center', justifyContent: 'center', gap: 12},
   loadingText: {fontSize: 13, color: C.textLight},
   emptyWrap: {flex: 1, alignItems: 'center', justifyContent: 'center', paddingVertical: 40},
@@ -209,12 +364,15 @@ const cs = StyleSheet.create({
   emptyTitle: {fontSize: 14, fontWeight: '600', color: C.textMid, marginBottom: 4},
   emptySubText: {fontSize: 12, color: C.textLight},
 
-  // List
   list: {flex: 1},
   listContent: {paddingHorizontal: 16, paddingTop: 12, paddingBottom: 8},
 
-  // Comment row
   commentRow: {flexDirection: 'row', gap: 10, marginBottom: 12, alignItems: 'flex-start'},
+  commentRowReply: {marginLeft: 24, marginBottom: 8},
+  replyLine: {
+    position: 'absolute', left: -14, top: 0, bottom: 0,
+    width: 2, backgroundColor: C.oceanFoam, borderRadius: 1,
+  },
   avatarWrap: {flexShrink: 0, marginTop: 2},
   avatar: {width: 38, height: 38, borderRadius: 19},
   avatarFallback: {
@@ -231,13 +389,22 @@ const cs = StyleSheet.create({
     flexDirection: 'row', alignItems: 'center',
     justifyContent: 'space-between', marginBottom: 5,
   },
-  commentNameRow: {flexDirection: 'row', alignItems: 'center', gap: 6},
+  commentNameRow: {flexDirection: 'row', alignItems: 'center', gap: 6, flex: 1},
   commentName: {fontSize: 13, fontWeight: '700', color: C.textDark},
   verifiedBadge: {flexDirection: 'row', alignItems: 'center', gap: 3},
   verifiedText: {fontSize: 10, color: C.oceanMid, fontWeight: '600'},
+  commentActions: {flexDirection: 'row', alignItems: 'center', gap: 8},
+  actionBtn: {padding: 2},
   commentText: {fontSize: 13, lineHeight: 19, color: C.textMid},
 
-  // Input
+  contextBanner: {
+    flexDirection: 'row', alignItems: 'center', gap: 8,
+    paddingHorizontal: 16, paddingVertical: 8,
+    backgroundColor: '#EEF6FF',
+    borderTopWidth: 1, borderTopColor: 'rgba(27,107,123,0.12)',
+  },
+  contextText: {flex: 1, fontSize: 12, color: C.oceanMid, fontWeight: '500'},
+
   inputRow: {
     flexDirection: 'row', alignItems: 'flex-end', gap: 10,
     paddingHorizontal: 16, paddingVertical: 12,

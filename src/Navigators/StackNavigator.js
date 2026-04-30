@@ -36,6 +36,13 @@ import SearchPlace from '../Screens/SearchPlace';
 import MapScreen from '../Screens/MapScreen';
 import ProfileView from '../Screens/ProfileView';
 import Profile from '../Screens/Profile';
+import InboxScreen from '../Screens/InboxScreen';
+import SubmitPlaceScreen from '../Screens/SubmitPlaceScreen';
+import MySubmissionsScreen from '../Screens/MySubmissionsScreen';
+import EventsList from '../Screens/ListPages/EventsList';
+import EventDetail from '../Screens/DetailPages/EventDetail';
+import CreateEvent from '../Screens/CreateEvent';
+import UpdateEvent from '../Screens/UpdateEvent';
 
 const Stack = createNativeStackNavigator();
 
@@ -191,6 +198,14 @@ const StackNavigator = ({initialRoute}) => {
             name={t('SCREEN.EXPLOREGRID')}
             component={ExploreGrid}
           />
+          <Stack.Screen name={t('SCREEN.INBOX')} component={InboxScreen} />
+          <Stack.Screen name={t('SCREEN.SUBMIT_PLACE')} component={SubmitPlaceScreen} />
+          <Stack.Screen name={t('SCREEN.MY_SUBMISSIONS')} component={MySubmissionsScreen} />
+          <Stack.Screen name={t('SCREEN.EVENTS_LIST')} component={EventsList} />
+          <Stack.Screen name={t('SCREEN.EVENT_DETAIL')} component={EventDetail} />
+          <Stack.Screen name={t('SCREEN.CREATE_EVENT')} component={CreateEvent} />
+          <Stack.Screen name={t('SCREEN.UPDATE_EVENT')} component={UpdateEvent} />
+
         </Stack.Group>
       </Stack.Navigator>
     </NavigationContainer>

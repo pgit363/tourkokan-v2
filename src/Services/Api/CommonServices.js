@@ -30,7 +30,8 @@ export const comnPost = async (url, data, navigation) => {
   const headers = {'Content-Type': 'application/json'};
   if (token) headers.Authorization = `Bearer ${token}`;
   const config = {headers};
-  // console.log(myUrl);
+  console.log(myUrl);
+  console.log(data);
   try {
     const res = await axios.post(myUrl, data, config);
     return res;
@@ -42,6 +43,24 @@ export const comnPost = async (url, data, navigation) => {
       if (navigation) {
         navigateTo(navigation, STRING.SCREEN.LANG_SELECTION);
       }
+    }
+    return err;
+  }
+};
+
+export const comnPostForm = async (url, formData, navigation) => {
+  const myUrl = API_PATH + url;
+  const token = await AsyncStorage.getItem(STRING.STORAGE.ACCESS_TOKEN);
+  const headers = {'Content-Type': 'multipart/form-data'};
+  if (token) headers.Authorization = `Bearer ${token}`;
+  const config = {headers};
+  try {
+    const res = await axios.post(myUrl, formData, config);
+    return res;
+  } catch (err) {
+    if (err.response?.status == 401) {
+      await AsyncStorage.clear();
+      if (navigation) navigateTo(navigation, STRING.SCREEN.LANG_SELECTION);
     }
     return err;
   }

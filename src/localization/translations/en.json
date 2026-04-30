@@ -113,7 +113,14 @@
     "SETTINGS": "Settings",
     "PRIVACY_POLICY": "PrivacyPolicy",
     "TERMS": "Terms",
-    "ABOUT": "About"
+    "ABOUT": "About",
+    "INBOX": "Inbox",
+    "SUBMIT_PLACE": "SubmitPlace",
+    "MY_SUBMISSIONS": "MySubmissions",
+    "EVENTS_LIST": "EventsList",
+    "EVENT_DETAIL": "EventDetail",
+    "CREATE_EVENT": "CreateEvent",
+    "MY_EVENTS": "MyEvents"
   },
   "STORAGE": {
     "ACCESS_TOKEN": "access_token",

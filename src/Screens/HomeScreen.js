@@ -251,6 +251,7 @@ const HomeScreen = ({navigation, route, ...props}) => {
   const isUpdatePendingRef = useRef(isUpdatePending);
 
   const [mode, setMode] = useState(true);
+  const [unreadCount, setUnreadCount] = useState(0);
 
   const [state, dispatch] = useReducer(
     (prevState, action) => {
@@ -401,6 +402,9 @@ const HomeScreen = ({navigation, route, ...props}) => {
                   type: 'SET_DATA',
                   payload: {cities: res.cities, routes: res.routes, bannerObject: res.banners, trending: res.trending || {}},
                 });
+                if (res.unread_message_count !== undefined) {
+                  setUnreadCount(res.unread_message_count);
+                }
               }
             } else {
               setOffline(true);
@@ -446,6 +450,21 @@ const HomeScreen = ({navigation, route, ...props}) => {
     }, [props.mode, isInitialLoad, callLandingPageAPI]),
   );
 
+  // ── Unread message count — poll every 30 s while screen is focused ──
+  useFocusEffect(
+    useCallback(() => {
+      if (!mode || offline) return;
+      const fetchCount = () => {
+        comnPost('v2/unreadMessageCount')
+          .then(res => setUnreadCount(res?.data?.data?.count ?? 0))
+          .catch(() => {});
+      };
+      fetchCount();
+      const id = setInterval(fetchCount, 30000);
+      return () => clearInterval(id);
+    }, [mode, offline]),
+  );
+
   // ── API ──
   const callLandingPageAPI = useCallback(async site_id => {
     try {
@@ -489,6 +508,10 @@ const HomeScreen = ({navigation, route, ...props}) => {
           type: 'SET_DATA',
           payload: {cities: res.data.data.cities, routes: res.data.data.routes, bannerObject: res.data.data.banners, trending: res.data.data.trending || {}},
         });
+
+        if (res.data.data.unread_message_count !== undefined) {
+          setUnreadCount(res.data.data.unread_message_count);
+        }
 
         if (res.data.data.banners?.APP_SPLASH?.length > 0 && !splashShownRef.current && !isUpdatePendingRef.current) {
           setSplashBanner(res.data.data.banners.APP_SPLASH);
@@ -729,9 +752,34 @@ const HomeScreen = ({navigation, route, ...props}) => {
           ))}
         </View>
       </View>
+
+      {/* ── EVENTS ── */}
+      <View style={s.section}>
+        <View style={s.sectionHeaderRow}>
+          <Text style={s.sectionTitle}>{t('HOME.EVENTS') || 'Events'}</Text>
+          <TouchableOpacity
+            onPress={() => navigation.navigate(STRING.SCREEN.EVENTS_LIST)}
+            hitSlop={{top: 8, bottom: 8, left: 8, right: 8}}
+            style={s.seeAllBtn}>
+            <Text style={s.seeAllText}>See All</Text>
+            <Ionicons name="chevron-forward" size={14} color={C.oceanMid} />
+          </TouchableOpacity>
+        </View>
+        <TouchableOpacity
+          style={s.eventsBanner}
+          onPress={() => navigation.navigate(STRING.SCREEN.EVENTS_LIST)}
+          activeOpacity={0.85}>
+          <Ionicons name="calendar" size={28} color="#FFFFFF" />
+          <View style={{flex: 1}}>
+            <Text style={s.eventsBannerTitle}>Upcoming Events</Text>
+            <Text style={s.eventsBannerSub}>Festivals, meets & more across Kokan</Text>
+          </View>
+          <Ionicons name="arrow-forward-circle" size={26} color="rgba(255,255,255,0.8)" />
+        </TouchableOpacity>
+      </View>
     </>
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  ), [bannerObject, cities, trending, activeSpotTab, filteredSpots, SPOT_TABS, validTrendingKeys, offline]);
+  ), [bannerObject, cities, trending, activeSpotTab, filteredSpots, SPOT_TABS, validTrendingKeys, offline, navigation]);
 
   const listFooter = useMemo(() => (
     <View style={[s.sectionPad, {paddingBottom: 100}]}>
@@ -760,6 +808,7 @@ const HomeScreen = ({navigation, route, ...props}) => {
             gotoProfile={openProfile}
             showCities={showCityDropdown}
             onToggleCities={() => setShowCityDropdown(v => !v)}
+            unreadCount={unreadCount}
           />
         )}
       </SafeAreaView>
@@ -984,6 +1033,23 @@ const s = StyleSheet.create({
     paddingHorizontal: 20,
     marginBottom: 14,
   },
+  sectionHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingRight: 20,
+    marginBottom: 14,
+  },
+  seeAllBtn: {flexDirection: 'row', alignItems: 'center', gap: 2},
+  seeAllText: {fontSize: 13, color: C.oceanMid, fontWeight: '600'},
+  eventsBanner: {
+    flexDirection: 'row', alignItems: 'center', gap: 14,
+    marginHorizontal: 20, borderRadius: 16,
+    backgroundColor: C.oceanMid,
+    paddingHorizontal: 18, paddingVertical: 18,
+  },
+  eventsBannerTitle: {fontSize: 15, fontWeight: '700', color: '#FFFFFF', marginBottom: 2},
+  eventsBannerSub: {fontSize: 12, color: 'rgba(255,255,255,0.8)'},
 
   // ── Talukas ──
   talukasList: {paddingHorizontal: 20, paddingBottom: 8},

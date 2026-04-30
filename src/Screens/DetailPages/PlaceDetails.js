@@ -134,6 +134,7 @@ const PlaceDetails = ({navigation, route, ...props}) => {
           <CommentsSheet
             openCommentsSheet={() => openCommentsSheet()}
             closeCommentsSheet={() => closeCommentsSheet()}
+            navigation={navigation}
           />
         }
         openCommentsSheet={() => openCommentsSheet()}

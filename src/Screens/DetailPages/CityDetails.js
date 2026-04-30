@@ -647,6 +647,7 @@ const CityDetails = ({navigation, route, offline, ...props}) => {
               key={city.comment?.length}
               commentable_type={t('TABLE.SITE')}
               commentable_id={city.id}
+              navigation={navigation}
               reload={() => getDetails()}
               setLoader={v => setLoader(v)}
               openCommentsSheet={() => openCommentsSheet()}

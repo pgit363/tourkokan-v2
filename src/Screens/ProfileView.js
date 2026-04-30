@@ -741,6 +741,28 @@ const ProfileView = ({navigation, ...props}) => {
             </TouchableOpacity>
           </View>
 
+          {/* Submit Your Place */}
+          <TouchableOpacity
+            style={s.editProfileBtn}
+            onPress={async () => {
+              if (await isGuestUser()) { setIsGuestPopup(true); return; }
+              navigation.navigate(STRING.SCREEN.SUBMIT_PLACE);
+            }}
+            activeOpacity={0.8}>
+            <Text style={s.editProfileBtnText}>{`🏨   Submit Your Place`}</Text>
+          </TouchableOpacity>
+
+          {/* My Submissions */}
+          <TouchableOpacity
+            style={s.editProfileBtn}
+            onPress={async () => {
+              if (await isGuestUser()) { setIsGuestPopup(true); return; }
+              navigation.navigate(STRING.SCREEN.MY_SUBMISSIONS);
+            }}
+            activeOpacity={0.8}>
+            <Text style={s.editProfileBtnText}>{`📋   My Submissions`}</Text>
+          </TouchableOpacity>
+
           {/* Edit Profile */}
           <TouchableOpacity
             style={s.editProfileBtn}
@@ -1297,7 +1319,6 @@ const s = StyleSheet.create({
     fontWeight: '600',
     color: C.oceanMid,
   },
-
   // ── Info box
   infoBox: {
     backgroundColor: '#DBEAFE',

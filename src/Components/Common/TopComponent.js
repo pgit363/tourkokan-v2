@@ -13,6 +13,7 @@ import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import {useTranslation} from 'react-i18next';
 import {getFromStorage} from '../../Services/Api/CommonServices';
 import {FTP_PATH} from '@env';
+import STRING from '../../Services/Constants/STRINGS';
 
 const {width: SW} = Dimensions.get('window');
 
@@ -32,6 +33,7 @@ const TopComponent = ({
   gotoProfile,
   showCities,
   onToggleCities,
+  unreadCount = 0,
 }) => {
   const {t} = useTranslation();
   const [profilePhoto, setProfilePhoto] = useState(null);
@@ -81,6 +83,7 @@ const TopComponent = ({
         <View style={s.right}>
           <TouchableOpacity
             style={s.glassBtn}
+            onPress={() => navigation.navigate(STRING.SCREEN.INBOX)}
             activeOpacity={0.75}
             hitSlop={{top: 8, bottom: 8, left: 8, right: 8}}>
             <Image
@@ -88,6 +91,13 @@ const TopComponent = ({
               style={s.bellIcon}
               resizeMode="contain"
             />
+            {unreadCount > 0 && (
+              <View style={s.badge}>
+                <Text style={s.badgeText}>
+                  {unreadCount > 9 ? '9+' : unreadCount}
+                </Text>
+              </View>
+            )}
           </TouchableOpacity>
 
           <TouchableOpacity
@@ -144,6 +154,26 @@ const s = StyleSheet.create({
   bellIcon: {
     width: 30,
     height: 30,
+  },
+  badge: {
+    position: 'absolute',
+    top: 6,
+    right: 6,
+    minWidth: 16,
+    height: 16,
+    borderRadius: 8,
+    backgroundColor: '#E53935',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 3,
+    borderWidth: 1.5,
+    borderColor: C.oceanDeep,
+  },
+  badgeText: {
+    fontSize: 9,
+    fontWeight: '800',
+    color: C.white,
+    lineHeight: 12,
   },
   locationPill: {
     flexDirection: 'row',

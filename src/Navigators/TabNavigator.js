@@ -3,10 +3,10 @@ import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
 import {useTranslation} from 'react-i18next';
 
 import HomeScreen from '../Screens/HomeScreen';
-import MapScreen from '../Screens/MapScreen';
 import Categories from '../Screens/ListPages/Categories';
 import MSRTCSearch from '../Screens/ListPages/MSRTCSearch';
 import ExploreGrid from '../Screens/ListPages/ExploreGrid';
+import EventsList from '../Screens/ListPages/EventsList';
 import CustomTabBar from '../Components/Navigation/CustomTabBar';
 
 const Tab = createBottomTabNavigator();
@@ -24,7 +24,7 @@ const TabNavigator = () => {
       <Tab.Screen name={t('SCREEN.GALLERY')} component={ExploreGrid} />
       <Tab.Screen name={t('SCREEN.ROUTES')} component={MSRTCSearch} />
       <Tab.Screen name={t('SCREEN.CATEGORIES')} component={Categories} />
-      <Tab.Screen name={t('SCREEN.MAP_SCREEN')} component={MapScreen} />
+      <Tab.Screen name={t('SCREEN.EVENTS_LIST')} component={EventsList} />
     </Tab.Navigator>
   );
 };

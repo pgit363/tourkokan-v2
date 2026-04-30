@@ -924,7 +924,33 @@ const SiteDetailPage = ({navigation, route}) => {
         {/* 11. Villages */}
         {renderVillagesSection()}
 
-        {/* 12. Footer Ad Banner */}
+        {/* 12. Events */}
+        <View style={st.namedSection}>
+          <View style={[st.sectionHeaderRow, {paddingHorizontal: 20, marginBottom: 14}]}>
+            <View style={st.sectionTitleRow}>
+              <View style={st.sectionTitleDot} />
+              <Text style={st.sectionTitle}>Events</Text>
+            </View>
+            <TouchableOpacity
+              onPress={() => navigation.navigate(STRING.SCREEN.EVENTS_LIST, {site_id: city.id})}
+              hitSlop={{top: 8, bottom: 8, left: 8, right: 8}}>
+              <Text style={{fontSize: 13, color: C.oceanMid, fontWeight: '600'}}>See All</Text>
+            </TouchableOpacity>
+          </View>
+          <TouchableOpacity
+            style={[st.eventsBanner, {marginHorizontal: 20}]}
+            onPress={() => navigation.navigate(STRING.SCREEN.EVENTS_LIST, {site_id: city.id})}
+            activeOpacity={0.85}>
+            <Ionicons name="calendar" size={24} color="#FFFFFF" />
+            <View style={{flex: 1}}>
+              <Text style={{fontSize: 14, fontWeight: '700', color: '#FFFFFF', marginBottom: 2}}>Events at {city.name || 'this place'}</Text>
+              <Text style={{fontSize: 12, color: 'rgba(255,255,255,0.8)'}}>Tap to view & join upcoming events</Text>
+            </View>
+            <Ionicons name="arrow-forward-circle" size={24} color="rgba(255,255,255,0.8)" />
+          </TouchableOpacity>
+        </View>
+
+        {/* 13. Footer Ad Banner */}
         <View style={[st.adSection, {marginBottom: 8}]}>
           {(isLoading && !bannerObject.CITY_FOOTER) ? (
             <SkeletonAdBanner />
@@ -960,6 +986,7 @@ const SiteDetailPage = ({navigation, route}) => {
             key={city?.comment?.length}
             commentable_type={t('TABLE.SITE')}
             commentable_id={city.id}
+            navigation={navigation}
             reload={() => {
               fetchFreshData();
               AsyncStorage.setItem('isUpdated', 'true');
@@ -1287,6 +1314,11 @@ const st = StyleSheet.create({
 
   // Named section wrapper (for Popular Spots / Nearby)
   namedSection: {marginTop: 20},
+  eventsBanner: {
+    flexDirection: 'row', alignItems: 'center', gap: 14,
+    borderRadius: 16, backgroundColor: C.oceanMid,
+    paddingHorizontal: 18, paddingVertical: 18,
+  },
 
   // Villages
   villageCard: {

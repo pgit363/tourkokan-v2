@@ -107,6 +107,15 @@ const STRING = {
     PRIVACY_POLICY: 'PrivacyPolicy',
     TERMS: 'Terms',
     ABOUT: 'About',
+
+    INBOX: 'Inbox',
+    SUBMIT_PLACE: 'SubmitPlace',
+    MY_SUBMISSIONS: 'MySubmissions',
+    EVENTS_LIST: 'EventsList',
+    EVENT_DETAIL: 'EventDetail',
+    CREATE_EVENT: 'CreateEvent',
+    UPDATE_EVENT: 'UpdateEvent',
+    MY_EVENTS: 'MyEvents',
   },
   STORAGE: {
     ACCESS_TOKEN: 'access_token',
@@ -156,6 +165,10 @@ const STRING = {
   },
   DRAWER: {
     CHECK_UPDATE: 'Check for Update',
+    INBOX: 'Inbox',
+    EVENTS: 'Events',
+    MY_SUBMISSIONS: 'My Submissions',
+    MAP: 'Map',
   },
   ALERT: {
     FAILED: 'Failed',

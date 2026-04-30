@@ -14,6 +14,7 @@ import {
 } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import TabNavigator from './TabNavigator';
+import MapScreen from '../Screens/MapScreen';
 import Emergency from '../Screens/Emergency';
 import QueriesList from '../Screens/ListPages/QueriesList';
 import Settings from '../Screens/Settings';
@@ -85,10 +86,12 @@ const DrawerNavigator = () => {
 
   const MENU_ITEMS = [
     {type: 'image', source: require('../Assets/Images/DrawerIcons/home.webp'), label: t('DRAWER.HOME'), screen: STRING.SCREEN.DASHBOARD, navigate: true},
+    {type: 'emoji', source: '📋', label: STRING.DRAWER.MY_SUBMISSIONS, screen: STRING.SCREEN.MY_SUBMISSIONS, navigate: true},
     {type: 'image', source: require('../Assets/Images/DrawerIcons/emergency.webp'), label: t('DRAWER.EMERGENCY'), screen: STRING.SCREEN.EMERGENCY, navigate: true},
     {type: 'image', source: require('../Assets/Images/DrawerIcons/contact_us.webp'), label: t('DRAWER.CONTACT_US'), screen: STRING.SCREEN.CONTACT_US, navigate: true},
     {type: 'image', source: require('../Assets/Images/DrawerIcons/settings.webp'), label: t('DRAWER.SETTINGS'), screen: STRING.SCREEN.SETTINGS, navigate: true},
     {type: 'image', source: require('../Assets/Images/DrawerIcons/about.webp'), label: t('DRAWER.ABOUT'), screen: STRING.SCREEN.ABOUT, navigate: true},
+    {type: 'emoji', source: '🗺️', label: STRING.DRAWER.MAP, screen: STRING.SCREEN.MAP_SCREEN, navigate: true},
   ];
 
   const CustomDrawerContent = ({navigation, state}) => {
@@ -214,6 +217,7 @@ const DrawerNavigator = () => {
       <Drawer.Screen name={STRING.SCREEN.PRIVACY_POLICY} component={PrivacyPolicyScreen} />
       <Drawer.Screen name={STRING.SCREEN.TERMS} component={TermsScreen} />
       <Drawer.Screen name={STRING.SCREEN.ABOUT} component={AboutScreen} />
+      <Drawer.Screen name={STRING.SCREEN.MAP_SCREEN} component={MapScreen} />
     </Drawer.Navigator>
   );
 };
