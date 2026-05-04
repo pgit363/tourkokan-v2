@@ -21,11 +21,11 @@ export const navigateTo = (navigation, page, params) => {
 };
 
 export const checkLogin = async navigation => {
-  if (
-    (await AsyncStorage.getItem(STRING.STORAGE.ACCESS_TOKEN)) == null ||
-    (await AsyncStorage.getItem(STRING.STORAGE.ACCESS_TOKEN)) == ''
-  ) {
-    navigateTo(navigation, STRING.SCREEN.LANG_SELECTION);
+  const token = await AsyncStorage.getItem(STRING.STORAGE.ACCESS_TOKEN);
+  if (!token) {
+    try {
+      navigation.reset({index: 0, routes: [{name: STRING.SCREEN.EMAIL}]});
+    } catch {}
   }
 };
 

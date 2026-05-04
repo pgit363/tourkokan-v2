@@ -86,8 +86,8 @@ const formatMemberSince = dateString => {
 
 const formatWallet = amount => {
   const num = parseFloat(amount);
-  if (isNaN(num)) return '₹0.00';
-  return `₹${num.toFixed(2)}`;
+  if (isNaN(num)) return '0';
+  return String(Math.floor(num));
 };
 
 // ─── Skeleton ──────────────────────────────────────────────────────────────────
@@ -683,7 +683,7 @@ const ProfileView = ({navigation, ...props}) => {
               {t('PROFILE_SCREEN.PAYMENTS_TITLE')}
             </Text>
             <TouchableOpacity style={s.paymentCard} activeOpacity={0.85}>
-              <Text style={s.paymentIcon}>💰</Text>
+              <Text style={s.paymentIcon}>🪙</Text>
               <View style={s.paymentInfo}>
                 <Text style={s.paymentLabel}>
                   {t('PROFILE_SCREEN.WALLET_LABEL')}
@@ -761,6 +761,17 @@ const ProfileView = ({navigation, ...props}) => {
             }}
             activeOpacity={0.8}>
             <Text style={s.editProfileBtnText}>{`📋   My Submissions`}</Text>
+          </TouchableOpacity>
+
+          {/* My Events */}
+          <TouchableOpacity
+            style={s.editProfileBtn}
+            onPress={async () => {
+              if (await isGuestUser()) { setIsGuestPopup(true); return; }
+              navigation.navigate(STRING.SCREEN.MY_EVENTS);
+            }}
+            activeOpacity={0.8}>
+            <Text style={s.editProfileBtnText}>{`🎪   My Events`}</Text>
           </TouchableOpacity>
 
           {/* Edit Profile */}

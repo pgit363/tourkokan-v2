@@ -3,8 +3,17 @@ import Path from './BaseUrl';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import STRING from '../Constants/STRINGS';
 import NetInfo from '@react-native-community/netinfo';
-import {navigateTo} from '../CommonMethods';
 import {API_PATH} from '@env';
+
+const handle401 = async navigation => {
+  await AsyncStorage.clear();
+  await AsyncStorage.setItem(STRING.STORAGE.IS_FIRST_TIME, 'false');
+  if (navigation) {
+    try {
+      navigation.reset({index: 0, routes: [{name: STRING.SCREEN.EMAIL}]});
+    } catch {}
+  }
+};
 
 export const comnGet = async (url, apiToken, navigation) => {
   let myUrl = API_PATH + url;
@@ -16,10 +25,7 @@ export const comnGet = async (url, apiToken, navigation) => {
     const res = await axios.get(myUrl, config);
     return res;
   } catch (err) {
-    if (err.response?.status == 401) {
-      await AsyncStorage.clear();
-      navigateTo(navigation, STRING.SCREEN.LANG_SELECTION);
-    }
+    if (err.response?.status == 401) await handle401(navigation);
     return err;
   }
 };
@@ -39,10 +45,7 @@ export const comnPost = async (url, data, navigation) => {
     console.log(err);
     
     if (err.response?.status == 401) {
-      await AsyncStorage.clear();
-      if (navigation) {
-        navigateTo(navigation, STRING.SCREEN.LANG_SELECTION);
-      }
+      await handle401(navigation);
     }
     return err;
   }
@@ -58,10 +61,7 @@ export const comnPostForm = async (url, formData, navigation) => {
     const res = await axios.post(myUrl, formData, config);
     return res;
   } catch (err) {
-    if (err.response?.status == 401) {
-      await AsyncStorage.clear();
-      if (navigation) navigateTo(navigation, STRING.SCREEN.LANG_SELECTION);
-    }
+    if (err.response?.status == 401) await handle401(navigation);
     return err;
   }
 };
@@ -77,10 +77,7 @@ export const comnPut = async (url, data, navigation) => {
     const res = await axios.put(myUrl, data, config);
     return res;
   } catch (err) {
-    if (err.response?.status == 401) {
-      await AsyncStorage.clear();
-      navigateTo(navigation, STRING.SCREEN.LANG_SELECTION);
-    }
+    if (err.response?.status == 401) await handle401(navigation);
     return err;
   }
 };
@@ -96,10 +93,7 @@ export const comnDel = async (url, data, navigation) => {
     const res = await axios.delete(myUrl, {data, ...config});
     return res;
   } catch (err) {
-    if (err.response?.status == 401) {
-      await AsyncStorage.clear();
-      navigateTo(navigation, STRING.SCREEN.LANG_SELECTION);
-    }
+    if (err.response?.status == 401) await handle401(navigation);
     return err;
   }
 };

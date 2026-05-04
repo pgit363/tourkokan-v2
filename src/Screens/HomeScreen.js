@@ -316,14 +316,16 @@ const HomeScreen = ({navigation, route, ...props}) => {
     }
   }, [isUpdatePending]);
 
-  // ── Back handler ──
-  useEffect(() => {
-    const backHandler = BackHandler.addEventListener(
-      t('EVENT.HARDWARE_BACK_PRESS'),
-      () => exitApp(),
-    );
-    return () => backHandler.remove();
-  }, [t]);
+  // ── Back handler — only active when HomeScreen is focused ──
+  useFocusEffect(
+    useCallback(() => {
+      const backHandler = BackHandler.addEventListener(
+        t('EVENT.HARDWARE_BACK_PRESS'),
+        () => exitApp(),
+      );
+      return () => backHandler.remove();
+    }, [t]),
+  );
 
   // ── Init ──
   useEffect(() => {

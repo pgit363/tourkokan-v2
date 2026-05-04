@@ -1,4 +1,4 @@
-import React, {useState, useMemo} from 'react';
+import React, {useState, useMemo, useCallback} from 'react';
 import {
   View,
   Text,
@@ -11,8 +11,10 @@ import {
   Alert,
   Modal,
   Image,
+  BackHandler,
 } from 'react-native';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
+import {useFocusEffect} from '@react-navigation/native';
 import LinearGradient from 'react-native-linear-gradient';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import {launchImageLibrary} from 'react-native-image-picker';
@@ -152,6 +154,16 @@ const Field = ({label, required, children}) => (
 const CreateEvent = ({navigation, route}) => {
   const insets = useSafeAreaInsets();
   const prefilledSiteId = route?.params?.site_id ?? null;
+
+  useFocusEffect(
+    useCallback(() => {
+      const handler = BackHandler.addEventListener('hardwareBackPress', () => {
+        navigation.goBack();
+        return true;
+      });
+      return () => handler.remove();
+    }, [navigation]),
+  );
 
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');

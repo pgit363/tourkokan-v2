@@ -1,4 +1,4 @@
-import React, {useState, useEffect, useCallback, useRef} from 'react';
+import React, {useState, useEffect, useCallback, useRef, useMemo} from 'react';
 import {
   View,
   Text,
@@ -11,6 +11,10 @@ import {
   Animated,
   RefreshControl,
   ScrollView,
+  TextInput,
+  Modal,
+  Switch,
+  BackHandler,
 } from 'react-native';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {useFocusEffect} from '@react-navigation/native';
@@ -34,18 +38,28 @@ const C = {
   textLight: '#78716C',
 };
 
-const MY_STATUS_FILTERS = [
-  {label: 'All', value: null},
-  {label: 'Pending', value: 'pending'},
-  {label: 'Approved', value: 'approved'},
-  {label: 'Rejected', value: 'rejected'},
-];
+const TALUKAS = ['Devgad','Kudal','Malvan','Sawantwadi','Vengurla','Dodamarg','Kankavli','Vaibhavvadi'];
 
-const STATUS_META = {
-  pending:  {bg: '#FEF3C7', color: '#92400E'},
-  approved: {bg: '#D1FAE5', color: '#065F46'},
-  rejected: {bg: '#FEE2E2', color: '#991B1B'},
+const EMPTY_FILTERS = {
+  taluka: null,
+  is_free: false,
+  is_featured: false,
+  start_date: null,
+  end_date: null,
 };
+
+const MONTHS_SHORT = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const MONTHS_FULL  = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+const WEEK_DAYS    = ['Su','Mo','Tu','We','Th','Fr','Sa'];
+
+// ─── Date helpers ─────────────────────────────────────────────────────────────
+
+const todayObj   = () => { const n = new Date(); return {year: n.getFullYear(), month: n.getMonth(), day: n.getDate()}; };
+const daysInMon  = (y, m) => new Date(y, m + 1, 0).getDate();
+const firstDay   = (y, m) => new Date(y, m, 1).getDay();
+const objToStr   = d => d ? `${d.year}-${String(d.month + 1).padStart(2,'0')}-${String(d.day).padStart(2,'0')}` : null;
+const strToObj   = s => { if (!s) return null; const [y,m,d] = s.split('-').map(Number); return {year: y, month: m - 1, day: d}; };
+const strToDisp  = s => { if (!s) return null; const [y,m,d] = s.split('-'); return `${parseInt(d)} ${MONTHS_SHORT[parseInt(m)-1]} ${y}`; };
 
 // ─── Shimmer ──────────────────────────────────────────────────────────────────
 
@@ -71,27 +85,18 @@ const SkeletonCard = ({opacity}) => (
       <View style={sk.line} />
       <View style={sk.lineSm} />
       <View style={sk.statsRow}>
-        <View style={sk.stat} />
-        <View style={sk.stat} />
-        <View style={sk.stat} />
+        <View style={sk.stat} /><View style={sk.stat} /><View style={sk.stat} />
       </View>
     </View>
   </Animated.View>
 );
-
 const SkeletonList = () => {
   const opacity = useShimmer();
-  return (
-    <>{Array.from({length: 4}).map((_, i) => <SkeletonCard key={i} opacity={opacity} />)}</>
-  );
+  return <>{Array.from({length: 4}).map((_, i) => <SkeletonCard key={i} opacity={opacity} />)}</>;
 };
-
 const sk = StyleSheet.create({
-  card: {
-    backgroundColor: C.white, borderRadius: 18,
-    marginHorizontal: 20, marginBottom: 14, overflow: 'hidden',
-    borderWidth: 1, borderColor: 'rgba(0,0,0,0.07)',
-  },
+  card: {backgroundColor: C.white, borderRadius: 18, marginHorizontal: 16, marginBottom: 14,
+    overflow: 'hidden', borderWidth: 1, borderColor: 'rgba(0,0,0,0.07)'},
   img: {width: '100%', height: 140, backgroundColor: '#E5E7EB'},
   body: {padding: 14, gap: 8},
   line: {height: 16, width: '75%', backgroundColor: '#E5E7EB', borderRadius: 7},
@@ -100,21 +105,87 @@ const sk = StyleSheet.create({
   stat: {flex: 1, height: 12, backgroundColor: '#F3F4F6', borderRadius: 6},
 });
 
+// ─── Inline Calendar picker (for filter sheet) ────────────────────────────────
+
+const CalendarView = ({value, minValue, onConfirm, onCancel}) => {
+  const init = value ?? todayObj();
+  const [year,  setYear]  = useState(init.year);
+  const [month, setMonth] = useState(init.month);
+  const [day,   setDay]   = useState(init.day);
+  const total = daysInMon(year, month);
+  const fDay  = firstDay(year, month);
+  const isDisabled = d => {
+    if (!minValue) return false;
+    if (year !== minValue.year) return year < minValue.year;
+    if (month !== minValue.month) return month < minValue.month;
+    return d < minValue.day;
+  };
+  const prev = () => { if (month === 0) { setMonth(11); setYear(y => y-1); } else setMonth(m => m-1); setDay(1); };
+  const next = () => { if (month === 11) { setMonth(0); setYear(y => y+1); } else setMonth(m => m+1); setDay(1); };
+  const cells = useMemo(() => {
+    const arr = [];
+    for (let i = 0; i < fDay; i++) arr.push(null);
+    for (let d = 1; d <= total; d++) arr.push(d);
+    while (arr.length % 7 !== 0) arr.push(null);
+    return arr;
+  }, [fDay, total]);
+  const CELL = 40;
+  return (
+    <View>
+      <View style={cal.nav}>
+        <TouchableOpacity style={cal.navBtn} onPress={prev}><Ionicons name="chevron-back" size={20} color={C.oceanMid} /></TouchableOpacity>
+        <Text style={cal.navLabel}>{MONTHS_FULL[month]} {year}</Text>
+        <TouchableOpacity style={cal.navBtn} onPress={next}><Ionicons name="chevron-forward" size={20} color={C.oceanMid} /></TouchableOpacity>
+      </View>
+      <View style={cal.weekRow}>{WEEK_DAYS.map(d => <Text key={d} style={[cal.weekDay, {width: CELL}]}>{d}</Text>)}</View>
+      <View style={cal.grid}>
+        {cells.map((d, i) => {
+          if (!d) return <View key={`e-${i}`} style={{width: CELL, height: CELL}} />;
+          const disabled = isDisabled(d);
+          const selected = d === day;
+          return (
+            <TouchableOpacity key={d}
+              style={[{width: CELL, height: CELL, alignItems: 'center', justifyContent: 'center', borderRadius: CELL/2},
+                selected && {backgroundColor: C.oceanMid}, disabled && {opacity: 0.3}]}
+              onPress={() => !disabled && setDay(d)} activeOpacity={disabled ? 1 : 0.7}>
+              <Text style={{fontSize: 14, color: selected ? C.white : C.textDark, fontWeight: selected ? '700' : '500'}}>{d}</Text>
+            </TouchableOpacity>
+          );
+        })}
+      </View>
+      <View style={cal.footer}>
+        <TouchableOpacity style={cal.cancelBtn} onPress={onCancel}><Text style={cal.cancelText}>Cancel</Text></TouchableOpacity>
+        <TouchableOpacity style={cal.confirmBtn} onPress={() => onConfirm({year, month, day: Math.min(day, total)})}>
+          <Text style={cal.confirmText}>Done</Text>
+        </TouchableOpacity>
+      </View>
+    </View>
+  );
+};
+const cal = StyleSheet.create({
+  nav: {flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingVertical: 12},
+  navBtn: {width: 34, height: 34, borderRadius: 17, backgroundColor: 'rgba(27,107,123,0.1)', alignItems: 'center', justifyContent: 'center'},
+  navLabel: {fontSize: 15, fontWeight: '700', color: C.textDark},
+  weekRow: {flexDirection: 'row', paddingHorizontal: 8, marginBottom: 2},
+  weekDay: {textAlign: 'center', fontSize: 11, fontWeight: '600', color: C.textLight},
+  grid: {flexDirection: 'row', flexWrap: 'wrap', paddingHorizontal: 8},
+  footer: {flexDirection: 'row', gap: 10, padding: 16},
+  cancelBtn: {flex: 1, paddingVertical: 11, borderRadius: 10, backgroundColor: '#F3F4F6', alignItems: 'center'},
+  confirmBtn: {flex: 1, paddingVertical: 11, borderRadius: 10, backgroundColor: C.oceanMid, alignItems: 'center'},
+  cancelText: {fontSize: 14, fontWeight: '600', color: C.textMid},
+  confirmText: {fontSize: 14, fontWeight: '700', color: C.white},
+});
+
 // ─── Event Card ───────────────────────────────────────────────────────────────
 
-const EventCard = ({item, onPress, showStatus}) => {
+const EventCard = ({item, onPress}) => {
   const formatDate = iso => {
     if (!iso) return '';
-    return new Date(iso).toLocaleDateString('en-IN', {
-      day: 'numeric', month: 'short', year: 'numeric',
-    });
+    return new Date(iso).toLocaleDateString('en-IN', {day: 'numeric', month: 'short', year: 'numeric'});
   };
-
   const imgUri = item.banner_image_url
     || (item.banner_image ? `${AWS_URL}/${item.banner_image}` : null)
     || (item.image ? `${AWS_URL}/${item.image}` : null);
-  const statusKey = item.status?.toLowerCase();
-  const statusMeta = STATUS_META[statusKey];
 
   return (
     <TouchableOpacity style={s.card} onPress={onPress} activeOpacity={0.88}>
@@ -125,24 +196,19 @@ const EventCard = ({item, onPress, showStatus}) => {
           <Ionicons name="calendar" size={36} color="rgba(255,255,255,0.5)" />
         </LinearGradient>
       )}
-
+      {item.is_featured && (
+        <View style={s.featuredPill}>
+          <Ionicons name="star" size={10} color="#92400E" />
+          <Text style={s.featuredText}>Featured</Text>
+        </View>
+      )}
       <View style={s.datePill}>
         <Ionicons name="calendar-outline" size={11} color={C.oceanMid} />
         <Text style={s.datePillText}>
           {formatDate(item.start_date)}
-          {item.end_date && item.end_date !== item.start_date
-            ? ` – ${formatDate(item.end_date)}` : ''}
+          {item.end_date && item.end_date !== item.start_date ? ` – ${formatDate(item.end_date)}` : ''}
         </Text>
       </View>
-
-      {showStatus && statusMeta && (
-        <View style={[s.statusPill, {backgroundColor: statusMeta.bg}]}>
-          <Text style={[s.statusPillText, {color: statusMeta.color}]}>
-            {item.status.charAt(0).toUpperCase() + item.status.slice(1)}
-          </Text>
-        </View>
-      )}
-
       <View style={s.cardBody}>
         <Text style={s.cardTitle} numberOfLines={2}>{item.title}</Text>
         {item.taluka ? (
@@ -164,6 +230,11 @@ const EventCard = ({item, onPress, showStatus}) => {
             <Ionicons name="star-outline" size={13} color={C.oceanMid} />
             <Text style={s.statText}>{item.interested_count ?? 0} interested</Text>
           </View>
+          {item.is_free && (
+            <View style={s.freePill}>
+              <Text style={s.freePillText}>Free</Text>
+            </View>
+          )}
         </View>
       </View>
     </TouchableOpacity>
@@ -174,23 +245,46 @@ const EventCard = ({item, onPress, showStatus}) => {
 
 const EventsList = ({navigation, route}) => {
   const insets = useSafeAreaInsets();
-  const siteId = route?.params?.site_id ?? null;
-  const isTab = !siteId;
+  const siteId   = route?.params?.site_id ?? null;
+  const isTab    = !siteId;
 
-  // 'all' = All Events (v2/listEvents), 'mine' = My Events (v2/myEvents)
-  const [mode, setMode] = useState(route?.params?.initialMode ?? 'all');
-  const [myStatusFilter, setMyStatusFilter] = useState(null); // null = All
-
-  const [events, setEvents] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
+  const [events,      setEvents]      = useState([]);
+  const [loading,     setLoading]     = useState(true);
+  const [refreshing,  setRefreshing]  = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
-  const [offline, setOffline] = useState(false);
+  const [offline,     setOffline]     = useState(false);
 
-  const pageRef = useRef(1);
-  const lastPageRef = useRef(null);
-  const loadingMoreRef = useRef(false);
-  const initialFetchDone = useRef(false);
+  // ── Search + filter state ──
+  const [search,         setSearch]         = useState('');
+  const [filters,        setFilters]        = useState(EMPTY_FILTERS);
+  const [filterVisible,  setFilterVisible]  = useState(false);
+  // pending = what's shown inside the sheet before Apply
+  const [pending,        setPending]        = useState(EMPTY_FILTERS);
+  // 'filters' | 'start_picker' | 'end_picker'
+  const [sheetMode,      setSheetMode]      = useState('filters');
+
+  const pageRef         = useRef(1);
+  const lastPageRef     = useRef(null);
+  const loadingMoreRef  = useRef(false);
+  const initialFetch    = useRef(false);
+  const searchTimer     = useRef(null);
+  const fetchIdRef      = useRef(0);
+
+  // ── Back handler ──
+  useFocusEffect(
+    useCallback(() => {
+      const handler = BackHandler.addEventListener('hardwareBackPress', () => {
+        if (isTab) {
+          // On the events tab — go home instead of exiting
+          navigation.navigate('HomeTab');
+          return true;
+        }
+        navigation.goBack();
+        return true;
+      });
+      return () => handler.remove();
+    }, [isTab, navigation]),
+  );
 
   // ── Connectivity ──
   useEffect(() => {
@@ -199,11 +293,10 @@ const EventsList = ({navigation, route}) => {
   }, []);
 
   // ── Fetch ──
-  const fetchEvents = useCallback((p = 1, currentMode = mode, statusFilter = myStatusFilter, isRefresh = false) => {
+  const fetchEvents = useCallback((p = 1, q = search, f = filters, isRefresh = false) => {
     if (offline) return;
     if (p === 1) {
-      if (isRefresh) { setRefreshing(true); }
-      else { setLoading(true); }
+      isRefresh ? setRefreshing(true) : setLoading(true);
       pageRef.current = 1;
       lastPageRef.current = null;
       loadingMoreRef.current = false;
@@ -214,81 +307,121 @@ const EventsList = ({navigation, route}) => {
       setLoadingMore(true);
     }
 
-    let endpoint;
-    let payload = {per_page: 15, page: p};
+    const payload = {per_page: 15, page: p};
+    if (siteId)       payload.site_id    = siteId;
+    if (q.trim())     payload.search     = q.trim();
+    if (f.taluka)     payload.taluka     = f.taluka;
+    if (f.is_free)    payload.is_free    = true;
+    if (f.is_featured) payload.is_featured = true;
+    if (f.start_date) payload.start_date = f.start_date;
+    if (f.end_date)   payload.end_date   = f.end_date;
 
-    if (currentMode === 'mine') {
-      endpoint = 'v2/myEvents';
-      if (statusFilter) payload.status = statusFilter;
-    } else {
-      endpoint = 'v2/listEvents';
-      if (siteId) payload.site_id = siteId;
-    }
-
-    console.log(`[EventsList] POST ${endpoint}`, payload);
-    comnPost(endpoint, payload)
+    const myId = ++fetchIdRef.current;
+    console.log('[EventsList] POST v2/listEvents', payload);
+    comnPost('v2/listEvents', payload)
       .then(res => {
-        const data = res?.data?.data;
-        const items = data?.data ?? data ?? [];
-        const cur = data?.current_page ?? p;
-        const last = data?.last_page ?? p;
-
+        if (fetchIdRef.current !== myId) return;
+        const data  = res?.data?.data;
+        const items = data?.data ?? [];
+        const cur   = data?.current_page ?? p;
+        const last  = data?.last_page ?? p;
         setEvents(prev => p === 1 ? items : [...prev, ...items]);
-        pageRef.current = cur;
+        pageRef.current  = cur;
         lastPageRef.current = last;
         setLoading(false);
         setRefreshing(false);
         loadingMoreRef.current = false;
         setLoadingMore(false);
       })
-      .catch(err => {
-        console.log('[EventsList] ERROR', err);
+      .catch(() => {
+        if (fetchIdRef.current !== myId) return;
         setLoading(false);
         setRefreshing(false);
         loadingMoreRef.current = false;
         setLoadingMore(false);
       });
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [mode, myStatusFilter, siteId, offline]);
+  }, [siteId, offline]);
 
   useFocusEffect(
     useCallback(() => {
       if (offline) return;
-      if (isTab || !initialFetchDone.current) {
-        initialFetchDone.current = true;
-        fetchEvents(1, mode, myStatusFilter);
+      if (isTab || !initialFetch.current) {
+        initialFetch.current = true;
+        fetchEvents(1, search, filters);
       }
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [fetchEvents, offline, isTab]),
   );
 
-  const switchMode = newMode => {
-    if (newMode === mode) return;
-    setMode(newMode);
-    setMyStatusFilter(null);
-    setEvents([]);
-    fetchEvents(1, newMode, null);
+  // ── Search debounce ──
+  const handleSearchChange = text => {
+    setSearch(text);
+    clearTimeout(searchTimer.current);
+    searchTimer.current = setTimeout(() => {
+      setEvents([]);
+      fetchEvents(1, text, filters);
+    }, 500);
   };
 
-  const switchStatus = newStatus => {
-    if (newStatus === myStatusFilter) return;
-    setMyStatusFilter(newStatus);
+  const clearSearch = () => {
+    setSearch('');
     setEvents([]);
-    fetchEvents(1, mode, newStatus);
+    fetchEvents(1, '', filters);
   };
 
-  const onRefresh = () => fetchEvents(1, mode, myStatusFilter, true);
+  // ── Filter actions ──
+  const openFilter = () => { setPending(filters); setSheetMode('filters'); setFilterVisible(true); };
+  const closeFilter = () => setFilterVisible(false);
 
+  const applyFilters = () => {
+    setFilters(pending);
+    setFilterVisible(false);
+    setEvents([]);
+    fetchEvents(1, search, pending);
+  };
+
+  const clearFilters = () => {
+    setPending(EMPTY_FILTERS);
+    setFilters(EMPTY_FILTERS);
+    setFilterVisible(false);
+    setEvents([]);
+    fetchEvents(1, search, EMPTY_FILTERS);
+  };
+
+  const removeChip = key => {
+    const next = {...filters, [key]: key === 'is_free' || key === 'is_featured' ? false : null};
+    setFilters(next);
+    setEvents([]);
+    fetchEvents(1, search, next);
+  };
+
+  const onRefresh = () => fetchEvents(1, search, filters, true);
   const onEndReached = () => {
     if (!loadingMoreRef.current && lastPageRef.current && pageRef.current < lastPageRef.current) {
-      fetchEvents(pageRef.current + 1, mode, myStatusFilter);
+      fetchEvents(pageRef.current + 1, search, filters);
     }
   };
+
+  // ── Derived ──
+  const filterCount = [
+    filters.taluka, filters.is_free, filters.is_featured,
+    filters.start_date, filters.end_date,
+  ].filter(Boolean).length;
+
+  const activeChips = [
+    filters.taluka      && {key: 'taluka',      label: filters.taluka},
+    filters.is_free     && {key: 'is_free',     label: 'Free only'},
+    filters.is_featured && {key: 'is_featured', label: 'Featured'},
+    filters.start_date  && {key: 'start_date',  label: `From ${strToDisp(filters.start_date)}`},
+    filters.end_date    && {key: 'end_date',     label: `To ${strToDisp(filters.end_date)}`},
+  ].filter(Boolean);
+
+  // ─── Render ───────────────────────────────────────────────────────────────
 
   const renderItem = ({item}) => (
     <EventCard
       item={item}
-      showStatus={mode === 'mine'}
       onPress={() => navigation.navigate(STRING.SCREEN.EVENT_DETAIL, {event: item})}
     />
   );
@@ -296,22 +429,15 @@ const EventsList = ({navigation, route}) => {
   const renderEmpty = () => (
     <View style={s.emptyWrap}>
       <Text style={s.emptyIcon}>🎉</Text>
-      <Text style={s.emptyTitle}>
-        {mode === 'mine' ? 'No events found' : 'No events yet'}
-      </Text>
+      <Text style={s.emptyTitle}>No events found</Text>
       <Text style={s.emptyText}>
-        {mode === 'mine' && myStatusFilter
-          ? `No ${myStatusFilter} events.`
-          : mode === 'mine'
-          ? 'Create your first event!'
-          : 'Be the first to create one!'}
+        {filterCount > 0 || search ? 'Try adjusting your filters.' : 'Be the first to create one!'}
       </Text>
-      <TouchableOpacity
-        style={s.createCta}
-        onPress={() => navigation.navigate(STRING.SCREEN.CREATE_EVENT, siteId ? {site_id: siteId} : {})}
-        activeOpacity={0.85}>
-        <Text style={s.createCtaText}>Create Event</Text>
-      </TouchableOpacity>
+      {(filterCount > 0 || search) && (
+        <TouchableOpacity style={s.clearFiltersBtn} onPress={() => { setSearch(''); clearFilters(); }} activeOpacity={0.8}>
+          <Text style={s.clearFiltersBtnText}>Clear filters</Text>
+        </TouchableOpacity>
+      )}
     </View>
   );
 
@@ -319,17 +445,14 @@ const EventsList = ({navigation, route}) => {
     <View style={s.root}>
       <StatusBar backgroundColor={C.oceanDeep} barStyle="light-content" />
 
+      {/* Header */}
       <LinearGradient
         colors={[C.oceanDeep, C.forestDeep]}
         start={{x: 0, y: 0}} end={{x: 1, y: 1}}
         style={[s.header, {paddingTop: insets.top + 10}]}>
-
         <View style={s.headerRow}>
           {!isTab && (
-            <TouchableOpacity
-              style={s.backBtn}
-              onPress={() => backPage(navigation)}
-              activeOpacity={0.8}
+            <TouchableOpacity style={s.iconBtn} onPress={() => backPage(navigation)} activeOpacity={0.8}
               hitSlop={{top: 8, bottom: 8, left: 8, right: 8}}>
               <Ionicons name="arrow-back" size={20} color={C.white} />
             </TouchableOpacity>
@@ -337,69 +460,56 @@ const EventsList = ({navigation, route}) => {
           <View style={s.headerText}>
             <Text style={s.headerTitle}>Events</Text>
             {!loading && events.length > 0 && (
-              <Text style={s.headerSub}>{events.length} {mode === 'mine' ? 'my events' : 'upcoming'}</Text>
+              <Text style={s.headerSub}>{events.length} upcoming</Text>
             )}
           </View>
-          <TouchableOpacity
-            style={s.createBtn}
-            onPress={() => navigation.navigate(STRING.SCREEN.CREATE_EVENT, siteId ? {site_id: siteId} : {})}
-            activeOpacity={0.85}>
-            <Ionicons name="add" size={18} color={C.white} />
-            <Text style={s.createBtnText}>Create</Text>
-          </TouchableOpacity>
+          {isTab && (
+            <TouchableOpacity style={[s.filterBtn, filterCount > 0 && s.filterBtnActive]} onPress={openFilter} activeOpacity={0.85}>
+              <Ionicons name="options-outline" size={18} color={filterCount > 0 ? C.oceanDeep : C.white} />
+              {filterCount > 0 && (
+                <View style={s.filterBadge}>
+                  <Text style={s.filterBadgeText}>{filterCount}</Text>
+                </View>
+              )}
+            </TouchableOpacity>
+          )}
         </View>
 
-        {/* Mode toggle — only show on tab (not when opened from site detail) */}
+        {/* Search bar — tab only */}
         {isTab && (
-          <View style={s.modeRow}>
-            <TouchableOpacity
-              style={[s.modeTab, mode === 'all' && s.modeTabActive]}
-              onPress={() => switchMode('all')}
-              activeOpacity={0.8}>
-              <Ionicons
-                name="earth-outline"
-                size={13}
-                color={mode === 'all' ? C.oceanDeep : 'rgba(255,255,255,0.8)'}
-              />
-              <Text style={[s.modeText, mode === 'all' && s.modeTextActive]}>All Events</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[s.modeTab, mode === 'mine' && s.modeTabActive]}
-              onPress={() => switchMode('mine')}
-              activeOpacity={0.8}>
-              <Ionicons
-                name="person-outline"
-                size={13}
-                color={mode === 'mine' ? C.oceanDeep : 'rgba(255,255,255,0.8)'}
-              />
-              <Text style={[s.modeText, mode === 'mine' && s.modeTextActive]}>My Events</Text>
-            </TouchableOpacity>
-          </View>
-        )}
-
-        {/* Status sub-filters — only when My Events is active */}
-        {isTab && mode === 'mine' && (
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            style={s.statusScroll}
-            contentContainerStyle={s.statusScrollContent}>
-            {MY_STATUS_FILTERS.map(f => (
-              <TouchableOpacity
-                key={String(f.value)}
-                style={[s.statusTab, myStatusFilter === f.value && s.statusTabActive]}
-                onPress={() => switchStatus(f.value)}
-                activeOpacity={0.8}>
-                <Text style={[s.statusText, myStatusFilter === f.value && s.statusTextActive]}>
-                  {f.label}
-                </Text>
+          <View style={s.searchWrap}>
+            <Ionicons name="search-outline" size={16} color={C.textLight} style={{marginLeft: 12}} />
+            <TextInput
+              style={s.searchInput}
+              value={search}
+              onChangeText={handleSearchChange}
+              placeholder="Search events…"
+              placeholderTextColor={C.textLight}
+              returnKeyType="search"
+            />
+            {search.length > 0 && (
+              <TouchableOpacity onPress={clearSearch} hitSlop={{top: 8, bottom: 8, left: 8, right: 8}} style={{marginRight: 10}}>
+                <Ionicons name="close-circle" size={16} color={C.textLight} />
               </TouchableOpacity>
-            ))}
-          </ScrollView>
+            )}
+          </View>
         )}
 
         <View style={s.headerCurve} pointerEvents="none" />
       </LinearGradient>
+
+      {/* Active filter chips */}
+      {isTab && activeChips.length > 0 && (
+        <ScrollView horizontal showsHorizontalScrollIndicator={false}
+          style={s.chipsScroll} contentContainerStyle={s.chipsContent}>
+          {activeChips.map(chip => (
+            <TouchableOpacity key={chip.key} style={s.chip} onPress={() => removeChip(chip.key)} activeOpacity={0.8}>
+              <Text style={s.chipText}>{chip.label}</Text>
+              <Ionicons name="close" size={12} color={C.oceanMid} />
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
+      )}
 
       {/* Offline banner */}
       {offline && (
@@ -409,15 +519,12 @@ const EventsList = ({navigation, route}) => {
         </View>
       )}
 
+      {/* List */}
       {loading ? (
-        <FlatList
-          style={s.list}
-          contentContainerStyle={s.listContent}
-          data={[]}
-          renderItem={null}
+        <FlatList style={s.list} contentContainerStyle={s.listContent}
+          data={[]} renderItem={null}
           ListHeaderComponent={<SkeletonList />}
-          showsVerticalScrollIndicator={false}
-        />
+          showsVerticalScrollIndicator={false} />
       ) : (
         <FlatList
           style={s.list}
@@ -429,23 +536,162 @@ const EventsList = ({navigation, route}) => {
           onEndReached={onEndReached}
           onEndReachedThreshold={0.5}
           showsVerticalScrollIndicator={false}
-          refreshControl={
-            <RefreshControl
-              refreshing={refreshing}
-              onRefresh={onRefresh}
-              colors={[C.oceanMid]}
-              tintColor={C.oceanMid}
-            />
-          }
+          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[C.oceanMid]} tintColor={C.oceanMid} />}
           ListFooterComponent={
-            loadingMore ? (
-              <ActivityIndicator color={C.oceanMid} style={{marginVertical: 16}} />
-            ) : (
-              <View style={{height: insets.bottom + 100}} />
-            )
+            loadingMore
+              ? <ActivityIndicator color={C.oceanMid} style={{marginVertical: 16}} />
+              : <View style={{height: insets.bottom + 100}} />
           }
         />
       )}
+
+      {/* ── Filter bottom sheet ── */}
+      <Modal
+        visible={filterVisible}
+        transparent
+        animationType="slide"
+        onRequestClose={closeFilter}>
+        <TouchableOpacity style={fs.backdrop} activeOpacity={1} onPress={() => {
+          if (sheetMode !== 'filters') { setSheetMode('filters'); }
+          else { closeFilter(); }
+        }} />
+        <View style={fs.sheet}>
+
+          {sheetMode === 'filters' && (
+            <>
+              {/* Sheet header */}
+              <View style={fs.header}>
+                <Text style={fs.title}>Filters</Text>
+                <TouchableOpacity onPress={closeFilter} hitSlop={{top: 8, bottom: 8, left: 8, right: 8}}>
+                  <Ionicons name="close" size={22} color={C.textMid} />
+                </TouchableOpacity>
+              </View>
+
+              <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{paddingBottom: 16}}>
+
+                {/* Taluka */}
+                <Text style={fs.sectionLabel}>Taluka</Text>
+                <View style={fs.talukaGrid}>
+                  {['Any', ...TALUKAS].map(t => {
+                    const val = t === 'Any' ? null : t;
+                    const active = pending.taluka === val;
+                    return (
+                      <TouchableOpacity
+                        key={t}
+                        style={[fs.talukaChip, active && fs.talukaChipActive]}
+                        onPress={() => setPending(p => ({...p, taluka: val}))}
+                        activeOpacity={0.8}>
+                        <Text style={[fs.talukaText, active && fs.talukaTextActive]}>{t}</Text>
+                      </TouchableOpacity>
+                    );
+                  })}
+                </View>
+
+                {/* Free only */}
+                <View style={fs.toggleRow}>
+                  <View style={fs.toggleLabel}>
+                    <Ionicons name="ticket-outline" size={18} color={C.oceanMid} />
+                    <Text style={fs.toggleText}>Free Events Only</Text>
+                  </View>
+                  <Switch
+                    value={!!pending.is_free}
+                    onValueChange={v => setPending(p => ({...p, is_free: v}))}
+                    trackColor={{false: '#D1D5DB', true: C.oceanFoam}}
+                    thumbColor={pending.is_free ? C.oceanMid : C.white}
+                  />
+                </View>
+
+                {/* Featured only */}
+                <View style={fs.toggleRow}>
+                  <View style={fs.toggleLabel}>
+                    <Ionicons name="star-outline" size={18} color={C.oceanMid} />
+                    <Text style={fs.toggleText}>Featured Events Only</Text>
+                  </View>
+                  <Switch
+                    value={!!pending.is_featured}
+                    onValueChange={v => setPending(p => ({...p, is_featured: v}))}
+                    trackColor={{false: '#D1D5DB', true: C.oceanFoam}}
+                    thumbColor={pending.is_featured ? C.oceanMid : C.white}
+                  />
+                </View>
+
+                {/* Date range */}
+                <Text style={fs.sectionLabel}>Date Range</Text>
+                <View style={fs.dateRow}>
+                  <TouchableOpacity
+                    style={[fs.datePill, pending.start_date && fs.datePillActive]}
+                    onPress={() => setSheetMode('start_picker')}
+                    activeOpacity={0.8}>
+                    <Ionicons name="calendar-outline" size={14} color={pending.start_date ? C.oceanMid : C.textLight} />
+                    <Text style={[fs.datePillText, !pending.start_date && fs.datePillPlaceholder]}>
+                      {strToDisp(pending.start_date) || 'From date'}
+                    </Text>
+                    {pending.start_date && (
+                      <TouchableOpacity onPress={() => setPending(p => ({...p, start_date: null}))}
+                        hitSlop={{top: 6, bottom: 6, left: 6, right: 6}}>
+                        <Ionicons name="close-circle" size={14} color={C.textLight} />
+                      </TouchableOpacity>
+                    )}
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={[fs.datePill, pending.end_date && fs.datePillActive]}
+                    onPress={() => setSheetMode('end_picker')}
+                    activeOpacity={0.8}>
+                    <Ionicons name="calendar-outline" size={14} color={pending.end_date ? C.oceanMid : C.textLight} />
+                    <Text style={[fs.datePillText, !pending.end_date && fs.datePillPlaceholder]}>
+                      {strToDisp(pending.end_date) || 'To date'}
+                    </Text>
+                    {pending.end_date && (
+                      <TouchableOpacity onPress={() => setPending(p => ({...p, end_date: null}))}
+                        hitSlop={{top: 6, bottom: 6, left: 6, right: 6}}>
+                        <Ionicons name="close-circle" size={14} color={C.textLight} />
+                      </TouchableOpacity>
+                    )}
+                  </TouchableOpacity>
+                </View>
+              </ScrollView>
+
+              {/* Sheet footer */}
+              <View style={fs.footer}>
+                <TouchableOpacity style={fs.clearBtn} onPress={clearFilters} activeOpacity={0.8}>
+                  <Text style={fs.clearBtnText}>Clear All</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={fs.applyBtn} onPress={applyFilters} activeOpacity={0.85}>
+                  <Text style={fs.applyBtnText}>Apply</Text>
+                </TouchableOpacity>
+              </View>
+            </>
+          )}
+
+          {/* ── Inline date pickers ── */}
+          {(sheetMode === 'start_picker' || sheetMode === 'end_picker') && (
+            <>
+              <View style={fs.header}>
+                <TouchableOpacity onPress={() => setSheetMode('filters')} hitSlop={{top: 8, bottom: 8, left: 8, right: 8}}>
+                  <Ionicons name="arrow-back" size={20} color={C.textMid} />
+                </TouchableOpacity>
+                <Text style={fs.title}>{sheetMode === 'start_picker' ? 'From Date' : 'To Date'}</Text>
+                <View style={{width: 22}} />
+              </View>
+              <CalendarView
+                value={strToObj(sheetMode === 'start_picker' ? pending.start_date : pending.end_date)}
+                minValue={sheetMode === 'end_picker' ? strToObj(pending.start_date) : undefined}
+                onConfirm={d => {
+                  const str = objToStr(d);
+                  if (sheetMode === 'start_picker') {
+                    setPending(p => ({...p, start_date: str, end_date: p.end_date && p.end_date < str ? null : p.end_date}));
+                  } else {
+                    setPending(p => ({...p, end_date: str}));
+                  }
+                  setSheetMode('filters');
+                }}
+                onCancel={() => setSheetMode('filters')}
+              />
+            </>
+          )}
+
+        </View>
+      </Modal>
     </View>
   );
 };
@@ -454,76 +700,56 @@ const EventsList = ({navigation, route}) => {
 
 const s = StyleSheet.create({
   root: {flex: 1, backgroundColor: C.cream},
-  header: {paddingHorizontal: 20, paddingBottom: 52, position: 'relative', overflow: 'hidden'},
-  headerRow: {flexDirection: 'row', alignItems: 'center', gap: 12},
-  backBtn: {
-    width: 36, height: 36, borderRadius: 18,
-    backgroundColor: 'rgba(255,255,255,0.18)', alignItems: 'center', justifyContent: 'center',
-  },
+  header: {paddingHorizontal: 16, paddingBottom: 52, position: 'relative', overflow: 'hidden'},
+  headerRow: {flexDirection: 'row', alignItems: 'center', gap: 10},
+  iconBtn: {width: 36, height: 36, borderRadius: 18, backgroundColor: 'rgba(255,255,255,0.18)', alignItems: 'center', justifyContent: 'center'},
   headerText: {flex: 1},
   headerTitle: {fontSize: 20, fontWeight: '700', color: C.white, letterSpacing: 0.2},
   headerSub: {fontSize: 12, color: C.oceanFoam, marginTop: 2},
-  createBtn: {
-    flexDirection: 'row', alignItems: 'center', gap: 4,
-    backgroundColor: 'rgba(255,255,255,0.18)', borderRadius: 20,
-    paddingHorizontal: 12, paddingVertical: 7,
+  filterBtn: {
+    width: 38, height: 38, borderRadius: 19,
+    backgroundColor: 'rgba(255,255,255,0.18)',
+    alignItems: 'center', justifyContent: 'center',
+    position: 'relative',
   },
-  createBtnText: {fontSize: 13, fontWeight: '600', color: C.white},
-
-  // Mode toggle (All Events / My Events)
-  modeRow: {
-    flexDirection: 'row',
-    marginTop: 14,
-    backgroundColor: 'rgba(0,0,0,0.2)',
-    borderRadius: 22,
-    padding: 3,
-    alignSelf: 'flex-start',
+  filterBtnActive: {backgroundColor: C.white},
+  filterBadge: {
+    position: 'absolute', top: -2, right: -2,
+    width: 16, height: 16, borderRadius: 8,
+    backgroundColor: '#F59E0B', alignItems: 'center', justifyContent: 'center',
   },
-  modeTab: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 5,
-    paddingHorizontal: 16,
-    paddingVertical: 7,
-    borderRadius: 20,
+  filterBadgeText: {fontSize: 10, fontWeight: '700', color: C.white},
+  searchWrap: {
+    flexDirection: 'row', alignItems: 'center',
+    backgroundColor: C.white, borderRadius: 12,
+    marginTop: 12, height: 42,
   },
-  modeTabActive: {backgroundColor: C.white},
-  modeText: {fontSize: 13, fontWeight: '600', color: 'rgba(255,255,255,0.85)'},
-  modeTextActive: {color: C.oceanDeep},
-
-  // Status sub-filters
-  statusScroll: {marginTop: 10},
-  statusScrollContent: {gap: 8, paddingRight: 4},
-  statusTab: {
-    paddingHorizontal: 14,
-    paddingVertical: 5,
-    borderRadius: 16,
-    backgroundColor: 'rgba(255,255,255,0.15)',
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.25)',
-  },
-  statusTabActive: {backgroundColor: C.white, borderColor: C.white},
-  statusText: {fontSize: 12, fontWeight: '600', color: 'rgba(255,255,255,0.8)'},
-  statusTextActive: {color: C.oceanDeep},
-
+  searchInput: {flex: 1, fontSize: 14, color: C.textDark, paddingHorizontal: 10},
   headerCurve: {
     position: 'absolute', bottom: 0, left: 0, right: 0, height: 36,
     backgroundColor: C.cream, borderTopLeftRadius: 28, borderTopRightRadius: 28,
   },
-  offlineBanner: {
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
-    gap: 8, backgroundColor: '#B91C1C', paddingVertical: 8,
+
+  // Active filter chips
+  chipsScroll: {maxHeight: 44, backgroundColor: C.white, borderBottomWidth: 1, borderBottomColor: 'rgba(0,0,0,0.05)'},
+  chipsContent: {paddingHorizontal: 16, paddingVertical: 8, gap: 8, flexDirection: 'row'},
+  chip: {
+    flexDirection: 'row', alignItems: 'center', gap: 5,
+    backgroundColor: 'rgba(27,107,123,0.1)', borderRadius: 16,
+    paddingHorizontal: 10, paddingVertical: 5,
+    borderWidth: 1, borderColor: 'rgba(27,107,123,0.2)',
   },
+  chipText: {fontSize: 12, fontWeight: '600', color: C.oceanMid},
+
+  offlineBanner: {flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, backgroundColor: '#B91C1C', paddingVertical: 8},
   offlineText: {fontSize: 13, color: C.white, fontWeight: '600'},
+
   list: {flex: 1},
-  listContent: {paddingTop: 8, paddingHorizontal: 20},
+  listContent: {paddingTop: 8, paddingHorizontal: 16},
   emptyContainer: {flex: 1},
 
   // Card
-  card: {
-    backgroundColor: C.white, borderRadius: 18, marginBottom: 14,
-    overflow: 'hidden', borderWidth: 1, borderColor: 'rgba(0,0,0,0.07)',
-  },
+  card: {backgroundColor: C.white, borderRadius: 18, marginBottom: 14, overflow: 'hidden', borderWidth: 1, borderColor: 'rgba(0,0,0,0.07)'},
   cardImage: {width: '100%', height: 170, resizeMode: 'cover'},
   cardImageFallback: {width: '100%', height: 120, alignItems: 'center', justifyContent: 'center'},
   datePill: {
@@ -533,27 +759,57 @@ const s = StyleSheet.create({
     paddingHorizontal: 10, paddingVertical: 4,
   },
   datePillText: {fontSize: 11, fontWeight: '600', color: C.oceanDeep},
-  statusPill: {
+  featuredPill: {
     position: 'absolute', top: 10, right: 10,
-    borderRadius: 20, paddingHorizontal: 10, paddingVertical: 4,
+    flexDirection: 'row', alignItems: 'center', gap: 3,
+    backgroundColor: '#FEF3C7', borderRadius: 20,
+    paddingHorizontal: 8, paddingVertical: 4,
   },
-  statusPillText: {fontSize: 10, fontWeight: '700', letterSpacing: 0.3},
+  featuredText: {fontSize: 10, fontWeight: '700', color: '#92400E'},
   cardBody: {padding: 14, gap: 6},
   cardTitle: {fontSize: 15, fontWeight: '700', color: C.textDark, lineHeight: 21},
   locationRow: {flexDirection: 'row', alignItems: 'center', gap: 5},
   locationText: {fontSize: 12, color: C.textLight, flex: 1},
-  statsRow: {flexDirection: 'row', gap: 14, marginTop: 4},
+  statsRow: {flexDirection: 'row', gap: 12, marginTop: 4, alignItems: 'center', flexWrap: 'wrap'},
   stat: {flexDirection: 'row', alignItems: 'center', gap: 4},
   statText: {fontSize: 12, color: C.textMid},
+  freePill: {backgroundColor: '#D1FAE5', borderRadius: 10, paddingHorizontal: 8, paddingVertical: 2},
+  freePillText: {fontSize: 10, fontWeight: '700', color: '#065F46'},
+
+  // Empty
   emptyWrap: {flex: 1, alignItems: 'center', justifyContent: 'center', gap: 10, padding: 24},
   emptyIcon: {fontSize: 52, opacity: 0.4, marginBottom: 4},
   emptyTitle: {fontSize: 16, fontWeight: '700', color: C.textMid},
-  emptyText: {fontSize: 13, color: C.textLight},
-  createCta: {
-    marginTop: 8, backgroundColor: C.oceanMid, borderRadius: 22,
-    paddingHorizontal: 22, paddingVertical: 11,
-  },
-  createCtaText: {fontSize: 14, fontWeight: '700', color: C.white},
+  emptyText: {fontSize: 13, color: C.textLight, textAlign: 'center'},
+  clearFiltersBtn: {marginTop: 4, backgroundColor: C.oceanMid, borderRadius: 20, paddingHorizontal: 18, paddingVertical: 9},
+  clearFiltersBtnText: {fontSize: 13, fontWeight: '700', color: C.white},
+});
+
+// Filter sheet styles
+const fs = StyleSheet.create({
+  backdrop: {flex: 1, backgroundColor: 'rgba(0,0,0,0.4)'},
+  sheet: {backgroundColor: C.white, borderTopLeftRadius: 24, borderTopRightRadius: 24, maxHeight: '85%'},
+  header: {flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, paddingVertical: 16, borderBottomWidth: 1, borderBottomColor: 'rgba(0,0,0,0.06)'},
+  title: {fontSize: 17, fontWeight: '700', color: C.textDark},
+  sectionLabel: {fontSize: 12, fontWeight: '600', color: C.textLight, textTransform: 'uppercase', letterSpacing: 0.8, marginTop: 18, marginBottom: 10, marginHorizontal: 20},
+  talukaGrid: {flexDirection: 'row', flexWrap: 'wrap', gap: 8, paddingHorizontal: 20},
+  talukaChip: {paddingHorizontal: 14, paddingVertical: 8, borderRadius: 20, borderWidth: 1.5, borderColor: 'rgba(0,0,0,0.1)', backgroundColor: C.cream},
+  talukaChipActive: {backgroundColor: C.oceanMid, borderColor: C.oceanMid},
+  talukaText: {fontSize: 13, fontWeight: '600', color: C.textMid},
+  talukaTextActive: {color: C.white},
+  toggleRow: {flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, paddingVertical: 14, borderTopWidth: 1, borderTopColor: 'rgba(0,0,0,0.05)'},
+  toggleLabel: {flexDirection: 'row', alignItems: 'center', gap: 10},
+  toggleText: {fontSize: 15, color: C.textDark, fontWeight: '500'},
+  dateRow: {flexDirection: 'row', gap: 10, paddingHorizontal: 20},
+  datePill: {flex: 1, flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: C.cream, borderRadius: 12, borderWidth: 1.5, borderColor: 'rgba(0,0,0,0.1)', paddingHorizontal: 12, paddingVertical: 10},
+  datePillActive: {borderColor: C.oceanMid},
+  datePillText: {flex: 1, fontSize: 13, fontWeight: '500', color: C.textDark},
+  datePillPlaceholder: {color: C.textLight, fontWeight: '400'},
+  footer: {flexDirection: 'row', gap: 12, padding: 16, borderTopWidth: 1, borderTopColor: 'rgba(0,0,0,0.06)'},
+  clearBtn: {flex: 1, paddingVertical: 13, borderRadius: 14, backgroundColor: '#F3F4F6', alignItems: 'center'},
+  clearBtnText: {fontSize: 14, fontWeight: '600', color: C.textMid},
+  applyBtn: {flex: 2, paddingVertical: 13, borderRadius: 14, backgroundColor: C.oceanMid, alignItems: 'center'},
+  applyBtnText: {fontSize: 14, fontWeight: '700', color: C.white},
 });
 
 export default EventsList;

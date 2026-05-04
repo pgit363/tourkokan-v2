@@ -1,4 +1,4 @@
-import React, {useState, useEffect} from 'react';
+import React, {useState, useEffect, useCallback} from 'react';
 import {
   View,
   Text,
@@ -13,8 +13,10 @@ import {
   Platform,
   Dimensions,
   Linking,
+  BackHandler,
 } from 'react-native';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
+import {useFocusEffect} from '@react-navigation/native';
 import LinearGradient from 'react-native-linear-gradient';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -90,6 +92,17 @@ const EventDetail = ({navigation, route}) => {
     going: ui.is_going ?? false,
     interested: ui.is_interested ?? false,
   });
+
+  // Back handler
+  useFocusEffect(
+    useCallback(() => {
+      const handler = BackHandler.addEventListener('hardwareBackPress', () => {
+        navigation.goBack();
+        return true;
+      });
+      return () => handler.remove();
+    }, [navigation]),
+  );
 
   // Detect ownership
   useEffect(() => {

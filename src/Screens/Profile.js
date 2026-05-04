@@ -415,9 +415,9 @@ const Profile = ({navigation, ...props}) => {
 
         <CheckNet isOff={offline} />
 
-        {/* ── Profile Photo (upload disabled) ── */}
+        {/* ── Profile Photo (read-only — synced from Google) ── */}
         <View style={s.photoSection}>
-          <View style={[s.photoWrap, {opacity: 0.6}]}>
+          <View style={s.photoWrap}>
             <Image
               source={{uri: photoUri}}
               style={s.photo}
@@ -428,6 +428,10 @@ const Profile = ({navigation, ...props}) => {
                 </View>
               }
             />
+          </View>
+          <View style={s.photoNote}>
+            <Ionicons name="logo-google" size={12} color={C.textLight} />
+            <Text style={s.photoNoteText}>Synced from Google</Text>
           </View>
         </View>
 
@@ -783,23 +787,15 @@ const s = StyleSheet.create({
     justifyContent: 'center',
   },
   photoEmoji: {fontSize: 40},
-  cameraBadge: {
-    position: 'absolute',
-    bottom: 2,
-    right: 2,
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    backgroundColor: C.sandMid,
+  photoNote: {
+    flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 2,
-    borderColor: C.white,
+    gap: 5,
+    marginTop: 8,
   },
-  changePhotoText: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: C.sandMid,
+  photoNoteText: {
+    fontSize: 12,
+    color: C.textLight,
   },
 
   // Section label (matches Settings.js)
