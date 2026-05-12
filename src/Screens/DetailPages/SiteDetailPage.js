@@ -4,7 +4,6 @@ import {
   Text,
   TouchableOpacity,
   ScrollView,
-  Image,
   StatusBar,
   Animated,
   Dimensions,
@@ -26,6 +25,7 @@ import {isGuestUser} from '../../Components/Common/GuestGateModal';
 import NetInfo from '@react-native-community/netinfo';
 import StarRating from 'react-native-star-rating-widget';
 import {FTP_PATH} from '@env';
+import CachedImage from '../../Components/Customs/CachedImage';
 
 import {comnPost, getFromStorage} from '../../Services/Api/CommonServices';
 import {navigateTo} from '../../Services/CommonMethods';
@@ -34,8 +34,8 @@ import Banner from '../../Components/Customs/Banner';
 import Popup from '../../Components/Common/Popup';
 import BottomSheet from '../../Components/Customs/BottomSheet';
 import CommentsSheet from '../../Components/Common/CommentsSheet';
-import PopularSpotsSection from '../../Components/Common/PopularSpotsSection';
-import NearbyPlacesSection from '../../Components/Common/NearbyPlacesSection';
+import PopularSpots from '../../Components/Sections/PopularSpots';
+import HotPlaces from '../../Components/Sections/HotPlaces';
 import DIMENSIONS from '../../Services/Constants/DIMENSIONS';
 
 const {width: SW} = Dimensions.get('window');
@@ -316,19 +316,23 @@ const SiteDetailPage = ({navigation, route}) => {
   // ── Helpers ───────────────────────────────────────────────────────────────────
   const getImgUri = useCallback(item => {
     if (!item) return null;
-    if (typeof item === 'string') return item.startsWith('http') ? item : `${FTP_PATH}${item}`;
-    if (item.path) return `${FTP_PATH}${item.path}`;
-    if (item.image) return `${FTP_PATH}${item.image}`;
-    if (item.gallery?.[0]?.path) return `${FTP_PATH}${item.gallery[0].path}`;
-    return null;
+    let uri = null;
+    if (typeof item === 'string') uri = item.startsWith('http') ? item : `${FTP_PATH}${item}`;
+    else if (item.path) uri = `${FTP_PATH}${item.path}`;
+    else if (item.image) uri = `${FTP_PATH}${item.image}`;
+    else if (item.gallery?.[0]?.path) uri = `${FTP_PATH}${item.gallery[0].path}`;
+    console.log('[SiteDetail getImgUri]', uri);
+    return uri;
   }, []);
 
   const getHeroUri = useCallback(() => {
     const gallery = city?.gallery || [];
-    if (gallery[activeGalleryIdx]?.path) return `${FTP_PATH}${gallery[activeGalleryIdx].path}`;
-    if (gallery[activeGalleryIdx]?.image) return `${FTP_PATH}${gallery[activeGalleryIdx].image}`;
-    if (city?.image) return `${FTP_PATH}${city.image}`;
-    return null;
+    let uri = null;
+    if (gallery[activeGalleryIdx]?.path) uri = `${FTP_PATH}${gallery[activeGalleryIdx].path}`;
+    else if (gallery[activeGalleryIdx]?.image) uri = `${FTP_PATH}${gallery[activeGalleryIdx].image}`;
+    else if (city?.image) uri = `${FTP_PATH}${city.image}`;
+    console.log('[SiteDetail hero img]', city?.name, uri);
+    return uri;
   }, [city, activeGalleryIdx]);
 
   const getRating = () => {
@@ -350,7 +354,7 @@ const SiteDetailPage = ({navigation, route}) => {
     return (
       <View style={st.heroWrap}>
         {heroUri ? (
-          <Image source={{uri: heroUri}} style={st.heroImage} resizeMode="cover" />
+          <CachedImage source={{uri: heroUri}} style={st.heroImage} resizeMode="cover" />
         ) : (
           <LinearGradient colors={[C.oceanFoam, '#D4EDD9']} style={st.heroPlaceholder}>
             <Text style={st.heroEmoji}>{emoji}</Text>
@@ -404,7 +408,7 @@ const SiteDetailPage = ({navigation, route}) => {
                 onPress={() => setActiveGalleryIdx(idx)}
                 activeOpacity={0.8}>
                 {uri ? (
-                  <Image source={{uri}} style={st.galleryThumbImg} resizeMode="cover" />
+                  <CachedImage source={{uri}} style={st.galleryThumbImg} resizeMode="cover" />
                 ) : (
                   <Text style={{fontSize: 22}}>📷</Text>
                 )}
@@ -654,7 +658,7 @@ const SiteDetailPage = ({navigation, route}) => {
               onPress={() => setActiveGalleryIdx(idx % (city?.gallery?.length || 1))}
               activeOpacity={0.9}>
               {uri ? (
-                <Image source={{uri}} style={st.photoImg} resizeMode="cover" />
+                <CachedImage source={{uri}} style={st.photoImg} resizeMode="cover" />
               ) : (
                 <View style={[st.photoImg, st.photoPlaceholder]}>
                   <Text style={{fontSize: 28}}>📷</Text>
@@ -725,9 +729,10 @@ const SiteDetailPage = ({navigation, route}) => {
                   {/* Avatar */}
                   <View style={st.commentAvatarWrap}>
                     {user?.profile_picture ? (
-                      <Image
+                      <CachedImage
                         source={{uri: `${FTP_PATH}${user.profile_picture}`}}
                         style={st.commentAvatar}
+                        resizeMode="cover"
                       />
                     ) : (
                       <View style={st.commentAvatarFallback}>
@@ -816,7 +821,7 @@ const SiteDetailPage = ({navigation, route}) => {
               activeOpacity={0.85}>
               <View style={st.villageThumb}>
                 {uri ? (
-                  <Image source={{uri}} style={st.villageThumbImg} resizeMode="cover" />
+                  <CachedImage source={{uri}} style={st.villageThumbImg} resizeMode="cover" />
                 ) : (
                   <View style={st.villageThumbPlaceholder}>
                     <Text style={{fontSize: 22}}>🏘</Text>
@@ -900,26 +905,16 @@ const SiteDetailPage = ({navigation, route}) => {
         {(isLoading && !city.name) ? <SkeletonContent /> : renderMediaSection()}
 
         {/* 9. Popular Spots */}
-        <View style={st.namedSection}>
-          <View style={[st.sectionHeaderRow, {paddingHorizontal: 20, marginBottom: 14}]}>
-            <View style={st.sectionTitleRow}>
-              <View style={st.sectionTitleDot} />
-              <Text style={st.sectionTitle}>Popular Spots</Text>
-            </View>
-          </View>
-          <PopularSpotsSection navigation={navigation} trending={{}} offline={!offline} hideTitle />
-        </View>
+        <PopularSpots
+          trending={city?.trending ?? {}}
+          onCardPress={item => navigateTo(navigation, STRING.SCREEN.SITE_DETAIL, {city: item})}
+        />
 
-        {/* 10. Nearby Places */}
-        <View style={st.namedSection}>
-          <View style={[st.sectionHeaderRow, {paddingHorizontal: 20, marginBottom: 14}]}>
-            <View style={st.sectionTitleRow}>
-              <View style={st.sectionTitleDot} />
-              <Text style={st.sectionTitle}>Nearby Places</Text>
-            </View>
-          </View>
-          <NearbyPlacesSection hideTitle />
-        </View>
+        {/* 10. Hot Places */}
+        <HotPlaces
+          hot_sites={city?.hot_sites ?? []}
+          onCardPress={item => navigateTo(navigation, STRING.SCREEN.SITE_DETAIL, {city: item})}
+        />
 
         {/* 11. Villages */}
         {renderVillagesSection()}

@@ -64,10 +64,12 @@ export default function App() {
       setInitialRoute(token ? STRING.SCREEN.HOME : STRING.SCREEN.EMAIL);
       setLoading(false);
       SplashScreen.hide();
+      if (token) {
+        callAPI();
+      }
     };
     bootstrap();
     setupAxiosInterceptors();
-    callAPI();
   }, []);
 
   const callAPI = () => {

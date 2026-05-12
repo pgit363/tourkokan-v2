@@ -5,7 +5,6 @@ import {
   FlatList,
   TouchableOpacity,
   ActivityIndicator,
-  Image,
   StyleSheet,
   StatusBar,
   Animated,
@@ -21,7 +20,8 @@ import {useFocusEffect} from '@react-navigation/native';
 import LinearGradient from 'react-native-linear-gradient';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import NetInfo from '@react-native-community/netinfo';
-import {AWS_URL} from '@env';
+import {FTP_PATH} from '@env';
+import CachedImage from '../../Components/Customs/CachedImage';
 import {backPage} from '../../Services/CommonMethods';
 import {comnPost} from '../../Services/Api/CommonServices';
 import STRING from '../../Services/Constants/STRINGS';
@@ -184,13 +184,14 @@ const EventCard = ({item, onPress}) => {
     return new Date(iso).toLocaleDateString('en-IN', {day: 'numeric', month: 'short', year: 'numeric'});
   };
   const imgUri = item.banner_image_url
-    || (item.banner_image ? `${AWS_URL}/${item.banner_image}` : null)
-    || (item.image ? `${AWS_URL}/${item.image}` : null);
+    || (item.banner_image ? `${FTP_PATH}${item.banner_image}` : null)
+    || (item.image ? `${FTP_PATH}${item.image}` : null);
+  console.log('[EventsList img]', item.name, imgUri);
 
   return (
     <TouchableOpacity style={s.card} onPress={onPress} activeOpacity={0.88}>
       {imgUri ? (
-        <Image source={{uri: imgUri}} style={s.cardImage} />
+        <CachedImage source={{uri: imgUri}} style={s.cardImage} resizeMode="cover" />
       ) : (
         <LinearGradient colors={[C.oceanDeep, C.forestDeep]} style={s.cardImageFallback}>
           <Ionicons name="calendar" size={36} color="rgba(255,255,255,0.5)" />

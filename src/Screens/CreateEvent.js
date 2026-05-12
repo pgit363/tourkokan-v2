@@ -235,7 +235,7 @@ const CreateEvent = ({navigation, route}) => {
 
     if (res?.data?.success) {
       Alert.alert('Submitted!', 'Your event has been submitted for admin approval.', [
-        {text: 'My Events', onPress: () => navigation.navigate(STRING.SCREEN.EVENTS_LIST, {initialMode: 'mine'})},
+        {text: 'My Events', onPress: () => navigation.navigate(STRING.SCREEN.MY_EVENTS)},
         {text: 'Done', onPress: () => backPage(navigation)},
       ]);
     } else {

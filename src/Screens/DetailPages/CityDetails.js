@@ -51,6 +51,8 @@ import PackageCard from '../../Components/Cards/PackageCard';
 import PackageCardSkeleton from '../../Components/Cards/PackageCardSkeleton';
 import Banner from '../../Components/Customs/Banner';
 import STRING from '../../Services/Constants/STRINGS';
+import PopularSpots from '../../Components/Sections/PopularSpots';
+import HotPlaces from '../../Components/Sections/HotPlaces';
 
 const CityDetails = ({navigation, route, offline, ...props}) => {
   const {t} = useTranslation();
@@ -628,6 +630,18 @@ const CityDetails = ({navigation, route, offline, ...props}) => {
               </View>
             </View>
           </View>
+        )}
+        {!isLoading && (
+          <>
+            <PopularSpots
+              trending={city?.trending ?? {}}
+              onCardPress={item => navigateTo(navigation, t('SCREEN.SITE_DETAIL'), {city: item})}
+            />
+            <HotPlaces
+              hot_sites={city?.hot_sites ?? []}
+              onCardPress={item => navigateTo(navigation, t('SCREEN.SITE_DETAIL'), {city: item})}
+            />
+          </>
         )}
         {!isLoading &&
           bannerObject?.CITY_FOOTER &&

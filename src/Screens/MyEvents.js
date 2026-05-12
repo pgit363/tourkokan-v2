@@ -7,14 +7,14 @@ import {
   StyleSheet,
   RefreshControl,
   ActivityIndicator,
-  Image,
   BackHandler,
 } from 'react-native';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {useFocusEffect} from '@react-navigation/native';
 import {connect} from 'react-redux';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import {AWS_URL} from '@env';
+import {FTP_PATH} from '@env';
+import CachedImage from '../Components/Customs/CachedImage';
 import {comnPost} from '../Services/Api/CommonServices';
 import STRING from '../Services/Constants/STRINGS';
 import {backPage} from '../Services/CommonMethods';
@@ -55,13 +55,14 @@ const C = {
 // ─── Event Card ──────────────────────────────────────────────────────────────
 
 const EventCard = ({item, onPress}) => {
-  const imgUri = item.banner_image_url || (item.banner_image ? `${AWS_URL}/${item.banner_image}` : null);
+  const imgUri = item.banner_image_url || (item.banner_image ? `${FTP_PATH}${item.banner_image}` : null);
+  console.log('[MyEvents img]', item.title, imgUri);
   const sc = STATUS_COLORS[item.status] || STATUS_COLORS.draft;
 
   return (
     <TouchableOpacity style={styles.card} onPress={onPress} activeOpacity={0.88}>
       {imgUri ? (
-        <Image source={{uri: imgUri}} style={styles.cardImg} resizeMode="cover" />
+        <CachedImage source={{uri: imgUri}} style={styles.cardImg} resizeMode="cover" />
       ) : (
         <View style={[styles.cardImg, styles.cardImgPlaceholder]}>
           <Text style={{fontSize: 28}}>🎪</Text>

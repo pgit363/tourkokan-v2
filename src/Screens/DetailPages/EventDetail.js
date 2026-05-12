@@ -21,7 +21,7 @@ import LinearGradient from 'react-native-linear-gradient';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {launchImageLibrary} from 'react-native-image-picker';
-import {AWS_URL} from '@env';
+import {FTP_PATH} from '@env';
 import {backPage} from '../../Services/CommonMethods';
 import {comnPost, comnPostForm} from '../../Services/Api/CommonServices';
 import {isGuestUser} from '../../Components/Common/GuestGateModal';
@@ -43,8 +43,11 @@ const C = {
   textLight: '#78716C',
 };
 
-const resolveImg = (url, path) =>
-  url || (path ? `${AWS_URL}/${path}` : null);
+const resolveImg = (url, path) => {
+  const uri = url || (path ? `${FTP_PATH}${path}` : null);
+  console.log('[EventDetail img]', uri);
+  return uri;
+};
 
 const isYouTube = url => /youtube\.com|youtu\.be/.test(url ?? '');
 const getYouTubeId = url => {

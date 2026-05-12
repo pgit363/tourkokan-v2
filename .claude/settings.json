@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(mkdir -p /Users/pranavkamble/Documents/tourkokan-v2/src/Components/Sections)"
+    ],
+    "additionalDirectories": [
+      "/Users/pranavkamble/Documents/tourkokan-v2/src/Components"
+    ]
+  }
+}

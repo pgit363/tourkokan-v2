@@ -11,7 +11,7 @@ import {
   View,
   Text,
   TouchableOpacity,
-  ScrollView,
+
   FlatList,
   StatusBar,
   StyleSheet,
@@ -35,6 +35,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import NetInfo from '@react-native-community/netinfo';
 import {Overlay} from '@rneui/themed';
 import {FTP_PATH} from '@env';
+import CachedImage from '../Components/Customs/CachedImage';
 
 import TopComponent from '../Components/Common/TopComponent';
 import TopComponentSkeleton from '../Components/Common/TopComponentSkeleton';
@@ -44,7 +45,6 @@ import CheckNet from '../Components/Common/CheckNet';
 import Popup from '../Components/Common/Popup';
 import BottomSheet from '../Components/Customs/BottomSheet';
 import LocationSheet from '../Components/Common/LocationSheet';
-import PackageCard from '../Components/Cards/PackageCard';
 import {KeyboardAwareFlatList} from 'react-native-keyboard-aware-scroll-view';
 
 import {
@@ -62,6 +62,8 @@ import {
 } from '../Reducers/CommonActions';
 import {exitApp, navigateTo} from '../Services/CommonMethods';
 import {UpdateContext} from '../Context/UpdateContext';
+import PopularSpots from '../Components/Sections/PopularSpots';
+import HotPlaces from '../Components/Sections/HotPlaces';
 import STRING from '../Services/Constants/STRINGS';
 import DIMENSIONS from '../Services/Constants/DIMENSIONS';
 
@@ -87,35 +89,6 @@ const {width: SW} = Dimensions.get('window');
 const BANNER_HEIGHT = Math.round(SW / 1.35);
 const RADIUS = 18;
 
-// ─── Static Data ───────────────────────────────────────────────────────────────
-
-const STATIC_SPOTS = [
-  // beaches
-  {id: 1, name: 'Tarkarli Beach', location: 'Malvan', rating: 4.8, type: 'beaches', km: 12, emoji: '🏖️'},
-  {id: 4, name: 'Devbagh Beach', location: 'Malvan', rating: 4.6, type: 'beaches', km: 15, emoji: '🏖️'},
-  {id: 7, name: 'Nivati Beach', location: 'Devgad', rating: 4.5, type: 'beaches', km: 30, emoji: '🏖️'},
-  // forts
-  {id: 2, name: 'Sindhudurg Fort', location: 'Malvan', rating: 4.9, type: 'forts', km: 8, emoji: '🏰'},
-  {id: 5, name: 'Vijaydurg Fort', location: 'Devgad', rating: 4.5, type: 'forts', km: 22, emoji: '🏰'},
-  {id: 8, name: 'Padmadurg Fort', location: 'Malvan', rating: 4.3, type: 'forts', km: 20, emoji: '🏰'},
-  // waterfalls
-  {id: 3, name: 'Amboli Ghat', location: 'Sawantwadi', rating: 4.7, type: 'waterfalls', km: 35, emoji: '💧'},
-  {id: 9, name: 'Hiranyakeshi Falls', location: 'Sawantwadi', rating: 4.4, type: 'waterfalls', km: 40, emoji: '💧'},
-  // temples
-  {id: 6, name: 'Kunkeshwar Temple', location: 'Devgad', rating: 4.4, type: 'temples', km: 18, emoji: '⛩️'},
-  {id: 10, name: 'Redi Ganpati Temple', location: 'Vengurla', rating: 4.6, type: 'temples', km: 42, emoji: '⛩️'},
-  // food
-  {id: 11, name: 'Kokan Cuisine Hub', location: 'Kankavli', rating: 4.5, type: 'food', km: 5, emoji: '🍛'},
-  {id: 12, name: 'Malvan Fish Market', location: 'Malvan', rating: 4.7, type: 'food', km: 9, emoji: '🐟'},
-  {id: 13, name: 'Sol Kadhi Corner', location: 'Kudal', rating: 4.3, type: 'food', km: 14, emoji: '🥛'},
-];
-
-const STATIC_NEARBY = [
-  {id: 1, name: 'Tarkarli Beach', emoji: '🏖️', category: 'Beach', distance: 12},
-  {id: 2, name: 'Sindhudurg Fort', emoji: '🏰', category: 'Fort', distance: 8},
-  {id: 3, name: 'Kunkeshwar Temple', emoji: '⛩️', category: 'Temple', distance: 18},
-  {id: 4, name: 'Amboli Waterfalls', emoji: '💧', category: 'Waterfall', distance: 35},
-];
 
 // ─── Sub-components ────────────────────────────────────────────────────────────
 
@@ -127,15 +100,16 @@ const TalukaCard = ({item, onPress}) => {
     : item.gallery?.[0]?.path
     ? `${FTP_PATH}${item.gallery[0].path}`
     : null;
+  console.log('[TalukaCard img]', item.name, uri);
 
   return (
     <TouchableOpacity style={ts.talukaCard} onPress={onPress} activeOpacity={0.85}>
       <View style={ts.talukaImgWrap}>
-        {uri ? (
-          <Image source={{uri}} style={ts.talukaImg} resizeMode="cover" />
-        ) : (
-          <Image source={fallback} style={ts.talukaImg} resizeMode="cover" />
-        )}
+        <CachedImage
+          source={uri ? {uri} : fallback}
+          style={ts.talukaImg}
+          resizeMode="cover"
+        />
         {/* Favourite heart overlay */}
         <View style={[ts.talukaHeart, item.is_favorite && ts.talukaHeartActive]}>
           <Ionicons
@@ -186,18 +160,6 @@ const SpotCard = ({item}) => (
   </View>
 );
 
-// Nearby card — emoji + category
-const NearbyCard = ({item}) => (
-  <View style={ts.nearbyCard}>
-    <Text style={ts.nearbyEmoji}>{item.emoji}</Text>
-    <View style={ts.nearbyCategoryBadge}>
-      <Text style={ts.nearbyCategoryText}>{item.category}</Text>
-    </View>
-    <Text style={ts.nearbyName} numberOfLines={2}>{item.name}</Text>
-    <Text style={ts.nearbyDist}>{item.distance} km away</Text>
-  </View>
-);
-
 // Ad banner — always shows dashed outline; dynamic banner inside or static placeholder
 const AdBanner = ({bannerImages, label, size, bannerHeight}) => (
   <View style={ts.adBannerWrap}>
@@ -241,7 +203,6 @@ const HomeScreen = ({navigation, route, ...props}) => {
   const [isInitialLoad, setIsInitialLoad] = useState(true);
   const [isLandingDataFetched, setIsLandingDataFetched] = useState(false);
   const [activeTab, setActiveTab] = useState(null);
-  const [activeSpotTab, setActiveSpotTab] = useState('all');
   const [showCityDropdown, setShowCityDropdown] = useState(false);
   const [showSplash, setShowSplash] = useState(false);
   const [splashBanner, setSplashBanner] = useState([]);
@@ -264,14 +225,10 @@ const HomeScreen = ({navigation, route, ...props}) => {
           return prevState;
       }
     },
-    {cities: [], routes: [], bannerObject: {}, trending: {}, isLoading: true, isFetching: true},
+    {cities: [], routes: [], bannerObject: {}, trending: {}, hot_sites: [], isLoading: true, isFetching: true},
   );
-  const {cities, bannerObject, trending, isLoading} = state;
+  const {cities, bannerObject, trending, hot_sites, isLoading} = state;
 
-  const validTrendingKeys = useMemo(
-    () => (trending ? Object.keys(trending).filter(k => trending[k]?.length > 0) : []),
-    [trending],
-  );
 
   const topComponentCities = useMemo(
     () => [sindhudurg, ...cities],
@@ -283,16 +240,6 @@ const HomeScreen = ({navigation, route, ...props}) => {
     [cities],
   );
 
-  // Spot tabs: use trending keys from API if available, else use static tabs
-  const SPOT_TABS = useMemo(() => {
-    if (validTrendingKeys.length > 0) return validTrendingKeys;
-    return ['all', 'beaches', 'forts', 'waterfalls', 'temples', 'food'];
-  }, [validTrendingKeys]);
-
-  const filteredSpots = useMemo(() => {
-    if (activeSpotTab === 'all') return STATIC_SPOTS;
-    return STATIC_SPOTS.filter(s => s.type === activeSpotTab);
-  }, [activeSpotTab]);
 
   // ── Re-translate city label when language changes ──
   // `t` reference changes whenever i18n language switches — use it as the trigger
@@ -345,7 +292,7 @@ const HomeScreen = ({navigation, route, ...props}) => {
             setActiveTab(newActiveTab);
             dispatch({
               type: 'SET_DATA',
-              payload: {cities: res.cities, routes: res.routes, bannerObject: res.banners, trending: res.trending || {}},
+              payload: {cities: res.cities, routes: res.routes, bannerObject: res.banners, trending: res.trending || {}, hot_sites: res.hot_sites || []},
             });
           }
         } catch (e) {
@@ -365,7 +312,12 @@ const HomeScreen = ({navigation, route, ...props}) => {
       }
 
       await AsyncStorage.setItem('isUpdated', 'false');
-      checkToken();
+
+      const token = await AsyncStorage.getItem(t('STORAGE.ACCESS_TOKEN'));
+      if (!token) {
+        navigateTo(navigation, t('SCREEN.EMAIL'));
+        return;
+      }
 
       if (!isLandingDataFetched && props.access_token) {
         setIsLandingDataFetched(true);
@@ -400,9 +352,9 @@ const HomeScreen = ({navigation, route, ...props}) => {
                   if (validKeys.length > 0) newActiveTab = validKeys[0];
                 }
                 setActiveTab(newActiveTab);
-                dispatch({
+                    dispatch({
                   type: 'SET_DATA',
-                  payload: {cities: res.cities, routes: res.routes, bannerObject: res.banners, trending: res.trending || {}},
+                  payload: {cities: res.cities, routes: res.routes, bannerObject: res.banners, trending: res.trending || {}, hot_sites: res.hot_sites || []},
                 });
                 if (res.unread_message_count !== undefined) {
                   setUnreadCount(res.unread_message_count);
@@ -470,11 +422,17 @@ const HomeScreen = ({navigation, route, ...props}) => {
   // ── API ──
   const callLandingPageAPI = useCallback(async site_id => {
     try {
-      if (isFetchingRef.current) return;
+      if (isFetchingRef.current) {
+        dispatch({type: 'SET_LOADING', payload: false});
+        return;
+      }
       isFetchingRef.current = true;
 
       const storedMode = JSON.parse(await getFromStorage(t('STORAGE.MODE')));
-      if (!storedMode) return;
+      if (!storedMode) {
+        dispatch({type: 'SET_LOADING', payload: false});
+        return;
+      }
 
       const selectedCity = await getSelectedCity();
       const data = selectedCity ? {site_id: selectedCity.id} : {site_id};
@@ -482,8 +440,8 @@ const HomeScreen = ({navigation, route, ...props}) => {
       // Only show skeleton on initial load (no cached data).
       // When called as background refresh, update data silently.
       const res = await comnPost('v2/landingpage', data, navigation);
-      console.log(res);
-      
+      console.log(res?.data);
+
       if (res?.data?.data) {
         if (i18n.language !== res.data.language) i18n.changeLanguage(res.data.language);
 
@@ -508,7 +466,7 @@ const HomeScreen = ({navigation, route, ...props}) => {
 
         dispatch({
           type: 'SET_DATA',
-          payload: {cities: res.data.data.cities, routes: res.data.data.routes, bannerObject: res.data.data.banners, trending: res.data.data.trending || {}},
+          payload: {cities: res.data.data.cities, routes: res.data.data.routes, bannerObject: res.data.data.banners, trending: res.data.data.trending || {}, hot_sites: res.data.data.hot_sites || []},
         });
 
         if (res.data.data.unread_message_count !== undefined) {
@@ -593,10 +551,21 @@ const HomeScreen = ({navigation, route, ...props}) => {
       return;
     }
 
+    setShowCityDropdown(false);
     setCurrentCity(city.name);
-    await saveToStorage(t('STORAGE.SELECTED_CITY_ID'), JSON.stringify(city.id));
-    await saveToStorage(t('STORAGE.SELECTED_CITY_NAME'), JSON.stringify(city.name));
-    callLandingPageAPI(city.id);
+    isFetchingRef.current = false;
+    dispatch({type: 'SET_LOADING', payload: true});
+
+    if (city.id === 0) {
+      // Sindhudurg (default) — clear stored city so callLandingPageAPI sends no site_id
+      await saveToStorage(t('STORAGE.SELECTED_CITY_ID'), JSON.stringify(null));
+      await saveToStorage(t('STORAGE.SELECTED_CITY_NAME'), JSON.stringify(null));
+      callLandingPageAPI();
+    } else {
+      await saveToStorage(t('STORAGE.SELECTED_CITY_ID'), JSON.stringify(city.id));
+      await saveToStorage(t('STORAGE.SELECTED_CITY_NAME'), JSON.stringify(city.name));
+      callLandingPageAPI(city.id);
+    }
   };
 
   const openProfile = () => navigateTo(navigation, t('SCREEN.PROFILE_VIEW'));
@@ -693,80 +662,20 @@ const HomeScreen = ({navigation, route, ...props}) => {
       </View>
 
       {/* ── POPULAR SPOTS ── */}
-      <View style={s.section}>
-        <Text style={s.sectionTitle}>{t('HOME.POPULAR_SPOTS')}</Text>
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={s.tabsRow}>
-          {SPOT_TABS.map(tab => (
-            <TouchableOpacity
-              key={tab}
-              style={[s.tab, activeSpotTab === tab && s.tabActive]}
-              onPress={() => {
-                setActiveSpotTab(tab);
-                if (validTrendingKeys.includes(tab)) setActiveTab(tab);
-              }}
-              activeOpacity={0.8}>
-              <Text style={[s.tabText, activeSpotTab === tab && s.tabTextActive]}>
-                {tab.charAt(0).toUpperCase() + tab.slice(1)}
-              </Text>
-            </TouchableOpacity>
-          ))}
-        </ScrollView>
-        {validTrendingKeys.includes(activeSpotTab) && trending[activeSpotTab]?.length > 0 ? (
-          <FlatList
-            horizontal
-            data={trending[activeSpotTab]}
-            keyExtractor={(item, i) => `${item.id}_${i}`}
-            renderItem={({item}) => (
-              <PackageCard
-                data={item}
-                navigation={navigation}
-                isConnected={offline}
-                cardType="small"
-                onClick={() => {}}
-              />
-            )}
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={s.spotsList}
-            ItemSeparatorComponent={() => <View style={{width: 14}} />}
-          />
-        ) : (
-          <FlatList
-            horizontal
-            data={filteredSpots}
-            keyExtractor={item => String(item.id)}
-            renderItem={({item}) => <SpotCard item={item} />}
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={s.spotsList}
-            ItemSeparatorComponent={() => <View style={{width: 14}} />}
-          />
-        )}
-      </View>
+      <PopularSpots
+        trending={trending}
+        onCardPress={getCityDetails}
+        title={t('HOME.POPULAR_SPOTS')}
+      />
 
-      {/* ── NEARBY PLACES ── */}
-      <View style={s.section}>
-        <Text style={s.sectionTitle}>{t('HOME.NEARBY')}</Text>
-        <View style={s.nearbyGrid}>
-          {STATIC_NEARBY.map(item => (
-            <NearbyCard key={item.id} item={item} />
-          ))}
-        </View>
-      </View>
+      {/* ── HOT PLACES ── */}
+      <HotPlaces
+        hot_sites={hot_sites}
+        onCardPress={getCityDetails}
+      />
 
       {/* ── EVENTS ── */}
       <View style={s.section}>
-        <View style={s.sectionHeaderRow}>
-          <Text style={s.sectionTitle}>{t('HOME.EVENTS') || 'Events'}</Text>
-          <TouchableOpacity
-            onPress={() => navigation.navigate(STRING.SCREEN.EVENTS_LIST)}
-            hitSlop={{top: 8, bottom: 8, left: 8, right: 8}}
-            style={s.seeAllBtn}>
-            <Text style={s.seeAllText}>See All</Text>
-            <Ionicons name="chevron-forward" size={14} color={C.oceanMid} />
-          </TouchableOpacity>
-        </View>
         <TouchableOpacity
           style={s.eventsBanner}
           onPress={() => navigation.navigate(STRING.SCREEN.EVENTS_LIST)}
@@ -781,7 +690,7 @@ const HomeScreen = ({navigation, route, ...props}) => {
       </View>
     </>
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  ), [bannerObject, cities, trending, activeSpotTab, filteredSpots, SPOT_TABS, validTrendingKeys, offline, navigation]);
+  ), [bannerObject, cities, trending, hot_sites, offline, navigation]);
 
   const listFooter = useMemo(() => (
     <View style={[s.sectionPad, {paddingBottom: 100}]}>
@@ -1060,11 +969,6 @@ const s = StyleSheet.create({
   busCardWrap: {
     borderRadius: RADIUS,
     overflow: 'hidden',
-    shadowColor: 'rgba(196,151,42,1)',
-    shadowOffset: {width: 0, height: 6},
-    shadowOpacity: 0.25,
-    shadowRadius: 20,
-    elevation: 6,
   },
   busCard: {
     flexDirection: 'row',
@@ -1293,27 +1197,95 @@ const ts = StyleSheet.create({
   spotMetaText: {fontSize: 11, color: C.textMid},
   spotMetaDot: {fontSize: 11, color: C.textLight},
 
-  // Nearby card
-  nearbyCard: {
-    width: (SW - 52) / 2,
-    backgroundColor: C.glass,
+  // Trending card
+  trendCard: {
+    width: 210,
+    backgroundColor: C.white,
     borderRadius: RADIUS,
-    padding: 16,
-    alignItems: 'center',
+    overflow: 'hidden',
     borderWidth: 1,
-    borderColor: C.glassBorder,
+    borderColor: 'rgba(0,0,0,0.07)',
   },
-  nearbyEmoji: {fontSize: 38, lineHeight: 52, marginBottom: 8},
-  nearbyCategoryBadge: {
+  trendImgWrap: {width: '100%', height: 150, backgroundColor: '#e8f5f7'},
+  trendImg: {width: '100%', height: '100%'},
+  trendImgGradient: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    height: 60,
+  },
+  trendCategoryBadge: {
+    position: 'absolute',
+    bottom: 10,
+    left: 10,
     backgroundColor: C.oceanDeep,
     borderRadius: 50,
     paddingHorizontal: 10,
     paddingVertical: 4,
-    marginBottom: 8,
   },
-  nearbyCategoryText: {fontSize: 10, fontWeight: '700', color: C.white, textTransform: 'uppercase', letterSpacing: 0.6},
-  nearbyName: {fontSize: 13, fontWeight: '600', color: C.textDark, textAlign: 'center', marginBottom: 4},
-  nearbyDist: {fontSize: 11, color: C.textLight},
+  trendCategoryText: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: C.white,
+    textTransform: 'uppercase',
+    letterSpacing: 0.6,
+  },
+  trendInfo: {padding: 12},
+  trendName: {fontSize: 14, fontWeight: '700', color: C.textDark, marginBottom: 4},
+  trendDesc: {fontSize: 11, color: C.textLight, lineHeight: 16, marginBottom: 8},
+  trendFooter: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  trendViewBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 3,
+  },
+  trendViewBtnText: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: C.oceanMid,
+  },
+
+  // Nearby / Hot Places card
+  nearbyCard: {
+    width: (SW - 52) / 2,
+    backgroundColor: C.white,
+    borderRadius: RADIUS,
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: C.glassBorder,
+  },
+  nearbyImgWrap: {width: '100%', height: 110, backgroundColor: '#e8f5f7'},
+  nearbyImg: {width: '100%', height: '100%'},
+  nearbyImgGradient: {position: 'absolute', bottom: 0, left: 0, right: 0, height: 50},
+  nearbyHotBadge: {
+    position: 'absolute',
+    top: 8,
+    right: 8,
+    backgroundColor: 'rgba(255,255,255,0.92)',
+    borderRadius: 50,
+    width: 26,
+    height: 26,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  nearbyHotBadgeText: {fontSize: 13},
+  nearbyCategoryBadge: {
+    alignSelf: 'flex-start',
+    backgroundColor: C.oceanDeep,
+    borderRadius: 50,
+    paddingHorizontal: 10,
+    paddingVertical: 3,
+    margin: 10,
+    marginBottom: 4,
+  },
+  nearbyCategoryText: {fontSize: 9, fontWeight: '700', color: C.white, textTransform: 'uppercase', letterSpacing: 0.6},
+  nearbyName: {fontSize: 13, fontWeight: '700', color: C.textDark, paddingHorizontal: 10, marginBottom: 3},
+  nearbySub: {fontSize: 11, color: C.textLight, paddingHorizontal: 10, paddingBottom: 10, lineHeight: 15},
 
   // Ad banner
   adBannerWrap: {

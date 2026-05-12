@@ -18,7 +18,7 @@ import {useFocusEffect} from '@react-navigation/native';
 import LinearGradient from 'react-native-linear-gradient';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import {launchImageLibrary} from 'react-native-image-picker';
-import {AWS_URL} from '@env';
+import {FTP_PATH} from '@env';
 import {backPage} from '../Services/CommonMethods';
 import {comnPostForm} from '../Services/Api/CommonServices';
 
@@ -174,7 +174,8 @@ const UpdateEvent = ({navigation, route}) => {
   );
 
   const existingBannerUri = event.banner_image_url
-    || (event.banner_image ? `${AWS_URL}/${event.banner_image}` : null);
+    || (event.banner_image ? `${FTP_PATH}${event.banner_image}` : null);
+  console.log('[UpdateEvent img]', event.title, existingBannerUri);
 
   const [title, setTitle] = useState(event.title ?? '');
   const [description, setDescription] = useState(event.description ?? '');

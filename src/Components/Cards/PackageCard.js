@@ -1,6 +1,7 @@
 import React, {useState} from 'react';
-import {ImageBackground, TouchableOpacity, View} from 'react-native';
+import {TouchableOpacity, View} from 'react-native';
 import {FTP_PATH} from '@env';
+import {CachedCachedImageBackground} from '../Customs/CachedImage';
 import styles from './Styles';
 import GlobalText from '../Customs/Text';
 import Octicons from 'react-native-vector-icons/Octicons';
@@ -25,7 +26,7 @@ const PackageCard = ({data, cardType, onClick, reload}) => {
             : styles.smallPackageImageLong
         }>
         {data.image || data.gallery?.[0] ? (
-          <ImageBackground
+          <CachedImageBackground
             source={{
               uri: FTP_PATH + (data.image || data.gallery?.[0]?.path),
             }}
@@ -37,7 +38,7 @@ const PackageCard = ({data, cardType, onClick, reload}) => {
             resizeMode="cover"
           />
         ) : (
-          <ImageBackground
+          <CachedImageBackground
             source={require('../../Assets/Images/no-image.png')}
             // style={cardType == 'small' ? styles.smallPackageImage : styles.placeImage}
             imageStyle={
@@ -78,7 +79,7 @@ const PackageCard = ({data, cardType, onClick, reload}) => {
           />
           {cardType === 'small' ? (
             <GlobalText
-              text={`${data?.tag_line}`}
+              text={data?.tag_line || data?.description || ''}
               style={styles.greyText}
             />
           ) : (
