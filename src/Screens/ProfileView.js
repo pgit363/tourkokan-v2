@@ -29,7 +29,7 @@ import {
   saveToStorage,
   getFromStorage,
 } from '../Services/Api/CommonServices';
-import {setLoader, resetStore} from '../Reducers/CommonActions';
+import {setLoader, resetStore, setProfilePicture} from '../Reducers/CommonActions';
 import {checkLogin, backPage} from '../Services/CommonMethods';
 import STRING from '../Services/Constants/STRINGS';
 import MapView, {Marker} from 'react-native-maps';
@@ -311,6 +311,7 @@ const ProfileView = ({navigation, ...props}) => {
 
   const applyProfile = data => {
     setProfile(data);
+    props.setProfilePicture(data?.profile_picture || null);
     if (data?.addresses?.length > 0) {
       setLocationMap(data.addresses[0].latitude, data.addresses[0].longitude);
     }
@@ -434,7 +435,7 @@ const ProfileView = ({navigation, ...props}) => {
   const showInfoBox = profile.id && completion < 100;
 
   const photoUri = profile.profile_picture
-    ? `${FTP_PATH}${profile.profile_picture}`
+    ? `${profile.profile_picture}`
     : 'https://api-private.atlassian.com/users/2143ab39b9c73bcab4fe6562fff8d23d/avatar';
 
   const hasLocation =
@@ -741,18 +742,7 @@ const ProfileView = ({navigation, ...props}) => {
             </TouchableOpacity>
           </View>
 
-          {/* Submit Your Place */}
-          <TouchableOpacity
-            style={s.editProfileBtn}
-            onPress={async () => {
-              if (await isGuestUser()) { setIsGuestPopup(true); return; }
-              navigation.navigate(STRING.SCREEN.SUBMIT_PLACE);
-            }}
-            activeOpacity={0.8}>
-            <Text style={s.editProfileBtnText}>{`🏨   Submit Your Place`}</Text>
-          </TouchableOpacity>
-
-          {/* My Submissions */}
+          {/* My Sites */}
           <TouchableOpacity
             style={s.editProfileBtn}
             onPress={async () => {
@@ -760,7 +750,7 @@ const ProfileView = ({navigation, ...props}) => {
               navigation.navigate(STRING.SCREEN.MY_SUBMISSIONS);
             }}
             activeOpacity={0.8}>
-            <Text style={s.editProfileBtnText}>{`📋   My Submissions`}</Text>
+            <Text style={s.editProfileBtnText}>{`🏨   My Sites`}</Text>
           </TouchableOpacity>
 
           {/* My Events */}
@@ -1446,6 +1436,7 @@ const mapStateToProps = state => ({
 const mapDispatchToProps = dispatch => ({
   setLoader: data => dispatch(setLoader(data)),
   resetStore: () => dispatch(resetStore()),
+  setProfilePicture: url => dispatch(setProfilePicture(url)),
 });
 
 const guestSt = StyleSheet.create({

@@ -115,14 +115,15 @@ const ContactUs = ({
   const handlePopupClose = () => {
     setPopupVisible(false);
     if (popupType === 'success') {
-      // Trigger parent reload then go back to list
+      setEmail('');
+      setPhone('');
+      setMessage('');
       if (typeof onQuerySubmitted === 'function') {
         onQuerySubmitted();
       } else if (typeof setStep === 'function') {
         setStep(0);
       }
     }
-    // On error: just close popup, stay on form
   };
 
   const submit = async () => {

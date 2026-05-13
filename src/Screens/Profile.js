@@ -24,13 +24,12 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import Geolocation from '@react-native-community/geolocation';
 import {Dropdown} from 'react-native-element-dropdown';
 import MapView, {Marker} from 'react-native-maps';
-import {FTP_PATH} from '@env';
 import {
   comnPost,
   saveToStorage,
   getFromStorage,
 } from '../Services/Api/CommonServices';
-import {setLoader, setMode} from '../Reducers/CommonActions';
+import {setLoader, setMode, setProfilePicture} from '../Reducers/CommonActions';
 import {checkLogin, backPage, navigateTo} from '../Services/CommonMethods';
 import STRING from '../Services/Constants/STRINGS';
 import CheckNet from '../Components/Common/CheckNet';
@@ -311,13 +310,13 @@ const Profile = ({navigation, ...props}) => {
 
     props.setLoader(true);
     setIsSaving(true);
-    const data = {
-      mobile: mobile || null,
-      dob: formatDateToAPI(dob),
-      gender: gender || null,
-      latitude: locationLat,
-      longitude: locationLng,
-    };
+    const data = {};
+    if (mobile) data.mobile = mobile;
+    const dobVal = formatDateToAPI(dob);
+    if (dobVal) data.dob = dobVal;
+    if (gender) data.gender = gender;
+    if (locationLat != null) data.latitude = locationLat;
+    if (locationLng != null) data.longitude = locationLng;
 
     console.log('[Profile] POST updateProfile → payload:', data);
 
@@ -327,29 +326,19 @@ const Profile = ({navigation, ...props}) => {
         props.setLoader(false);
         setIsSaving(false);
         AsyncStorage.setItem('isUpdated', 'true');
-        setAlertMessage(res.data.message);
-        setIsAlert(true);
-        setIsSuccess(!!res.data.success);
         if (res.data.success) {
-          // Reset snapshot so button becomes disabled again
-          initialRef.current = {
-            mobile,
-            dob: formatDateToAPI(dob),
-            gender,
-            locationLat,
-            locationLng,
-          };
-          // Persist updated data to storage
-          const updated = {
-            ...profile,
-            mobile,
-            dob: formatDateToAPI(dob),
-            gender,
-          };
-          saveToStorage(
-            t('STORAGE.PROFILE_RESPONSE'),
-            JSON.stringify(updated),
-          );
+          const updated = {...profile, mobile, dob: formatDateToAPI(dob), gender};
+          saveToStorage(t('STORAGE.PROFILE_RESPONSE'), JSON.stringify(updated));
+          props.setProfilePicture(profile.profile_picture || null);
+          navigateTo(navigation, STRING.SCREEN.PROFILE_VIEW);
+        } else {
+          const raw = res.data.message;
+          const msg = typeof raw === 'string'
+            ? raw
+            : Object.values(raw).flat()[0] ?? t('ALERT.FAILED');
+          setAlertMessage(msg);
+          setIsAlert(true);
+          setIsSuccess(false);
         }
       })
       .catch(err => {
@@ -376,9 +365,7 @@ const Profile = ({navigation, ...props}) => {
   };
 
   // ── Derived values
-  const photoUri = profile.profile_picture
-    ? `${FTP_PATH}${profile.profile_picture}`
-    : 'https://api-private.atlassian.com/users/2143ab39b9c73bcab4fe6562fff8d23d/avatar';
+  const photoUri = profile.profile_picture || null;
 
   const hasLocation = !!(locationLat && locationLng);
   const dobHasValue = !!(dob.day || dob.month || dob.year);
@@ -1034,6 +1021,7 @@ const mapStateToProps = state => ({
 const mapDispatchToProps = dispatch => ({
   setLoader: data => dispatch(setLoader(data)),
   setMode: val => dispatch(setMode(val)),
+  setProfilePicture: url => dispatch(setProfilePicture(url)),
 });
 
 export default connect(mapStateToProps, mapDispatchToProps)(Profile);

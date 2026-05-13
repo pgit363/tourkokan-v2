@@ -107,6 +107,21 @@ const SubmitPlaceScreen = ({navigation, route}) => {
     );
   };
 
+  const resetForm = () => {
+    setStep(0);
+    setName('');
+    setDescription('');
+    setTagLine('');
+    setSelectedCategories([]);
+    setLatitude('');
+    setLongitude('');
+    setMapsUrl('');
+    setImage(null);
+    setLogo(null);
+    setWebsite('');
+    setPinCode('');
+  };
+
   const validateStep = () => {
     if (step === 0) {
       if (!name.trim() || name.trim().length < 2) {
@@ -170,6 +185,7 @@ const SubmitPlaceScreen = ({navigation, route}) => {
     setSubmitting(false);
 
     if (res?.data?.success) {
+      if (!isEdit) resetForm();
       Alert.alert(
         isEdit ? 'Resubmitted!' : 'Submitted!',
         isEdit

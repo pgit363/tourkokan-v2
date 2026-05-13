@@ -6,6 +6,7 @@ import {
   SetSource,
   SetMode,
   ResetStore,
+  SetProfilePicture,
 } from './Types';
 
 const saveLoginUser = data => {
@@ -52,6 +53,8 @@ const setMode = data => {
 
 const resetStore = () => ({type: ResetStore});
 
+const setProfilePicture = url => ({type: SetProfilePicture, payload: url});
+
 export {
   saveLoginUser,
   saveAccess_token,
@@ -60,4 +63,5 @@ export {
   setDestination,
   setMode,
   resetStore,
+  setProfilePicture,
 };

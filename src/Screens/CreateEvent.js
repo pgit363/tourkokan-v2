@@ -190,6 +190,20 @@ const CreateEvent = ({navigation, route}) => {
     });
   };
 
+  const resetForm = () => {
+    setTitle('');
+    setDescription('');
+    setAddress('');
+    setVenueName('');
+    setTaluka('');
+    setStartDate(null);
+    setEndDate(null);
+    setIsFree(true);
+    setEntryFee('');
+    setVideoUrl('');
+    setBannerImage(null);
+  };
+
   const validate = () => {
     if (!title.trim()) { Alert.alert('Required', 'Event title is required.'); return false; }
     if (!description.trim()) { Alert.alert('Required', 'Description is required.'); return false; }
@@ -234,6 +248,7 @@ const CreateEvent = ({navigation, route}) => {
     setSubmitting(false);
 
     if (res?.data?.success) {
+      resetForm();
       Alert.alert('Submitted!', 'Your event has been submitted for admin approval.', [
         {text: 'My Events', onPress: () => navigation.navigate(STRING.SCREEN.MY_EVENTS)},
         {text: 'Done', onPress: () => backPage(navigation)},

@@ -44,6 +44,7 @@ const EMPTY_FILTERS = {
   taluka: null,
   is_free: false,
   is_featured: false,
+  upcoming: false,
   start_date: null,
   end_date: null,
 };
@@ -312,8 +313,9 @@ const EventsList = ({navigation, route}) => {
     if (siteId)       payload.site_id    = siteId;
     if (q.trim())     payload.search     = q.trim();
     if (f.taluka)     payload.taluka     = f.taluka;
-    if (f.is_free)    payload.is_free    = true;
+    if (f.is_free)     payload.is_free     = true;
     if (f.is_featured) payload.is_featured = true;
+    if (f.upcoming)    payload.upcoming    = true;
     if (f.start_date) payload.start_date = f.start_date;
     if (f.end_date)   payload.end_date   = f.end_date;
 
@@ -391,7 +393,8 @@ const EventsList = ({navigation, route}) => {
   };
 
   const removeChip = key => {
-    const next = {...filters, [key]: key === 'is_free' || key === 'is_featured' ? false : null};
+    const boolKeys = ['is_free', 'is_featured', 'upcoming'];
+    const next = {...filters, [key]: boolKeys.includes(key) ? false : null};
     setFilters(next);
     setEvents([]);
     fetchEvents(1, search, next);
@@ -406,7 +409,7 @@ const EventsList = ({navigation, route}) => {
 
   // ── Derived ──
   const filterCount = [
-    filters.taluka, filters.is_free, filters.is_featured,
+    filters.taluka, filters.is_free, filters.is_featured, filters.upcoming,
     filters.start_date, filters.end_date,
   ].filter(Boolean).length;
 
@@ -414,6 +417,7 @@ const EventsList = ({navigation, route}) => {
     filters.taluka      && {key: 'taluka',      label: filters.taluka},
     filters.is_free     && {key: 'is_free',     label: 'Free only'},
     filters.is_featured && {key: 'is_featured', label: 'Featured'},
+    filters.upcoming    && {key: 'upcoming',    label: 'Upcoming'},
     filters.start_date  && {key: 'start_date',  label: `From ${strToDisp(filters.start_date)}`},
     filters.end_date    && {key: 'end_date',     label: `To ${strToDisp(filters.end_date)}`},
   ].filter(Boolean);
@@ -613,6 +617,20 @@ const EventsList = ({navigation, route}) => {
                     onValueChange={v => setPending(p => ({...p, is_featured: v}))}
                     trackColor={{false: '#D1D5DB', true: C.oceanFoam}}
                     thumbColor={pending.is_featured ? C.oceanMid : C.white}
+                  />
+                </View>
+
+                {/* Upcoming only */}
+                <View style={fs.toggleRow}>
+                  <View style={fs.toggleLabel}>
+                    <Ionicons name="time-outline" size={18} color={C.oceanMid} />
+                    <Text style={fs.toggleText}>Upcoming Events Only</Text>
+                  </View>
+                  <Switch
+                    value={!!pending.upcoming}
+                    onValueChange={v => setPending(p => ({...p, upcoming: v}))}
+                    trackColor={{false: '#D1D5DB', true: C.oceanFoam}}
+                    thumbColor={pending.upcoming ? C.oceanMid : C.white}
                   />
                 </View>
 

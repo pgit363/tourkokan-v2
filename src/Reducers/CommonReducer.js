@@ -6,6 +6,7 @@ import {
   SetMode,
   SetSource,
   ResetStore,
+  SetProfilePicture,
 } from './Types';
 
 const initialState = {
@@ -15,6 +16,7 @@ const initialState = {
   source: {},
   destination: {},
   mode: true,
+  profilePicture: null,
 };
 
 const commonReducer = (state = initialState, action) => {
@@ -50,6 +52,8 @@ const commonReducer = (state = initialState, action) => {
         mode: action.payload,
       };
     }
+    case SetProfilePicture:
+      return {...state, profilePicture: action.payload};
     case ResetStore:
       return {...initialState};
     default:

@@ -224,7 +224,7 @@ const MySubmissionsScreen = ({navigation}) => {
             hitSlop={{top: 8, bottom: 8, left: 8, right: 8}}>
             <Ionicons name="arrow-back" size={20} color={C.white} />
           </TouchableOpacity>
-          <Text style={s.headerTitle}>My Submissions</Text>
+          <Text style={s.headerTitle}>My Sites</Text>
           <TouchableOpacity
             style={s.addBtn}
             onPress={() => navigation.navigate(STRING.SCREEN.SUBMIT_PLACE)}

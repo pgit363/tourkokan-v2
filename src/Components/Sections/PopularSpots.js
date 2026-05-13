@@ -1,4 +1,4 @@
-import React, {useState, useMemo} from 'react';
+import React, {useState, useMemo, useEffect} from 'react';
 import {
   View,
   Text,
@@ -103,11 +103,29 @@ const PopularSpots = ({trending = {}, onCardPress, title = 'Popular Spots'}) => 
 
   const [activeTab, setActiveTab] = useState(validKeys[0] ?? 'all');
 
+  useEffect(() => {
+    if (validKeys.length > 0 && !validKeys.includes(activeTab)) {
+      setActiveTab(validKeys[0]);
+    }
+  }, [validKeys]);
+
   if (validKeys.length === 0) return null;
 
   return (
     <View style={s.section}>
-      <Text style={s.sectionTitle}>{title}</Text>
+      {/* Header */}
+      <View style={s.header}>
+        <View style={s.titleRow}>
+          <View style={s.accentBar} />
+          <Ionicons name="compass-outline" size={20} color={C.oceanMid} />
+          <Text style={s.sectionTitle}>{title}</Text>
+        </View>
+        <View style={s.badge}>
+          <Text style={s.badgeText}>{(trending[activeTab] || []).length} places</Text>
+        </View>
+      </View>
+
+      {/* Category tabs */}
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
@@ -124,6 +142,8 @@ const PopularSpots = ({trending = {}, onCardPress, title = 'Popular Spots'}) => 
           </TouchableOpacity>
         ))}
       </ScrollView>
+
+      {/* Cards */}
       <FlatList
         horizontal
         data={trending[activeTab] || []}
@@ -140,14 +160,32 @@ const PopularSpots = ({trending = {}, onCardPress, title = 'Popular Spots'}) => 
 };
 
 const s = StyleSheet.create({
-  section: {marginBottom: 24},
-  sectionTitle: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: '#1C1917',
+  section: {
+    marginBottom: 8,
+    backgroundColor: 'rgba(27,107,123,0.05)',
+    paddingTop: 18,
+    paddingBottom: 20,
+    borderTopWidth: 1,
+    borderBottomWidth: 1,
+    borderColor: 'rgba(27,107,123,0.1)',
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
     paddingHorizontal: 20,
     marginBottom: 14,
   },
+  titleRow: {flexDirection: 'row', alignItems: 'center', gap: 8},
+  accentBar: {width: 4, height: 22, borderRadius: 2, backgroundColor: C.oceanMid},
+  sectionTitle: {fontSize: 18, fontWeight: '800', color: C.oceanDeep},
+  badge: {
+    backgroundColor: 'rgba(27,107,123,0.12)',
+    borderRadius: 20,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+  },
+  badgeText: {fontSize: 11, fontWeight: '700', color: C.oceanMid},
   tabsRow: {paddingHorizontal: 20, paddingBottom: 8, gap: 8},
   tab: {
     paddingHorizontal: 20,
@@ -213,4 +251,5 @@ const ts = StyleSheet.create({
   trendViewBtnText: {fontSize: 11, fontWeight: '600', color: C.oceanMid},
 });
 
+export {TrendingCard};
 export default PopularSpots;

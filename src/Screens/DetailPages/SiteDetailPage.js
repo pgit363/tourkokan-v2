@@ -817,7 +817,7 @@ const SiteDetailPage = ({navigation, route}) => {
             <TouchableOpacity
               key={item.id}
               style={st.villageCard}
-              onPress={() => navigateTo(navigation, t('SCREEN.SITE_DETAIL'), {city: item})}
+              onPress={() => navigation.push(t('SCREEN.SITE_DETAIL'), {city: item})}
               activeOpacity={0.85}>
               <View style={st.villageThumb}>
                 {uri ? (
@@ -907,13 +907,13 @@ const SiteDetailPage = ({navigation, route}) => {
         {/* 9. Popular Spots */}
         <PopularSpots
           trending={city?.trending ?? {}}
-          onCardPress={item => navigateTo(navigation, STRING.SCREEN.SITE_DETAIL, {city: item})}
+          onCardPress={item => navigation.push(t('SCREEN.SITE_DETAIL'), {city: item})}
         />
 
         {/* 10. Hot Places */}
         <HotPlaces
           hot_sites={city?.hot_sites ?? []}
-          onCardPress={item => navigateTo(navigation, STRING.SCREEN.SITE_DETAIL, {city: item})}
+          onCardPress={item => navigation.push(t('SCREEN.SITE_DETAIL'), {city: item})}
         />
 
         {/* 11. Villages */}

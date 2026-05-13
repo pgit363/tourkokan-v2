@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React from 'react';
 import {
   View,
   Text,
@@ -11,8 +11,7 @@ import {
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import {useTranslation} from 'react-i18next';
-import {getFromStorage} from '../../Services/Api/CommonServices';
-import {FTP_PATH} from '@env';
+import {connect} from 'react-redux';
 import STRING from '../../Services/Constants/STRINGS';
 
 const {width: SW} = Dimensions.get('window');
@@ -34,19 +33,9 @@ const TopComponent = ({
   showCities,
   onToggleCities,
   unreadCount = 0,
+  profilePicture,
 }) => {
   const {t} = useTranslation();
-  const [profilePhoto, setProfilePhoto] = useState(null);
-
-  useEffect(() => {
-    const fetchProfilePhoto = async () => {
-      const picture = JSON.parse(
-        await getFromStorage(t('STORAGE.PROFILE_PICTURE')),
-      );
-      setProfilePhoto(picture);
-    };
-    fetchProfilePhoto();
-  }, [t]);
 
   return (
     <View style={s.container}>
@@ -104,9 +93,9 @@ const TopComponent = ({
             style={s.profileBtn}
             onPress={gotoProfile}
             activeOpacity={0.8}>
-            {profilePhoto ? (
+            {profilePicture ? (
               <Image
-                source={{uri: `${FTP_PATH}${profilePhoto}`}}
+                source={{uri: profilePicture}}
                 style={s.profileImg}
               />
             ) : (
@@ -212,4 +201,8 @@ const s = StyleSheet.create({
   },
 });
 
-export default TopComponent;
+const mapStateToProps = state => ({
+  profilePicture: state.commonState.profilePicture,
+});
+
+export default connect(mapStateToProps)(TopComponent);
