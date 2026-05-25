@@ -9,7 +9,7 @@ import {
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import STRING from '../../Services/Constants/STRINGS';
 
-// ─── Async helper ─────────────────────────────────────────────────────────────
+// ─── Async helpers ────────────────────────────────────────────────────────────
 
 export const isGuestUser = async () => {
   try {
@@ -17,6 +17,17 @@ export const isGuestUser = async () => {
     const val = JSON.parse(raw) === true;
     console.log('[isGuestUser] raw =', raw, '| result =', val);
     return val;
+  } catch {
+    return false;
+  }
+};
+
+export const isVendorUser = async () => {
+  try {
+    const raw = await AsyncStorage.getItem('profileResponse');
+    if (!raw) return false;
+    const profile = JSON.parse(raw);
+    return Array.isArray(profile?.roles) && profile.roles.some(r => r.code === 'vendor');
   } catch {
     return false;
   }

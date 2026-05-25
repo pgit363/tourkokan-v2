@@ -22,7 +22,7 @@ import {
   UIManager,
   Modal,
 } from 'react-native';
-import {SafeAreaView} from 'react-native-safe-area-context';
+import {SafeAreaView, useSafeAreaInsets} from 'react-native-safe-area-context';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import {
   backPage,
@@ -225,6 +225,7 @@ const QueryCard = React.memo(({item, isExpanded, onToggle}) => {
 
 const QueriesList = ({navigation, route, ...props}) => {
   const {t} = useTranslation();
+  const insets = useSafeAreaInsets();
   const isMounted = useRef(true);
   const modeRef = useRef(props.mode);
 
@@ -694,7 +695,7 @@ const QueriesList = ({navigation, route, ...props}) => {
       {loading ? (
         <ScrollView
           style={styles.body}
-          contentContainerStyle={styles.bodyContent}
+          contentContainerStyle={[styles.bodyContent, {paddingBottom: insets.bottom + 40}]}
           showsVerticalScrollIndicator={false}>
           {[...Array(6)].map((_, i) => (
             <SkeletonCard key={i} />
@@ -703,7 +704,7 @@ const QueriesList = ({navigation, route, ...props}) => {
       ) : (
         <FlatList
           style={styles.body}
-          contentContainerStyle={styles.bodyContent}
+          contentContainerStyle={[styles.bodyContent, {paddingBottom: insets.bottom + 40}]}
           data={queries}
           keyExtractor={(item, idx) =>
             item.id ? item.id.toString() : `q-${idx}`

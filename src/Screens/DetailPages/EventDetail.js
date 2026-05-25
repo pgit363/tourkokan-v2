@@ -7,7 +7,6 @@ import {
   Image,
   StyleSheet,
   StatusBar,
-  Alert,
   ActivityIndicator,
   Share,
   Platform,
@@ -15,6 +14,7 @@ import {
   Linking,
   BackHandler,
 } from 'react-native';
+import {useAppDialog} from '../../Components/Common/AppDialog';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {useFocusEffect} from '@react-navigation/native';
 import LinearGradient from 'react-native-linear-gradient';
@@ -73,6 +73,7 @@ const ENDPOINT = {
 
 const EventDetail = ({navigation, route}) => {
   const insets = useSafeAreaInsets();
+  const {show: showDialog, dialog} = useAppDialog();
   const [event, setEvent] = useState(route?.params?.event ?? {});
   const [guestVisible, setGuestVisible] = useState(false);
   const [loadingType, setLoadingType] = useState(null);
@@ -137,8 +138,13 @@ const EventDetail = ({navigation, route}) => {
       setEvent(prev => ({...prev, [EVENT_COUNT_KEY[type]]: newCount ?? prev[EVENT_COUNT_KEY[type]]}));
       setToggled(prev => ({...prev, [type]: !prev[type]}));
     } else {
-      const msg = res?.data?.message;
-      Alert.alert('', typeof msg === 'string' ? msg : 'Something went wrong.');
+      const msg = res?.data?.message ?? res?.response?.data?.message;
+      const displayMsg = typeof msg === 'string'
+        ? msg
+        : typeof msg === 'object' && msg !== null
+          ? Object.values(msg).flat().join('\n')
+          : 'Something went wrong.';
+      showDialog({type: 'error', title: 'Error', message: displayMsg});
     }
   };
 
@@ -184,28 +190,29 @@ const EventDetail = ({navigation, route}) => {
         }));
         setGallery(prev => [...prev, ...newItems]);
       } else {
-        Alert.alert('Upload failed', 'Could not upload photos. Please try again.');
+        showDialog({type: 'error', title: 'Upload Failed', message: 'Could not upload photos. Please try again.'});
       }
     });
   };
 
   const confirmDelete = id => {
-    Alert.alert('Delete photo?', 'This cannot be undone.', [
-      {text: 'Cancel', style: 'cancel'},
-      {
-        text: 'Delete', style: 'destructive',
-        onPress: async () => {
-          setDeletingId(id);
-          const res = await comnPost('v2/deleteEventGallery', {id}).catch(() => null);
-          setDeletingId(null);
-          if (res?.data?.success) {
-            setGallery(prev => prev.filter(g => g.id !== id));
-          } else {
-            Alert.alert('Error', 'Could not delete photo.');
-          }
-        },
+    showDialog({
+      type: 'delete',
+      title: 'Delete Photo',
+      message: 'This cannot be undone.',
+      confirmText: 'Delete',
+      cancelText: 'Cancel',
+      onConfirm: async () => {
+        setDeletingId(id);
+        const res = await comnPost('v2/deleteEventGallery', {id}).catch(() => null);
+        setDeletingId(null);
+        if (res?.data?.success) {
+          setGallery(prev => prev.filter(g => g.id !== id));
+        } else {
+          showDialog({type: 'error', title: 'Error', message: 'Could not delete photo.'});
+        }
       },
-    ]);
+    });
   };
 
   const handleGuestLogin = async () => {
@@ -370,7 +377,7 @@ const EventDetail = ({navigation, route}) => {
               </View>
               <TouchableOpacity
                 style={s.videoCard}
-                onPress={() => Linking.openURL(event.video_url).catch(() => Alert.alert('', 'Cannot open video link.'))}
+                onPress={() => Linking.openURL(event.video_url).catch(() => showDialog({type: 'error', title: 'Error', message: 'Cannot open video link.'}))}
                 activeOpacity={0.88}>
                 {ytId ? (
                   <View style={s.ytThumbWrap}>
@@ -471,6 +478,7 @@ const EventDetail = ({navigation, route}) => {
         onClose={() => setGuestVisible(false)}
         onLogin={handleGuestLogin}
       />
+      {dialog}
     </View>
   );
 };

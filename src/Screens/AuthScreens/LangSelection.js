@@ -1,5 +1,6 @@
 import React, {useEffect, useState} from 'react';
 import {ImageBackground, View} from 'react-native';
+import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import COLOR from '../../Services/Constants/COLORS';
 import styles from './Styles';
 import {useTranslation} from 'react-i18next';
@@ -11,6 +12,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const LangSelection = ({navigation}) => {
   const {t, i18n} = useTranslation();
+  const insets = useSafeAreaInsets();
 
   const [list, setList] = useState([
     {label: 'English', value: 'en'},
@@ -50,6 +52,7 @@ const LangSelection = ({navigation}) => {
         backgroundColor: COLOR.white,
         alignItems: 'center',
         justifyContent: 'center',
+        paddingBottom: insets.bottom,
       }}>
       <ImageBackground
         style={styles.loginImage}

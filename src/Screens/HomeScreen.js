@@ -59,10 +59,10 @@ import {
   setLoader,
   setMode,
   setSource,
+  setProfilePicture,
 } from '../Reducers/CommonActions';
 import {exitApp, navigateTo} from '../Services/CommonMethods';
 import {UpdateContext} from '../Context/UpdateContext';
-import PopularSpots from '../Components/Sections/PopularSpots';
 import HotPlaces from '../Components/Sections/HotPlaces';
 import STRING from '../Services/Constants/STRINGS';
 import DIMENSIONS from '../Services/Constants/DIMENSIONS';
@@ -252,6 +252,17 @@ const HomeScreen = ({navigation, route, ...props}) => {
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [t]);
+
+  // ── Restore profile picture from storage on mount ──
+  useEffect(() => {
+    AsyncStorage.getItem(t('STORAGE.PROFILE_PICTURE')).then(val => {
+      if (val) {
+        const pic = JSON.parse(val);
+        if (pic) props.setProfilePicture(pic);
+      }
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // ── Update context ──
   useEffect(() => {
@@ -522,6 +533,7 @@ const HomeScreen = ({navigation, route, ...props}) => {
       AsyncStorage.setItem(t('STORAGE.USER_NAME'), `${resp.user.name || ''}`);
       AsyncStorage.setItem(t('STORAGE.USER_ID'), JSON.stringify(resp.user.id || ''));
       AsyncStorage.setItem(t('STORAGE.USER_EMAIL'), `${resp.user.email || ''}`);
+      props.setProfilePicture(resp.user.profile_picture || null);
     }
   };
 
@@ -661,12 +673,7 @@ const HomeScreen = ({navigation, route, ...props}) => {
         />
       </View>
 
-      {/* ── POPULAR SPOTS ── */}
-      <PopularSpots
-        trending={trending}
-        onCardPress={getCityDetails}
-        title={t('HOME.POPULAR_SPOTS')}
-      />
+      {/* ── POPULAR SPOTS ── (hidden: implementation pending) */}
 
       {/* ── HOT PLACES ── */}
       <HotPlaces
@@ -1332,6 +1339,7 @@ const mapDispatchToProps = dispatch => ({
   setMode: data => dispatch(setMode(data)),
   setSource: data => dispatch(setSource(data)),
   setDestination: data => dispatch(setDestination(data)),
+  setProfilePicture: data => dispatch(setProfilePicture(data)),
 });
 
 export default connect(mapStateToProps, mapDispatchToProps)(HomeScreen);

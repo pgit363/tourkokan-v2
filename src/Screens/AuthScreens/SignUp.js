@@ -18,6 +18,7 @@ import TextField from '../../Components/Customs/TextField';
 import TextButton from '../../Components/Customs/Buttons/TextButton';
 import styles from './Styles';
 import {comnGet, comnPost} from '../../Services/Api/CommonServices';
+import {SafeAreaView} from 'react-native-safe-area-context';
 import Loader from '../../Components/Customs/Loader';
 import {connect} from 'react-redux';
 import {setLoader, saveAccess_token} from '../../Reducers/CommonActions';
@@ -210,14 +211,15 @@ const SignUp = ({navigation, ...props}) => {
   const getRoles = () => {
     comnGet('v2/roleDD')
       .then(res => {
-        if (res.data.success) {
+        const resData = res?.data ?? res?.response?.data;
+        if (resData?.success) {
           props.setLoader(false);
-          setRoles(res.data.data);
+          setRoles(resData.data);
         } else {
           props.setLoader(false);
         }
       })
-      .catch(err => {
+      .catch(() => {
         props.setLoader(false);
       });
   };
@@ -354,23 +356,19 @@ const SignUp = ({navigation, ...props}) => {
     };
     comnPost('v2/auth/register', data)
       .then(res => {
-        if (res.data.success) {
+        const resData = res?.data ?? res?.response?.data;
+        if (resData?.success) {
           props.setLoader(false);
           setIsSuccess(true);
           setIsAlert(true);
-          setAlertMessage(res.data.message);
+          setAlertMessage(resData.message);
         } else {
           props.setLoader(false);
+          const raw = resData?.message;
           setAlertMessage(
-            res.data.message.email
-              ? res.data.message.email
-              : res.data.message.mobile
-              ? res.data.message.mobile
-              : res.data.message.referral_code
-              ? res.data.message.referral_code
-              : res.data.message
-              ? res.data.message
-              : t('NETWORK'),
+            typeof raw === 'object'
+              ? Object.values(raw).flat().join('\n')
+              : raw || t('NETWORK'),
           );
           setIsSuccess(false);
           setIsAlert(true);
@@ -543,7 +541,7 @@ const SignUp = ({navigation, ...props}) => {
   };
 
   return (
-    <View style={{flex: 1, backgroundColor: COLOR.white}}>
+    <SafeAreaView edges={['bottom']} style={{flex: 1, backgroundColor: COLOR.white}}>
       <ImageBackground
         style={styles.loginImage}
         source={require('../../Assets/Images/Intro/login_background.png')}
@@ -655,7 +653,7 @@ const SignUp = ({navigation, ...props}) => {
         }
         noButton={showPrivacy}
       />
-    </View>
+    </SafeAreaView>
   );
 };
 

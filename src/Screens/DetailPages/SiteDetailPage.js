@@ -34,7 +34,6 @@ import Banner from '../../Components/Customs/Banner';
 import Popup from '../../Components/Common/Popup';
 import BottomSheet from '../../Components/Customs/BottomSheet';
 import CommentsSheet from '../../Components/Common/CommentsSheet';
-import PopularSpots from '../../Components/Sections/PopularSpots';
 import HotPlaces from '../../Components/Sections/HotPlaces';
 import DIMENSIONS from '../../Services/Constants/DIMENSIONS';
 
@@ -172,7 +171,6 @@ const SiteDetailPage = ({navigation, route}) => {
   const [city, setCity] = useState(route.params?.city || {});
   const [isFav, setIsFav] = useState(!!route.params?.city?.is_favorite);
   const [activeGalleryIdx, setActiveGalleryIdx] = useState(0);
-  const [activeMediaTab, setActiveMediaTab] = useState('photos');
   const [isLoading, setIsLoading] = useState(false);
   const [offline, setOffline] = useState(false);
   const [bannerObject, setBannerObject] = useState({});
@@ -612,26 +610,42 @@ const SiteDetailPage = ({navigation, route}) => {
     );
   };
 
-  // ── Media tabs: Photos | Reviews ──────────────────────────────────────────────
-  const MEDIA_TABS = [
-    {id: 'photos', label: `📸  Photos (${city?.gallery?.length || 0})`},
-    {id: 'reviews', label: `💬  Reviews (${city?.comment_count || 0})`},
-  ];
+  // ── Section: Photos ───────────────────────────────────────────────────────────
+  const renderPhotosSection = () => (
+    <View style={[st.contentBlock, {paddingHorizontal: 0}]}>
+      <View style={[st.sectionHeaderRow, {paddingHorizontal: 16, marginBottom: 14}]}>
+        <View style={st.sectionTitleRow}>
+          <View style={st.sectionTitleDot} />
+          <Text style={st.sectionTitle}>Photos</Text>
+          {(city?.gallery?.length > 0) && (
+            <View style={st.countPill}>
+              <Text style={st.countPillText}>{city.gallery.length}</Text>
+            </View>
+          )}
+        </View>
+      </View>
+      <View style={{paddingHorizontal: 16}}>
+        {renderPhotosContent()}
+      </View>
+    </View>
+  );
 
-  const renderMediaTabs = () => (
-    <View style={st.mediaTabsWrap}>
-      <View style={st.mediaTabsInner}>
-        {MEDIA_TABS.map(tab => (
-          <TouchableOpacity
-            key={tab.id}
-            style={[st.mediaTab, activeMediaTab === tab.id && st.mediaTabActive]}
-            onPress={() => setActiveMediaTab(tab.id)}
-            activeOpacity={0.8}>
-            <Text style={[st.mediaTabText, activeMediaTab === tab.id && st.mediaTabTextActive]}>
-              {tab.label}
-            </Text>
-          </TouchableOpacity>
-        ))}
+  // ── Section: Reviews ──────────────────────────────────────────────────────────
+  const renderReviewsSection = () => (
+    <View style={[st.contentBlock, {paddingHorizontal: 0}]}>
+      <View style={[st.sectionHeaderRow, {paddingHorizontal: 16, marginBottom: 14}]}>
+        <View style={st.sectionTitleRow}>
+          <View style={st.sectionTitleDot} />
+          <Text style={st.sectionTitle}>Reviews</Text>
+          {(city?.comment_count > 0) && (
+            <View style={st.countPill}>
+              <Text style={st.countPillText}>{city.comment_count}</Text>
+            </View>
+          )}
+        </View>
+      </View>
+      <View style={{paddingHorizontal: 16}}>
+        {renderReviewsContent()}
       </View>
     </View>
   );
@@ -765,25 +779,6 @@ const SiteDetailPage = ({navigation, route}) => {
     );
   };
 
-  const renderMediaSection = () => (
-    <View style={[st.contentBlock, {paddingHorizontal: 0}]}>
-      {/* Section header */}
-      <View style={[st.sectionHeaderRow, {paddingHorizontal: 16, marginBottom: 14}]}>
-        <View style={st.sectionTitleRow}>
-          <View style={st.sectionTitleDot} />
-          <Text style={st.sectionTitle}>Photos & Reviews</Text>
-        </View>
-      </View>
-
-      {/* Tab switcher */}
-      {renderMediaTabs()}
-
-      {/* Tab content */}
-      <View style={{paddingHorizontal: 16, paddingTop: 12}}>
-        {activeMediaTab === 'photos' ? renderPhotosContent() : renderReviewsContent()}
-      </View>
-    </View>
-  );
 
   // ── Section: Villages ─────────────────────────────────────────────────────────
   const renderVillagesSection = () => {
@@ -885,10 +880,16 @@ const SiteDetailPage = ({navigation, route}) => {
         {/* 5. Quick info pills */}
         {renderQuickInfo()}
 
-        {/* 6. Location map */}
+        {/* 6. Hot Places */}
+        <HotPlaces
+          hot_sites={city?.hot_sites ?? []}
+          onCardPress={item => navigation.push(t('SCREEN.SITE_DETAIL'), {city: item})}
+        />
+
+        {/* 7. Location map */}
         {renderLocationSection()}
 
-        {/* 7. Mid Ad Banner */}
+        {/* 8. Mid Ad Banner */}
         <View style={st.adSection}>
           {(isLoading && !bannerObject.CITY_MIDDLE) ? (
             <SkeletonAdBanner />
@@ -901,20 +902,11 @@ const SiteDetailPage = ({navigation, route}) => {
           )}
         </View>
 
-        {/* 8. Photos & Reviews tabs */}
-        {(isLoading && !city.name) ? <SkeletonContent /> : renderMediaSection()}
+        {/* 9. Photos */}
+        {(isLoading && !city.name) ? <SkeletonContent /> : renderPhotosSection()}
 
-        {/* 9. Popular Spots */}
-        <PopularSpots
-          trending={city?.trending ?? {}}
-          onCardPress={item => navigation.push(t('SCREEN.SITE_DETAIL'), {city: item})}
-        />
-
-        {/* 10. Hot Places */}
-        <HotPlaces
-          hot_sites={city?.hot_sites ?? []}
-          onCardPress={item => navigation.push(t('SCREEN.SITE_DETAIL'), {city: item})}
-        />
+        {/* 10. Reviews */}
+        {(isLoading && !city.name) ? null : renderReviewsSection()}
 
         {/* 11. Villages */}
         {renderVillagesSection()}
@@ -1237,19 +1229,12 @@ const st = StyleSheet.create({
   adIcon: {fontSize: 28, marginBottom: 8},
   adText: {fontSize: 14, fontWeight: '500', color: C.textMid, textAlign: 'center'},
 
-  // Media tabs
-  mediaTabsWrap: {paddingHorizontal: 16, paddingTop: 14, paddingBottom: 2},
-  mediaTabsInner: {
-    flexDirection: 'row', backgroundColor: 'rgba(0,0,0,0.05)',
-    borderRadius: 12, padding: 4,
+  // Section count pill
+  countPill: {
+    backgroundColor: C.oceanMid,
+    borderRadius: 10, paddingHorizontal: 7, paddingVertical: 2, marginLeft: 6,
   },
-  mediaTab: {flex: 1, paddingVertical: 10, alignItems: 'center', borderRadius: 10},
-  mediaTabActive: {
-    backgroundColor: C.white,
-    borderWidth: 1, borderColor: 'rgba(27,107,123,0.15)',
-  },
-  mediaTabText: {fontSize: 13, fontWeight: '600', color: C.textLight},
-  mediaTabTextActive: {color: C.oceanMid},
+  countPillText: {fontSize: 11, fontWeight: '700', color: C.white},
 
   // Photos grid
   photoGrid: {flexDirection: 'row', flexWrap: 'wrap', gap: 8},

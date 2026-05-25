@@ -51,7 +51,6 @@ import PackageCard from '../../Components/Cards/PackageCard';
 import PackageCardSkeleton from '../../Components/Cards/PackageCardSkeleton';
 import Banner from '../../Components/Customs/Banner';
 import STRING from '../../Services/Constants/STRINGS';
-import PopularSpots from '../../Components/Sections/PopularSpots';
 import HotPlaces from '../../Components/Sections/HotPlaces';
 
 const CityDetails = ({navigation, route, offline, ...props}) => {
@@ -391,167 +390,209 @@ const CityDetails = ({navigation, route, offline, ...props}) => {
         }
         style={styles.cityHeader}
       />
-      <ScrollView style={{backgroundColor: '#fff'}}>
+      <ScrollView style={{backgroundColor: '#F8F7F4'}}>
         <Popup message={alertMessage} onPress={closePopup} visible={isAlert} />
-
         <Loader />
 
         {city && (
           <View>
-            <View style={styles.placeImageView}>
+            {/* ── Hero Image ── */}
+            <View style={cd.heroWrap}>
               {isLoading ? (
-                <Skeleton
-                  animation="pulse"
-                  variant="text"
-                  style={styles.placeImage}
-                />
-              ) : city?.gallery && city?.gallery[0] ? (
-                <GalleryView images={city.gallery.slice(0, 3)} />
+                <Skeleton animation="pulse" variant="text" style={cd.hero} />
               ) : city?.image ? (
                 <ImageBackground
                   source={{uri: FTP_PATH + city.image}}
-                  style={styles.placeImage}
-                  imageStyle={styles.cityImageStyle}
+                  style={cd.hero}
+                  imageStyle={{borderBottomLeftRadius: 24, borderBottomRightRadius: 24}}
                   resizeMode="cover"
                 />
               ) : (
-                // <ImageBackground
-                //     source={{ uri: FTP_PATH + city.image }}
-                //     style={styles.placeImage}
-                // />
                 <ImageBackground
                   source={require('../../Assets/Images/no-image.png')}
-                  style={styles.placeImage}
-                  imageStyle={styles.cityImageStyle}
+                  style={cd.hero}
+                  imageStyle={{borderBottomLeftRadius: 24, borderBottomRightRadius: 24}}
                   resizeMode="cover"
-                />
-              )}
-              {city?.gallery && city?.gallery[0] && (
-                <TextButton
-                  title={t('BUTTON.SEE_MORE')}
-                  buttonView={styles.searchButtonStyle}
-                  titleStyle={styles.buttonTitleStyle}
-                  raised={false}
-                  onPress={goToCityImages}
                 />
               )}
             </View>
-            <View style={{padding: 10}}>
+
+            <View style={cd.body}>
+
+              {/* 1 ── Name + Heart + TagLine + Rating summary ── */}
               {isLoading ? (
-                <>
-                  <Skeleton
-                    animation="pulse"
-                    variant="text"
-                    style={{width: 130, height: 20}}
-                  />
-                  <Skeleton
-                    animation="pulse"
-                    variant="text"
-                    style={{marginTop: 5, width: 190}}
-                  />
-                </>
+                <View style={{gap: 8, marginBottom: 16}}>
+                  <Skeleton animation="pulse" variant="text" style={{width: 160, height: 22}} />
+                  <Skeleton animation="pulse" variant="text" style={{width: 220, height: 16}} />
+                  <Skeleton animation="pulse" variant="text" style={{width: 120, height: 14}} />
+                </View>
               ) : (
-                <View>
-                  <View style={styles.flexBetween}>
-                    <View style={styles.flexRow}>
-                      <MaterialIcons
-                        name="location-pin"
-                        color={COLOR.themeBlue}
-                        size={DIMENSIONS.iconSize}
-                      />
-                      <GlobalText text={city.name} style={styles.detailTitle} />
+                <View style={cd.nameRow}>
+                  <View style={{flex: 1}}>
+                    <View style={cd.titleRow}>
+                      <MaterialIcons name="location-pin" color={C2.ocean} size={18} />
+                      <Text style={cd.cityName}>{city.name}</Text>
                     </View>
-                    <TouchableOpacity
-                      style={styles.cityLikeView}
-                      onPress={() => onHeartClick()}>
-                      <Octicons
-                        name={isFav ? 'heart-fill' : 'heart'}
-                        color={isFav ? COLOR.red : COLOR.black}
-                        size={DIMENSIONS.iconSize}
-                      />
-                    </TouchableOpacity>
+                    {!!city.tag_line && (
+                      <Text style={cd.tagLine}>{city.tag_line}</Text>
+                    )}
+                    {/* Quick rating summary — shown once here, not repeated in Reviews */}
+                    <View style={cd.ratingQuickRow}>
+                      <Ionicons name="star" size={13} color="#F59E0B" />
+                      <Text style={cd.ratingQuickScore}>
+                        {rating > 0 ? rating.toFixed(1) : 'No rating'}
+                      </Text>
+                      {commentCount > 0 && (
+                        <Text style={cd.ratingQuickCount}>· {commentCount} review{commentCount !== 1 ? 's' : ''}</Text>
+                      )}
+                    </View>
                   </View>
-                  <GlobalText
-                    text={city.tag_line}
-                    style={styles.detailSubTitle}
-                  />
+                  <TouchableOpacity style={cd.heartBtn} onPress={onHeartClick} activeOpacity={0.8}>
+                    <Octicons
+                      name={isFav ? 'heart-fill' : 'heart'}
+                      color={isFav ? '#EF4444' : '#78716C'}
+                      size={22}
+                    />
+                  </TouchableOpacity>
                 </View>
               )}
 
-              <View style={styles.detailsTitleView}>
-                <View>
-                  {isLoading ? (
-                    <>
-                      <Skeleton
-                        animation="pulse"
-                        variant="text"
-                        style={{
-                          marginTop: 12,
-                          width: 100,
-                        }}
-                      />
-                    </>
-                  ) : (
-                    <>
-                      <View style={styles.cityStarView}>
+              {/* 2 ── Description ── */}
+              {isLoading ? (
+                <View style={{gap: 6, marginBottom: 16}}>
+                  {[300, 320, 200, 280, 240].map((w, i) => (
+                    <Skeleton key={i} animation="pulse" variant="text" style={{width: w}} />
+                  ))}
+                </View>
+              ) : city.description ? (
+                <View style={cd.descCard}>
+                  <ReadMore
+                    numberOfLines={4}
+                    renderTruncatedFooter={renderTruncatedFooter}
+                    renderRevealedFooter={renderRevealedFooter}
+                    onReady={handleTextReady}>
+                    <GlobalText text={city.description} />
+                  </ReadMore>
+                </View>
+              ) : null}
+
+              {/* 3+4 ── Photos & Reviews — data-driven order ── */}
+              {!isLoading && (() => {
+                const hasPhotos = city?.gallery?.length > 0;
+                const hasReviews = commentCount > 0;
+                // whichever has data comes first; if both or neither → Photos first
+                const photosFirst = hasPhotos || !hasReviews;
+
+                const PhotosSection = hasPhotos ? (
+                  <View key="photos" style={cd.section}>
+                    <View style={cd.sectionHeader}>
+                      <View style={cd.sectionTitleRow}>
+                        <Ionicons name="images-outline" size={18} color={C2.ocean} />
+                        <Text style={cd.sectionTitle}>Photos</Text>
+                        <View style={cd.countBadge}>
+                          <Text style={cd.countBadgeText}>{city.gallery.length}</Text>
+                        </View>
+                      </View>
+                      <TouchableOpacity onPress={goToCityImages} activeOpacity={0.8}>
+                        <Text style={cd.viewAllText}>View All →</Text>
+                      </TouchableOpacity>
+                    </View>
+                    <FlatList
+                      data={city.gallery.slice(0, 8)}
+                      keyExtractor={(item, i) => String(item.id || i)}
+                      horizontal
+                      showsHorizontalScrollIndicator={false}
+                      contentContainerStyle={{gap: 8, paddingRight: 4}}
+                      renderItem={({item, index}) => (
+                        <TouchableOpacity
+                          activeOpacity={0.85}
+                          onPress={goToCityImages}
+                          style={cd.photoThumb}>
+                          <ImageBackground
+                            source={{uri: item.path?.startsWith('http') ? item.path : `${FTP_PATH}${item.path}`}}
+                            style={{width: '100%', height: '100%'}}
+                            imageStyle={{borderRadius: 12}}
+                            resizeMode="cover"
+                          />
+                        </TouchableOpacity>
+                      )}
+                    />
+                  </View>
+                ) : null;
+
+                const ReviewsSection = (
+                  <View key="reviews" style={cd.section}>
+                    <View style={cd.sectionHeader}>
+                      <View style={cd.sectionTitleRow}>
+                        <Ionicons name="star-outline" size={18} color={C2.ocean} />
+                        <Text style={cd.sectionTitle}>Reviews</Text>
+                        {commentCount > 0 && (
+                          <View style={cd.countBadge}>
+                            <Text style={cd.countBadgeText}>{commentCount}</Text>
+                          </View>
+                        )}
+                      </View>
+                    </View>
+                    <View style={cd.reviewCard}>
+                      <View style={cd.rateActionRow}>
+                        <Text style={cd.rateActionLabel}>Rate this place</Text>
                         <StarRating
                           rating={rating}
-                          onChange={onStarRatingPress} // Modified function name
+                          onChange={onStarRatingPress}
                           enableHalfStar={false}
-                          starSize={DIMENSIONS.iconMedium}
-                          color={COLOR.yellow}
-                          starStyle={styles.starStyle}
+                          starSize={28}
+                          color="#F59E0B"
+                          starStyle={{marginHorizontal: 2}}
                         />
-                        {rating > 0 && (
-                          <GlobalText text={rating} style={styles.avgRating} />
-                        )}
-                        <GlobalText text={`   ( ${commentCount} Reviews )`} />
                       </View>
-                    </>
-                  )}
-                </View>
-              </View>
+                      <TouchableOpacity
+                        style={cd.reviewBtn}
+                        onPress={openCommentsSheet}
+                        activeOpacity={0.85}>
+                        <Ionicons name="chatbubble-outline" size={16} color="#fff" />
+                        <Text style={cd.reviewBtnText}>
+                          {commentCount > 0 ? 'Read & Write Reviews' : 'Be the first to review'}
+                        </Text>
+                      </TouchableOpacity>
+                    </View>
+                  </View>
+                );
 
+                return photosFirst
+                  ? <>{PhotosSection}{ReviewsSection}</>
+                  : <>{ReviewsSection}{PhotosSection}</>;
+              })()}
+
+              {/* 5 ── Villages (places within this city) ── */}
               {isLoading ? (
-                <>
-                  <Skeleton
-                    animation="pulse"
-                    variant="text"
-                    style={{width: 300}}
-                  />
-                  <Skeleton
-                    animation="pulse"
-                    variant="text"
-                    style={{marginTop: 5, width: 320}}
-                  />
-                  <Skeleton
-                    animation="pulse"
-                    variant="text"
-                    style={{marginTop: 5, width: 200}}
-                  />
-                  <Skeleton
-                    animation="pulse"
-                    variant="text"
-                    style={{marginTop: 5, width: 300}}
-                  />
-                  <Skeleton
-                    animation="pulse"
-                    variant="text"
-                    style={{marginTop: 5, width: 250}}
-                  />
-                </>
-              ) : (
-                <ReadMore
-                  numberOfLines={5}
-                  renderTruncatedFooter={renderTruncatedFooter}
-                  renderRevealedFooter={renderRevealedFooter}
-                  onReady={handleTextReady}>
-                  <GlobalText text={city.description} />
-                </ReadMore>
-              )}
+                <View style={styles.flexAroundSkeleton}>
+                  <Skeleton animation="pulse" variant="text" style={{width: 100, height: 30}} />
+                  <Skeleton animation="pulse" variant="text" style={{width: 100, height: 30}} />
+                </View>
+              ) : city?.sites?.[0] ? (
+                <View style={cd.section}>
+                  <View style={cd.sectionHeader}>
+                    <View style={cd.sectionTitleRow}>
+                      <Ionicons name="map-outline" size={18} color={C2.ocean} />
+                      <Text style={cd.sectionTitle}>{t('VILLAGES')}</Text>
+                    </View>
+                    <TouchableOpacity onPress={seeMore} activeOpacity={0.8}>
+                      <Text style={cd.viewAllText}>{t('BUTTON.SEE_MORE')} →</Text>
+                    </TouchableOpacity>
+                  </View>
+                  <View style={{marginLeft: -5}}>
+                    {city.sites.map((item, index) => (
+                      <View key={item.id || index}>
+                        {renderItem({item, index})}
+                      </View>
+                    ))}
+                  </View>
+                </View>
+              ) : null}
 
-              <View style={styles.sectionView}>
-                {initialRegion && initialRegion.latitude && currentLatitude ? (
+              {/* 6 ── Map (navigate after deciding to visit) ── */}
+              <View style={cd.section}>
+                {initialRegion?.latitude && currentLatitude ? (
                   <MapContainer
                     initialRegion={initialRegion}
                     currentLatitude={currentLatitude}
@@ -562,81 +603,22 @@ const CityDetails = ({navigation, route, offline, ...props}) => {
                 ) : null}
               </View>
 
-              {!isLoading &&
-                bannerObject?.CITY_MIDDLE &&
-                bannerObject.CITY_MIDDLE.length > 0 && (
-                  <View style={{marginLeft: -10, marginBottom: 20, width: '100%'}}>
-                    <Banner
-                      bannerImages={bannerObject.CITY_MIDDLE} 
-                      style={{height: DIMENSIONS.windowWidth / 3, marginBottom: 0}}
-                    />
-                  </View>
-                )}
+              {/* 7 ── Middle Banner ── */}
+              {!isLoading && bannerObject?.CITY_MIDDLE?.length > 0 && (
+                <View style={{marginLeft: -16, marginBottom: 8, width: DIMENSIONS.screenWidth}}>
+                  <Banner
+                    bannerImages={bannerObject.CITY_MIDDLE}
+                    style={{height: DIMENSIONS.windowWidth / 3, marginBottom: 0}}
+                  />
+                </View>
+              )}
 
-              <View
-                style={{
-                  flexDirection: 'row',
-                  justifyContent: 'center',
-                }}>
-                {isLoading ? (
-                  <View style={styles.flexAroundSkeleton}>
-                    <Skeleton
-                      animation="pulse"
-                      variant="text"
-                      style={{width: 100, height: 30}}
-                    />
-                    <Skeleton
-                      animation="pulse"
-                      variant="text"
-                      style={{width: 100, height: 30}}
-                    />
-                  </View>
-                ) : city?.sites?.[0] ? (
-                  <View style={styles.flexAround}>
-                    <GlobalText
-                      text={t('VILLAGES')}
-                      style={styles.sectionTitle}
-                    />
-                    <TextButton
-                      title={t('BUTTON.SEE_MORE')}
-                      buttonView={styles.villagesButtonView}
-                      titleStyle={styles.villagesTitleStyle}
-                      raised={false}
-                      onPress={() => seeMore()}
-                    />
-                  </View>
-                ) : null}
-              </View>
-              <View style={{ marginLeft: -5 }}>
-                {isLoading ? (
-                  <View>
-                    {(city?.sites ?? []).map((item, index) => (
-                      <PackageCardSkeleton key={index} cardType={'long'} />
-                    ))}
-                  </View>
-                ) : (city?.sites?.length ?? 0) > 0 ? (
-                  <View>
-                    {city.sites.map((item, index) => (
-                      <View key={item.id || index}>
-                        {renderItem({ item, index })}
-                      </View>
-                    ))}
-                  </View>
-                ) : (
-                  <View style={{ marginTop: 20 }}>
-                    <GlobalText text={t('ADDED')} style={styles.boldText} />
-                  </View>
-                )}
-              </View>
             </View>
           </View>
         )}
         {!isLoading && (
           <>
-            <PopularSpots
-              trending={city?.trending ?? {}}
-              onCardPress={item => navigateTo(navigation, t('SCREEN.SITE_DETAIL'), {city: item})}
-            />
+            {/* PopularSpots hidden: implementation pending */}
             <HotPlaces
               hot_sites={city?.hot_sites ?? []}
               onCardPress={item => navigateTo(navigation, t('SCREEN.SITE_DETAIL'), {city: item})}
@@ -733,6 +715,176 @@ const mapDispatchToProps = dispatch => {
     },
   };
 };
+
+const C2 = {
+  ocean: '#1B6B7B',
+  oceanLight: '#EEF6FF',
+  text: '#1C1917',
+  textLight: '#78716C',
+  border: '#E7E5E4',
+  card: '#FFFFFF',
+  amber: '#F59E0B',
+};
+
+const cd = StyleSheet.create({
+  heroWrap: {
+    width: '100%',
+  },
+  hero: {
+    width: '100%',
+    height: 240,
+    backgroundColor: '#E5E7EB',
+  },
+  body: {
+    paddingHorizontal: 16,
+    paddingTop: 20,
+    paddingBottom: 32,
+  },
+  nameRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    justifyContent: 'space-between',
+    marginBottom: 16,
+  },
+  titleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    marginBottom: 4,
+  },
+  cityName: {
+    fontSize: 22,
+    fontWeight: '700',
+    color: C2.text,
+    letterSpacing: 0.2,
+  },
+  tagLine: {
+    fontSize: 13,
+    color: C2.textLight,
+    lineHeight: 18,
+  },
+  ratingQuickRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    marginTop: 6,
+  },
+  ratingQuickScore: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: C2.text,
+  },
+  ratingQuickCount: {
+    fontSize: 13,
+    color: C2.textLight,
+  },
+  heartBtn: {
+    width: 42,
+    height: 42,
+    borderRadius: 21,
+    backgroundColor: C2.card,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: {width: 0, height: 1},
+    shadowOpacity: 0.08,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  descCard: {
+    backgroundColor: C2.card,
+    borderRadius: 16,
+    padding: 16,
+    marginBottom: 20,
+    shadowColor: '#000',
+    shadowOffset: {width: 0, height: 1},
+    shadowOpacity: 0.06,
+    shadowRadius: 4,
+    elevation: 1,
+  },
+  section: {
+    marginBottom: 24,
+  },
+  sectionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 12,
+  },
+  sectionTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  sectionTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: C2.text,
+    letterSpacing: 0.1,
+  },
+  countBadge: {
+    backgroundColor: C2.ocean,
+    borderRadius: 10,
+    paddingHorizontal: 7,
+    paddingVertical: 2,
+    marginLeft: 4,
+  },
+  countBadgeText: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#fff',
+  },
+  viewAllText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: C2.ocean,
+  },
+  photoThumb: {
+    width: 120,
+    height: 90,
+    borderRadius: 12,
+    overflow: 'hidden',
+    backgroundColor: '#E5E7EB',
+  },
+  photoThumbFirst: {
+    marginLeft: 0,
+  },
+  reviewCard: {
+    backgroundColor: C2.card,
+    borderRadius: 20,
+    padding: 20,
+    shadowColor: '#000',
+    shadowOffset: {width: 0, height: 2},
+    shadowOpacity: 0.07,
+    shadowRadius: 8,
+    elevation: 2,
+  },
+  rateActionRow: {
+    alignItems: 'center',
+    marginBottom: 16,
+    gap: 8,
+  },
+  rateActionLabel: {
+    fontSize: 13,
+    color: C2.textLight,
+    fontWeight: '500',
+  },
+  reviewBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    backgroundColor: C2.ocean,
+    borderRadius: 50,
+    paddingVertical: 14,
+  },
+  reviewBtnText: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#fff',
+    letterSpacing: 0.3,
+  },
+});
 
 const guestStyles = StyleSheet.create({
   backdrop: {

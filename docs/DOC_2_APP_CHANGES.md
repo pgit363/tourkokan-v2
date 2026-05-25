@@ -427,13 +427,61 @@ curl -X POST {{API_BASE_URL}}/api/v2/unregisterPushToken \
 
 ---
 
+## Feature 6 — Vendor Role Requests
+
+### 6.1 Request Vendor Role
+
+```bash
+curl -X POST {{API_BASE_URL}}/api/v2/requestRole \
+  -H "Authorization: Bearer USER_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"role_code": "vendor", "reason": "I want to list my hotel"}'
+```
+
+### 6.2 My Role Requests (check pending/rejected status)
+
+```bash
+curl -X POST {{API_BASE_URL}}/api/v2/myRoleRequests \
+  -H "Authorization: Bearer USER_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{}'
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "data": {
+    "data": [
+      {
+        "id": 1,
+        "status": "pending",
+        "admin_note": null,
+        "role": { "id": 2, "code": "vendor", "name": "Vendor" }
+      }
+    ]
+  }
+}
+```
+
+**Request Status UI:**
+
+| `status` | UI |
+|---|---|
+| *(no request)* | "Become a Vendor" CTA |
+| `pending` | Yellow card — under review |
+| `rejected` | Red card — shows `admin_note`, Reapply button |
+| *(already vendor in roles)* | Green approved card |
+
+---
+
 ## Auth Endpoints (for reference)
 
 ```bash
 # Register
 curl -X POST {{API_BASE_URL}}/api/v2/auth/register \
   -H "Content-Type: application/json" \
-  -d '{"name":"Rahul Patil","email":"rahul@example.com","password":"secret123","phone":"9876543210"}'
+  -d '{"name":"Rahul Patil","email":"rahul@example.com","password":"secret123","phone":"8454025747"}'
 
 # Login
 curl -X POST {{API_BASE_URL}}/api/v2/auth/login \

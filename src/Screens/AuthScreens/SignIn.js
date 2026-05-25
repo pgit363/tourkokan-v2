@@ -7,6 +7,7 @@ import {
   Image,
   ImageBackground,
 } from 'react-native';
+import {SafeAreaView} from 'react-native-safe-area-context';
 import TextField from '../../Components/Customs/TextField';
 import {MobileNo} from '../../Services/Constants/FIELDS';
 import TextButton from '../../Components/Customs/Buttons/TextButton';
@@ -101,7 +102,7 @@ const SignIn = ({navigation, ...props}) => {
   };
 
   return (
-    <View style={{alignItems: 'center', flex: 1}}>
+    <SafeAreaView edges={['bottom']} style={{alignItems: 'center', flex: 1}}>
       <ImageBackground
         style={styles.loginImage}
         source={require('../../Assets/Images/kokan1.jpeg')}
@@ -169,7 +170,7 @@ const SignIn = ({navigation, ...props}) => {
         </View>
         <Popup message={alertMessage} visible={isAlert} onPress={closePopup} />
       </View>
-    </View>
+    </SafeAreaView>
   );
 };
 

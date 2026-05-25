@@ -1,7 +1,17 @@
 {
   "permissions": {
     "allow": [
-      "Bash(mkdir -p /Users/pranavkamble/Documents/tourkokan-v2/src/Components/Sections)"
+      "Bash(mkdir -p /Users/pranavkamble/Documents/tourkokan-v2/src/Components/Sections)",
+      "Bash(grep -E \"\\(package\\\\.json|\\\\.js$\\)\")",
+      "Bash(sed -i '' 's/comnPost\\(`v2\\\\/place\\\\/${route.params.id}`, props\\\\.access_token, navigation\\)/comnPost\\(`v2\\\\/place\\\\/${route.params.id}`, {}, navigation\\)/' /Users/pranavkamble/Documents/tourkokan-v2/src/Screens/DetailPages/PlaceDetails.js)",
+      "Bash(sed -i '' 's/comnPost\\(`v2\\\\/project\\\\/${route.params.id}`, props\\\\.access_token\\)/comnPost\\(`v2\\\\/project\\\\/${route.params.id}`, {}, navigation\\)/' /Users/pranavkamble/Documents/tourkokan-v2/src/Screens/DetailPages/ProjectDetails.js)",
+      "Bash(sed -i '' \"s/comnPost\\('v2\\\\/stops', props\\\\.access_token\\)/comnPost\\('v2\\\\/stops', {}, navigation\\)/\" /Users/pranavkamble/Documents/tourkokan-v2/src/Screens/ListPages/StopList.js)",
+      "Bash(sed -i '' 's/comnPost\\(`v2\\\\/stop\\\\/${route.params.id}`, props\\\\.access_token\\)/comnPost\\(`v2\\\\/stop\\\\/${route.params.id}`, {}, navigation\\)/' /Users/pranavkamble/Documents/tourkokan-v2/src/Screens/DetailPages/StopDetails.js)",
+      "Bash(sed -i '' 's/comnPost\\(`v2\\\\/place_cat\\\\/${route.params.id}`, props\\\\.access_token\\)/comnPost\\(`v2\\\\/place_cat\\\\/${route.params.id}`, {}, navigation\\)/' /Users/pranavkamble/Documents/tourkokan-v2/src/Screens/DetailPages/Place_catDetails.js)",
+      "Bash(sed -i '' '/console\\\\.log.*\\\\[CreateEvent\\\\]/d' /Users/pranavkamble/Documents/tourkokan-v2/src/Screens/CreateEvent.js)",
+      "Bash(sed -i '' '/console\\\\.log.*\\\\[UpdateEvent\\\\]/d' /Users/pranavkamble/Documents/tourkokan-v2/src/Screens/UpdateEvent.js)",
+      "Bash(sed -i '' '/console\\\\.log\\('\\\\''myEvents error'\\\\''/d' /Users/pranavkamble/Documents/tourkokan-v2/src/Screens/MyEvents.js)",
+      "Bash(awk -F: '{print $1}')"
     ],
     "additionalDirectories": [
       "/Users/pranavkamble/Documents/tourkokan-v2/src/Components"

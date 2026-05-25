@@ -4,14 +4,37 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import STRING from '../Constants/STRINGS';
 import NetInfo from '@react-native-community/netinfo';
 import {API_PATH} from '@env';
+import store from '../../../Store';
+
+// Only the keys that belong to the authenticated user session.
+// Offline cache, language, mode and onboarding state are intentionally kept.
+const AUTH_STORAGE_KEYS = [
+  STRING.STORAGE.ACCESS_TOKEN,
+  STRING.STORAGE.USER_ID,
+  STRING.STORAGE.USER_EMAIL,
+  STRING.STORAGE.USER_NAME,
+  STRING.STORAGE.API_TOKEN,
+  STRING.STORAGE.ADDRESS,
+  STRING.STORAGE.PROFILE_RESPONSE,
+  STRING.STORAGE.PROFILE_PICTURE,
+  STRING.STORAGE.REFERRAL_CODE,
+];
+
+// Prevent cascading 401 — first call wins, rest are ignored for 5 s.
+let _401handling = false;
 
 const handle401 = async navigation => {
-  await AsyncStorage.clear();
-  await AsyncStorage.setItem(STRING.STORAGE.IS_FIRST_TIME, 'false');
-  if (navigation) {
-    try {
+  if (_401handling) return;
+  _401handling = true;
+
+  try {
+    await Promise.all(AUTH_STORAGE_KEYS.map(k => AsyncStorage.removeItem(k)));
+    store.dispatch({type: 'ResetStore'});
+    if (navigation) {
       navigation.reset({index: 0, routes: [{name: STRING.SCREEN.EMAIL}]});
-    } catch {}
+    }
+  } finally {
+    setTimeout(() => { _401handling = false; }, 5000);
   }
 };
 
@@ -20,7 +43,6 @@ export const comnGet = async (url, apiToken, navigation) => {
   const config = {
     headers: {Authorization: `Bearer ${apiToken}`},
   };
-  console.log('url:: ', myUrl);
   try {
     const res = await axios.get(myUrl, config);
     return res;
@@ -36,14 +58,15 @@ export const comnPost = async (url, data, navigation) => {
   const headers = {'Content-Type': 'application/json'};
   if (token) headers.Authorization = `Bearer ${token}`;
   const config = {headers};
-  console.log(myUrl);
-  console.log(data);
+  
+  console.log('url', myUrl, 'token', token, 'headers', headers);
+
   try {
     const res = await axios.post(myUrl, data, config);
+    console.log("resp", res);
+    
     return res;
   } catch (err) {
-    console.log(err);
-    
     if (err.response?.status == 401) {
       await handle401(navigation);
     }
@@ -72,7 +95,6 @@ export const comnPut = async (url, data, navigation) => {
   const headers = {'Content-Type': 'application/json'};
   if (token) headers.Authorization = `Bearer ${token}`;
   const config = {headers};
-  console.log(myUrl);
   try {
     const res = await axios.put(myUrl, data, config);
     return res;

@@ -8,19 +8,21 @@ import {
   ActivityIndicator,
   StyleSheet,
   StatusBar,
-  Alert,
   Modal,
   Image,
   BackHandler,
 } from 'react-native';
+import {useAppDialog} from '../Components/Common/AppDialog';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {useFocusEffect} from '@react-navigation/native';
+import {useTranslation} from 'react-i18next';
 import LinearGradient from 'react-native-linear-gradient';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import {launchImageLibrary} from 'react-native-image-picker';
 import {FTP_PATH} from '@env';
 import {backPage} from '../Services/CommonMethods';
-import {comnPostForm} from '../Services/Api/CommonServices';
+import {comnPost, comnPostForm} from '../Services/Api/CommonServices';
+import STRING from '../Services/Constants/STRINGS';
 
 const C = {
   oceanDeep: '#0D3D4A',
@@ -52,7 +54,8 @@ const firstDay = (y, m) => new Date(y, m, 1).getDay();
 
 const parseApiDate = str => {
   if (!str) return null;
-  const [year, month, day] = str.split('-').map(Number);
+  const [year, month, day] = str.split('T')[0].split(' ')[0].split('-').map(Number);
+  if (!year || !month || !day || isNaN(day)) return null;
   return {year, month: month - 1, day};
 };
 
@@ -160,22 +163,13 @@ const Field = ({label, required, children}) => (
 
 const UpdateEvent = ({navigation, route}) => {
   const insets = useSafeAreaInsets();
+  const {t} = useTranslation();
+  const {show: showDialog, dialog} = useAppDialog();
   const event = route?.params?.event ?? {};
   const isBlocked = BLOCKED_STATUSES.includes(event.status);
 
-  useFocusEffect(
-    useCallback(() => {
-      const handler = BackHandler.addEventListener('hardwareBackPress', () => {
-        navigation.goBack();
-        return true;
-      });
-      return () => handler.remove();
-    }, [navigation]),
-  );
-
   const existingBannerUri = event.banner_image_url
     || (event.banner_image ? `${FTP_PATH}${event.banner_image}` : null);
-  console.log('[UpdateEvent img]', event.title, existingBannerUri);
 
   const [title, setTitle] = useState(event.title ?? '');
   const [description, setDescription] = useState(event.description ?? '');
@@ -187,8 +181,48 @@ const UpdateEvent = ({navigation, route}) => {
   const [isFree, setIsFree] = useState(event.is_free !== false);
   const [entryFee, setEntryFee] = useState(event.entry_fee ? String(event.entry_fee) : '');
   const [videoUrl, setVideoUrl] = useState(event.video_url ?? '');
-  const [newBanner, setNewBanner] = useState(null); // replacement image asset
+  const [newBanner, setNewBanner] = useState(null);
+
+  const hasUnsavedChanges = !isBlocked && (
+    title !== (event.title ?? '') ||
+    description !== (event.description ?? '') ||
+    address !== (event.address ?? '') ||
+    venueName !== (event.venue_name ?? '') ||
+    taluka !== (event.taluka ?? '') ||
+    toApiDate(startDate) !== (event.start_date?.split('T')[0] ?? '') ||
+    toApiDate(endDate) !== (event.end_date?.split('T')[0] ?? '') ||
+    isFree !== (event.is_free !== false) ||
+    entryFee !== (event.entry_fee ? String(event.entry_fee) : '') ||
+    videoUrl !== (event.video_url ?? '') ||
+    !!newBanner
+  );
+
+  const handleBack = useCallback(() => {
+    if (hasUnsavedChanges) {
+      showDialog({
+        type: 'confirm',
+        title: 'Discard Changes?',
+        message: 'You have unsaved changes. Are you sure you want to go back?',
+        confirmText: 'Discard',
+        cancelText: 'Keep Editing',
+        onConfirm: () => navigation.goBack(),
+      });
+    } else {
+      navigation.goBack();
+    }
+  }, [hasUnsavedChanges, navigation, showDialog]);
+
+  useFocusEffect(
+    useCallback(() => {
+      const handler = BackHandler.addEventListener('hardwareBackPress', () => {
+        handleBack();
+        return true;
+      });
+      return () => handler.remove();
+    }, [handleBack]),
+  );
   const [submitting, setSubmitting] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   const [activePicker, setActivePicker] = useState(null);
   const [showTaluka, setShowTaluka] = useState(false);
@@ -202,14 +236,34 @@ const UpdateEvent = ({navigation, route}) => {
   };
 
   const validate = () => {
-    if (!title.trim()) { Alert.alert('Required', 'Event title is required.'); return false; }
-    if (!description.trim()) { Alert.alert('Required', 'Description is required.'); return false; }
-    if (!address.trim()) { Alert.alert('Required', 'Address is required.'); return false; }
-    if (!taluka) { Alert.alert('Required', 'Please select a taluka.'); return false; }
-    if (!startDate) { Alert.alert('Required', 'Please select a start date.'); return false; }
-    if (!endDate) { Alert.alert('Required', 'Please select an end date.'); return false; }
-    if (!isFree && !entryFee.trim()) { Alert.alert('Required', 'Entry fee is required for paid events.'); return false; }
+    if (!title.trim()) { showDialog({type:'warning', title:'Required', message:t('UPDATE_EVENT.TITLE_REQUIRED')}); return false; }
+    if (!description.trim()) { showDialog({type:'warning', title:'Required', message:t('UPDATE_EVENT.DESC_REQUIRED')}); return false; }
+    if (!address.trim()) { showDialog({type:'warning', title:'Required', message:t('UPDATE_EVENT.ADDRESS_REQUIRED')}); return false; }
+    if (!taluka) { showDialog({type:'warning', title:'Required', message:t('UPDATE_EVENT.TALUKA_REQUIRED')}); return false; }
+    if (!startDate) { showDialog({type:'warning', title:'Required', message:t('UPDATE_EVENT.START_DATE_REQUIRED')}); return false; }
+    if (!endDate) { showDialog({type:'warning', title:'Required', message:t('UPDATE_EVENT.END_DATE_REQUIRED')}); return false; }
+    if (!isFree && !entryFee.trim()) { showDialog({type:'warning', title:'Required', message:t('UPDATE_EVENT.ENTRY_FEE_REQUIRED')}); return false; }
     return true;
+  };
+
+  const confirmDelete = () => {
+    showDialog({
+      type: 'delete',
+      title: t('MY_SUBMISSIONS.DELETE_TITLE'),
+      message: t('MY_SUBMISSIONS.DELETE_EVENT_MSG'),
+      confirmText: t('MY_SUBMISSIONS.DELETE_BTN'),
+      cancelText: t('BUTTON.CANCEL'),
+      onConfirm: async () => {
+        setDeleting(true);
+        const res = await comnPost('v2/deleteEvent', {id: event.id}, navigation).catch(() => null);
+        setDeleting(false);
+        if (res?.data?.success) {
+          navigation.replace(STRING.SCREEN.MY_EVENTS);
+        } else {
+          showDialog({type: 'error', title: t('ALERT.FAILED'), message: t('MY_SUBMISSIONS.DELETE_ERROR')});
+        }
+      },
+    });
   };
 
   const submit = async () => {
@@ -228,6 +282,17 @@ const UpdateEvent = ({navigation, route}) => {
     if (venueName.trim()) fd.append('venue_name', venueName.trim());
     if (!isFree && entryFee.trim()) fd.append('entry_fee', entryFee.trim());
     if (videoUrl.trim()) fd.append('video_url', videoUrl.trim());
+
+    // Pass through fields the API expects but we don't have UI for yet
+    if (event.start_time) fd.append('start_time', event.start_time);
+    if (event.end_time) fd.append('end_time', event.end_time);
+    if (event.organizer_name) fd.append('organizer_name', event.organizer_name);
+    if (event.organizer_phone) fd.append('organizer_phone', String(event.organizer_phone));
+    if (event.organizer_email) fd.append('organizer_email', event.organizer_email);
+    if (event.registration_required != null) fd.append('registration_required', event.registration_required ? '1' : '0');
+    if (event.max_participants) fd.append('max_participants', String(event.max_participants));
+    if (Array.isArray(event.tags)) event.tags.forEach(tag => fd.append('tags[]', typeof tag === 'object' ? tag.name : tag));
+
     if (newBanner) {
       fd.append('banner_image', {
         uri: newBanner.uri,
@@ -236,26 +301,28 @@ const UpdateEvent = ({navigation, route}) => {
       });
     }
 
-    console.log('[UpdateEvent] POST v2/updateEvent (FormData)', event.id);
-    const res = await comnPostForm('v2/updateEvent', fd).catch(err => {
-      console.log('[UpdateEvent] ERROR', err);
-      return null;
-    });
-    console.log('[UpdateEvent] RESPONSE', res?.data);
+    const res = await comnPostForm('v2/updateEvent', fd);
     setSubmitting(false);
 
-    if (res?.data?.success) {
-      Alert.alert('Updated!', res?.data?.message || 'Event updated successfully.', [
-        {text: 'OK', onPress: () => backPage(navigation)},
-      ]);
+    // comnPostForm returns Axios error object on failure (not null), so check both paths
+    const resData = res?.data ?? res?.response?.data;
+    if (resData?.success) {
+      showDialog({
+        type: 'success',
+        title: t('UPDATE_EVENT.UPDATED'),
+        message: resData?.message || t('UPDATE_EVENT.UPDATED_MSG'),
+        confirmText: t('UPDATE_EVENT.MY_EVENTS_BTN'),
+        onConfirm: () => navigation.replace(STRING.SCREEN.MY_EVENTS),
+        onClose: () => navigation.replace(STRING.SCREEN.MY_EVENTS),
+      });
     } else {
-      const msg = res?.data?.message;
+      const msg = resData?.message;
       const displayMsg = typeof msg === 'string'
         ? msg
         : typeof msg === 'object' && msg !== null
           ? Object.values(msg).flat().join('\n')
-          : 'Could not update event. Please try again.';
-      Alert.alert('Error', displayMsg);
+          : t('ALERT.WENT_WRONG');
+      showDialog({type: 'error', title: t('ALERT.FAILED'), message: displayMsg});
     }
   };
 
@@ -270,11 +337,11 @@ const UpdateEvent = ({navigation, route}) => {
         start={{x: 0, y: 0}} end={{x: 1, y: 1}}
         style={[s.header, {paddingTop: insets.top + 10}]}>
         <View style={s.headerRow}>
-          <TouchableOpacity style={s.backBtn} onPress={() => backPage(navigation)} activeOpacity={0.8}
+          <TouchableOpacity style={s.backBtn} onPress={handleBack} activeOpacity={0.8}
             hitSlop={{top: 8, bottom: 8, left: 8, right: 8}}>
             <Ionicons name="arrow-back" size={20} color={C.white} />
           </TouchableOpacity>
-          <Text style={s.headerTitle}>Edit Event</Text>
+          <Text style={s.headerTitle}>{t('UPDATE_EVENT.TITLE')}</Text>
         </View>
         <View style={s.headerCurve} pointerEvents="none" />
       </LinearGradient>
@@ -283,9 +350,7 @@ const UpdateEvent = ({navigation, route}) => {
       {isBlocked && (
         <View style={s.blockedBanner}>
           <Ionicons name="lock-closed-outline" size={15} color={C.amber} />
-          <Text style={s.blockedText}>
-            This event is {event.status} and cannot be edited.
-          </Text>
+          <Text style={s.blockedText}>{t('UPDATE_EVENT.BLOCKED')}</Text>
         </View>
       )}
 
@@ -435,22 +500,34 @@ const UpdateEvent = ({navigation, route}) => {
 
       </ScrollView>
 
-      {!isBlocked && (
-        <View style={[s.footer, {paddingBottom: Math.max(insets.bottom, 16)}]}>
+      <View style={[s.footer, {paddingBottom: Math.max(insets.bottom, 16)}]}>
+        {!isBlocked && (
           <TouchableOpacity
             style={[s.submitBtn, submitting && {opacity: 0.7}]}
-            onPress={submit} disabled={submitting} activeOpacity={0.85}>
+            onPress={submit} disabled={submitting || deleting} activeOpacity={0.85}>
             {submitting ? (
               <ActivityIndicator size="small" color={C.white} />
             ) : (
               <>
                 <Ionicons name="checkmark-circle-outline" size={18} color={C.white} />
-                <Text style={s.submitBtnText}>Save Changes</Text>
+                <Text style={s.submitBtnText}>{t('UPDATE_EVENT.SAVE_BTN')}</Text>
               </>
             )}
           </TouchableOpacity>
-        </View>
-      )}
+        )}
+        <TouchableOpacity
+          style={[s.deleteBtn, (deleting || submitting) && {opacity: 0.6}]}
+          onPress={confirmDelete} disabled={deleting || submitting} activeOpacity={0.85}>
+          {deleting ? (
+            <ActivityIndicator size="small" color="#DC2626" />
+          ) : (
+            <>
+              <Ionicons name="trash-outline" size={16} color="#DC2626" />
+              <Text style={s.deleteBtnText}>{t('MY_SUBMISSIONS.DELETE_BTN')}</Text>
+            </>
+          )}
+        </TouchableOpacity>
+      </View>
 
       <CalendarPicker
         visible={activePicker === 'start'}
@@ -470,6 +547,7 @@ const UpdateEvent = ({navigation, route}) => {
         onSelect={t => { setTaluka(t); setShowTaluka(false); }}
         onClose={() => setShowTaluka(false)}
       />
+      {dialog}
     </View>
   );
 };
@@ -561,8 +639,14 @@ const s = StyleSheet.create({
   submitBtn: {
     backgroundColor: C.oceanMid, borderRadius: 14, paddingVertical: 15,
     flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8,
+    marginBottom: 10,
   },
   submitBtnText: {fontSize: 16, fontWeight: '700', color: C.white},
+  deleteBtn: {
+    borderWidth: 1.5, borderColor: '#FCA5A5', borderRadius: 14, paddingVertical: 12,
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8,
+  },
+  deleteBtnText: {fontSize: 15, fontWeight: '600', color: '#DC2626'},
 });
 
 const CELL_SIZE = 42;

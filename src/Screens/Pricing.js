@@ -26,7 +26,7 @@ const Pricing = ({navigation, ...props}) => {
   };
 
   return (
-    <SafeAreaView edges={['top']} style={{flex: 1, backgroundColor: COLOR.white}}>
+    <SafeAreaView edges={['top', 'bottom']} style={{flex: 1, backgroundColor: COLOR.white}}>
     <ScrollView stickyHeaderIndices={[0]}>
       <Header
         name={t('HEADER.PRICING')}

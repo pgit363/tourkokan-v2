@@ -22,7 +22,7 @@ const StopList = ({ navigation, ...props }) => {
   useEffect(() => {
     props.setLoader(true);
 
-    comnPost('v2/stops', props.access_token)
+    comnPost('v2/stops', {}, navigation)
       .then(res => {
         setStops(res.data.data.data);
         props.setLoader(false);

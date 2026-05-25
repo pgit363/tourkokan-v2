@@ -132,7 +132,7 @@ const VerifyOTP = ({navigation, route, ...props}) => {
   };
 
   return (
-    <View style={{flex: 1, backgroundColor: COLOR.white}}>
+    <SafeAreaView edges={['bottom']} style={{flex: 1, backgroundColor: COLOR.white}}>
       <ImageBackground
         style={styles.loginImage}
         source={require('../../Assets/Images/Intro/login_background.png')}
@@ -195,7 +195,7 @@ const VerifyOTP = ({navigation, route, ...props}) => {
       </View>
       <KeyboardAvoidingView behavior="height" style={{flex: 1}} />
       <Popup message={alertMessage} visible={isAlert} onPress={closePopup} />
-    </View>
+    </SafeAreaView>
   );
 };
 

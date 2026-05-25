@@ -1,4 +1,4 @@
-import React, {useState, useEffect} from 'react';
+import React, {useState, useEffect, useMemo, useCallback} from 'react';
 import {
   View,
   Text,
@@ -9,18 +9,22 @@ import {
   Image,
   StyleSheet,
   StatusBar,
-  Alert,
-  Dimensions,
+  Platform,
+  PermissionsAndroid,
+  BackHandler,
 } from 'react-native';
+import {useAppDialog} from '../Components/Common/AppDialog';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
+import {useFocusEffect} from '@react-navigation/native';
 import LinearGradient from 'react-native-linear-gradient';
 import {launchImageLibrary} from 'react-native-image-picker';
 import Ionicons from 'react-native-vector-icons/Ionicons';
+import MapView, {Marker} from 'react-native-maps';
+import Geolocation from '@react-native-community/geolocation';
 import {backPage} from '../Services/CommonMethods';
 import {comnPost, comnPostForm} from '../Services/Api/CommonServices';
 import STRING from '../Services/Constants/STRINGS';
 
-const {width: SW} = Dimensions.get('window');
 
 const C = {
   oceanDeep: '#0D3D4A',
@@ -38,6 +42,7 @@ const STEPS = ['Basic Info', 'Location', 'Photos', 'Details'];
 
 const SubmitPlaceScreen = ({navigation, route}) => {
   const insets = useSafeAreaInsets();
+  const {show: showDialog, dialog} = useAppDialog();
   const editData = route?.params?.editSubmission ?? null;
 
   const [step, setStep] = useState(0);
@@ -58,6 +63,9 @@ const SubmitPlaceScreen = ({navigation, route}) => {
   const [mapsUrl, setMapsUrl] = useState('');
   const [parsingUrl, setParsingUrl] = useState(false);
 
+  const [detectingLocation, setDetectingLocation] = useState(false);
+  const [showManualInput, setShowManualInput] = useState(false);
+
   // Step 3
   const [image, setImage] = useState(null);
   const [logo, setLogo] = useState(null);
@@ -68,11 +76,119 @@ const SubmitPlaceScreen = ({navigation, route}) => {
 
   const isEdit = !!editData;
 
+  const [loadingEdit, setLoadingEdit] = useState(isEdit);
+
+  const hasUnsavedChanges = !!(name || description || tagLine || selectedCategories.length || latitude || longitude || image || logo || website || pinCode);
+
+  const handleBack = useCallback(() => {
+    if (step > 0) {
+      setStep(s => s - 1);
+      return;
+    }
+    if (hasUnsavedChanges) {
+      showDialog({
+        type: 'confirm',
+        title: isEdit ? 'Discard Changes?' : 'Discard Submission?',
+        message: 'You have unsaved changes. Are you sure you want to go back?',
+        confirmText: 'Discard',
+        cancelText: 'Keep Editing',
+        onConfirm: () => backPage(navigation),
+      });
+    } else {
+      backPage(navigation);
+    }
+  }, [step, hasUnsavedChanges, isEdit, navigation, showDialog]);
+
+  useFocusEffect(
+    useCallback(() => {
+      const handler = BackHandler.addEventListener('hardwareBackPress', () => {
+        handleBack();
+        return true;
+      });
+      return () => handler.remove();
+    }, [handleBack]),
+  );
+  const [selectedParentId, setSelectedParentId] = useState(null);
+  const [parentDropOpen, setParentDropOpen] = useState(false);
+
   useEffect(() => {
     comnPost('v2/listcategories', {per_page: 100})
       .then(res => setCategories(res?.data?.data?.data || []))
       .catch(() => {});
   }, []);
+
+  const populateFromSite = site => {
+    setName(site.name ?? '');
+    setDescription(site.description ?? '');
+    setTagLine(site.tag_line ?? '');
+    setLatitude(site.latitude ? String(site.latitude) : '');
+    setLongitude(site.longitude ? String(site.longitude) : '');
+    setWebsite(site.domain_name ?? '');
+    setPinCode(site.pin_code ?? '');
+    const subIds = (site.categories || [])
+      .filter(c => c.parent_id != null)
+      .map(c => c.id);
+    setSelectedCategories(subIds);
+  };
+
+  useEffect(() => {
+    if (!isEdit) return;
+
+    const getSitePayload = {id: editData.id};
+    comnPost('v2/getSite', getSitePayload)
+      .then(res => {
+        const site = res?.data?.data;
+        if (!site) return;
+        populateFromSite(site);
+      })
+      .catch(() => {})
+      .finally(() => setLoadingEdit(false));
+  }, []);
+
+  const groupedCategories = useMemo(() => {
+    if (categories.length === 0) return [];
+    const first = categories[0];
+    if (first.children || first.sub_categories) {
+      return categories
+        .map(p => ({...p, subs: p.children ?? p.sub_categories ?? []}))
+        .filter(p => p.subs.length > 0);
+    }
+    const parents = categories.filter(c => !c.parent_id);
+    return parents
+      .map(p => ({...p, subs: categories.filter(c => c.parent_id === p.id)}))
+      .filter(p => p.subs.length > 0);
+  }, [categories]);
+
+  useEffect(() => {
+    if (!isEdit || selectedParentId != null || groupedCategories.length === 0) return;
+    const parent = groupedCategories.find(p =>
+      p.subs.some(s => selectedCategories.includes(s.id)),
+    );
+    if (parent) setSelectedParentId(parent.id);
+  }, [groupedCategories]);
+
+  const activeParent = useMemo(
+    () => groupedCategories.find(p => p.id === selectedParentId) ?? null,
+    [groupedCategories, selectedParentId],
+  );
+
+  const selectedChips = useMemo(
+    () =>
+      groupedCategories
+        .map(p => ({parent: p, subs: p.subs.filter(s => selectedCategories.includes(s.id))}))
+        .filter(x => x.subs.length > 0),
+    [groupedCategories, selectedCategories],
+  );
+
+  const selectParent = parent => {
+    setSelectedParentId(parent.id);
+    setParentDropOpen(false);
+  };
+
+  const setCoords = (lat, lng) => {
+    setLatitude(String(lat));
+    setLongitude(String(lng));
+  };
 
   const parseMapUrl = async () => {
     if (!mapsUrl.trim()) return;
@@ -80,17 +196,43 @@ const SubmitPlaceScreen = ({navigation, route}) => {
     const res = await comnPost('v2/parseMapUrl', {url: mapsUrl.trim()}).catch(() => null);
     setParsingUrl(false);
     if (res?.data?.success) {
-      setLatitude(String(res.data.data.latitude));
-      setLongitude(String(res.data.data.longitude));
+      setCoords(res.data.data.latitude, res.data.data.longitude);
       setMapsUrl('');
-      Alert.alert('Success', 'Coordinates extracted successfully.');
     } else {
-      Alert.alert(
-        'Could Not Parse',
-        res?.data?.message ||
-          'Could not extract coordinates from this URL. Please enter manually.',
-      );
+      showDialog({
+        type: 'error',
+        title: 'Could Not Parse',
+        message: res?.data?.message || 'Could not extract coordinates. Please enter manually.',
+      });
     }
+  };
+
+  const detectLocation = async () => {
+    if (Platform.OS === 'android') {
+      try {
+        const granted = await PermissionsAndroid.request(
+          PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
+        );
+        if (granted !== PermissionsAndroid.RESULTS.GRANTED) {
+          showDialog({type: 'warning', title: 'Permission Denied', message: 'Location permission is required.'});
+          return;
+        }
+      } catch {
+        return;
+      }
+    }
+    setDetectingLocation(true);
+    Geolocation.getCurrentPosition(
+      pos => {
+        setCoords(pos.coords.latitude, pos.coords.longitude);
+        setDetectingLocation(false);
+      },
+      () => {
+        setDetectingLocation(false);
+        showDialog({type: 'error', title: 'Error', message: 'Could not detect location. Please enter manually.'});
+      },
+      {enableHighAccuracy: false, timeout: 15000, maximumAge: 10000},
+    );
   };
 
   const pickImage = async field => {
@@ -125,21 +267,25 @@ const SubmitPlaceScreen = ({navigation, route}) => {
   const validateStep = () => {
     if (step === 0) {
       if (!name.trim() || name.trim().length < 2) {
-        Alert.alert('Required', 'Name must be at least 2 characters.');
+        showDialog({type: 'warning', title: 'Required', message: 'Name must be at least 2 characters.'});
         return false;
       }
       if (!description.trim() || description.trim().length < 20) {
-        Alert.alert('Required', 'Description must be at least 20 characters.');
+        showDialog({type: 'warning', title: 'Required', message: 'Description must be at least 20 characters.'});
+        return false;
+      }
+      if (!activeParent) {
+        showDialog({type: 'warning', title: 'Required', message: 'Please select a category.'});
         return false;
       }
       if (selectedCategories.length === 0) {
-        Alert.alert('Required', 'Please select at least one category.');
+        showDialog({type: 'warning', title: 'Required', message: 'Please select at least one sub-category.'});
         return false;
       }
     }
     if (step === 1) {
       if (!latitude.trim() || !longitude.trim()) {
-        Alert.alert('Required', 'Latitude and longitude are required.');
+        showDialog({type: 'warning', title: 'Required', message: 'Latitude and longitude are required.'});
         return false;
       }
     }
@@ -156,6 +302,7 @@ const SubmitPlaceScreen = ({navigation, route}) => {
     setSubmitting(true);
 
     const form = new FormData();
+
     if (isEdit) form.append('id', editData.id);
     form.append('name', name.trim());
     form.append('description', description.trim());
@@ -165,6 +312,7 @@ const SubmitPlaceScreen = ({navigation, route}) => {
     if (website.trim()) form.append('domain_name', website.trim());
     if (pinCode.trim()) form.append('pin_code', pinCode.trim());
     selectedCategories.forEach(id => form.append('categories[]', id));
+
     if (image) {
       form.append('image', {
         uri: image.uri,
@@ -181,21 +329,43 @@ const SubmitPlaceScreen = ({navigation, route}) => {
     }
 
     const endpoint = isEdit ? 'v2/updateMySubmission' : 'v2/addSite';
-    const res = await comnPostForm(endpoint, form).catch(() => null);
+    const formLog = {
+      id: isEdit ? editData.id : undefined,
+      name: name.trim(),
+      description: description.trim(),
+      tag_line: tagLine.trim(),
+      latitude,
+      longitude,
+      domain_name: website.trim(),
+      pin_code: pinCode.trim(),
+      categories: selectedCategories,
+      hasImage: !!image,
+      hasLogo: !!logo,
+    };
+    const res = await comnPostForm(endpoint, form);
     setSubmitting(false);
 
-    if (res?.data?.success) {
+    const resData = res?.data ?? res?.response?.data;
+    if (resData?.success) {
       if (!isEdit) resetForm();
-      Alert.alert(
-        isEdit ? 'Resubmitted!' : 'Submitted!',
-        isEdit
+      showDialog({
+        type: 'success',
+        title: isEdit ? 'Resubmitted!' : 'Submitted!',
+        message: isEdit
           ? 'Your place has been resubmitted for review.'
           : 'Your place has been submitted and is under review.',
-        [{text: 'View My Submissions', onPress: () => navigation.navigate(STRING.SCREEN.MY_SUBMISSIONS)}],
-      );
+        confirmText: 'View My Sites',
+        onConfirm: () => navigation.replace(STRING.SCREEN.MY_SUBMISSIONS),
+        onClose: () => navigation.replace(STRING.SCREEN.MY_SUBMISSIONS),
+      });
     } else {
-      const msg = res?.data?.message || 'Submission failed. Please try again.';
-      Alert.alert('Error', msg);
+      const msg = resData?.message;
+      const displayMsg = typeof msg === 'string'
+        ? msg
+        : typeof msg === 'object' && msg !== null
+          ? Object.values(msg).flat().join('\n')
+          : 'Submission failed. Please try again.';
+      showDialog({type: 'error', title: 'Error', message: displayMsg});
     }
   };
 
@@ -263,38 +433,162 @@ const SubmitPlaceScreen = ({navigation, route}) => {
 
             <View style={s.field}>
               <Text style={s.label}>Categories<Text style={s.required}> *</Text></Text>
-              <View style={s.chips}>
-                {categories.map(cat => {
-                  const sel = selectedCategories.includes(cat.id);
-                  return (
-                    <TouchableOpacity
-                      key={cat.id}
-                      style={[s.chip, sel && s.chipSelected]}
-                      onPress={() => toggleCategory(cat.id)}
-                      activeOpacity={0.8}>
-                      <Text style={[s.chipText, sel && s.chipTextSelected]}>
-                        {cat.name}
-                      </Text>
-                    </TouchableOpacity>
-                  );
-                })}
-              </View>
+
+              {/* Selected sub-categories grouped by parent */}
+              {selectedChips.length > 0 && (
+                <View style={s.selectedSection}>
+                  {selectedChips.map(({parent, subs}) => (
+                    <View key={parent.id} style={s.selectedGroup}>
+                      <Text style={s.selectedGroupLabel}>{parent.name}</Text>
+                      <View style={s.chips}>
+                        {subs.map(sub => (
+                          <TouchableOpacity
+                            key={sub.id}
+                            style={s.chipSelectedRemovable}
+                            onPress={() => toggleCategory(sub.id)}
+                            activeOpacity={0.8}>
+                            <Text style={s.chipTextSelected}>{sub.name}</Text>
+                            <Ionicons name="close" size={12} color={C.white} />
+                          </TouchableOpacity>
+                        ))}
+                      </View>
+                    </View>
+                  ))}
+                </View>
+              )}
+
+              {/* Parent dropdown */}
+              <TouchableOpacity
+                style={s.dropdownTrigger}
+                onPress={() => setParentDropOpen(o => !o)}
+                activeOpacity={0.8}>
+                <Text style={[s.dropdownTriggerText, !activeParent && {color: C.textLight}]}>
+                  {activeParent ? activeParent.name : 'Select category to add…'}
+                </Text>
+                {categories.length === 0 ? (
+                  <ActivityIndicator size="small" color={C.textLight} />
+                ) : (
+                  <Ionicons name={parentDropOpen ? 'chevron-up' : 'chevron-down'} size={16} color={C.textLight} />
+                )}
+              </TouchableOpacity>
+              {parentDropOpen && (
+                <View style={s.dropdownList}>
+                  {groupedCategories.map((parent, idx) => {
+                    const selCount = parent.subs.filter(s => selectedCategories.includes(s.id)).length;
+                    return (
+                      <TouchableOpacity
+                        key={parent.id}
+                        style={[s.dropdownOption, idx > 0 && {borderTopWidth: 1, borderTopColor: 'rgba(0,0,0,0.06)'}]}
+                        onPress={() => selectParent(parent)}
+                        activeOpacity={0.7}>
+                        <Text style={[s.dropdownOptionText, selectedParentId === parent.id && s.dropdownOptionSelected]}>
+                          {parent.name}
+                        </Text>
+                        {selCount > 0 && (
+                          <View style={s.dropdownBadge}>
+                            <Text style={s.dropdownBadgeText}>{selCount}</Text>
+                          </View>
+                        )}
+                      </TouchableOpacity>
+                    );
+                  })}
+                </View>
+              )}
             </View>
+
+            {/* Sub-category chips for active parent */}
+            {activeParent && (
+              <View style={s.field}>
+                <Text style={s.label}>{activeParent.name} — sub-categories</Text>
+                <View style={s.chips}>
+                  {(activeParent.subs ?? []).map(sub => {
+                    const sel = selectedCategories.includes(sub.id);
+                    return (
+                      <TouchableOpacity
+                        key={sub.id}
+                        style={[s.chip, sel && s.chipSelected]}
+                        onPress={() => toggleCategory(sub.id)}
+                        activeOpacity={0.8}>
+                        <Text style={[s.chipText, sel && s.chipTextSelected]}>{sub.name}</Text>
+                      </TouchableOpacity>
+                    );
+                  })}
+                </View>
+              </View>
+            )}
           </>
         );
 
-      case 1:
+      case 1: {
+        const lat = parseFloat(latitude);
+        const lng = parseFloat(longitude);
+        const hasCoords = !isNaN(lat) && !isNaN(lng);
         return (
           <>
-            <View style={s.infoCard}>
-              <Ionicons name="information-circle-outline" size={16} color={C.oceanMid} />
-              <Text style={s.infoText}>
-                Paste a Google Maps link and we'll extract coordinates automatically.
-              </Text>
+            {/* Interactive map */}
+            <View style={s.mapWrap}>
+              {hasCoords ? (
+                <MapView
+                  style={StyleSheet.absoluteFillObject}
+                  region={{latitude: lat, longitude: lng, latitudeDelta: 0.01, longitudeDelta: 0.01}}
+                  onPress={e => {
+                    const {latitude: lt, longitude: ln} = e.nativeEvent.coordinate;
+                    setCoords(lt, ln);
+                  }}>
+                  <Marker coordinate={{latitude: lat, longitude: lng}} />
+                </MapView>
+              ) : (
+                <View style={s.mapPlaceholder}>
+                  <Ionicons name="location-outline" size={30} color="rgba(255,255,255,0.6)" />
+                  <Text style={s.mapPlaceholderText}>Tap map after setting location</Text>
+                </View>
+              )}
+              {hasCoords && (
+                <TouchableOpacity
+                  style={s.mapClearBtn}
+                  onPress={() => { setLatitude(''); setLongitude(''); }}
+                  activeOpacity={0.8}>
+                  <Ionicons name="close" size={14} color={C.white} />
+                </TouchableOpacity>
+              )}
             </View>
 
+            {hasCoords && (
+              <View style={s.coordsPreview}>
+                <Ionicons name="location" size={15} color={C.oceanMid} />
+                <Text style={s.coordsText}>{lat.toFixed(6)}, {lng.toFixed(6)}</Text>
+              </View>
+            )}
+
+            {/* Action row: detect + paste link */}
+            <View style={s.locActionsRow}>
+              <TouchableOpacity
+                style={s.locActionBtn}
+                onPress={detectLocation}
+                disabled={detectingLocation}
+                activeOpacity={0.8}>
+                {detectingLocation ? (
+                  <ActivityIndicator size="small" color={C.oceanMid} />
+                ) : (
+                  <Ionicons name="navigate-outline" size={16} color={C.oceanMid} />
+                )}
+                <Text style={s.locActionText}>
+                  {detectingLocation ? 'Detecting…' : 'My location'}
+                </Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={s.locActionBtn}
+                onPress={() => setShowManualInput(v => !v)}
+                activeOpacity={0.8}>
+                <Ionicons name="create-outline" size={16} color={C.oceanMid} />
+                <Text style={s.locActionText}>Enter manually</Text>
+              </TouchableOpacity>
+            </View>
+
+            {/* Google Maps URL extract */}
             <View style={s.field}>
-              <Text style={s.label}>Google Maps Link</Text>
+              <Text style={s.label}>Paste Google Maps link</Text>
               <View style={s.rowInput}>
                 <TextInput
                   style={[s.input, {flex: 1}]}
@@ -318,46 +612,36 @@ const SubmitPlaceScreen = ({navigation, route}) => {
               </View>
             </View>
 
-            <View style={s.orRow}>
-              <View style={s.orLine} />
-              <Text style={s.orText}>or enter manually</Text>
-              <View style={s.orLine} />
-            </View>
-
-            <View style={s.rowFields}>
-              <View style={[s.field, {flex: 1}]}>
-                <Text style={s.label}>Latitude<Text style={s.required}> *</Text></Text>
-                <TextInput
-                  style={s.input}
-                  value={latitude}
-                  onChangeText={setLatitude}
-                  placeholder="16.0601"
-                  placeholderTextColor={C.textLight}
-                  keyboardType="decimal-pad"
-                />
+            {/* Manual lat/lng inputs — collapsible */}
+            {showManualInput && (
+              <View style={s.rowFields}>
+                <View style={[s.field, {flex: 1}]}>
+                  <Text style={s.label}>Latitude<Text style={s.required}> *</Text></Text>
+                  <TextInput
+                    style={s.input}
+                    value={latitude}
+                    onChangeText={setLatitude}
+                    placeholder="16.0601"
+                    placeholderTextColor={C.textLight}
+                    keyboardType="decimal-pad"
+                  />
+                </View>
+                <View style={[s.field, {flex: 1}]}>
+                  <Text style={s.label}>Longitude<Text style={s.required}> *</Text></Text>
+                  <TextInput
+                    style={s.input}
+                    value={longitude}
+                    onChangeText={setLongitude}
+                    placeholder="73.4677"
+                    placeholderTextColor={C.textLight}
+                    keyboardType="decimal-pad"
+                  />
+                </View>
               </View>
-              <View style={[s.field, {flex: 1}]}>
-                <Text style={s.label}>Longitude<Text style={s.required}> *</Text></Text>
-                <TextInput
-                  style={s.input}
-                  value={longitude}
-                  onChangeText={setLongitude}
-                  placeholder="73.4677"
-                  placeholderTextColor={C.textLight}
-                  keyboardType="decimal-pad"
-                />
-              </View>
-            </View>
-
-            {latitude && longitude ? (
-              <View style={s.coordsPreview}>
-                <Ionicons name="location" size={16} color={C.oceanMid} />
-                <Text style={s.coordsText}>{latitude}, {longitude}</Text>
-                <Text style={s.coordsLabel}>Coordinates set</Text>
-              </View>
-            ) : null}
+            )}
           </>
         );
+      }
 
       case 2:
         return (
@@ -420,6 +704,16 @@ const SubmitPlaceScreen = ({navigation, route}) => {
     }
   };
 
+  if (loadingEdit) {
+    return (
+      <View style={s.loadingWrap}>
+        <StatusBar backgroundColor={C.oceanDeep} barStyle="light-content" />
+        <ActivityIndicator size="large" color={C.oceanMid} />
+        <Text style={s.loadingText}>Loading submission…</Text>
+      </View>
+    );
+  }
+
   return (
     <View style={s.root}>
       <StatusBar backgroundColor={C.oceanDeep} barStyle="light-content" />
@@ -433,7 +727,7 @@ const SubmitPlaceScreen = ({navigation, route}) => {
         <View style={s.headerRow}>
           <TouchableOpacity
             style={s.backBtn}
-            onPress={step > 0 ? () => setStep(s => s - 1) : () => backPage(navigation)}
+            onPress={handleBack}
             activeOpacity={0.8}
             hitSlop={{top: 8, bottom: 8, left: 8, right: 8}}>
             <Ionicons name="arrow-back" size={20} color={C.white} />
@@ -445,7 +739,7 @@ const SubmitPlaceScreen = ({navigation, route}) => {
             <Text style={s.headerSub}>{STEPS[step]} · Step {step + 1} of {STEPS.length}</Text>
           </View>
           <TouchableOpacity
-            onPress={() => navigation.navigate(STRING.SCREEN.MY_SUBMISSIONS)}
+            onPress={() => navigation.replace(STRING.SCREEN.MY_SUBMISSIONS)}
             hitSlop={{top: 8, bottom: 8, left: 8, right: 8}}>
             <Text style={s.headerLink}>My List</Text>
           </TouchableOpacity>
@@ -515,6 +809,7 @@ const SubmitPlaceScreen = ({navigation, route}) => {
           )}
         </TouchableOpacity>
       </View>
+      {dialog}
     </View>
   );
 };
@@ -653,17 +948,140 @@ const s = StyleSheet.create({
 
   rowFields: {flexDirection: 'row', gap: 12},
 
+  mapWrap: {
+    height: 220,
+    borderRadius: 14,
+    overflow: 'hidden',
+    marginBottom: 10,
+    backgroundColor: C.oceanDeep,
+  },
+  mapPlaceholder: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#1B6B7B',
+    gap: 8,
+  },
+  mapPlaceholderText: {
+    color: 'rgba(255,255,255,0.7)',
+    fontSize: 13,
+    textAlign: 'center',
+  },
+  mapClearBtn: {
+    position: 'absolute',
+    top: 10,
+    right: 10,
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: 'rgba(0,0,0,0.45)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+
   coordsPreview: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
     backgroundColor: '#EEF6FF',
-    borderRadius: 12,
-    padding: 12,
-    marginTop: 4,
+    borderRadius: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    marginBottom: 12,
   },
   coordsText: {fontSize: 13, color: C.oceanMid, fontWeight: '600', flex: 1},
-  coordsLabel: {fontSize: 11, color: '#059669', fontWeight: '600'},
+
+  locActionsRow: {
+    flexDirection: 'row',
+    gap: 10,
+    marginBottom: 14,
+  },
+  locActionBtn: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    borderWidth: 1.5,
+    borderColor: C.oceanMid,
+    borderRadius: 10,
+    paddingVertical: 10,
+    backgroundColor: 'rgba(27,107,123,0.05)',
+  },
+  locActionText: {fontSize: 13, fontWeight: '600', color: C.oceanMid},
+
+  loadingWrap: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: C.cream,
+    gap: 12,
+  },
+  loadingText: {fontSize: 14, color: C.textLight},
+
+  dropdownTrigger: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: C.white,
+    borderRadius: 12,
+    borderWidth: 1.5,
+    borderColor: 'rgba(0,0,0,0.1)',
+    paddingHorizontal: 14,
+    paddingVertical: 13,
+  },
+  dropdownTriggerText: {fontSize: 14, color: C.textDark, flex: 1},
+  dropdownList: {
+    marginTop: 4,
+    backgroundColor: C.white,
+    borderRadius: 12,
+    borderWidth: 1.5,
+    borderColor: 'rgba(0,0,0,0.1)',
+    overflow: 'hidden',
+  },
+  dropdownOption: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 14,
+    paddingVertical: 13,
+  },
+  dropdownOptionText: {flex: 1, fontSize: 14, color: C.textDark},
+  dropdownOptionSelected: {color: C.oceanMid, fontWeight: '700'},
+  dropdownBadge: {
+    backgroundColor: C.oceanMid,
+    borderRadius: 10,
+    minWidth: 20,
+    height: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 5,
+  },
+  dropdownBadgeText: {fontSize: 11, fontWeight: '700', color: C.white},
+
+  selectedSection: {
+    backgroundColor: 'rgba(27,107,123,0.06)',
+    borderRadius: 12,
+    padding: 12,
+    marginBottom: 10,
+    gap: 10,
+  },
+  selectedGroup: {gap: 6},
+  selectedGroupLabel: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: C.oceanMid,
+    textTransform: 'uppercase',
+    letterSpacing: 0.6,
+  },
+  chipSelectedRemovable: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    paddingHorizontal: 12,
+    paddingVertical: 7,
+    borderRadius: 22,
+    backgroundColor: C.oceanMid,
+  },
 
   chips: {flexDirection: 'row', flexWrap: 'wrap', gap: 8},
   chip: {

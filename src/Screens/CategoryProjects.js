@@ -38,7 +38,7 @@ const CategoryProjects = ({navigation, route, ...props}) => {
   }, []);
 
   const getAllProjects = () => {
-    comnPost(`v2/category/${route.params.id}/projects`, props.access_token)
+    comnPost(`v2/category/${route.params.id}/projects`, {}, navigation)
       .then(res => {
         setProjects(res.data.data[0]); // Update Projects state with response data
         props.setLoader(false);
@@ -55,7 +55,7 @@ const CategoryProjects = ({navigation, route, ...props}) => {
   };
 
   return (
-    <SafeAreaView edges={['top']} style={{flex: 1, backgroundColor: COLOR.white}}>
+    <SafeAreaView edges={['top', 'bottom']} style={{flex: 1, backgroundColor: COLOR.white}}>
     <ScrollView>
       <View style={{flex: 1, alignItems: 'center'}}>
         <Loader />

@@ -62,6 +62,7 @@ const ContactUs = ({
   const [phone, setPhone] = useState('');
   const [message, setMessage] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [errors, setErrors] = useState({email: '', phone: '', message: ''});
 
   // Popup state
   const [popupVisible, setPopupVisible] = useState(false);
@@ -118,6 +119,7 @@ const ContactUs = ({
       setEmail('');
       setPhone('');
       setMessage('');
+      setErrors({email: '', phone: '', message: ''});
       if (typeof onQuerySubmitted === 'function') {
         onQuerySubmitted();
       } else if (typeof setStep === 'function') {
@@ -126,11 +128,47 @@ const ContactUs = ({
     }
   };
 
-  const submit = async () => {
-    if (!email.trim() || !message.trim()) {
-      showPopup('error', 'Please fill in Email and Message fields.');
-      return;
+  const validate = () => {
+    const errs = {email: '', phone: '', message: ''};
+    let valid = true;
+
+    const emailTrimmed = email.trim();
+    if (!emailTrimmed) {
+      errs.email = t('CONTACT_US_SCREEN.ERR_EMAIL_REQUIRED');
+      valid = false;
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailTrimmed)) {
+      errs.email = t('CONTACT_US_SCREEN.ERR_EMAIL_INVALID');
+      valid = false;
     }
+
+    const phoneTrimmed = phone.trim().replace(/[\s\-()]/g, '');
+    if (phoneTrimmed) {
+      const digits = phoneTrimmed.replace(/^\+91/, '');
+      if (!/^[6-9]\d{9}$/.test(digits)) {
+        errs.phone = t('CONTACT_US_SCREEN.ERR_PHONE_INVALID');
+        valid = false;
+      }
+    }
+
+    const msgTrimmed = message.trim();
+    if (!msgTrimmed) {
+      errs.message = t('CONTACT_US_SCREEN.ERR_MESSAGE_REQUIRED');
+      valid = false;
+    } else if (msgTrimmed.length < 10) {
+      errs.message = t('CONTACT_US_SCREEN.ERR_MESSAGE_SHORT');
+      valid = false;
+    }
+
+    setErrors(errs);
+    return valid;
+  };
+
+  const clearFieldError = field => {
+    if (errors[field]) setErrors(prev => ({...prev, [field]: ''}));
+  };
+
+  const submit = async () => {
+    if (!validate()) return;
 
     const mode = JSON.parse(await getFromStorage(t('STORAGE.MODE')));
     const state = await NetInfo.fetch();
@@ -157,30 +195,31 @@ const ContactUs = ({
     const data = {
       user_id: await AsyncStorage.getItem(t('STORAGE.USER_ID')),
       name: await AsyncStorage.getItem(t('STORAGE.USER_NAME')),
-      email,
-      phone,
-      message,
+      email: email.trim(),
+      phone: phone.trim(),
+      message: message.trim(),
       route_id,
     };
 
-    comnPost('v2/addQuery', data)
-      .then(res => {
-        if (!isMounted.current) return;
-        setSubmitting(false);
-        setPhone('');
-        setMessage('');
-        const msg =
-          res.data.message.email ||
-          res.data.message.phone ||
-          res.data.message.message ||
-          res.data.message;
-        showPopup('success', typeof msg === 'string' ? msg : 'Your query has been submitted successfully.');
-      })
-      .catch(() => {
-        if (!isMounted.current) return;
-        setSubmitting(false);
-        showPopup('error', t('ALERT.FAILED'));
-      });
+    const res = await comnPost('v2/addQuery', data);
+    if (!isMounted.current) return;
+    setSubmitting(false);
+
+    const resData = res?.data ?? res?.response?.data;
+    if (resData?.success) {
+      setPhone('');
+      setMessage('');
+      const msg = resData.message;
+      showPopup('success', typeof msg === 'string' ? msg : 'Your query has been submitted successfully.');
+    } else {
+      const msg = resData?.message;
+      const displayMsg = typeof msg === 'string'
+        ? msg
+        : typeof msg === 'object' && msg !== null
+          ? Object.values(msg).flat().join('\n')
+          : t('ALERT.FAILED');
+      showPopup('error', displayMsg);
+    }
   };
 
   // ─── Render ─────────────────────────────────────────────────────────────────
@@ -207,7 +246,7 @@ const ContactUs = ({
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
         <ScrollView
           style={styles.flex}
-          contentContainerStyle={styles.scrollContent}
+          contentContainerStyle={[styles.scrollContent, {paddingBottom: insets.bottom + 24}]}
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled">
 
@@ -234,39 +273,66 @@ const ContactUs = ({
             <Text style={styles.formTitle}>{t('CONTACT_US_SCREEN.SEND_MESSAGE')}</Text>
 
             <View style={styles.formGroup}>
-              <Text style={styles.formLabel}>{t('CONTACT_US_SCREEN.EMAIL')}</Text>
+              <Text style={styles.formLabel}>
+                {t('CONTACT_US_SCREEN.EMAIL')}
+                <Text style={styles.required}> *</Text>
+              </Text>
               <TextInput
-                style={[styles.formInput, styles.formInputDisabled]}
+                style={[
+                  styles.formInput,
+                  styles.formInputDisabled,
+                  !!errors.email && styles.formInputError,
+                ]}
                 value={email}
                 editable={false}
                 placeholderTextColor={C.textLight}
               />
+              {!!errors.email && <Text style={styles.errorText}>{errors.email}</Text>}
             </View>
 
             <View style={styles.formGroup}>
-              <Text style={styles.formLabel}>{t('CONTACT_US_SCREEN.PHONE')}</Text>
+              <Text style={styles.formLabel}>{t('CONTACT_US_SCREEN.PHONE_OPTIONAL')}</Text>
               <TextInput
-                style={[styles.formInput, styles.formInputDisabled]}
-                placeholder="+91 00000 00000"
+                style={[
+                  styles.formInput,
+                  !!errors.phone && styles.formInputError,
+                ]}
+                placeholder={t('CONTACT_US_SCREEN.PHONE_PLACEHOLDER')}
                 placeholderTextColor={C.textLight}
                 value={phone}
-                onChangeText={setPhone}
-                keyboardType="phone-pad"
+                onChangeText={text => {
+                  setPhone(text.replace(/[^0-9]/g, ''));
+                  clearFieldError('phone');
+                }}
+                keyboardType="number-pad"
+                maxLength={10}
+                returnKeyType="next"
               />
+              {!!errors.phone && <Text style={styles.errorText}>{errors.phone}</Text>}
             </View>
 
             <View style={styles.formGroup}>
-              <Text style={styles.formLabel}>{t('CONTACT_US_SCREEN.MESSAGE_LABEL')}</Text>
+              <Text style={styles.formLabel}>
+                {t('CONTACT_US_SCREEN.MESSAGE_LABEL')}
+                <Text style={styles.required}> *</Text>
+              </Text>
               <TextInput
-                style={styles.formTextarea}
+                style={[
+                  styles.formTextarea,
+                  !!errors.message && styles.formInputError,
+                ]}
                 placeholder={t('CONTACT_US_SCREEN.PLACEHOLDER')}
                 placeholderTextColor={C.textLight}
                 value={message}
-                onChangeText={setMessage}
+                onChangeText={text => {
+                  setMessage(text);
+                  clearFieldError('message');
+                }}
                 multiline
                 numberOfLines={4}
                 textAlignVertical="top"
               />
+              {!!errors.message && <Text style={styles.errorText}>{errors.message}</Text>}
             </View>
 
             <TouchableOpacity
@@ -411,6 +477,10 @@ const styles = StyleSheet.create({
     backgroundColor: C.disabledBg,
     color: C.textLight,
   },
+  formInputError: {
+    borderColor: '#DC2626',
+    borderWidth: 1.5,
+  },
   formTextarea: {
     borderWidth: 1.5,
     borderColor: C.border,
@@ -421,6 +491,16 @@ const styles = StyleSheet.create({
     color: C.textDark,
     backgroundColor: C.white,
     minHeight: 110,
+  },
+  required: {
+    color: '#DC2626',
+  },
+  errorText: {
+    fontSize: 12,
+    color: '#DC2626',
+    marginTop: 5,
+    marginLeft: 4,
+    fontWeight: '500',
   },
 
   // Submit

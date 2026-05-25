@@ -8,13 +8,14 @@ import {
   ActivityIndicator,
   StyleSheet,
   StatusBar,
-  Alert,
   Modal,
   Image,
   BackHandler,
 } from 'react-native';
+import {useAppDialog} from '../Components/Common/AppDialog';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {useFocusEffect} from '@react-navigation/native';
+import {useTranslation} from 'react-i18next';
 import LinearGradient from 'react-native-linear-gradient';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import {launchImageLibrary} from 'react-native-image-picker';
@@ -153,17 +154,9 @@ const Field = ({label, required, children}) => (
 
 const CreateEvent = ({navigation, route}) => {
   const insets = useSafeAreaInsets();
+  const {t} = useTranslation();
+  const {show: showDialog, dialog} = useAppDialog();
   const prefilledSiteId = route?.params?.site_id ?? null;
-
-  useFocusEffect(
-    useCallback(() => {
-      const handler = BackHandler.addEventListener('hardwareBackPress', () => {
-        navigation.goBack();
-        return true;
-      });
-      return () => handler.remove();
-    }, [navigation]),
-  );
 
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
@@ -172,6 +165,33 @@ const CreateEvent = ({navigation, route}) => {
   const [taluka, setTaluka] = useState('');
   const [startDate, setStartDate] = useState(null);
   const [endDate, setEndDate] = useState(null);
+
+  const hasUnsavedChanges = !!(title || description || address || taluka || startDate || endDate || venueName);
+
+  const handleBack = useCallback(() => {
+    if (hasUnsavedChanges) {
+      showDialog({
+        type: 'confirm',
+        title: 'Discard Event?',
+        message: 'You have unsaved changes. Are you sure you want to go back?',
+        confirmText: 'Discard',
+        cancelText: 'Keep Editing',
+        onConfirm: () => navigation.goBack(),
+      });
+    } else {
+      navigation.goBack();
+    }
+  }, [hasUnsavedChanges, navigation, showDialog]);
+
+  useFocusEffect(
+    useCallback(() => {
+      const handler = BackHandler.addEventListener('hardwareBackPress', () => {
+        handleBack();
+        return true;
+      });
+      return () => handler.remove();
+    }, [handleBack]),
+  );
   const [siteId] = useState(prefilledSiteId);
   const [isFree, setIsFree] = useState(true);
   const [entryFee, setEntryFee] = useState('');
@@ -205,13 +225,13 @@ const CreateEvent = ({navigation, route}) => {
   };
 
   const validate = () => {
-    if (!title.trim()) { Alert.alert('Required', 'Event title is required.'); return false; }
-    if (!description.trim()) { Alert.alert('Required', 'Description is required.'); return false; }
-    if (!address.trim()) { Alert.alert('Required', 'Address is required.'); return false; }
-    if (!taluka) { Alert.alert('Required', 'Please select a taluka.'); return false; }
-    if (!startDate) { Alert.alert('Required', 'Please select a start date.'); return false; }
-    if (!endDate) { Alert.alert('Required', 'Please select an end date.'); return false; }
-    if (!isFree && !entryFee.trim()) { Alert.alert('Required', 'Entry fee is required for paid events.'); return false; }
+    if (!title.trim()) { showDialog({type:'warning', title:'Required', message:t('CREATE_EVENT.TITLE_REQUIRED')}); return false; }
+    if (!description.trim()) { showDialog({type:'warning', title:'Required', message:t('CREATE_EVENT.DESC_REQUIRED')}); return false; }
+    if (!address.trim()) { showDialog({type:'warning', title:'Required', message:t('CREATE_EVENT.ADDRESS_REQUIRED')}); return false; }
+    if (!taluka) { showDialog({type:'warning', title:'Required', message:t('CREATE_EVENT.TALUKA_REQUIRED')}); return false; }
+    if (!startDate) { showDialog({type:'warning', title:'Required', message:t('CREATE_EVENT.START_DATE_REQUIRED')}); return false; }
+    if (!endDate) { showDialog({type:'warning', title:'Required', message:t('CREATE_EVENT.END_DATE_REQUIRED')}); return false; }
+    if (!isFree && !entryFee.trim()) { showDialog({type:'warning', title:'Required', message:t('CREATE_EVENT.ENTRY_FEE_REQUIRED')}); return false; }
     return true;
   };
 
@@ -239,28 +259,28 @@ const CreateEvent = ({navigation, route}) => {
       });
     }
 
-    console.log('[CreateEvent] POST v2/createEvent (FormData)');
-    const res = await comnPostForm('v2/createEvent', fd).catch(err => {
-      console.log('[CreateEvent] ERROR', err);
-      return null;
-    });
-    console.log('[CreateEvent] RESPONSE', res?.data);
+    const res = await comnPostForm('v2/createEvent', fd);
     setSubmitting(false);
 
-    if (res?.data?.success) {
+    const resData = res?.data ?? res?.response?.data;
+    if (resData?.success) {
       resetForm();
-      Alert.alert('Submitted!', 'Your event has been submitted for admin approval.', [
-        {text: 'My Events', onPress: () => navigation.navigate(STRING.SCREEN.MY_EVENTS)},
-        {text: 'Done', onPress: () => backPage(navigation)},
-      ]);
+      showDialog({
+        type: 'success',
+        title: t('CREATE_EVENT.SUBMITTED'),
+        message: t('CREATE_EVENT.SUBMITTED_MSG'),
+        confirmText: t('CREATE_EVENT.MY_EVENTS_BTN'),
+        onConfirm: () => navigation.replace(STRING.SCREEN.MY_EVENTS),
+        onClose: () => navigation.replace(STRING.SCREEN.MY_EVENTS),
+      });
     } else {
-      const msg = res?.data?.message;
+      const msg = resData?.message;
       const displayMsg = typeof msg === 'string'
         ? msg
         : typeof msg === 'object' && msg !== null
           ? Object.values(msg).flat().join('\n')
           : 'Could not submit event. Please try again.';
-      Alert.alert('Error', displayMsg);
+      showDialog({type: 'error', title: 'Error', message: displayMsg});
     }
   };
 
@@ -273,11 +293,11 @@ const CreateEvent = ({navigation, route}) => {
         start={{x: 0, y: 0}} end={{x: 1, y: 1}}
         style={[s.header, {paddingTop: insets.top + 10}]}>
         <View style={s.headerRow}>
-          <TouchableOpacity style={s.backBtn} onPress={() => backPage(navigation)} activeOpacity={0.8}
+          <TouchableOpacity style={s.backBtn} onPress={handleBack} activeOpacity={0.8}
             hitSlop={{top: 8, bottom: 8, left: 8, right: 8}}>
             <Ionicons name="arrow-back" size={20} color={C.white} />
           </TouchableOpacity>
-          <Text style={s.headerTitle}>Create Event</Text>
+          <Text style={s.headerTitle}>{t('CREATE_EVENT.TITLE')}</Text>
         </View>
         <View style={s.headerCurve} pointerEvents="none" />
       </LinearGradient>
@@ -437,6 +457,7 @@ const CreateEvent = ({navigation, route}) => {
         onSelect={t => { setTaluka(t); setShowTaluka(false); }}
         onClose={() => setShowTaluka(false)}
       />
+      {dialog}
     </View>
   );
 };

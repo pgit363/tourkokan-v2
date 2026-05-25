@@ -8,6 +8,7 @@ import {
   TouchableOpacity,
   StyleSheet,
 } from 'react-native';
+import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import AppIntroSlider from 'react-native-app-intro-slider';
 import {KeyboardAwareScrollView} from 'react-native-keyboard-aware-scroll-view';
 import {Dropdown} from 'react-native-element-dropdown';
@@ -59,6 +60,7 @@ const languagesList = [
 ];
 
 const OnboardingScreen = ({onComplete}) => {
+  const insets = useSafeAreaInsets();
   const sliderRef = React.useRef(null);
 
   const [language, setLanguage] = useState('en');
@@ -205,7 +207,7 @@ const OnboardingScreen = ({onComplete}) => {
       keyboardShouldPersistTaps="handled"
       enableOnAndroid={true}
       extraHeight={150}>
-      <View style={[styles.slide, {backgroundColor: item.backgroundColor}]}>
+      <View style={[styles.slide]}>
         {item.image && <Image source={item.image} style={styles.image} />}
         <View style={styles.bottomFields}>
           {item.type === 'language' ? (
@@ -296,7 +298,7 @@ const OnboardingScreen = ({onComplete}) => {
   );
 
   return (
-    <>
+    <View style={{flex: 1, paddingBottom: insets.bottom}}>
       <AppIntroSlider
         ref={sliderRef}
         nextButtonTextColor={'#000'}
@@ -324,7 +326,7 @@ const OnboardingScreen = ({onComplete}) => {
 
       {/* Floating nav buttons above keyboard */}
       {keyboardOpen && (
-        <View style={[kb.floatingRow, {bottom: keyboardHeight + 12}]}>
+        <View style={[kb.floatingRow, {bottom: keyboardHeight + Math.max(insets.bottom, 12)}]}>
           {currentIndex > 0 && (
             <TouchableOpacity
               style={[kb.circle, {marginRight: 'auto'}]}
@@ -341,7 +343,7 @@ const OnboardingScreen = ({onComplete}) => {
           </TouchableOpacity>
         </View>
       )}
-    </>
+    </View>
   );
 };
 

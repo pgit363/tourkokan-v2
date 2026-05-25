@@ -109,24 +109,30 @@ const CommentsSheet = ({
   const saveEdit = async () => {
     if (!editMode?.text?.trim() || submitting) return;
     setSubmitting(true);
-    comnPost('v2/updateComment', {id: editMode.id, comment: editMode.text.trim()})
-      .then(() => {
-        setEditMode(null);
-        getComments();
-        reload?.();
-        setSubmitting(false);
-        showToast('Comment updated.');
-      })
-      .catch(() => setSubmitting(false));
+    const res = await comnPost('v2/updateComment', {id: editMode.id, comment: editMode.text.trim()});
+    setSubmitting(false);
+    const resData = res?.data ?? res?.response?.data;
+    if (resData?.success) {
+      setEditMode(null);
+      getComments();
+      reload?.();
+      showToast('Comment updated.');
+    } else {
+      const msg = resData?.message;
+      const displayMsg = typeof msg === 'string' ? msg
+        : typeof msg === 'object' && msg !== null ? Object.values(msg).flat().join('\n')
+        : 'Failed to update comment.';
+      showToast(displayMsg, 'error');
+    }
   };
 
-  const deleteComment = id => {
-    comnPost('v2/deleteComment', {id})
-      .then(() => {
-        getComments();
-        reload?.();
-      })
-      .catch(() => {});
+  const deleteComment = async id => {
+    const res = await comnPost('v2/deleteComment', {id});
+    const resData = res?.data ?? res?.response?.data;
+    if (resData?.success) {
+      getComments();
+      reload?.();
+    }
   };
 
   const handleGuestLogin = async () => {
@@ -146,7 +152,7 @@ const CommentsSheet = ({
   const isOwn = item => {
     const raw = item.users ?? item.user;
     const user = Array.isArray(raw) ? raw[0] : raw;
-    return currentUserId && user?.id === currentUserId;
+    return currentUserId && parseInt(user?.id, 10) === currentUserId;
   };
 
   const renderComment = ({item, index}) => {
@@ -251,9 +257,13 @@ const CommentsSheet = ({
 
       {/* Toast */}
       {toast && (
-        <Animated.View style={[cs.toast, {opacity: toastOpacity}]}>
-          <Ionicons name="checkmark-circle" size={15} color={C.successText} />
-          <Text style={cs.toastText}>{toast.msg}</Text>
+        <Animated.View style={[cs.toast, toast.type === 'error' && cs.toastError, {opacity: toastOpacity}]}>
+          <Ionicons
+            name={toast.type === 'error' ? 'alert-circle' : 'checkmark-circle'}
+            size={15}
+            color={toast.type === 'error' ? '#DC2626' : C.successText}
+          />
+          <Text style={[cs.toastText, toast.type === 'error' && cs.toastTextError]}>{toast.msg}</Text>
         </Animated.View>
       )}
 
@@ -355,7 +365,9 @@ const cs = StyleSheet.create({
     backgroundColor: C.successBg, borderRadius: 10,
     paddingHorizontal: 12, paddingVertical: 8,
   },
+  toastError: {backgroundColor: '#FEE2E2'},
   toastText: {fontSize: 13, color: C.successText, flex: 1},
+  toastTextError: {color: '#DC2626'},
 
   loadingWrap: {flex: 1, alignItems: 'center', justifyContent: 'center', gap: 12},
   loadingText: {fontSize: 13, color: C.textLight},

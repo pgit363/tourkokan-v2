@@ -8,7 +8,11 @@ import {
   RefreshControl,
   ActivityIndicator,
   BackHandler,
+  Modal,
+  Pressable,
 } from 'react-native';
+import {useTranslation} from 'react-i18next';
+import {useAppDialog} from '../Components/Common/AppDialog';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {useFocusEffect} from '@react-navigation/native';
 import {connect} from 'react-redux';
@@ -16,6 +20,7 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import {FTP_PATH} from '@env';
 import CachedImage from '../Components/Customs/CachedImage';
 import {comnPost} from '../Services/Api/CommonServices';
+import {isVendorUser} from '../Components/Common/GuestGateModal';
 import STRING from '../Services/Constants/STRINGS';
 import {backPage} from '../Services/CommonMethods';
 
@@ -54,10 +59,12 @@ const C = {
 
 // ─── Event Card ──────────────────────────────────────────────────────────────
 
-const EventCard = ({item, onPress}) => {
+const BLOCKED_STATUSES = ['cancelled', 'completed'];
+
+const EventCard = ({item, onPress, onEdit, onDelete}) => {
   const imgUri = item.banner_image_url || (item.banner_image ? `${FTP_PATH}${item.banner_image}` : null);
-  console.log('[MyEvents img]', item.title, imgUri);
   const sc = STATUS_COLORS[item.status] || STATUS_COLORS.draft;
+  const canEdit = !BLOCKED_STATUSES.includes(item.status);
 
   return (
     <TouchableOpacity style={styles.card} onPress={onPress} activeOpacity={0.88}>
@@ -71,10 +78,28 @@ const EventCard = ({item, onPress}) => {
       <View style={styles.cardBody}>
         <View style={styles.cardTitleRow}>
           <Text style={styles.cardTitle} numberOfLines={2}>{item.title}</Text>
-          <View style={[styles.statusPill, {backgroundColor: sc.bg}]}>
-            <Text style={[styles.statusText, {color: sc.text}]}>
-              {item.status ? item.status.charAt(0).toUpperCase() + item.status.slice(1) : ''}
-            </Text>
+          <View style={styles.cardTitleActions}>
+            <View style={[styles.statusPill, {backgroundColor: sc.bg}]}>
+              <Text style={[styles.statusText, {color: sc.text}]}>
+                {item.status ? item.status.charAt(0).toUpperCase() + item.status.slice(1) : ''}
+              </Text>
+            </View>
+            {canEdit && (
+              <TouchableOpacity
+                style={styles.editBtn}
+                onPress={e => { e.stopPropagation?.(); onEdit?.(item); }}
+                hitSlop={{top: 8, bottom: 8, left: 8, right: 8}}
+                activeOpacity={0.7}>
+                <Ionicons name="create-outline" size={16} color={C.accent} />
+              </TouchableOpacity>
+            )}
+            <TouchableOpacity
+              style={styles.deleteBtn}
+              onPress={e => { e.stopPropagation?.(); onDelete?.(item); }}
+              hitSlop={{top: 8, bottom: 8, left: 8, right: 8}}
+              activeOpacity={0.7}>
+              <Ionicons name="trash-outline" size={16} color="#DC2626" />
+            </TouchableOpacity>
           </View>
         </View>
         {!!item.start_date && (
@@ -97,6 +122,8 @@ const EventCard = ({item, onPress}) => {
 // ─── Component ───────────────────────────────────────────────────────────────
 
 const MyEvents = ({navigation}) => {
+  const {t} = useTranslation();
+  const {show: showDialog, dialog} = useAppDialog();
   const [events, setEvents] = useState([]);
   const [status, setStatus] = useState(null);
   const [page, setPage] = useState(1);
@@ -104,6 +131,7 @@ const MyEvents = ({navigation}) => {
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
+  const [vendorGateVisible, setVendorGateVisible] = useState(false);
 
   const fetchingRef = useRef(false);
 
@@ -132,7 +160,6 @@ const MyEvents = ({navigation}) => {
       setHasMore(p * PAGE_SIZE < total);
       setPage(p);
     } catch (e) {
-      console.log('myEvents error', e);
     } finally {
       fetchingRef.current = false;
       setLoading(false);
@@ -173,10 +200,30 @@ const MyEvents = ({navigation}) => {
     setEvents([]);
   };
 
+  const confirmDelete = item => {
+    showDialog({
+      type: 'delete',
+      title: t('MY_SUBMISSIONS.DELETE_TITLE'),
+      message: t('MY_SUBMISSIONS.DELETE_EVENT_MSG'),
+      confirmText: t('MY_SUBMISSIONS.DELETE_BTN'),
+      cancelText: t('BUTTON.CANCEL'),
+      onConfirm: async () => {
+        const res = await comnPost('v2/deleteEvent', {id: item.id}, navigation).catch(() => null);
+        if (res?.data?.success) {
+          setEvents(prev => prev.filter(e => e.id !== item.id));
+        } else {
+          showDialog({type: 'error', title: t('ALERT.FAILED'), message: t('MY_SUBMISSIONS.DELETE_ERROR')});
+        }
+      },
+    });
+  };
+
   const renderItem = ({item}) => (
     <EventCard
       item={item}
       onPress={() => navigation.navigate(STRING.SCREEN.EVENT_DETAIL, {event: item})}
+      onEdit={ev => navigation.navigate(STRING.SCREEN.UPDATE_EVENT, {event: ev})}
+      onDelete={confirmDelete}
     />
   );
 
@@ -190,7 +237,7 @@ const MyEvents = ({navigation}) => {
   };
 
   return (
-    <SafeAreaView edges={['top']} style={styles.safe}>
+    <SafeAreaView edges={['top', 'bottom']} style={styles.safe}>
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity style={styles.backBtn} onPress={() => backPage(navigation)} activeOpacity={0.8}>
@@ -199,7 +246,13 @@ const MyEvents = ({navigation}) => {
         <Text style={styles.headerTitle}>My Events</Text>
         <TouchableOpacity
           style={styles.newBtn}
-          onPress={() => navigation.navigate(STRING.SCREEN.CREATE_EVENT)}
+          onPress={async () => {
+            if (await isVendorUser()) {
+              navigation.navigate(STRING.SCREEN.CREATE_EVENT);
+            } else {
+              setVendorGateVisible(true);
+            }
+          }}
           activeOpacity={0.8}>
           <Ionicons name="add" size={20} color={C.white} />
           <Text style={styles.newBtnText}>New</Text>
@@ -260,6 +313,40 @@ const MyEvents = ({navigation}) => {
           }
         />
       )}
+      {dialog}
+
+      {/* Vendor Gate Modal */}
+      <Modal
+        visible={vendorGateVisible}
+        transparent
+        animationType="fade"
+        statusBarTranslucent
+        onRequestClose={() => setVendorGateVisible(false)}>
+        <Pressable style={styles.modalBackdrop} onPress={() => setVendorGateVisible(false)}>
+          <Pressable style={styles.modalCard} onPress={() => {}}>
+            <View style={styles.modalIconWrap}>
+              <Text style={styles.modalIcon}>🏪</Text>
+            </View>
+            <Text style={styles.modalTitle}>{t('VENDOR.NOT_VENDOR_TITLE')}</Text>
+            <Text style={styles.modalMsg}>{t('VENDOR.NOT_VENDOR_MSG')}</Text>
+            <TouchableOpacity
+              style={styles.modalPrimaryBtn}
+              onPress={() => {
+                setVendorGateVisible(false);
+                navigation.navigate(STRING.SCREEN.PROFILE_VIEW);
+              }}
+              activeOpacity={0.85}>
+              <Text style={styles.modalPrimaryText}>{t('VENDOR.REQUEST_ACCESS')}</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.modalSecondaryBtn}
+              onPress={() => setVendorGateVisible(false)}
+              activeOpacity={0.7}>
+              <Text style={styles.modalSecondaryText}>{t('VENDOR.MAYBE_LATER')}</Text>
+            </TouchableOpacity>
+          </Pressable>
+        </Pressable>
+      </Modal>
     </SafeAreaView>
   );
 };
@@ -313,6 +400,9 @@ const styles = StyleSheet.create({
   cardBody: {padding: 12},
   cardTitleRow: {flexDirection: 'row', alignItems: 'flex-start', gap: 8, marginBottom: 8},
   cardTitle: {flex: 1, fontSize: 15, fontWeight: '700', color: C.text},
+  cardTitleActions: {flexDirection: 'row', alignItems: 'center', gap: 6, flexShrink: 0},
+  editBtn: {padding: 4},
+  deleteBtn: {padding: 4},
   statusPill: {borderRadius: 20, paddingHorizontal: 10, paddingVertical: 3, alignSelf: 'flex-start'},
   statusText: {fontSize: 11, fontWeight: '600'},
   metaRow: {flexDirection: 'row', alignItems: 'center', gap: 5, marginBottom: 4},
@@ -323,6 +413,51 @@ const styles = StyleSheet.create({
   emptyIcon: {fontSize: 48, marginBottom: 12},
   emptyTitle: {fontSize: 17, fontWeight: '700', color: C.text, marginBottom: 6},
   emptyDesc: {fontSize: 14, color: C.textLight, textAlign: 'center'},
+
+  // Vendor gate modal
+  modalBackdrop: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.55)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 28,
+  },
+  modalCard: {
+    width: '100%',
+    backgroundColor: C.white,
+    borderRadius: 24,
+    paddingHorizontal: 24,
+    paddingTop: 28,
+    paddingBottom: 20,
+    alignItems: 'center',
+  },
+  modalIconWrap: {
+    width: 68,
+    height: 68,
+    borderRadius: 34,
+    backgroundColor: '#EEF6FF',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 14,
+  },
+  modalIcon: {fontSize: 32},
+  modalTitle: {fontSize: 17, fontWeight: '700', color: C.primary, marginBottom: 8, textAlign: 'center'},
+  modalMsg: {fontSize: 13, color: C.textLight, textAlign: 'center', lineHeight: 19, marginBottom: 22},
+  modalPrimaryBtn: {
+    width: '100%',
+    backgroundColor: C.accent,
+    borderRadius: 50,
+    paddingVertical: 14,
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+  modalPrimaryText: {fontSize: 14, fontWeight: '700', color: C.white},
+  modalSecondaryBtn: {
+    width: '100%',
+    paddingVertical: 12,
+    alignItems: 'center',
+  },
+  modalSecondaryText: {fontSize: 13, color: C.textLight},
 });
 
 const mapStateToProps = () => ({});

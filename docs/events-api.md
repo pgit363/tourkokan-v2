@@ -93,7 +93,7 @@ On validation failure:
         "slug": "malvan-seafood-festival",
         "description": "Annual seafood festival at the beach.",
         "organizer_name": "Rahul Patil",
-        "organizer_phone": "9876543210",
+        "organizer_phone": "8454025747",
         "organizer_email": "rahul@example.com",
         "contact_person_name": null,
         "contact_person_phone": null,

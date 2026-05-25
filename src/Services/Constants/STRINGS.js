@@ -109,6 +109,7 @@ const STRING = {
     ABOUT: 'About',
 
     INBOX: 'Inbox',
+    SITE_DETAIL: 'SiteDetailPage',
     SUBMIT_PLACE: 'SubmitPlace',
     MY_SUBMISSIONS: 'MySubmissions',
     EVENTS_LIST: 'EventsList',

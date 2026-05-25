@@ -33,7 +33,7 @@ const Place_catList = ({navigation, ...props}) => {
   }, []);
 
   const getList = () => {
-    comnPost('v2/place_cats', props.access_token)
+    comnPost('v2/place_cats', {}, navigation)
       .then(res => {
         setPlace_cats(res.data.data.data); // Update place_cats state with response data
         props.setLoader(false);

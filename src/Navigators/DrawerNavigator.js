@@ -86,7 +86,6 @@ const DrawerNavigator = () => {
 
   const MENU_ITEMS = [
     {type: 'image', source: require('../Assets/Images/DrawerIcons/home.webp'), label: t('DRAWER.HOME'), screen: STRING.SCREEN.DASHBOARD, navigate: true},
-    {type: 'emoji', source: '📋', label: STRING.DRAWER.MY_SUBMISSIONS, screen: STRING.SCREEN.MY_SUBMISSIONS, navigate: true},
     {type: 'image', source: require('../Assets/Images/DrawerIcons/emergency.webp'), label: t('DRAWER.EMERGENCY'), screen: STRING.SCREEN.EMERGENCY, navigate: true},
     {type: 'image', source: require('../Assets/Images/DrawerIcons/contact_us.webp'), label: t('DRAWER.CONTACT_US'), screen: STRING.SCREEN.CONTACT_US, navigate: true},
     {type: 'image', source: require('../Assets/Images/DrawerIcons/settings.webp'), label: t('DRAWER.SETTINGS'), screen: STRING.SCREEN.SETTINGS, navigate: true},

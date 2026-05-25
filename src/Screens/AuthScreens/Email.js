@@ -1,4 +1,4 @@
-import React, {useEffect} from 'react';
+import React, {useEffect, useRef} from 'react';
 import {useState} from 'react';
 import {
   View,
@@ -38,15 +38,18 @@ import {color} from 'react-native-reanimated';
 import {
   GoogleSignin,
   GoogleSigninButton,
+  statusCodes,
 } from '@react-native-google-signin/google-signin';
 import AntDesign from 'react-native-vector-icons/AntDesign';
 import DIMENSIONS from '../../Services/Constants/DIMENSIONS';
 import {GOOGLE_WEB_CLIENT_ID} from '@env';
 import STRING from '../../Services/Constants/STRINGS';
 import Ionicons from 'react-native-vector-icons/Ionicons';
+import {useSafeAreaInsets} from 'react-native-safe-area-context';
 
 const Email = ({navigation, route, ...props}) => {
   const {t, i18n} = useTranslation();
+  const insets = useSafeAreaInsets();
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -59,6 +62,7 @@ const Email = ({navigation, route, ...props}) => {
   const [isOtpSent, setIsOtpSent] = useState(false);
   const [isButtonDisabled, setIsButtonDisabled] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const googleSigningIn = useRef(false);
 
   GoogleSignin.configure({
     scopes: ['profile', 'email'],
@@ -66,6 +70,8 @@ const Email = ({navigation, route, ...props}) => {
   });
 
   const signInWithGoogle = async () => {
+    if (googleSigningIn.current) return;
+    googleSigningIn.current = true;
     try {
       props.setLoader(true);
       await GoogleSignin.hasPlayServices({showPlayServicesUpdateDialog: true});
@@ -75,43 +81,61 @@ const Email = ({navigation, route, ...props}) => {
       let referral_code = await getFromStorage(t('STORAGE.REFERRAL_CODE'));
 
       const userInfo = await GoogleSignin.signIn();
+      console.log('ID TOKEN:', userInfo?.data?.idToken ?? userInfo?.idToken);
 
-      $payload = {
-        token: userInfo.data.idToken,
-        userName: userInfo.data.user.name,
-        userPhoto: userInfo.data.user.photo,
-        userEmail: userInfo.data.user.email,
+      const idToken = userInfo?.data?.idToken ?? userInfo?.idToken;
+      if (!idToken) {
+        throw new Error('idToken missing from Google sign-in response');
+      }
+
+      const payload = {
+        token: idToken,
+        userName: userInfo?.data?.user?.name ?? userInfo?.user?.name,
+        userPhoto: userInfo?.data?.user?.photo ?? userInfo?.user?.photo,
+        userEmail: userInfo?.data?.user?.email ?? userInfo?.user?.email,
         referral_code: referral_code,
         latitude: lat === null ? '' : lat.toString(),
         longitude: long === null ? '' : long.toString(),
         language: t('LANG'),
       };
 
-      const res = await comnPost('v2/auth/googleAuth', $payload);
-      console.log(res);
+      console.log(payload);
+      
+      const res = await comnPost('v2/auth/googleAuth', payload);
+      const resData = res?.data ?? res?.response?.data;
 
-      if (res.data.success) {
-        AsyncStorage.setItem(t('STORAGE.ACCESS_TOKEN'), res.data.data.access_token);
-        AsyncStorage.setItem(t('STORAGE.USER_ID'), JSON.stringify(res.data.data.user.id));
-        AsyncStorage.setItem(t('STORAGE.USER_EMAIL'), res.data.data.user.email || '');
-        AsyncStorage.setItem(t('STORAGE.USER_NAME'), res.data.data.user.name || '');
+      if (resData?.success) {
+        AsyncStorage.setItem(t('STORAGE.ACCESS_TOKEN'), resData.data.access_token);
+        AsyncStorage.setItem(t('STORAGE.USER_ID'), JSON.stringify(resData.data.user.id));
+        AsyncStorage.setItem(t('STORAGE.USER_EMAIL'), resData.data.user.email || '');
+        AsyncStorage.setItem(t('STORAGE.USER_NAME'), resData.data.user.name || '');
         props.setLoader(false);
         AsyncStorage.setItem(t('STORAGE.IS_FIRST_TIME'), JSON.stringify(true));
-        const isGuestValGoogle = !!res.data.data.isGuest;
-        console.log('[GoogleLogin] IS_GUEST =', isGuestValGoogle, '| raw isGuest =', res.data.data.isGuest);
+        const isGuestValGoogle = !!resData.data.isGuest;
         AsyncStorage.setItem('IS_GUEST', JSON.stringify(isGuestValGoogle));
         saveToStorage(t('STORAGE.MODE'), JSON.stringify(true));
         props.setMode(true);
         navigateTo(navigation, t('SCREEN.HOME'));
       } else {
         setIsAlert(true);
-        setAlertMessage(res.data.message?.otp || res.data.message);
+        const raw = resData?.message;
+        setAlertMessage((typeof raw === 'object' ? Object.values(raw).flat().join('\n') : raw) || t('ALERT.WENT_WRONG'));
         props.setLoader(false);
       }
     } catch (error) {
-      setIsAlert(true);
-      setAlertMessage(t('ALERT.WENT_WRONG'));
       props.setLoader(false);
+      if (
+        error?.code === statusCodes.SIGN_IN_CANCELLED ||
+        error?.code === statusCodes.IN_PROGRESS ||
+        error?.code === 'ASYNC_OP_IN_PROGRESS' ||
+        error?.code === 12502
+      ) {
+        return;
+      }
+      setIsAlert(true);
+      setAlertMessage(error?.message || t('ALERT.WENT_WRONG'));
+    } finally {
+      googleSigningIn.current = false;
     }
   };
 
@@ -341,7 +365,7 @@ const Email = ({navigation, route, ...props}) => {
         backgroundColor: '#FFFFFF',
         borderTopLeftRadius: 36,
         borderTopRightRadius: 36,
-        paddingBottom: 32,
+        paddingBottom: insets.bottom + 32,
       }}>
         {/* gold notch */}
         <View style={{width: 44, height: 5, borderRadius: 3, backgroundColor: '#C4972A', alignSelf: 'center', marginTop: 12, marginBottom: 20}} />

@@ -10,13 +10,15 @@ import {
   TouchableOpacity,
   StyleSheet,
   Text,
+  TextInput,
+  ActivityIndicator,
   Animated,
 } from 'react-native';
 import {useFocusEffect} from '@react-navigation/native';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {Image} from '@rneui/themed';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import {isGuestUser} from '../Components/Common/GuestGateModal';
+import {isGuestUser, isVendorUser} from '../Components/Common/GuestGateModal';
 import {connect} from 'react-redux';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import {useTranslation} from 'react-i18next';
@@ -25,6 +27,7 @@ import {GoogleSignin} from '@react-native-google-signin/google-signin';
 import {FTP_PATH} from '@env';
 import {
   comnPost,
+  comnGet,
   dataSync,
   saveToStorage,
   getFromStorage,
@@ -315,16 +318,16 @@ const ProfileView = ({navigation, ...props}) => {
     if (data?.addresses?.length > 0) {
       setLocationMap(data.addresses[0].latitude, data.addresses[0].longitude);
     }
+    loadVendorInfo(data);
     fadeIn();
   };
 
   const getUserProfile = () => {
     if (!props.mode) return Promise.resolve(null);
-    return comnPost('v2/user-profile', props.access_token, navigation)
+    return comnPost('v2/user-profile', {}, navigation)
       .then(async res => {
         if (res?.data?.data) {
           const data = res.data.data;
-          console.log(data);
           
           await saveToStorage(
             t('STORAGE.PROFILE_RESPONSE'),
@@ -412,6 +415,77 @@ const ProfileView = ({navigation, ...props}) => {
 
   const [isGuestPopup, setIsGuestPopup] = useState(false);
 
+  // ── Vendor role state
+  const [isVendor, setIsVendor] = useState(false);
+  const [vendorRequest, setVendorRequest] = useState(null); // {status, admin_note, role}
+  const [vendorRequestVisible, setVendorRequestVisible] = useState(false);
+  const [vendorReason, setVendorReason] = useState('');
+  const [vendorSubmitting, setVendorSubmitting] = useState(false);
+  const [vendorSubmitMsg, setVendorSubmitMsg] = useState('');
+  const [vendorChecking, setVendorChecking] = useState(false);
+
+  const loadVendorInfo = useCallback(async (profileData) => {
+    const data = profileData || profile;
+    const vendor = Array.isArray(data?.roles) && data.roles.some(r => r.code === 'vendor');
+    setIsVendor(vendor);
+    if (vendor) {
+      setVendorRequest(null);
+      return;
+    }
+    try {
+      const token = await AsyncStorage.getItem(STRING.STORAGE.ACCESS_TOKEN);
+      const res = await comnGet('v2/myRoleRequests', token, null);
+      const list = res?.data?.data?.data || [];
+      const req = list.find(r => r.role?.code === 'vendor');
+      setVendorRequest(req || null);
+    } catch {
+      setVendorRequest(null);
+    }
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const handleVendorCtaTap = async () => {
+    setVendorChecking(true);
+    try {
+      const token = await AsyncStorage.getItem(STRING.STORAGE.ACCESS_TOKEN);
+      const res = await comnGet('v2/myRoleRequests', token, null);
+      const list = res?.data?.data?.data || [];
+      const req = list.find(r => r.role?.code === 'vendor');
+      if (req?.status === 'pending') {
+        setVendorRequest(req);
+      } else {
+        setVendorRequest(req || null);
+        setVendorSubmitMsg('');
+        setVendorRequestVisible(true);
+      }
+    } catch {
+      setVendorSubmitMsg('');
+      setVendorRequestVisible(true);
+    } finally {
+      setVendorChecking(false);
+    }
+  };
+
+  const handleVendorSubmit = async () => {
+    setVendorSubmitting(true);
+    setVendorSubmitMsg('');
+    const res = await comnPost('v2/requestRole', {role_code: 'vendor', ...(vendorReason.trim() && {reason: vendorReason.trim()})}, null);
+    const resData = res?.data ?? res?.response?.data;
+    setVendorSubmitting(false);
+    if (resData?.success) {
+      setVendorSubmitMsg(resData.message || t('VENDOR.REQUEST_SUCCESS'));
+      setVendorReason('');
+      setTimeout(async () => {
+        setVendorRequestVisible(false);
+        setVendorSubmitMsg('');
+        await loadVendorInfo(null);
+      }, 2000);
+    } else {
+      const raw = resData?.message;
+      const msg = typeof raw === 'object' ? Object.values(raw).flat().join('\n') : (raw || t('ALERT.FAILED'));
+      setVendorSubmitMsg(msg);
+    }
+  };
+
   const handleGuestLogin = async () => {
     setIsGuestPopup(false);
     await AsyncStorage.clear();
@@ -431,7 +505,7 @@ const ProfileView = ({navigation, ...props}) => {
   const completion = calcCompletion(profile);
   const personalInfoComplete = !!(profile.gender && profile.dob);
   const showCompletionCard = profile.id && completion < 100;
-  const showPersonalCard = profile.id && !personalInfoComplete;
+  const showPersonalCard = !!profile.id;
   const showInfoBox = profile.id && completion < 100;
 
   const photoUri = profile.profile_picture
@@ -450,7 +524,7 @@ const ProfileView = ({navigation, ...props}) => {
 
   // ── Render ────────────────────────────────────────────────────────────────────
   return (
-    <SafeAreaView edges={['top']} style={s.safe}>
+    <SafeAreaView edges={['top', 'bottom']} style={s.safe}>
       <ScrollView
         style={s.scroll}
         showsVerticalScrollIndicator={false}
@@ -534,6 +608,12 @@ const ProfileView = ({navigation, ...props}) => {
                   <Ionicons name="checkmark" size={11} color={C.white} />
                 </View>
               )}
+              {isVendor && (
+                <View style={s.vendorBadge}>
+                  <Ionicons name="storefront-outline" size={10} color={C.white} />
+                  <Text style={s.vendorBadgeText}>Vendor</Text>
+                </View>
+              )}
             </View>
             <Text style={s.profileEmail} numberOfLines={1}>
               {profile.email || ''}
@@ -543,6 +623,22 @@ const ProfileView = ({navigation, ...props}) => {
                 <Text style={s.memberSinceText}>
                   {`${t('PROFILE_SCREEN.MEMBER_SINCE')} ${formatMemberSince(profile.created_at)}`}
                 </Text>
+              </View>
+            )}
+            {Array.isArray(profile.roles) && profile.roles.length > 0 && (
+              <View style={s.rolesRow}>
+                {profile.roles.map(role => (
+                  <View key={role.id} style={[s.roleChip, role.code === 'vendor' && s.roleChipVendor]}>
+                    <Ionicons
+                      name={role.code === 'vendor' ? 'storefront-outline' : role.code === 'admin' ? 'shield-checkmark-outline' : 'person-outline'}
+                      size={11}
+                      color={role.code === 'vendor' ? '#92400E' : C.oceanMid}
+                    />
+                    <Text style={[s.roleChipText, role.code === 'vendor' && s.roleChipTextVendor]}>
+                      {role.name}
+                    </Text>
+                  </View>
+                ))}
               </View>
             )}
           </View>
@@ -635,6 +731,84 @@ const ProfileView = ({navigation, ...props}) => {
                   </Text>
                 </View>
               </View>
+              {!!(profile.mobile || profile.phone) && (
+                <View style={[s.detailRow, {marginTop: 10}]}>
+                  <View style={s.detailItem}>
+                    <Text style={s.detailLabel}>Mobile</Text>
+                    <Text style={s.detailValue}>
+                      {profile.mobile || profile.phone}
+                    </Text>
+                  </View>
+                </View>
+              )}
+            </View>
+          )}
+
+          {/* ── Account Access Card ── */}
+          {profile.id && (
+            <View style={s.accountCard}>
+              <View style={s.accountCardHeader}>
+                <Ionicons name="shield-outline" size={15} color={C.oceanMid} />
+                <Text style={s.accountCardTitle}>Account Access</Text>
+              </View>
+
+              {isVendor ? (
+                <View style={s.vendorApprovedCard}>
+                  <View style={s.vendorApprovedIconWrap}>
+                    <Ionicons name="checkmark-circle" size={28} color="#059669" />
+                  </View>
+                  <View style={s.vendorApprovedText}>
+                    <Text style={s.vendorApprovedTitle}>{t('VENDOR.ALREADY_VENDOR')}</Text>
+                    <Text style={s.vendorApprovedDesc}>{t('VENDOR.ALREADY_VENDOR_DESC')}</Text>
+                  </View>
+                </View>
+              ) : vendorRequest?.status === 'pending' ? (
+                <View style={s.vendorPendingCard}>
+                  <Ionicons name="time-outline" size={20} color="#D97706" />
+                  <View style={s.vendorPendingText}>
+                    <Text style={s.vendorPendingTitle}>{t('VENDOR.REQUEST_PENDING_TITLE')}</Text>
+                    <Text style={s.vendorPendingDesc}>{t('VENDOR.REQUEST_PENDING_MSG')}</Text>
+                  </View>
+                </View>
+              ) : vendorRequest?.status === 'rejected' ? (
+                <View style={s.vendorRejectedCard}>
+                  <Ionicons name="close-circle-outline" size={20} color="#DC2626" />
+                  <View style={s.vendorRejectedText}>
+                    <Text style={s.vendorRejectedTitle}>{t('VENDOR.REQUEST_REJECTED_TITLE')}</Text>
+                    {!!vendorRequest.admin_note && (
+                      <Text style={s.vendorRejectedNote}>{vendorRequest.admin_note}</Text>
+                    )}
+                  </View>
+                  <TouchableOpacity
+                    style={s.vendorReapplyBtn}
+                    onPress={handleVendorCtaTap}
+                    disabled={vendorChecking}
+                    activeOpacity={0.8}>
+                    {vendorChecking
+                      ? <ActivityIndicator size="small" color="#fff" />
+                      : <Text style={s.vendorReapplyText}>{t('VENDOR.REAPPLY')}</Text>
+                    }
+                  </TouchableOpacity>
+                </View>
+              ) : (
+                <TouchableOpacity
+                  style={s.vendorCta}
+                  onPress={handleVendorCtaTap}
+                  disabled={vendorChecking}
+                  activeOpacity={0.85}>
+                  <View style={s.vendorCtaIcon}>
+                    <Text style={{fontSize: 22}}>🏪</Text>
+                  </View>
+                  <View style={s.vendorCtaText}>
+                    <Text style={s.vendorCtaTitle}>{t('VENDOR.BECOME_VENDOR')}</Text>
+                    <Text style={s.vendorCtaDesc}>{t('VENDOR.BECOME_VENDOR_DESC')}</Text>
+                  </View>
+                  {vendorChecking
+                    ? <ActivityIndicator size="small" color={C.oceanMid} />
+                    : <Ionicons name="chevron-forward" size={18} color={C.oceanMid} />
+                  }
+                </TouchableOpacity>
+              )}
             </View>
           )}
 
@@ -744,34 +918,54 @@ const ProfileView = ({navigation, ...props}) => {
 
           {/* My Sites */}
           <TouchableOpacity
-            style={s.editProfileBtn}
+            style={s.menuCard}
             onPress={async () => {
               if (await isGuestUser()) { setIsGuestPopup(true); return; }
               navigation.navigate(STRING.SCREEN.MY_SUBMISSIONS);
             }}
-            activeOpacity={0.8}>
-            <Text style={s.editProfileBtnText}>{`🏨   My Sites`}</Text>
+            activeOpacity={0.85}>
+            <View style={[s.menuCardIcon, {backgroundColor: '#E0F4F7'}]}>
+              <Text style={{fontSize: 20}}>🏨</Text>
+            </View>
+            <View style={s.menuCardText}>
+              <Text style={s.menuCardTitle}>My Sites</Text>
+              <Text style={s.menuCardDesc}>Manage your submitted places</Text>
+            </View>
+            <Ionicons name="chevron-forward" size={18} color={C.oceanMid} />
           </TouchableOpacity>
 
           {/* My Events */}
           <TouchableOpacity
-            style={s.editProfileBtn}
+            style={s.menuCard}
             onPress={async () => {
               if (await isGuestUser()) { setIsGuestPopup(true); return; }
               navigation.navigate(STRING.SCREEN.MY_EVENTS);
             }}
-            activeOpacity={0.8}>
-            <Text style={s.editProfileBtnText}>{`🎪   My Events`}</Text>
+            activeOpacity={0.85}>
+            <View style={[s.menuCardIcon, {backgroundColor: '#FFF3E0'}]}>
+              <Text style={{fontSize: 20}}>🎪</Text>
+            </View>
+            <View style={s.menuCardText}>
+              <Text style={s.menuCardTitle}>My Events</Text>
+              <Text style={s.menuCardDesc}>View and manage your events</Text>
+            </View>
+            <Ionicons name="chevron-forward" size={18} color={C.oceanMid} />
           </TouchableOpacity>
+
 
           {/* Edit Profile */}
           <TouchableOpacity
-            style={s.editProfileBtn}
+            style={s.menuCard}
             onPress={handleEditProfile}
-            activeOpacity={0.8}>
-            <Text style={s.editProfileBtnText}>
-              {`✏️   ${t('PROFILE_SCREEN.EDIT_PROFILE')}`}
-            </Text>
+            activeOpacity={0.85}>
+            <View style={[s.menuCardIcon, {backgroundColor: '#EEF6FF'}]}>
+              <Text style={{fontSize: 20}}>✏️</Text>
+            </View>
+            <View style={s.menuCardText}>
+              <Text style={s.menuCardTitle}>{t('PROFILE_SCREEN.EDIT_PROFILE')}</Text>
+              <Text style={s.menuCardDesc}>Update your personal info</Text>
+            </View>
+            <Ionicons name="chevron-forward" size={18} color={C.oceanMid} />
           </TouchableOpacity>
 
           {/* Info box */}
@@ -800,6 +994,57 @@ const ProfileView = ({navigation, ...props}) => {
         )}
 
       </ScrollView>
+
+      {/* ── Vendor Request Modal ── */}
+      <Modal
+        visible={vendorRequestVisible}
+        transparent
+        animationType="slide"
+        statusBarTranslucent
+        onRequestClose={() => setVendorRequestVisible(false)}>
+        <Pressable style={s.vrBackdrop} onPress={() => setVendorRequestVisible(false)}>
+          <Pressable style={s.vrCard} onPress={() => {}}>
+            <View style={s.vrHandle} />
+            <Text style={s.vrTitle}>{t('VENDOR.BECOME_VENDOR')}</Text>
+            <Text style={s.vrSubtitle}>{t('VENDOR.REASON_LABEL')}</Text>
+            <TextInput
+              style={s.vrInput}
+              value={vendorReason}
+              onChangeText={setVendorReason}
+              placeholder={t('VENDOR.REASON_PLACEHOLDER')}
+              placeholderTextColor={C.textLight}
+              multiline
+              numberOfLines={3}
+              textAlignVertical="top"
+              maxLength={300}
+            />
+            {!!vendorSubmitMsg && (
+              <Text style={[
+                s.vrMsg,
+                vendorSubmitMsg === (t('VENDOR.REQUEST_SUCCESS')) && s.vrMsgSuccess,
+              ]}>
+                {vendorSubmitMsg}
+              </Text>
+            )}
+            <TouchableOpacity
+              style={[s.vrSubmitBtn, vendorSubmitting && {opacity: 0.6}]}
+              onPress={handleVendorSubmit}
+              disabled={vendorSubmitting}
+              activeOpacity={0.85}>
+              {vendorSubmitting
+                ? <ActivityIndicator size="small" color="#fff" />
+                : <Text style={s.vrSubmitText}>{t('VENDOR.SUBMIT_REQUEST')}</Text>
+              }
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={s.vrCancelBtn}
+              onPress={() => setVendorRequestVisible(false)}
+              activeOpacity={0.7}>
+              <Text style={s.vrCancelText}>{t('VENDOR.MAYBE_LATER')}</Text>
+            </TouchableOpacity>
+          </Pressable>
+        </Pressable>
+      </Modal>
 
       {/* ── Logout confirmation modal ── */}
       <Modal
@@ -1306,19 +1551,55 @@ const s = StyleSheet.create({
   },
 
   // ── Edit Profile btn
-  editProfileBtn: {
+  menuCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: C.white,
+    borderRadius: 14,
+    padding: 14,
     borderWidth: 1.5,
     borderColor: C.oceanMid,
+    gap: 12,
+    marginBottom: 12,
+  },
+  menuCardDanger: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: C.white,
+    borderRadius: 14,
+    padding: 14,
+    borderWidth: 1.5,
+    borderColor: 'rgba(220,38,38,0.35)',
+    gap: 12,
+    marginBottom: 20,
+  },
+  menuCardIcon: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  menuCardText: {flex: 1},
+  menuCardTitle: {fontSize: 14, fontWeight: '700', color: C.oceanMid, marginBottom: 2},
+  menuCardDesc: {fontSize: 11, color: C.textLight, lineHeight: 15},
+  menuCardTitleDanger: {fontSize: 14, fontWeight: '700', color: '#DC2626', marginBottom: 2},
+  menuCardDescDanger: {fontSize: 11, color: '#EF4444', lineHeight: 15},
+
+  // ── Logout btn
+  logoutBtn: {
+    borderWidth: 1,
+    borderColor: 'rgba(0,0,0,0.08)',
     borderRadius: 14,
     paddingVertical: 14,
     alignItems: 'center',
     backgroundColor: C.white,
-    marginBottom: 12,
+    marginBottom: 20,
   },
-  editProfileBtnText: {
+  logoutBtnText: {
     fontSize: 14,
     fontWeight: '600',
-    color: C.oceanMid,
+    color: C.textMid,
   },
   // ── Info box
   infoBox: {
@@ -1339,21 +1620,6 @@ const s = StyleSheet.create({
     lineHeight: 18,
   },
 
-  // ── Logout btn
-  logoutBtn: {
-    borderWidth: 1,
-    borderColor: 'rgba(0,0,0,0.08)',
-    borderRadius: 14,
-    paddingVertical: 14,
-    alignItems: 'center',
-    backgroundColor: C.white,
-    marginBottom: 20,
-  },
-  logoutBtnText: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: C.textMid,
-  },
 
   // ── Logout modal (matches ModePopup card style)
   lModal: {
@@ -1424,6 +1690,200 @@ const s = StyleSheet.create({
     fontWeight: '600',
     color: C.white,
   },
+
+  // ── Vendor section
+  // ── Vendor badge (name row)
+  vendorBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#D97706',
+    borderRadius: 10,
+    paddingHorizontal: 7,
+    paddingVertical: 3,
+    gap: 3,
+    marginLeft: 4,
+  },
+  vendorBadgeText: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: C.white,
+    letterSpacing: 0.3,
+  },
+
+  // ── Roles row
+  rolesRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 6,
+    marginTop: 8,
+  },
+  roleChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#EEF6FF',
+    borderRadius: 20,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    gap: 4,
+    borderWidth: 1,
+    borderColor: 'rgba(27,107,123,0.2)',
+  },
+  roleChipVendor: {
+    backgroundColor: '#FFFBEB',
+    borderColor: 'rgba(217,119,6,0.3)',
+  },
+  roleChipText: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: C.oceanMid,
+  },
+  roleChipTextVendor: {
+    color: '#92400E',
+  },
+
+  // ── Account Access card
+  accountCard: {
+    backgroundColor: C.white,
+    borderRadius: 16,
+    padding: 16,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(27,107,123,0.15)',
+  },
+  accountCardHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginBottom: 12,
+  },
+  accountCardTitle: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: C.oceanMid,
+    letterSpacing: 0.2,
+  },
+  vendorCta: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: C.white,
+    borderRadius: 14,
+    padding: 14,
+    borderWidth: 1.5,
+    borderColor: C.oceanMid,
+    gap: 12,
+  },
+  vendorCtaIcon: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: '#EEF6FF',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  vendorCtaText: {flex: 1},
+  vendorCtaTitle: {fontSize: 14, fontWeight: '700', color: C.oceanMid, marginBottom: 2},
+  vendorCtaDesc: {fontSize: 11, color: C.textLight, lineHeight: 15},
+  vendorPendingCard: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    backgroundColor: '#FFFBEB',
+    borderRadius: 14,
+    padding: 14,
+    borderWidth: 1,
+    borderColor: 'rgba(245,158,11,0.3)',
+    gap: 10,
+  },
+  vendorPendingText: {flex: 1},
+  vendorPendingTitle: {fontSize: 13, fontWeight: '700', color: '#92400E', marginBottom: 2},
+  vendorPendingDesc: {fontSize: 12, color: '#B45309', lineHeight: 17},
+  vendorRejectedCard: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    backgroundColor: '#FEF2F2',
+    borderRadius: 14,
+    padding: 14,
+    borderWidth: 1,
+    borderColor: 'rgba(220,38,38,0.2)',
+    gap: 10,
+  },
+  vendorRejectedText: {flex: 1},
+  vendorRejectedTitle: {fontSize: 13, fontWeight: '700', color: '#991B1B', marginBottom: 2},
+  vendorRejectedNote: {fontSize: 12, color: '#B91C1C', lineHeight: 17},
+  vendorReapplyBtn: {
+    backgroundColor: '#DC2626',
+    borderRadius: 50,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    alignSelf: 'center',
+  },
+  vendorReapplyText: {fontSize: 12, fontWeight: '700', color: C.white},
+  vendorApprovedCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#F0FDF4',
+    borderRadius: 14,
+    padding: 14,
+    borderWidth: 1,
+    borderColor: 'rgba(5,150,105,0.25)',
+    gap: 12,
+  },
+  vendorApprovedIconWrap: {width: 44, alignItems: 'center'},
+  vendorApprovedText: {flex: 1},
+  vendorApprovedTitle: {fontSize: 14, fontWeight: '700', color: '#065F46', marginBottom: 2},
+  vendorApprovedDesc: {fontSize: 12, color: '#047857', lineHeight: 17},
+
+  // ── Vendor request bottom-sheet modal
+  vrBackdrop: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'flex-end',
+  },
+  vrCard: {
+    backgroundColor: C.white,
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    paddingHorizontal: 24,
+    paddingTop: 12,
+    paddingBottom: 32,
+  },
+  vrHandle: {
+    width: 40,
+    height: 4,
+    backgroundColor: 'rgba(0,0,0,0.15)',
+    borderRadius: 2,
+    alignSelf: 'center',
+    marginBottom: 18,
+  },
+  vrTitle: {fontSize: 18, fontWeight: '700', color: C.textDark, marginBottom: 6},
+  vrSubtitle: {fontSize: 13, color: C.textLight, marginBottom: 10},
+  vrInput: {
+    borderWidth: 1.5,
+    borderColor: 'rgba(0,0,0,0.1)',
+    borderRadius: 12,
+    padding: 12,
+    fontSize: 14,
+    color: C.textDark,
+    minHeight: 90,
+    backgroundColor: '#F9FAFB',
+    marginBottom: 12,
+  },
+  vrMsg: {
+    fontSize: 13,
+    color: '#DC2626',
+    marginBottom: 10,
+    lineHeight: 18,
+  },
+  vrMsgSuccess: {color: '#059669'},
+  vrSubmitBtn: {
+    backgroundColor: C.oceanMid,
+    borderRadius: 50,
+    paddingVertical: 14,
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+  vrSubmitText: {fontSize: 15, fontWeight: '700', color: C.white},
+  vrCancelBtn: {paddingVertical: 12, alignItems: 'center'},
+  vrCancelText: {fontSize: 13, color: C.textLight},
 });
 
 // ─── Redux ─────────────────────────────────────────────────────────────────────

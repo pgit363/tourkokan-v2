@@ -106,7 +106,7 @@ const MapScreen = ({navigation, ...props}) => {
   };
 
   return (
-    <SafeAreaView edges={['top']} style={styles.safeArea}>
+    <SafeAreaView edges={['top', 'bottom']} style={styles.safeArea}>
       <CheckNet isOff={offline} />
       {offline ? (
         <View style={styles.offlineContainer}>

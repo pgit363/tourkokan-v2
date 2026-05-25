@@ -339,7 +339,7 @@ const Categories = ({route, navigation, ...props}) => {
   };
 
   return (
-    <SafeAreaView edges={['top']} style={styles.safeArea}>
+    <SafeAreaView edges={['top', 'bottom']} style={styles.safeArea}>
       {/* Header — ocean-deep base with forest-deep overlay for teal-to-green blend */}
       <View style={styles.header}>
         <View style={styles.headerForestOverlay} />

@@ -120,6 +120,7 @@
     "EVENTS_LIST": "EventsList",
     "EVENT_DETAIL": "EventDetail",
     "CREATE_EVENT": "CreateEvent",
+    "UPDATE_EVENT": "UpdateEvent",
     "MY_EVENTS": "MyEvents"
   },
   "STORAGE": {
@@ -416,10 +417,17 @@
     "SEND_MESSAGE": "Send us a message",
     "EMAIL": "Email",
     "PHONE": "Phone",
+    "PHONE_OPTIONAL": "Phone (Optional)",
+    "PHONE_PLACEHOLDER": "e.g. 8454025747",
     "ADDRESS": "Address",
-    "MESSAGE_LABEL": "Message *",
+    "MESSAGE_LABEL": "Message",
     "PLACEHOLDER": "How can we help you?",
-    "SUBMIT": "Submit"
+    "SUBMIT": "Submit",
+    "ERR_EMAIL_REQUIRED": "Email is required",
+    "ERR_EMAIL_INVALID": "Enter a valid email address",
+    "ERR_PHONE_INVALID": "Enter a valid 10-digit phone number",
+    "ERR_MESSAGE_REQUIRED": "Message is required",
+    "ERR_MESSAGE_SHORT": "Message must be at least 10 characters"
   },
 
   "QUERIES_SCREEN": {
@@ -655,6 +663,49 @@
     "EMPTY_SUB": "Try a different search term"
   },
 
+  "CREATE_EVENT": {
+    "TITLE": "Create Event",
+    "TITLE_REQUIRED": "Event title is required.",
+    "DESC_REQUIRED": "Description is required.",
+    "ADDRESS_REQUIRED": "Address is required.",
+    "TALUKA_REQUIRED": "Please select a taluka.",
+    "START_DATE_REQUIRED": "Please select a start date.",
+    "END_DATE_REQUIRED": "Please select an end date.",
+    "ENTRY_FEE_REQUIRED": "Entry fee is required for paid events.",
+    "SUBMITTED": "Submitted!",
+    "SUBMITTED_MSG": "Your event has been submitted for admin approval.",
+    "MY_EVENTS_BTN": "My Events"
+  },
+  "MY_SUBMISSIONS": {
+    "TITLE": "My Sites",
+    "ADD": "Add",
+    "NO_SUBMISSIONS": "No submissions yet",
+    "NO_SUBMISSIONS_SUB": "Submit your hotel, restaurant, or homestay for review.",
+    "SUBMIT_CTA": "Submit Your Place",
+    "DELETE_TITLE": "Delete",
+    "DELETE_MSG": "Are you sure you want to delete this submission?",
+    "DELETE_EVENT_MSG": "Are you sure you want to delete this event?",
+    "DELETE_BTN": "Delete",
+    "DELETE_ERROR": "Could not delete. Please try again.",
+    "EDIT_RESUBMIT": "Edit & Resubmit",
+    "EDIT": "Edit"
+  },
+
+  "UPDATE_EVENT": {
+    "TITLE": "Edit Event",
+    "SAVE_BTN": "Save Changes",
+    "TITLE_REQUIRED": "Event title is required.",
+    "DESC_REQUIRED": "Description is required.",
+    "ADDRESS_REQUIRED": "Address is required.",
+    "TALUKA_REQUIRED": "Please select a taluka.",
+    "START_DATE_REQUIRED": "Please select a start date.",
+    "END_DATE_REQUIRED": "Please select an end date.",
+    "ENTRY_FEE_REQUIRED": "Entry fee is required for paid events.",
+    "UPDATED": "Updated!",
+    "UPDATED_MSG": "Event updated successfully.",
+    "MY_EVENTS_BTN": "My Events",
+    "BLOCKED": "This event cannot be edited."
+  },
   "SITE_DETAIL": {
     "TAB_ABOUT": "About",
     "TAB_PHOTOS": "Photos",
@@ -680,5 +731,25 @@
     "SEE_ALL_VILLAGES": "See all villages",
     "AREA": "Area",
     "LOADING": "Loading..."
+  },
+  "VENDOR": {
+    "NOT_VENDOR_TITLE": "Vendor Access Required",
+    "NOT_VENDOR_MSG": "Only verified vendors can add sites or events. Request vendor access from your profile.",
+    "REQUEST_ACCESS": "Request Vendor Access",
+    "MAYBE_LATER": "Maybe Later",
+    "BECOME_VENDOR": "Become a Vendor",
+    "BECOME_VENDOR_DESC": "List your property, events, or experiences on Tourkokan and reach thousands of travellers.",
+    "REQUEST_PENDING_TITLE": "Request Pending",
+    "REQUEST_PENDING_MSG": "Your vendor access request is under review. We'll notify you once it's approved.",
+    "REQUEST_REJECTED_TITLE": "Request Not Approved",
+    "REQUEST_REJECTED_MSG": "Your vendor request was not approved.",
+    "REAPPLY": "Reapply",
+    "REASON_LABEL": "Why do you want to become a vendor?",
+    "REASON_PLACEHOLDER": "E.g. I want to list my homestay / hotel (optional)",
+    "SUBMIT_REQUEST": "Submit Request",
+    "ALREADY_VENDOR": "You're a Verified Vendor",
+    "ALREADY_VENDOR_DESC": "You can add sites, events, and experiences.",
+    "REQUEST_SUCCESS": "Vendor request submitted! Admin will review shortly.",
+    "SECTION_TITLE": "Vendor Access"
   }
 }

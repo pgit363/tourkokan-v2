@@ -120,6 +120,7 @@
     "EVENTS_LIST": "EventsList",
     "EVENT_DETAIL": "EventDetail",
     "CREATE_EVENT": "CreateEvent",
+    "UPDATE_EVENT": "UpdateEvent",
     "MY_EVENTS": "MyEvents"
   },
   "STORAGE": {
@@ -419,10 +420,17 @@
     "SEND_MESSAGE": "आम्हाला संदेश पाठवा",
     "EMAIL": "ईमेल",
     "PHONE": "फोन",
+    "PHONE_OPTIONAL": "फोन (पर्यायी)",
+    "PHONE_PLACEHOLDER": "उदा. 8454025747",
     "ADDRESS": "पत्ता",
-    "MESSAGE_LABEL": "संदेश *",
+    "MESSAGE_LABEL": "संदेश",
     "PLACEHOLDER": "आम्ही तुम्हाला कसे मदत करू शकतो?",
-    "SUBMIT": "सबमिट करा"
+    "SUBMIT": "सबमिट करा",
+    "ERR_EMAIL_REQUIRED": "ईमेल आवश्यक आहे",
+    "ERR_EMAIL_INVALID": "वैध ईमेल पत्ता प्रविष्ट करा",
+    "ERR_PHONE_INVALID": "वैध 10 अंकी फोन नंबर प्रविष्ट करा",
+    "ERR_MESSAGE_REQUIRED": "संदेश आवश्यक आहे",
+    "ERR_MESSAGE_SHORT": "संदेश किमान 10 अक्षरांचा असणे आवश्यक आहे"
   },
 
   "QUERIES_SCREEN": {
@@ -658,6 +666,49 @@
     "EMPTY_SUB": "वेगळ्या शब्दाने शोधा"
   },
 
+  "CREATE_EVENT": {
+    "TITLE": "Create Event",
+    "TITLE_REQUIRED": "Event title is required.",
+    "DESC_REQUIRED": "Description is required.",
+    "ADDRESS_REQUIRED": "Address is required.",
+    "TALUKA_REQUIRED": "Please select a taluka.",
+    "START_DATE_REQUIRED": "Please select a start date.",
+    "END_DATE_REQUIRED": "Please select an end date.",
+    "ENTRY_FEE_REQUIRED": "Entry fee is required for paid events.",
+    "SUBMITTED": "Submitted!",
+    "SUBMITTED_MSG": "Your event has been submitted for admin approval.",
+    "MY_EVENTS_BTN": "My Events"
+  },
+  "MY_SUBMISSIONS": {
+    "TITLE": "माझ्या साइट्स",
+    "ADD": "जोडा",
+    "NO_SUBMISSIONS": "अद्याप कोणत्याही सबमिशन नाहीत",
+    "NO_SUBMISSIONS_SUB": "आपले हॉटेल, रेस्टॉरंट किंवा होमस्टे समीक्षेसाठी सबमिट करा.",
+    "SUBMIT_CTA": "आपले ठिकाण सबमिट करा",
+    "DELETE_TITLE": "हटवा",
+    "DELETE_MSG": "आपण हे सबमिशन हटवायचे आहे का?",
+    "DELETE_EVENT_MSG": "आपण हे इव्हेंट हटवायचे आहे का?",
+    "DELETE_BTN": "हटवा",
+    "DELETE_ERROR": "हटवता आले नाही. कृपया पुन्हा प्रयत्न करा.",
+    "EDIT_RESUBMIT": "संपादित करा आणि पुन्हा सबमिट करा",
+    "EDIT": "संपादित करा"
+  },
+
+  "UPDATE_EVENT": {
+    "TITLE": "Edit Event",
+    "SAVE_BTN": "Save Changes",
+    "TITLE_REQUIRED": "Event title is required.",
+    "DESC_REQUIRED": "Description is required.",
+    "ADDRESS_REQUIRED": "Address is required.",
+    "TALUKA_REQUIRED": "Please select a taluka.",
+    "START_DATE_REQUIRED": "Please select a start date.",
+    "END_DATE_REQUIRED": "Please select an end date.",
+    "ENTRY_FEE_REQUIRED": "Entry fee is required for paid events.",
+    "UPDATED": "Updated!",
+    "UPDATED_MSG": "Event updated successfully.",
+    "MY_EVENTS_BTN": "My Events",
+    "BLOCKED": "This event cannot be edited."
+  },
   "SITE_DETAIL": {
     "TAB_ABOUT": "माहिती",
     "TAB_PHOTOS": "फोटो",
@@ -683,5 +734,25 @@
     "SEE_ALL_VILLAGES": "सर्व गावे पाहा",
     "AREA": "परिसर",
     "LOADING": "लोड होत आहे..."
+  },
+  "VENDOR": {
+    "NOT_VENDOR_TITLE": "विक्रेता प्रवेश आवश्यक",
+    "NOT_VENDOR_MSG": "केवळ प्रमाणित विक्रेतेच साइट किंवा कार्यक्रम जोडू शकतात. तुमच्या प्रोफाइलमधून विक्रेता प्रवेशाची विनंती करा.",
+    "REQUEST_ACCESS": "विक्रेता प्रवेशाची विनंती करा",
+    "MAYBE_LATER": "नंतर कदाचित",
+    "BECOME_VENDOR": "विक्रेता व्हा",
+    "BECOME_VENDOR_DESC": "Tourkokan वर तुमची मालमत्ता, कार्यक्रम किंवा अनुभव यादी करा.",
+    "REQUEST_PENDING_TITLE": "विनंती प्रलंबित",
+    "REQUEST_PENDING_MSG": "तुमची विक्रेता प्रवेश विनंती पुनरावलोकनाधीन आहे. मंजूर झाल्यावर आम्ही तुम्हाला सूचित करू.",
+    "REQUEST_REJECTED_TITLE": "विनंती मंजूर नाही",
+    "REQUEST_REJECTED_MSG": "तुमची विक्रेता विनंती मंजूर केली गेली नाही.",
+    "REAPPLY": "पुन्हा अर्ज करा",
+    "REASON_LABEL": "तुम्हाला विक्रेता का व्हायचे आहे?",
+    "REASON_PLACEHOLDER": "उदा. मला माझे होमस्टे / हॉटेल यादी करायचे आहे (ऐच्छिक)",
+    "SUBMIT_REQUEST": "विनंती सबमिट करा",
+    "ALREADY_VENDOR": "तुम्ही प्रमाणित विक्रेते आहात",
+    "ALREADY_VENDOR_DESC": "तुम्ही साइट, कार्यक्रम आणि अनुभव जोडू शकता.",
+    "REQUEST_SUCCESS": "विक्रेता विनंती सबमिट झाली! प्रशासक लवकरच पुनरावलोकन करेल.",
+    "SECTION_TITLE": "विक्रेता प्रवेश"
   }
 }

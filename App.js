@@ -183,7 +183,7 @@ export default function App() {
       <View style={{flex: 1, backgroundColor: '#FFFFFF', justifyContent: 'center', alignItems: 'center'}}>
         <Image
           source={require('./src/Assets/Images/Logos/tourkokan-logo.png')}
-          style={styles.introLogo}
+          style={{width: 220, height: 220}}
           resizeMode="contain"
         />
       </View>
@@ -205,10 +205,10 @@ export default function App() {
   }
 
   return (
-    <>
+    <SafeAreaProvider>
       <StatusBar style="dark" backgroundColor="transparent" translucent={true} />
       <OnboardingScreen onComplete={() => setIsFirstTime('false')} />
       <UpdateOverlay />
-    </>
+    </SafeAreaProvider>
   );
 }

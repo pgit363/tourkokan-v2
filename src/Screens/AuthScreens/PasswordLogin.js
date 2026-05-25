@@ -7,6 +7,7 @@ import {
   Image,
   ImageBackground,
 } from 'react-native';
+import {SafeAreaView} from 'react-native-safe-area-context';
 import TextField from '../../Components/Customs/TextField';
 import {SignInFields} from '../../Services/Constants/FIELDS';
 import TextButton from '../../Components/Customs/Buttons/TextButton';
@@ -143,7 +144,7 @@ const PasswordLogin = ({navigation, route, ...props}) => {
   };
 
   return (
-    <View style={{alignItems: 'center'}}>
+    <SafeAreaView edges={['bottom']} style={{alignItems: 'center', flex: 1}}>
       <ImageBackground
         style={styles.loginImage}
         source={require('../../Assets/Images/Intro/login_background.png')}
@@ -212,7 +213,7 @@ const PasswordLogin = ({navigation, route, ...props}) => {
       </View>
 
       <Popup message={alertMessage} onPress={closePopup} visible={isAlert} />
-    </View>
+    </SafeAreaView>
   );
 };
 

@@ -16,7 +16,7 @@ const Food = ({navigation, ...props}) => {
   }, []);
 
   return (
-    <SafeAreaView edges={['top']} style={{flex: 1, backgroundColor: COLOR.white}}>
+    <SafeAreaView edges={['top', 'bottom']} style={{flex: 1, backgroundColor: COLOR.white}}>
       <Loader />
       <TopComponent navigation={navigation} />
     </SafeAreaView>

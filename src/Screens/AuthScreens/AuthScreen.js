@@ -1,5 +1,6 @@
 import React from 'react';
 import {ImageBackground, StatusBar, View} from 'react-native';
+import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import styles from './Styles';
 import COLOR from '../../Services/Constants/COLORS';
 import GlobalText from '../../Components/Customs/Text';
@@ -9,20 +10,21 @@ import {useTranslation} from 'react-i18next';
 
 const AuthScreen = ({navigation}) => {
   const {t} = useTranslation();
+  const insets = useSafeAreaInsets();
 
   const goTo = screen => {
     navigateTo(navigation, screen);
   };
 
   return (
-    <View>
+    <View style={{flex: 1}}>
       <StatusBar backgroundColor={COLOR.loginImageBlue} />
       <ImageBackground
         style={styles.loginImage}
         source={require('../../Assets/Images/Intro/login_beach.png')}
       />
 
-      <View style={styles.authScreenView}>
+      <View style={[styles.authScreenView, {paddingBottom: insets.bottom + 16}]}>
         <View style={styles.loginAppName}>
           <GlobalText text={t('APPNAME')} style={styles.loginName} />
         </View>

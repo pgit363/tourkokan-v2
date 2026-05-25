@@ -205,10 +205,8 @@ const Profile = ({navigation, ...props}) => {
   };
 
   const getUserProfile = async () => {
-    console.log('[Profile] GET user-profile → payload:', {access_token: props.access_token});
     try {
-      const res = await comnPost('v2/user-profile', props.access_token);
-      console.log('[Profile] GET user-profile ← response:', JSON.stringify(res?.data, null, 2));
+      const res = await comnPost('v2/user-profile', {}, navigation);
       if (res?.data?.data) {
         await saveToStorage(
           t('STORAGE.PROFILE_RESPONSE'),
@@ -320,11 +318,19 @@ const Profile = ({navigation, ...props}) => {
 
     console.log('[Profile] POST updateProfile → payload:', data);
 
-    comnPost('v2/updateProfile', data)
+    comnPost('v2/updateProfile', data, navigation)
       .then(res => {
-        console.log('[Profile] POST updateProfile ← response:', JSON.stringify(res?.data, null, 2));
+        console.log('[Profile] POST updateProfile ← response:', res?.data);
         props.setLoader(false);
         setIsSaving(false);
+
+        if (!res?.data) {
+          setAlertMessage(t('ALERT.FAILED'));
+          setIsAlert(true);
+          setIsSuccess(false);
+          return;
+        }
+
         AsyncStorage.setItem('isUpdated', 'true');
         if (res.data.success) {
           const updated = {...profile, mobile, dob: formatDateToAPI(dob), gender};
@@ -396,7 +402,7 @@ const Profile = ({navigation, ...props}) => {
 
       <ScrollView
         style={s.flex}
-        contentContainerStyle={s.scrollContent}
+        contentContainerStyle={[s.scrollContent, {paddingBottom: insets.bottom + 48}]}
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled">
 
@@ -468,11 +474,11 @@ const Profile = ({navigation, ...props}) => {
               <TextInput
                 style={s.textInput}
                 value={mobile}
-                onChangeText={setMobile}
-                keyboardType="phone-pad"
+                onChangeText={text => setMobile(text.replace(/[^0-9]/g, ''))}
+                keyboardType="number-pad"
                 placeholder={t('EDIT_PROFILE.MOBILE_PLACEHOLDER')}
                 placeholderTextColor={C.textLight}
-                maxLength={15}
+                maxLength={10}
               />
             </View>
           </View>

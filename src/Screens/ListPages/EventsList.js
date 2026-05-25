@@ -456,12 +456,10 @@ const EventsList = ({navigation, route}) => {
         start={{x: 0, y: 0}} end={{x: 1, y: 1}}
         style={[s.header, {paddingTop: insets.top + 10}]}>
         <View style={s.headerRow}>
-          {!isTab && (
-            <TouchableOpacity style={s.iconBtn} onPress={() => backPage(navigation)} activeOpacity={0.8}
-              hitSlop={{top: 8, bottom: 8, left: 8, right: 8}}>
-              <Ionicons name="arrow-back" size={20} color={C.white} />
-            </TouchableOpacity>
-          )}
+          <TouchableOpacity style={s.iconBtn} onPress={() => backPage(navigation)} activeOpacity={0.8}
+            hitSlop={{top: 8, bottom: 8, left: 8, right: 8}}>
+            <Ionicons name="arrow-back" size={20} color={C.white} />
+          </TouchableOpacity>
           <View style={s.headerText}>
             <Text style={s.headerTitle}>Events</Text>
             {!loading && events.length > 0 && (
