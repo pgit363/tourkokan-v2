@@ -4,7 +4,7 @@ import ProgressImage from 'react-native-image-progress';
 import * as Progress from 'react-native-progress';
 import ImageViewing from 'react-native-image-viewing';
 import styles from './Styles';
-import {FTP_PATH} from '@env';
+import {AWS_URL} from '@env';
 
 const ImageViewer = ({images}) => {
   const [selectedImage, setSelectedImage] = useState(images[0]);
@@ -16,7 +16,7 @@ const ImageViewer = ({images}) => {
   };
 
   const renderItem = ({item}) => {
-    const imageUri = FTP_PATH + item.path;
+    const imageUri = AWS_URL + item.path;
 
     return (
       <TouchableOpacity onPress={() => openImageViewer(item)}>
@@ -41,7 +41,7 @@ const ImageViewer = ({images}) => {
     <View style={styles.galleryContainer}>
       <ProgressImage
         style={styles.mainImage}
-        source={{uri: FTP_PATH + selectedImage.path}}
+        source={{uri: AWS_URL + selectedImage.path}}
         indicator={Progress.Bar}
         indicatorProps={{
           size: 80,
@@ -62,7 +62,7 @@ const ImageViewer = ({images}) => {
         />
       </View>
       <ImageViewing
-        images={images.map(image => ({uri: FTP_PATH + image.path}))}
+        images={images.map(image => ({uri: AWS_URL + image.path}))}
         imageIndex={images.indexOf(selectedImage)}
         visible={isVisible}
         onRequestClose={() => setIsVisible(false)}

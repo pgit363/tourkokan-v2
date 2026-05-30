@@ -1,7 +1,7 @@
 import React, {useState} from 'react';
 import {TouchableOpacity, View} from 'react-native';
-import {FTP_PATH} from '@env';
-import {CachedCachedImageBackground} from '../Customs/CachedImage';
+import {AWS_URL} from '@env';
+import {CachedImageBackground} from '../Customs/CachedImage';
 import styles from './Styles';
 import GlobalText from '../Customs/Text';
 import Octicons from 'react-native-vector-icons/Octicons';
@@ -28,7 +28,7 @@ const PackageCard = ({data, cardType, onClick, reload}) => {
         {data.image || data.gallery?.[0] ? (
           <CachedImageBackground
             source={{
-              uri: FTP_PATH + (data.image || data.gallery?.[0]?.path),
+              uri: AWS_URL + (data.image || data.gallery?.[0]?.path),
             }}
             imageStyle={
               cardType === 'small'

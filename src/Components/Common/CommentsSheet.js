@@ -13,7 +13,7 @@ import {
   Animated,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import {FTP_PATH} from '@env';
+import {AWS_URL} from '@env';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import {connect} from 'react-redux';
 import {useTranslation} from 'react-i18next';
@@ -31,7 +31,6 @@ const C = {
 };
 
 const CommentsSheet = ({
-  openCommentsSheet,
   closeCommentsSheet,
   reload,
   commentable_id,
@@ -155,7 +154,7 @@ const CommentsSheet = ({
     return currentUserId && parseInt(user?.id, 10) === currentUserId;
   };
 
-  const renderComment = ({item, index}) => {
+  const renderComment = ({item}) => {
     const raw = item.users ?? item.user;
     const user = Array.isArray(raw) ? raw[0] : raw;
     const own = isOwn(item);
@@ -167,7 +166,7 @@ const CommentsSheet = ({
         <View style={cs.avatarWrap}>
           {user?.profile_picture ? (
             <Image
-              source={{uri: `${FTP_PATH}${user.profile_picture}`}}
+              source={{uri: user.profile_picture.startsWith('http') ? user.profile_picture : `${AWS_URL}${user.profile_picture}`}}
               style={cs.avatar}
             />
           ) : (

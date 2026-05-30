@@ -6,6 +6,8 @@ import {useTranslation} from 'react-i18next';
 import DrawerNavigator from './DrawerNavigator';
 
 import AllRoutesSearch from '../Screens/ListPages/AllRoutesSearch';
+import BusRouteList from '../Screens/ListPages/BusRouteList';
+import MSRTCSearch from '../Screens/ListPages/MSRTCSearch';
 import PasswordLogin from '../Screens/AuthScreens/PasswordLogin';
 import Email from '../Screens/AuthScreens/Email';
 import LangSelection from '../Screens/AuthScreens/LangSelection';
@@ -123,6 +125,14 @@ const StackNavigator = ({initialRoute}) => {
           <Stack.Screen
             name={t('SCREEN.ALL_ROUTES_SEARCH')}
             component={AllRoutesSearch}
+          />
+          <Stack.Screen
+            name={t('SCREEN.BUS_ROUTE_LIST')}
+            component={BusRouteList}
+          />
+          <Stack.Screen
+            name={t('SCREEN.ROUTES')}
+            component={MSRTCSearch}
           />
           <Stack.Screen name={t('SCREEN.ROUTES_LIST')} component={RoutesList} />
           <Stack.Screen name={t('SCREEN.BUS_TIMINGS')} component={BusTimings} />

@@ -9,6 +9,7 @@ import {
   Modal,
   Text,
   StyleSheet,
+  RefreshControl,
 } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import COLOR from '../../Services/Constants/COLORS';
@@ -45,7 +46,7 @@ import GalleryView from '../../Components/Common/GalleryView';
 import ComingSoon from '../../Components/Common/ComingSoon';
 import Popup from '../../Components/Common/Popup';
 import NetInfo from '@react-native-community/netinfo';
-import {FTP_PATH} from '@env';
+import {AWS_URL} from '@env';
 import {useFocusEffect} from '@react-navigation/native';
 import PackageCard from '../../Components/Cards/PackageCard';
 import PackageCardSkeleton from '../../Components/Cards/PackageCardSkeleton';
@@ -74,6 +75,7 @@ const CityDetails = ({navigation, route, offline, ...props}) => {
   const [isAlert, setIsAlert] = useState(false);
   const [alertMessage, setAlertMessage] = useState('');
   const [isGuestPopup, setIsGuestPopup] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
 
   useEffect(() => {
     const backHandler = goBackHandler(navigation);
@@ -99,18 +101,16 @@ const CityDetails = ({navigation, route, offline, ...props}) => {
 
   useFocusEffect(
     React.useCallback(() => {
-      const fetchData = async () => {
-        await setCityDetails(); // if setCityDetails is async
-      };
-      fetchData();
+      setCityDetails();
+      getDetails();
     }, [route?.params?.city?.id])
-  );  
+  );
 
   const setCityDetails = () => {
     setLoader(true);
     setCity(route.params.city);
     setIsFav(route.params.city.is_favorite);
-    setRating(route.params.city.rating_avg_rate || 0);
+    setRating(parseFloat(route.params.city.rating_avg_rate) || 0);
     setCommentCount(route.params.city.comment_count);
     setLocationMap(route.params.city.latitude, route.params.city.longitude);
     setLoader(false);
@@ -126,7 +126,7 @@ const CityDetails = ({navigation, route, offline, ...props}) => {
         if (res.data.success) {
           setCity(res.data.data);
           setIsFav(res.data.data.is_favorite);
-          setRating(res.data.data.rating_avg_rate || 0);
+          setRating(parseFloat(res.data.data.rating_avg_rate) || 0);
           setCommentCount(res.data.data.comment_count);
           setLocationMap(res.data.data.latitude, res.data.data.longitude);
           setLoader(false);
@@ -365,6 +365,22 @@ const CityDetails = ({navigation, route, offline, ...props}) => {
     setIsAlert(false);
   };
 
+  const onRefresh = () => {
+    setRefreshing(true);
+    comnPost('v2/getSite', {id: cityId})
+      .then(res => {
+        if (res?.data?.success) {
+          setCity(res.data.data);
+          setIsFav(res.data.data.is_favorite);
+          setRating(parseFloat(res.data.data.rating_avg_rate) || 0);
+          setCommentCount(res.data.data.comment_count);
+          setLocationMap(res.data.data.latitude, res.data.data.longitude);
+        }
+        setRefreshing(false);
+      })
+      .catch(() => setRefreshing(false));
+  };
+
   const handleGuestLogin = async () => {
     setIsGuestPopup(false);
     await AsyncStorage.clear();
@@ -390,27 +406,38 @@ const CityDetails = ({navigation, route, offline, ...props}) => {
         }
         style={styles.cityHeader}
       />
-      <ScrollView style={{backgroundColor: '#F8F7F4'}}>
+      <ScrollView
+        style={{backgroundColor: '#F8F7F4'}}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            colors={['#1B6B7B']}
+            tintColor="#1B6B7B"
+          />
+        }>
         <Popup message={alertMessage} onPress={closePopup} visible={isAlert} />
         <Loader />
 
         {city && (
           <View>
             {/* ── Hero Image ── */}
-            <View style={cd.heroWrap}>
+            <View style={styles.placeImageView}>
               {isLoading ? (
-                <Skeleton animation="pulse" variant="text" style={cd.hero} />
+                <Skeleton animation="pulse" variant="text" style={styles.placeImage} />
+              ) : city?.gallery?.length > 0 ? (
+                <GalleryView images={city.gallery.slice(0, 3)} />
               ) : city?.image ? (
                 <ImageBackground
-                  source={{uri: FTP_PATH + city.image}}
-                  style={cd.hero}
+                  source={{uri: AWS_URL + city.image}}
+                  style={styles.placeImage}
                   imageStyle={{borderBottomLeftRadius: 24, borderBottomRightRadius: 24}}
                   resizeMode="cover"
                 />
               ) : (
                 <ImageBackground
                   source={require('../../Assets/Images/no-image.png')}
-                  style={cd.hero}
+                  style={styles.placeImage}
                   imageStyle={{borderBottomLeftRadius: 24, borderBottomRightRadius: 24}}
                   resizeMode="cover"
                 />
@@ -440,7 +467,7 @@ const CityDetails = ({navigation, route, offline, ...props}) => {
                     <View style={cd.ratingQuickRow}>
                       <Ionicons name="star" size={13} color="#F59E0B" />
                       <Text style={cd.ratingQuickScore}>
-                        {rating > 0 ? rating.toFixed(1) : 'No rating'}
+                        {rating > 0 ? parseFloat(rating).toFixed(1) : 'No rating'}
                       </Text>
                       {commentCount > 0 && (
                         <Text style={cd.ratingQuickCount}>· {commentCount} review{commentCount !== 1 ? 's' : ''}</Text>
@@ -509,7 +536,7 @@ const CityDetails = ({navigation, route, offline, ...props}) => {
                           onPress={goToCityImages}
                           style={cd.photoThumb}>
                           <ImageBackground
-                            source={{uri: item.path?.startsWith('http') ? item.path : `${FTP_PATH}${item.path}`}}
+                            source={{uri: item.path?.startsWith('http') ? item.path : `${AWS_URL}${item.path}`}}
                             style={{width: '100%', height: '100%'}}
                             imageStyle={{borderRadius: 12}}
                             resizeMode="cover"

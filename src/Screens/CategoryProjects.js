@@ -18,7 +18,7 @@ import styles from './Styles';
 import ProjectCard from '../Components/Cards/ProjectCard';
 import GlobalText from '../Components/Customs/Text';
 import {useTranslation} from 'react-i18next';
-import {FTP_PATH} from '@env';
+import {AWS_URL} from '@env';
 import {SafeAreaView} from 'react-native-safe-area-context';
 
 const CategoryProjects = ({navigation, route, ...props}) => {
@@ -76,7 +76,7 @@ const CategoryProjects = ({navigation, route, ...props}) => {
               <View style={styles.overlay} />
               <ImageBackground
                 source={{
-                  uri: FTP_PATH + projects.image_url,
+                  uri: AWS_URL + projects.image_url,
                 }}
                 style={styles.categoryBack}
                 imageStyle={styles.categoryBackImageStyle}

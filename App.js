@@ -1,10 +1,13 @@
 import 'react-native-gesture-handler';
+import {LogBox} from 'react-native';
 import {StatusBar} from 'expo-status-bar';
+
+LogBox.ignoreLogs(['useInsertionEffect must not schedule updates']);
 import React, {useEffect, useState} from 'react';
 import {SafeAreaProvider} from 'react-native-safe-area-context';
 import {Provider} from 'react-redux';
 import store from './Store';
-import {View, Image, BackHandler, Linking} from 'react-native';
+import {View, Image, BackHandler, Linking, AppState, StyleSheet} from 'react-native';
 import SplashScreen from 'react-native-splash-screen';
 import StackNavigator from './src/Navigators/StackNavigator';
 import STRING from './src/Services/Constants/STRINGS';
@@ -50,6 +53,14 @@ export default function App() {
   const [initialRoute, setInitialRoute] = useState(STRING.SCREEN.EMAIL);
   const [updateApp, setUpdateApp] = useState(false);
   const [isForceUpdate, setIsForceUpdate] = useState(false);
+  const [appInBackground, setAppInBackground] = useState(false);
+
+  useEffect(() => {
+    const subscription = AppState.addEventListener('change', state => {
+      setAppInBackground(state !== 'active');
+    });
+    return () => subscription.remove();
+  }, []);
 
   useEffect(() => {
     const bootstrap = async () => {
@@ -135,7 +146,6 @@ export default function App() {
   const setOfflineData = resp => {
     saveToStorage(STRING.STORAGE.LANDING_RESPONSE, JSON.stringify(resp));
     saveToStorage(STRING.STORAGE.CATEGORIES_RESPONSE, JSON.stringify(resp.categories));
-    saveToStorage(STRING.STORAGE.ROUTES_RESPONSE, JSON.stringify(resp.routes));
     saveToStorage(STRING.STORAGE.CITIES_RESPONSE, JSON.stringify(resp.cities));
     saveToStorage(STRING.STORAGE.EMERGENCY, JSON.stringify(resp.emergencies));
     saveToStorage(STRING.STORAGE.QUERIES, JSON.stringify(resp.queries));
@@ -178,6 +188,19 @@ export default function App() {
     </Overlay>
   );
 
+  // Covers the app whenever it leaves the foreground — prevents App Switcher
+  // from capturing screen content, and blocks iOS screen recording previews.
+  const SecurityOverlay = () =>
+    appInBackground ? (
+      <View style={secureStyles.overlay}>
+        <Image
+          source={require('./src/Assets/Images/Logos/tourkokan-logo.png')}
+          style={secureStyles.logo}
+          resizeMode="contain"
+        />
+      </View>
+    ) : null;
+
   if (loading) {
     return (
       <View style={{flex: 1, backgroundColor: '#FFFFFF', justifyContent: 'center', alignItems: 'center'}}>
@@ -198,6 +221,7 @@ export default function App() {
             <StatusBar style="dark" backgroundColor="transparent" translucent={true} />
             <StackNavigator initialRoute={initialRoute} />
             <UpdateOverlay />
+            <SecurityOverlay />
           </SafeAreaProvider>
         </UpdateContext.Provider>
       </Provider>
@@ -209,6 +233,22 @@ export default function App() {
       <StatusBar style="dark" backgroundColor="transparent" translucent={true} />
       <OnboardingScreen onComplete={() => setIsFirstTime('false')} />
       <UpdateOverlay />
+      <SecurityOverlay />
     </SafeAreaProvider>
   );
 }
+
+const secureStyles = StyleSheet.create({
+  overlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: '#FFFFFF',
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 9999,
+    elevation: 9999,
+  },
+  logo: {
+    width: 180,
+    height: 180,
+  },
+});

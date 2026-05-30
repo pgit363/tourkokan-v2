@@ -19,7 +19,7 @@ import {useTranslation} from 'react-i18next';
 import LinearGradient from 'react-native-linear-gradient';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import {launchImageLibrary} from 'react-native-image-picker';
-import {FTP_PATH} from '@env';
+import {AWS_URL} from '@env';
 import {backPage} from '../Services/CommonMethods';
 import {comnPost, comnPostForm} from '../Services/Api/CommonServices';
 import STRING from '../Services/Constants/STRINGS';
@@ -169,7 +169,7 @@ const UpdateEvent = ({navigation, route}) => {
   const isBlocked = BLOCKED_STATUSES.includes(event.status);
 
   const existingBannerUri = event.banner_image_url
-    || (event.banner_image ? `${FTP_PATH}${event.banner_image}` : null);
+    || (event.banner_image ? `${AWS_URL}${event.banner_image}` : null);
 
   const [title, setTitle] = useState(event.title ?? '');
   const [description, setDescription] = useState(event.description ?? '');

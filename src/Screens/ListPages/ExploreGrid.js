@@ -21,7 +21,8 @@ import {connect} from 'react-redux';
 import {useTranslation} from 'react-i18next';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import {useFocusEffect} from '@react-navigation/native';
-import {FTP_PATH} from '@env';
+import {useSafeAreaInsets} from 'react-native-safe-area-context';
+import {AWS_URL} from '@env';
 
 import {
   comnPost,
@@ -36,15 +37,12 @@ import {useGuestGate, isGuestUser} from '../../Components/Common/GuestGateModal'
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
-// Computed once after all imports — avoids layout flash caused by hook re-renders
-const TOP_INSET = Platform.OS === 'ios' ? 44 : (StatusBar.currentHeight ?? 24);
-
 const NUM_COLS = 3;
 const CELL_GAP = 8;
 const H_PAD = 20;
 
 const {width: SW} = Dimensions.get('window');
-const CELL_SIZE = Math.floor((SW - H_PAD * 2 - CELL_GAP * (NUM_COLS + 1)) / NUM_COLS);
+const CELL_SIZE = Math.floor((SW - H_PAD * 2 - CELL_GAP * (NUM_COLS - 1)) / NUM_COLS);
 
 const C = {
   oceanDeep: '#0D3D4A',
@@ -93,6 +91,7 @@ const sk = StyleSheet.create({
   grid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
+    justifyContent: 'center',
     paddingHorizontal: H_PAD - CELL_GAP / 2,
     marginTop: 4,
   },
@@ -109,6 +108,7 @@ const sk = StyleSheet.create({
 
 const ExploreGrid = ({route, navigation, ...props}) => {
   const {t} = useTranslation();
+  const insets = useSafeAreaInsets();
   const {show: showGuestPopup, modal: guestModal} = useGuestGate(navigation);
   const [gallery, setGallery] = useState([]);
   const [offline, setOffline] = useState(false);
@@ -222,7 +222,7 @@ const ExploreGrid = ({route, navigation, ...props}) => {
 
   const renderItem = useCallback(
     ({item, index}) => {
-      const uri = FTP_PATH + item.path;
+      const uri = AWS_URL + item.path;
       const label = item.galleryable?.name || '';
       return (
         <TouchableOpacity
@@ -275,7 +275,7 @@ const ExploreGrid = ({route, navigation, ...props}) => {
         colors={[C.oceanDeep, C.forestDeep]}
         start={{x: 0, y: 0}}
         end={{x: 1, y: 1}}
-        style={[s.header, {paddingTop: TOP_INSET + 12}]}>
+        style={[s.header, {paddingTop: insets.top + 12}]}>
 
         <TouchableOpacity
           style={s.backBtn}
@@ -361,7 +361,7 @@ const ExploreGrid = ({route, navigation, ...props}) => {
 
       {/* ── Fullscreen viewer ── */}
       <ImageViewing
-        images={gallery.map(img => ({uri: FTP_PATH + img.path}))}
+        images={gallery.map(img => ({uri: AWS_URL + img.path}))}
         imageIndex={selectedImageIdx}
         visible={isModalVisible}
         onRequestClose={() => setIsModalVisible(false)}
@@ -472,7 +472,7 @@ const s = StyleSheet.create({
     paddingBottom: 40,
   },
   gridRow: {
-    justifyContent: 'flex-start',
+    justifyContent: 'center',
   },
   footerLoader: {
     flexDirection: 'row',

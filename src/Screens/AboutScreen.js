@@ -108,11 +108,11 @@ const AboutScreen = () => {
         showsVerticalScrollIndicator={false}>
 
         {/* ── Hero Header ── */}
-        <View style={ab.hero}>
+        <View style={[ab.hero, {paddingTop: insets.top + 8}]}>
           <View style={ab.heroOverlay} pointerEvents="none" />
 
           <TouchableOpacity
-            style={[ab.backBtn, {marginTop: 14}]}
+            style={ab.backBtn}
             onPress={() => navigation.goBack()}
             activeOpacity={0.8}>
             <Ionicons name="arrow-back" size={20} color={C.white} />
@@ -226,7 +226,6 @@ const ab = StyleSheet.create({
   hero: {
     backgroundColor: C.sandMid,
     paddingHorizontal: 20,
-    paddingTop: 8,
     paddingBottom: 40,
     alignItems: 'center',
   },

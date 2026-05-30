@@ -10,7 +10,7 @@ import {
 } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import {FTP_PATH} from '@env';
+import {AWS_URL} from '@env';
 import CachedImage from '../Customs/CachedImage';
 
 const {width: SW} = Dimensions.get('window');
@@ -32,9 +32,9 @@ const C = {
 const TrendingCard = ({item, onPress}) => {
   const fallback = require('../../Assets/Images/no-image.png');
   const uri = item.image
-    ? `${FTP_PATH}${item.image}`
+    ? `${AWS_URL}${item.image}`
     : item.gallery?.[0]?.path
-    ? `${FTP_PATH}${item.gallery[0].path}`
+    ? `${AWS_URL}${item.gallery[0].path}`
     : null;
 
   const category = item.categories?.[0]?.name;

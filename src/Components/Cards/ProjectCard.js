@@ -3,7 +3,7 @@ import {ImageBackground, View} from 'react-native';
 import styles from './Styles';
 import Path from '../../Services/Api/BaseUrl';
 import GlobalText from '../Customs/Text';
-import {FTP_PATH} from '@env';
+import {AWS_URL} from '@env';
 
 const ProjectCard = ({project}) => {
   return (
@@ -11,7 +11,7 @@ const ProjectCard = ({project}) => {
       <View>
         <View style={styles.overlay} />
         <ImageBackground
-          source={{uri: FTP_PATH + project.logo}}
+          source={{uri: AWS_URL + project.logo}}
           style={styles.projectImage}
           imageStyle={styles.projectImageStyle}
           resizeMode="cover"

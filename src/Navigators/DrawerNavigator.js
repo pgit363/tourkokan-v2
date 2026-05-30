@@ -90,7 +90,7 @@ const DrawerNavigator = () => {
     {type: 'image', source: require('../Assets/Images/DrawerIcons/contact_us.webp'), label: t('DRAWER.CONTACT_US'), screen: STRING.SCREEN.CONTACT_US, navigate: true},
     {type: 'image', source: require('../Assets/Images/DrawerIcons/settings.webp'), label: t('DRAWER.SETTINGS'), screen: STRING.SCREEN.SETTINGS, navigate: true},
     {type: 'image', source: require('../Assets/Images/DrawerIcons/about.webp'), label: t('DRAWER.ABOUT'), screen: STRING.SCREEN.ABOUT, navigate: true},
-    {type: 'emoji', source: '🗺️', label: STRING.DRAWER.MAP, screen: STRING.SCREEN.MAP_SCREEN, navigate: true},
+    {type: 'emoji', source: '🗺️', label: t('DRAWER.MAP'), screen: STRING.SCREEN.MAP_SCREEN, navigate: true},
   ];
 
   const CustomDrawerContent = ({navigation, state}) => {
@@ -157,7 +157,7 @@ const DrawerNavigator = () => {
                 style={styles.menuIconImg}
                 resizeMode="contain"
               />
-              <Text style={styles.menuText}>{STRING.DRAWER.CHECK_UPDATE}</Text>
+              <Text style={styles.menuText}>{t('DRAWER.CHECK_UPDATE')}</Text>
             </TouchableOpacity>
           </View>
         </DrawerContentScrollView>

@@ -24,7 +24,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import {isGuestUser} from '../../Components/Common/GuestGateModal';
 import NetInfo from '@react-native-community/netinfo';
 import StarRating from 'react-native-star-rating-widget';
-import {FTP_PATH} from '@env';
+import {AWS_URL} from '@env';
 import CachedImage from '../../Components/Customs/CachedImage';
 
 import {comnPost, getFromStorage} from '../../Services/Api/CommonServices';
@@ -315,10 +315,10 @@ const SiteDetailPage = ({navigation, route}) => {
   const getImgUri = useCallback(item => {
     if (!item) return null;
     let uri = null;
-    if (typeof item === 'string') uri = item.startsWith('http') ? item : `${FTP_PATH}${item}`;
-    else if (item.path) uri = `${FTP_PATH}${item.path}`;
-    else if (item.image) uri = `${FTP_PATH}${item.image}`;
-    else if (item.gallery?.[0]?.path) uri = `${FTP_PATH}${item.gallery[0].path}`;
+    if (typeof item === 'string') uri = item.startsWith('http') ? item : `${AWS_URL}${item}`;
+    else if (item.path) uri = `${AWS_URL}${item.path}`;
+    else if (item.image) uri = `${AWS_URL}${item.image}`;
+    else if (item.gallery?.[0]?.path) uri = `${AWS_URL}${item.gallery[0].path}`;
     console.log('[SiteDetail getImgUri]', uri);
     return uri;
   }, []);
@@ -326,9 +326,9 @@ const SiteDetailPage = ({navigation, route}) => {
   const getHeroUri = useCallback(() => {
     const gallery = city?.gallery || [];
     let uri = null;
-    if (gallery[activeGalleryIdx]?.path) uri = `${FTP_PATH}${gallery[activeGalleryIdx].path}`;
-    else if (gallery[activeGalleryIdx]?.image) uri = `${FTP_PATH}${gallery[activeGalleryIdx].image}`;
-    else if (city?.image) uri = `${FTP_PATH}${city.image}`;
+    if (gallery[activeGalleryIdx]?.path) uri = `${AWS_URL}${gallery[activeGalleryIdx].path}`;
+    else if (gallery[activeGalleryIdx]?.image) uri = `${AWS_URL}${gallery[activeGalleryIdx].image}`;
+    else if (city?.image) uri = `${AWS_URL}${city.image}`;
     console.log('[SiteDetail hero img]', city?.name, uri);
     return uri;
   }, [city, activeGalleryIdx]);
@@ -744,7 +744,7 @@ const SiteDetailPage = ({navigation, route}) => {
                   <View style={st.commentAvatarWrap}>
                     {user?.profile_picture ? (
                       <CachedImage
-                        source={{uri: `${FTP_PATH}${user.profile_picture}`}}
+                        source={{uri: user.profile_picture.startsWith('http') ? user.profile_picture : `${AWS_URL}${user.profile_picture}`}}
                         style={st.commentAvatar}
                         resizeMode="cover"
                       />

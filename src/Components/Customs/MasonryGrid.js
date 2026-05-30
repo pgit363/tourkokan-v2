@@ -12,7 +12,7 @@ import {
 import Path from '../../Services/Api/BaseUrl';
 import styles from './Styles';
 import GlobalText from './Text';
-import {FTP_PATH} from '@env';
+import {AWS_URL} from '@env';
 
 const MasonryGrid = ({data, loadMore}) => {
   const [selectedImage, setSelectedImage] = useState(null);
@@ -53,7 +53,7 @@ const MasonryGrid = ({data, loadMore}) => {
   const images = data.map((item, index) => {
     const {width, height} = calculateImageDimensions();
     return {
-      uri: FTP_PATH + item.image,
+      uri: AWS_URL + item.image,
       text: item.name,
       dimensions: {width, height},
       index,

@@ -12,7 +12,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import GlobalText from '../Customs/Text';
 import ComingSoon from '../Common/ComingSoon';
 import {useTranslation} from 'react-i18next';
-import {FTP_PATH} from '@env';
+import {AWS_URL} from '@env';
 
 const PlaceCard = ({data, reload, navigation, addComment, onClick}) => {
   const {t} = useTranslation();
@@ -66,7 +66,7 @@ const PlaceCard = ({data, reload, navigation, addComment, onClick}) => {
       <TouchableOpacity style={styles.placeImageView} onPress={() => onClick()}>
         {data.image ? (
           <ImageBackground
-            source={{uri: FTP_PATH + data.image}}
+            source={{uri: AWS_URL + data.image}}
             style={styles.placeImage}
             imageStyle={styles.placeImageStyle}
             resizeMode="cover"

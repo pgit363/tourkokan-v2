@@ -4,7 +4,7 @@ import styles from './Styles';
 import {Image} from '@rneui/base';
 import GlobalText from '../Text';
 import Path from '../../../Services/Api/BaseUrl';
-import {FTP_PATH} from '@env';
+import {AWS_URL} from '@env';
 
 const ImageButton = ({
   image,
@@ -31,7 +31,7 @@ const ImageButton = ({
           imageButtonCircle,
         ]}>
         <Image
-          source={{uri: FTP_PATH + image}}
+          source={{uri: AWS_URL + image}}
           style={[styles.catCardIcon, buttonIcon]}
         />
       </TouchableOpacity>

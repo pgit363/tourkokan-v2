@@ -34,7 +34,7 @@ import FontAwesome5Icon from 'react-native-vector-icons/FontAwesome5';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import NetInfo from '@react-native-community/netinfo';
 import {Overlay} from '@rneui/themed';
-import {FTP_PATH} from '@env';
+import {AWS_URL} from '@env';
 import CachedImage from '../Components/Customs/CachedImage';
 
 import TopComponent from '../Components/Common/TopComponent';
@@ -96,9 +96,9 @@ const RADIUS = 18;
 const TalukaCard = ({item, onPress}) => {
   const fallback = require('../Assets/Images/no-image.png');
   const uri = item.image
-    ? `${FTP_PATH}${item.image}`
+    ? `${AWS_URL}${item.image}`
     : item.gallery?.[0]?.path
-    ? `${FTP_PATH}${item.gallery[0].path}`
+    ? `${AWS_URL}${item.gallery[0].path}`
     : null;
   console.log('[TalukaCard img]', item.name, uri);
 
@@ -305,6 +305,12 @@ const HomeScreen = ({navigation, route, ...props}) => {
               type: 'SET_DATA',
               payload: {cities: res.cities, routes: res.routes, bannerObject: res.banners, trending: res.trending || {}, hot_sites: res.hot_sites || []},
             });
+            // Show mode popup only after content is visible, not on top of skeleton
+            const isFirstTime = await getFromStorage(t('STORAGE.IS_FIRST_TIME'));
+            if (isFirstTime === 'true' && !isUpdatePendingRef.current) {
+              setModePopup(true);
+              AsyncStorage.setItem(t('STORAGE.IS_FIRST_TIME'), JSON.stringify(false));
+            }
           }
         } catch (e) {
           console.log(e);
@@ -332,13 +338,6 @@ const HomeScreen = ({navigation, route, ...props}) => {
 
       if (!isLandingDataFetched && props.access_token) {
         setIsLandingDataFetched(true);
-      }
-
-      // ── Show mode popup on first-time launch (independent of API call) ──
-      const isFirstTime = await getFromStorage(t('STORAGE.IS_FIRST_TIME'));
-      if (isFirstTime === 'true' && !isUpdatePendingRef.current) {
-        setModePopup(true);
-        await AsyncStorage.setItem(t('STORAGE.IS_FIRST_TIME'), JSON.stringify(false));
       }
 
       const unsubscribe = NetInfo.addEventListener(async netState => {
@@ -421,7 +420,11 @@ const HomeScreen = ({navigation, route, ...props}) => {
       if (!mode || offline) return;
       const fetchCount = () => {
         comnPost('v2/unreadMessageCount')
-          .then(res => setUnreadCount(res?.data?.data?.count ?? 0))
+          .then(res => {
+            const d = res?.data?.data;
+            const n = d?.unread_message_count ?? d?.count ?? d?.unread_count ?? 0;
+            setUnreadCount(n);
+          })
           .catch(() => {});
       };
       fetchCount();
@@ -482,6 +485,11 @@ const HomeScreen = ({navigation, route, ...props}) => {
 
         if (res.data.data.unread_message_count !== undefined) {
           setUnreadCount(res.data.data.unread_message_count);
+        }
+
+        // Save categories immediately so Categories screen picks up the new language right away
+        if (res.data.data.categories?.length > 0) {
+          saveToStorage(t('STORAGE.CATEGORIES_RESPONSE'), JSON.stringify(res.data.data.categories));
         }
 
         if (res.data.data.banners?.APP_SPLASH?.length > 0 && !splashShownRef.current && !isUpdatePendingRef.current) {
@@ -581,7 +589,7 @@ const HomeScreen = ({navigation, route, ...props}) => {
   };
 
   const openProfile = () => navigateTo(navigation, t('SCREEN.PROFILE_VIEW'));
-  const getCityDetails = city => navigateTo(navigation, t('SCREEN.SITE_DETAIL'), {city});
+  const getSiteDetails = site => navigateTo(navigation, t('SCREEN.SITE_DETAIL'), {city: site});
   const openLocationSheet = () => refRBSheet.current.open();
   const closeLocationSheet = () => refRBSheet.current.close();
 
@@ -630,7 +638,7 @@ const HomeScreen = ({navigation, route, ...props}) => {
           data={sortedCities}
           keyExtractor={(item, i) => `${item.id}_${i}`}
           renderItem={({item}) => (
-            <TalukaCard item={item} onPress={() => getCityDetails(item)} />
+            <TalukaCard item={item} onPress={() => getSiteDetails(item)} />
           )}
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={s.talukasList}
@@ -642,7 +650,7 @@ const HomeScreen = ({navigation, route, ...props}) => {
       <View style={s.sectionPad}>
         <TouchableOpacity
           activeOpacity={0.85}
-          onPress={() => navigateTo(navigation, STRING.SCREEN.ALL_ROUTES_SEARCH)}
+          onPress={() => navigateTo(navigation, STRING.SCREEN.BUS_ROUTE_LIST)}
           style={s.busCardWrap}>
           <LinearGradient
             colors={['rgba(196,151,42,0.9)', 'rgba(107,66,38,0.9)']}
@@ -678,7 +686,7 @@ const HomeScreen = ({navigation, route, ...props}) => {
       {/* ── HOT PLACES ── */}
       <HotPlaces
         hot_sites={hot_sites}
-        onCardPress={getCityDetails}
+        onCardPress={getSiteDetails}
       />
 
       {/* ── EVENTS ── */}
@@ -855,7 +863,7 @@ const HomeScreen = ({navigation, route, ...props}) => {
                 source={{
                   uri: splashBanner[0].image?.startsWith('http')
                     ? splashBanner[0].image
-                    : `${FTP_PATH}${splashBanner[0].image}`,
+                    : `${AWS_URL}${splashBanner[0].image}`,
                 }}
                 style={s.splashImg}
               />

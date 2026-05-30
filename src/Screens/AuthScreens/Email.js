@@ -105,16 +105,22 @@ const Email = ({navigation, route, ...props}) => {
       const resData = res?.data ?? res?.response?.data;
 
       if (resData?.success) {
-        AsyncStorage.setItem(t('STORAGE.ACCESS_TOKEN'), resData.data.access_token);
+        await AsyncStorage.setItem(t('STORAGE.ACCESS_TOKEN'), resData.data.access_token);
         AsyncStorage.setItem(t('STORAGE.USER_ID'), JSON.stringify(resData.data.user.id));
         AsyncStorage.setItem(t('STORAGE.USER_EMAIL'), resData.data.user.email || '');
         AsyncStorage.setItem(t('STORAGE.USER_NAME'), resData.data.user.name || '');
-        props.setLoader(false);
         AsyncStorage.setItem(t('STORAGE.IS_FIRST_TIME'), JSON.stringify(true));
         const isGuestValGoogle = !!resData.data.isGuest;
         AsyncStorage.setItem('IS_GUEST', JSON.stringify(isGuestValGoogle));
         saveToStorage(t('STORAGE.MODE'), JSON.stringify(true));
         props.setMode(true);
+        try {
+          const landingRes = await comnPost('v2/landingpage', {});
+          if (landingRes?.data?.data) {
+            await saveToStorage(t('STORAGE.LANDING_RESPONSE'), JSON.stringify(landingRes.data.data));
+          }
+        } catch (_) {}
+        props.setLoader(false);
         navigateTo(navigation, t('SCREEN.HOME'));
       } else {
         setIsAlert(true);
@@ -289,39 +295,42 @@ const Email = ({navigation, route, ...props}) => {
     navigateTo(navigation, t('SCREEN.PASSWORD_LOGIN'), {email});
   };
 
-  const guestLogin = () => {
+  const guestLogin = async () => {
     props.setLoader(true);
     const data = {
       is_guest: true,
       name: `Guest_${Math.floor(Math.random() * 100000)}`,
     };
-
-    comnPost('v2/auth/register', data)
-      .then(res => {
-        if (res.data.success) {
-          AsyncStorage.setItem(t('STORAGE.ACCESS_TOKEN'), res.data.data.access_token);
-          AsyncStorage.setItem(t('STORAGE.USER_ID'), JSON.stringify(res.data.data.user.id));
-          AsyncStorage.setItem(t('STORAGE.USER_EMAIL'), res.data.data.user.email || '');
-          AsyncStorage.setItem(t('STORAGE.USER_NAME'), res.data.data.user.name || '');
-          const isGuestVal = !!res.data.data.isGuest;
-          console.log('[GuestLogin] IS_GUEST =', isGuestVal, '| raw isGuest =', res.data.data.isGuest);
-          AsyncStorage.setItem('IS_GUEST', JSON.stringify(isGuestVal));
-          props.setLoader(false);
-          AsyncStorage.setItem(t('STORAGE.IS_FIRST_TIME'), JSON.stringify(true));
-          saveToStorage(t('STORAGE.MODE'), JSON.stringify(true));
-          props.setMode(true);
-          navigateTo(navigation, t('SCREEN.HOME'));
-        } else {
-          props.setLoader(false);
-          setIsAlert(true);
-          setAlertMessage(res.data.message || t('ALERT.WENT_WRONG'));
-        }
-      })
-      .catch(err => {
+    try {
+      const res = await comnPost('v2/auth/register', data);
+      if (res.data.success) {
+        await AsyncStorage.setItem(t('STORAGE.ACCESS_TOKEN'), res.data.data.access_token);
+        AsyncStorage.setItem(t('STORAGE.USER_ID'), JSON.stringify(res.data.data.user.id));
+        AsyncStorage.setItem(t('STORAGE.USER_EMAIL'), res.data.data.user.email || '');
+        AsyncStorage.setItem(t('STORAGE.USER_NAME'), res.data.data.user.name || '');
+        const isGuestVal = !!res.data.data.isGuest;
+        AsyncStorage.setItem('IS_GUEST', JSON.stringify(isGuestVal));
+        AsyncStorage.setItem(t('STORAGE.IS_FIRST_TIME'), JSON.stringify(true));
+        saveToStorage(t('STORAGE.MODE'), JSON.stringify(true));
+        props.setMode(true);
+        try {
+          const landingRes = await comnPost('v2/landingpage', {});
+          if (landingRes?.data?.data) {
+            await saveToStorage(t('STORAGE.LANDING_RESPONSE'), JSON.stringify(landingRes.data.data));
+          }
+        } catch (_) {}
+        props.setLoader(false);
+        navigateTo(navigation, t('SCREEN.HOME'));
+      } else {
         props.setLoader(false);
         setIsAlert(true);
-        setAlertMessage(t('ALERT.WENT_WRONG'));
-      });
+        setAlertMessage(res.data.message || t('ALERT.WENT_WRONG'));
+      }
+    } catch (_) {
+      props.setLoader(false);
+      setIsAlert(true);
+      setAlertMessage(t('ALERT.WENT_WRONG'));
+    }
   };
 
   return (

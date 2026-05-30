@@ -11,7 +11,13 @@
       "Bash(sed -i '' '/console\\\\.log.*\\\\[CreateEvent\\\\]/d' /Users/pranavkamble/Documents/tourkokan-v2/src/Screens/CreateEvent.js)",
       "Bash(sed -i '' '/console\\\\.log.*\\\\[UpdateEvent\\\\]/d' /Users/pranavkamble/Documents/tourkokan-v2/src/Screens/UpdateEvent.js)",
       "Bash(sed -i '' '/console\\\\.log\\('\\\\''myEvents error'\\\\''/d' /Users/pranavkamble/Documents/tourkokan-v2/src/Screens/MyEvents.js)",
-      "Bash(awk -F: '{print $1}')"
+      "Bash(awk -F: '{print $1}')",
+      "Bash(node -e \"require\\('/Users/pranavkamble/Documents/tourkokan-v2/src/localization/translations/en.json'\\); console.log\\('en.json valid'\\)\")",
+      "Bash(node -e \"require\\('/Users/pranavkamble/Documents/tourkokan-v2/src/localization/translations/mr.json'\\); console.log\\('mr.json valid'\\)\")",
+      "Bash(python3 -c ' *)",
+      "Bash(xargs sed -i '' -e 's/import {FTP_PATH} from '\\\\''@env'\\\\''/import {AWS_URL} from '\\\\''@env'\\\\''/g' -e 's/import {API_PATH, FTP_PATH, FTP_PATH1} from '\\\\''@env'\\\\''/import {API_PATH, AWS_URL, FTP_PATH1} from '\\\\''@env'\\\\''/g' -e 's/${FTP_PATH}/${AWS_URL}/g' -e 's/FTP_PATH +/AWS_URL +/g')",
+      "Bash(curl -s --location https://api-test.tourkokan.com/api/v2/routes --header 'Accept: application/json' --header 'Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwczovL2FwaS10ZXN0LnRvdXJrb2thbi5jb20vYXBpL3YyL2F1dGgvbG9naW4iLCJpYXQiOjE3ODAwNjAzODUsImV4cCI6MTc4MDY2NTE4NSwibmJmIjoxNzgwMDYwMzg1LCJqdGkiOiJSNTlUSlphMUk4WFI2TmxEIiwic3ViIjoiMSIsInBydiI6IjIzYmQ1Yzg5NDlmNjAwYWRiMzllNzAxYzQwMDg3MmRiN2E1OTc2ZjcifQ.ypUpuUQLzyLddL8xBsZRQGGj1dpREvVFBScpLLWoLFA' --form 'per_page=\"5\"' --form 'page=\"1\"')",
+      "Bash(python3 -m json.tool)"
     ],
     "additionalDirectories": [
       "/Users/pranavkamble/Documents/tourkokan-v2/src/Components"

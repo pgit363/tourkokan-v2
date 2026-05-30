@@ -24,7 +24,7 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import {useTranslation} from 'react-i18next';
 import NetInfo from '@react-native-community/netinfo';
 import {GoogleSignin} from '@react-native-google-signin/google-signin';
-import {FTP_PATH} from '@env';
+import {AWS_URL} from '@env';
 import {
   comnPost,
   comnGet,
@@ -253,11 +253,7 @@ const ProfileView = ({navigation, ...props}) => {
         // Only use cached profile if it belongs to the currently logged-in user
         const cachedUserId = res?.id ? JSON.stringify(res.id) : null;
         if (cachedUserId && cachedUserId === currentUserId) {
-          setProfile(res);
-          if (res?.addresses?.length > 0) {
-            setLocationMap(res.addresses[0].latitude, res.addresses[0].longitude);
-          }
-          fadeIn();
+          applyProfile(res);
           props.setLoader(false);
         }
       }
@@ -272,15 +268,7 @@ const ProfileView = ({navigation, ...props}) => {
         ).then(resp => {
           if (!isMounted) return;
           if (resp) {
-            const res = JSON.parse(resp);
-            setProfile(res);
-            if (res?.addresses?.length > 0) {
-              setLocationMap(
-                res.addresses[0].latitude,
-                res.addresses[0].longitude,
-              );
-            }
-            fadeIn();
+            applyProfile(JSON.parse(resp));
           }
           props.setLoader(false);
           setRefreshing(false);
@@ -333,12 +321,7 @@ const ProfileView = ({navigation, ...props}) => {
             t('STORAGE.PROFILE_RESPONSE'),
             JSON.stringify(data),
           );
-          // Update UI directly so fresh fields (wallets_sum_amount etc.) always show
-          setProfile(data);
-          if (data?.addresses?.length > 0) {
-            setLocationMap(data.addresses[0].latitude, data.addresses[0].longitude);
-          }
-          fadeIn();
+          applyProfile(data);
           return data;
         }
         return null;
@@ -928,8 +911,8 @@ const ProfileView = ({navigation, ...props}) => {
               <Text style={{fontSize: 20}}>🏨</Text>
             </View>
             <View style={s.menuCardText}>
-              <Text style={s.menuCardTitle}>My Sites</Text>
-              <Text style={s.menuCardDesc}>Manage your submitted places</Text>
+              <Text style={s.menuCardTitle}>{t('PROFILE_SCREEN.MY_SITES')}</Text>
+              <Text style={s.menuCardDesc}>{t('PROFILE_SCREEN.MY_SITES_DESC')}</Text>
             </View>
             <Ionicons name="chevron-forward" size={18} color={C.oceanMid} />
           </TouchableOpacity>
@@ -946,8 +929,8 @@ const ProfileView = ({navigation, ...props}) => {
               <Text style={{fontSize: 20}}>🎪</Text>
             </View>
             <View style={s.menuCardText}>
-              <Text style={s.menuCardTitle}>My Events</Text>
-              <Text style={s.menuCardDesc}>View and manage your events</Text>
+              <Text style={s.menuCardTitle}>{t('PROFILE_SCREEN.MY_EVENTS')}</Text>
+              <Text style={s.menuCardDesc}>{t('PROFILE_SCREEN.MY_EVENTS_DESC')}</Text>
             </View>
             <Ionicons name="chevron-forward" size={18} color={C.oceanMid} />
           </TouchableOpacity>
@@ -963,7 +946,7 @@ const ProfileView = ({navigation, ...props}) => {
             </View>
             <View style={s.menuCardText}>
               <Text style={s.menuCardTitle}>{t('PROFILE_SCREEN.EDIT_PROFILE')}</Text>
-              <Text style={s.menuCardDesc}>Update your personal info</Text>
+              <Text style={s.menuCardDesc}>{t('PROFILE_SCREEN.EDIT_PROFILE_DESC')}</Text>
             </View>
             <Ionicons name="chevron-forward" size={18} color={C.oceanMid} />
           </TouchableOpacity>

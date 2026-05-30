@@ -26,7 +26,7 @@ import {useTranslation} from 'react-i18next';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import NetInfo from '@react-native-community/netinfo';
-import {FTP_PATH} from '@env';
+import {AWS_URL} from '@env';
 
 import {comnPost} from '../../Services/Api/CommonServices';
 import {navigateTo} from '../../Services/CommonMethods';
@@ -338,8 +338,8 @@ const CityPlaceSearch = ({navigation, route}) => {
     navigateTo(navigation, t('SCREEN.SITE_DETAIL'), {city: item});
 
   const getImageUri = item => {
-    if (item?.image) return `${FTP_PATH}${item.image}`;
-    if (item?.gallery?.[0]?.path) return `${FTP_PATH}${item.gallery[0].path}`;
+    if (item?.image) return `${AWS_URL}${item.image}`;
+    if (item?.gallery?.[0]?.path) return `${AWS_URL}${item.gallery[0].path}`;
     return null;
   };
 

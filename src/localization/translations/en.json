@@ -100,6 +100,7 @@
     "ROUTES_LIST": "RoutesList",
     "SEARCH_LIST": "SearchList",
     "ALL_ROUTES_SEARCH": "AllRoutesSearch",
+    "BUS_ROUTE_LIST": "BusRouteList",
     "CITY_LIST": "CityList",
     "PROJECT_LIST": "ProjectList",
     "QUERIES_LIST": "QueriesList",
@@ -136,6 +137,7 @@
     "CITIES_RESPONSE": "citiesResponse",
     "PLACES_RESPONSE": "placesResponse",
     "ROUTES_RESPONSE": "routesResponse",
+    "BUS_ROUTES_RESPONSE": "busRoutesResponse",
     "EXPLORE_CITIES_RESPONSE": "exploreCitiesResponse",
     "CATEGORIES_RESPONSE": "categoriesResponse",
     "EMERGENCY": "emergency",
@@ -457,8 +459,20 @@
     "CONTACT_US": "Contact Us",
     "SETTINGS": "Settings",
     "ABOUT": "About",
+    "MAP": "Map",
+    "CHECK_UPDATE": "Check for Update",
     "TAGLINE": "Sun, Sand & Serenity",
     "FOOTER": "Designed and Developed by Probyte Solution LLP."
+  },
+
+  "UPDATE_POPUP": {
+    "UPDATE_TITLE": "Update Available",
+    "UPTODATE_TITLE": "You're Up to Date!",
+    "UPDATE_MSG": "A new version is available on the Play Store. Update now for the latest features and fixes.",
+    "UPTODATE_MSG": "You are running the latest version of the app. No action needed.",
+    "LATER": "Later",
+    "UPDATE_NOW": "Update Now",
+    "GOT_IT": "Got it"
   },
 
   "EDIT_PROFILE": {
@@ -514,7 +528,43 @@
     "PROFILE_HELP": "Edit your profile to add your gender and date of birth. This helps us provide personalized travel recommendations!",
     "SIGN_OUT": "Sign Out",
     "LOGOUT_CONFIRM_TITLE": "Sign Out",
-    "LOGOUT_CONFIRM": "Are you sure you want to sign out?"
+    "LOGOUT_CONFIRM": "Are you sure you want to sign out?",
+    "MY_SITES": "My Sites",
+    "MY_SITES_DESC": "Manage your submitted places",
+    "MY_EVENTS": "My Events",
+    "MY_EVENTS_DESC": "View and manage your events",
+    "EDIT_PROFILE_DESC": "Update your personal info"
+  },
+
+  "EVENTS_LIST": {
+    "TITLE": "Events",
+    "UPCOMING": "upcoming",
+    "SEARCH_PLACEHOLDER": "Search events…",
+    "FEATURED": "Featured",
+    "GOING": "going",
+    "INTERESTED": "interested",
+    "FREE": "Free",
+    "OFFLINE": "No internet connection",
+    "EMPTY_TITLE": "No events found",
+    "EMPTY_DEFAULT": "Be the first to create one!",
+    "EMPTY_FILTER": "Try adjusting your filters.",
+    "CLEAR_FILTERS": "Clear filters",
+    "FILTERS": "Filters",
+    "TALUKA": "Taluka",
+    "ANY": "Any",
+    "FREE_ONLY": "Free only",
+    "FREE_EVENTS_ONLY": "Free Events Only",
+    "FEATURED_EVENTS_ONLY": "Featured Events Only",
+    "UPCOMING_EVENTS_ONLY": "Upcoming Events Only",
+    "DATE_RANGE": "Date Range",
+    "FROM_DATE": "From date",
+    "TO_DATE": "To date",
+    "FROM": "From",
+    "TO": "To",
+    "CLEAR_ALL": "Clear All",
+    "APPLY": "Apply",
+    "CANCEL": "Cancel",
+    "DONE": "Done"
   },
   "HOME": {
     "SEARCH_PLACEHOLDER": "Search beaches, forts, food...",
@@ -629,6 +679,23 @@
     "NO_ROUTES_SUB": "Try a different source or destination",
     "ROUTE_COUNT": "routes found",
     "OFFLINE_MSG": "You are offline. Showing cached data."
+  },
+
+  "BUS_ROUTE_SCREEN": {
+    "TITLE": "Bus Routes",
+    "ROUTES_AVAILABLE": "routes available",
+    "LOADING_MORE": "Loading more routes...",
+    "NO_ROUTES": "No Routes Available",
+    "NO_ROUTES_SUB": "We couldn't find any routes at this time.",
+    "OFFLINE_TITLE": "No Internet Connection",
+    "OFFLINE_MSG": "Bus routes can't be fetched in offline mode. Please connect to the internet to view all available routes.",
+    "CHANGE_MODE": "Switch to Online Mode",
+    "CANCEL": "Cancel",
+    "INFO_TITLE": "Internet Required",
+    "INFO_MSG": "The route list requires a stable internet connection. Offline access is not available for bus routes.",
+    "DOWNLOAD_OFFLINE": "Download Offline Routes",
+    "COMING_SOON_NOTE": "This feature is coming soon",
+    "GOT_IT": "Got It"
   },
 
   "ALL_ROUTES_SCREEN": {

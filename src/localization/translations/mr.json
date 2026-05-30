@@ -100,6 +100,7 @@
     "ROUTES_LIST": "RoutesList",
     "SEARCH_LIST": "SearchList",
     "ALL_ROUTES_SEARCH": "AllRoutesSearch",
+    "BUS_ROUTE_LIST": "BusRouteList",
     "CITY_LIST": "CityList",
     "PROJECT_LIST": "ProjectList",
     "QUERIES_LIST": "QueriesList",
@@ -136,6 +137,7 @@
     "CITIES_RESPONSE": "citiesResponse",
     "PLACES_RESPONSE": "placesResponse",
     "ROUTES_RESPONSE": "routesResponse",
+    "BUS_ROUTES_RESPONSE": "busRoutesResponse",
     "EXPLORE_CITIES_RESPONSE": "exploreCitiesResponse",
     "CATEGORIES_RESPONSE": "categoriesResponse",
     "EMERGENCY": "emergency",
@@ -460,8 +462,20 @@
     "CONTACT_US": "आमच्याशी संपर्क करा",
     "SETTINGS": "सेटिंग्ज",
     "ABOUT": "आमच्याबद्दल",
+    "MAP": "नकाशा",
+    "CHECK_UPDATE": "अपडेट तपासा",
     "TAGLINE": "सूर्य, वाळू आणि शांती",
     "FOOTER": "Probyte Solution LLP द्वारे डिझाइन आणि विकसित."
+  },
+
+  "UPDATE_POPUP": {
+    "UPDATE_TITLE": "अपडेट उपलब्ध",
+    "UPTODATE_TITLE": "तुम्ही अद्ययावत आहात!",
+    "UPDATE_MSG": "Play Store वर नवीन आवृत्ती उपलब्ध आहे. नवीनतम वैशिष्ट्ये आणि सुधारणांसाठी आता अपडेट करा.",
+    "UPTODATE_MSG": "तुम्ही अॅपची सर्वात नवीन आवृत्ती चालवत आहात. कोणतीही कारवाई आवश्यक नाही.",
+    "LATER": "नंतर",
+    "UPDATE_NOW": "आता अपडेट करा",
+    "GOT_IT": "समजले"
   },
 
   "EDIT_PROFILE": {
@@ -517,7 +531,43 @@
     "PROFILE_HELP": "तुमचे लिंग आणि जन्मतारीख जोडण्यासाठी प्रोफाइल संपादित करा. हे आम्हाला वैयक्तिकृत प्रवास शिफारशी देण्यास मदत करते!",
     "SIGN_OUT": "साइन आउट करा",
     "LOGOUT_CONFIRM_TITLE": "साइन आउट करा",
-    "LOGOUT_CONFIRM": "तुम्हाला खरोखर साइन आउट करायचे आहे का?"
+    "LOGOUT_CONFIRM": "तुम्हाला खरोखर साइन आउट करायचे आहे का?",
+    "MY_SITES": "माझी ठिकाणे",
+    "MY_SITES_DESC": "तुम्ही सादर केलेली ठिकाणे व्यवस्थापित करा",
+    "MY_EVENTS": "माझे कार्यक्रम",
+    "MY_EVENTS_DESC": "आपले कार्यक्रम पाहा आणि व्यवस्थापित करा",
+    "EDIT_PROFILE_DESC": "आपली वैयक्तिक माहिती अपडेट करा"
+  },
+
+  "EVENTS_LIST": {
+    "TITLE": "कार्यक्रम",
+    "UPCOMING": "येणारे",
+    "SEARCH_PLACEHOLDER": "कार्यक्रम शोधा…",
+    "FEATURED": "वैशिष्ट्यीकृत",
+    "GOING": "जात आहेत",
+    "INTERESTED": "स्वारस्यवान",
+    "FREE": "मोफत",
+    "OFFLINE": "इंटरनेट कनेक्शन नाही",
+    "EMPTY_TITLE": "कोणतेही कार्यक्रम सापडले नाही",
+    "EMPTY_DEFAULT": "पहिला कार्यक्रम तयार करा!",
+    "EMPTY_FILTER": "आपले फिल्टर बदलण्याचा प्रयत्न करा.",
+    "CLEAR_FILTERS": "फिल्टर साफ करा",
+    "FILTERS": "फिल्टर",
+    "TALUKA": "तालुका",
+    "ANY": "कोणताही",
+    "FREE_ONLY": "फक्त मोफत",
+    "FREE_EVENTS_ONLY": "फक्त मोफत कार्यक्रम",
+    "FEATURED_EVENTS_ONLY": "फक्त वैशिष्ट्यीकृत कार्यक्रम",
+    "UPCOMING_EVENTS_ONLY": "फक्त येणारे कार्यक्रम",
+    "DATE_RANGE": "तारीख श्रेणी",
+    "FROM_DATE": "सुरुवातीची तारीख",
+    "TO_DATE": "शेवटची तारीख",
+    "FROM": "पासून",
+    "TO": "पर्यंत",
+    "CLEAR_ALL": "सर्व साफ करा",
+    "APPLY": "लागू करा",
+    "CANCEL": "रद्द करा",
+    "DONE": "पूर्ण"
   },
   "HOME": {
     "SEARCH_PLACEHOLDER": "समुद्र किनारे, किल्ले, खाद्य शोधा...",
@@ -632,6 +682,23 @@
     "NO_ROUTES_SUB": "वेगळे स्थान किंवा गंतव्य वापरून पहा",
     "ROUTE_COUNT": "मार्ग सापडले",
     "OFFLINE_MSG": "तुम्ही ऑफलाइन आहात. कॅश डेटा दाखवत आहे."
+  },
+
+  "BUS_ROUTE_SCREEN": {
+    "TITLE": "बस मार्ग",
+    "ROUTES_AVAILABLE": "मार्ग उपलब्ध",
+    "LOADING_MORE": "अधिक मार्ग लोड होत आहेत...",
+    "NO_ROUTES": "कोणतेही मार्ग उपलब्ध नाहीत",
+    "NO_ROUTES_SUB": "सध्या कोणतेही मार्ग सापडले नाहीत.",
+    "OFFLINE_TITLE": "इंटरनेट कनेक्शन नाही",
+    "OFFLINE_MSG": "ऑफलाइन मोडमध्ये बस मार्ग मिळवता येत नाहीत. सर्व उपलब्ध मार्ग पाहण्यासाठी कृपया इंटरनेटशी कनेक्ट करा.",
+    "CHANGE_MODE": "ऑनलाइन मोडवर स्विच करा",
+    "CANCEL": "रद्द करा",
+    "INFO_TITLE": "इंटरनेट आवश्यक आहे",
+    "INFO_MSG": "मार्ग सूचीसाठी स्थिर इंटरनेट कनेक्शन आवश्यक आहे. बस मार्गांसाठी ऑफलाइन प्रवेश उपलब्ध नाही.",
+    "DOWNLOAD_OFFLINE": "ऑफलाइन मार्ग डाउनलोड करा",
+    "COMING_SOON_NOTE": "हे फीचर लवकरच येणार आहे",
+    "GOT_IT": "समजले"
   },
 
   "ALL_ROUTES_SCREEN": {

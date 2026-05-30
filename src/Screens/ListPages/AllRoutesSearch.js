@@ -180,7 +180,7 @@ const RouteCard = ({item, onPress, t}) => {
   const busImage = getBusImage(item?.bus_type?.type || '');
   const badgeColor = getBadgeColor(item?.bus_type?.meta_data || '');
   const routeName = `${item?.source_place?.name || ''} → ${item?.destination_place?.name || ''}`;
-  const stopsCount = item?.route_stops?.length ?? 0;
+  const stopsCount = item?.route_stops_count ?? item?.route_stops?.length ?? 0;
   const distance = item?.distance != null ? `${parseFloat(item.distance).toFixed(1)} km` : '—';
   const departure = item?.start_time || '—';
   const busType = item?.bus_type?.type || '';
@@ -253,6 +253,7 @@ const AllRoutesSearch = ({navigation, route}) => {
   const currentPageRef = useRef(1);
   const lastPageRef = useRef(null);
   const isLoadingMoreRef = useRef(false);
+  const listRef = useRef([]);
 
   // ── Init ───────────────────────────────────────────────────────────────────
 
@@ -266,6 +267,7 @@ const AllRoutesSearch = ({navigation, route}) => {
       await loadBanner();
 
       // Show cached data immediately — no long skeleton wait
+      let cacheLoaded = false;
       const cached = await getFromStorage(t('STORAGE.ROUTES_RESPONSE'));
       if (cached) {
         try {
@@ -275,18 +277,28 @@ const AllRoutesSearch = ({navigation, route}) => {
           if (Array.isArray(pageData) && pageData.length > 0 && isMounted.current) {
             const cachedCurrent = paginatedData?.current_page ?? 1;
             const cachedLast = paginatedData?.last_page ?? null;
+            listRef.current = pageData;
             setList(pageData);
             setCurrentPage(cachedCurrent);
             setLastPage(cachedLast);
             currentPageRef.current = cachedCurrent;
             lastPageRef.current = cachedLast;
             setIsLoading(false);
+            cacheLoaded = true;
           }
         } catch {}
       }
 
-      // Fetch fresh from API in background (updates silently if cache was shown)
+      // Fetch fresh from API
       await fetchRoutes(false);
+
+      // First load only: onEndReached doesn't fire on the very first FlatList mount
+      // (React Native VirtualizedList quirk — works on remount/restart via cache path).
+      // Explicitly trigger page 2 here so first load behaves like restart.
+      if (!cacheLoaded && isMounted.current && !isLoadingMoreRef.current
+          && lastPageRef.current !== null && lastPageRef.current > 1) {
+        fetchRoutes(true);
+      }
     };
     init();
 
@@ -345,8 +357,13 @@ const AllRoutesSearch = ({navigation, route}) => {
         const current = res.data.data?.current_page ?? 1;
 
         if (loadMore) {
-          setList(prev => [...prev, ...pageData]);
+          const existingIds = new Set(listRef.current.map(r => r.id));
+          const unique = pageData.filter(r => !existingIds.has(r.id));
+          const merged = [...listRef.current, ...unique];
+          listRef.current = merged;
+          setList(merged);
         } else {
+          listRef.current = pageData;
           setList(pageData);
           saveToStorage(t('STORAGE.ROUTES_RESPONSE'), JSON.stringify(res));
 
@@ -415,6 +432,20 @@ const AllRoutesSearch = ({navigation, route}) => {
       fetchRoutes(true);
     }
   };
+
+  const onScrollEnd = useCallback(({nativeEvent}) => {
+    const {layoutMeasurement, contentOffset, contentSize} = nativeEvent;
+    const isNearBottom =
+      layoutMeasurement.height + contentOffset.y >= contentSize.height - 100;
+    if (
+      isNearBottom &&
+      !isLoadingMoreRef.current &&
+      lastPageRef.current &&
+      currentPageRef.current < lastPageRef.current
+    ) {
+      fetchRoutes(true);
+    }
+  }, []);
 
   const openRouteDetail = useCallback(
     item => navigateTo(navigation, t('SCREEN.ROUTES_LIST'), {item}),
@@ -549,15 +580,16 @@ const AllRoutesSearch = ({navigation, route}) => {
             list.length === 0 && s.emptyContainer,
           ]}
           data={list}
+          extraData={list.length}
           keyExtractor={item => item.id.toString()}
           renderItem={renderItem}
           onEndReached={onEndReached}
-          onEndReachedThreshold={0.5}
+          onEndReachedThreshold={0.3}
+          onMomentumScrollEnd={onScrollEnd}
+          onScrollEndDrag={onScrollEnd}
           ListHeaderComponent={<ListHeader />}
           ListFooterComponent={<ListFooter />}
           ListEmptyComponent={renderEmpty}
-          initialNumToRender={8}
-          maxToRenderPerBatch={8}
           windowSize={5}
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"

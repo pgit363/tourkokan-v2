@@ -19,6 +19,7 @@ import {
 } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
+import {useTranslation} from 'react-i18next';
 
 const C = {
   oceanDeep: '#0D3D4A',
@@ -30,6 +31,7 @@ const C = {
 };
 
 const UpdatePopup = ({visible, type, onDismiss, onUpdate}) => {
+  const {t} = useTranslation();
   const isUpdate = type === 'update';
 
   return (
@@ -61,14 +63,12 @@ const UpdatePopup = ({visible, type, onDismiss, onUpdate}) => {
 
           {/* Title */}
           <Text style={styles.title}>
-            {isUpdate ? 'Update Available' : 'You\'re Up to Date!'}
+            {isUpdate ? t('UPDATE_POPUP.UPDATE_TITLE') : t('UPDATE_POPUP.UPTODATE_TITLE')}
           </Text>
 
           {/* Message */}
           <Text style={styles.message}>
-            {isUpdate
-              ? 'A new version is available on the Play Store. Update now for the latest features and fixes.'
-              : 'You are running the latest version of the app. No action needed.'}
+            {isUpdate ? t('UPDATE_POPUP.UPDATE_MSG') : t('UPDATE_POPUP.UPTODATE_MSG')}
           </Text>
 
           {/* Buttons */}
@@ -78,7 +78,7 @@ const UpdatePopup = ({visible, type, onDismiss, onUpdate}) => {
                 style={styles.btnCancel}
                 activeOpacity={0.8}
                 onPress={onDismiss}>
-                <Text style={styles.btnCancelText}>Later</Text>
+                <Text style={styles.btnCancelText}>{t('UPDATE_POPUP.LATER')}</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 style={styles.btnUpdate}
@@ -90,7 +90,7 @@ const UpdatePopup = ({visible, type, onDismiss, onUpdate}) => {
                   color={C.white}
                   style={{marginRight: 6}}
                 />
-                <Text style={styles.btnUpdateText}>Update Now</Text>
+                <Text style={styles.btnUpdateText}>{t('UPDATE_POPUP.UPDATE_NOW')}</Text>
               </TouchableOpacity>
             </View>
           ) : (
@@ -98,7 +98,7 @@ const UpdatePopup = ({visible, type, onDismiss, onUpdate}) => {
               style={styles.btnOk}
               activeOpacity={0.8}
               onPress={onDismiss}>
-              <Text style={styles.btnOkText}>Got it</Text>
+              <Text style={styles.btnOkText}>{t('UPDATE_POPUP.GOT_IT')}</Text>
             </TouchableOpacity>
           )}
 

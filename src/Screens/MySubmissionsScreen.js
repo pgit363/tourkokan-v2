@@ -15,7 +15,7 @@ import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import LinearGradient from 'react-native-linear-gradient';
 import {useFocusEffect} from '@react-navigation/native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import {FTP_PATH} from '@env';
+import {AWS_URL} from '@env';
 import {useTranslation} from 'react-i18next';
 import {useAppDialog} from '../Components/Common/AppDialog';
 import {backPage} from '../Services/CommonMethods';
@@ -164,7 +164,7 @@ const MySubmissionsScreen = ({navigation}) => {
         <View style={s.imageWrap}>
           {item.image ? (
             <Image
-              source={{uri: `${FTP_PATH}${item.image}`}}
+              source={{uri: `${AWS_URL}${item.image}`}}
               style={s.coverImage}
               resizeMode="cover"
             />

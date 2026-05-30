@@ -28,7 +28,7 @@ const TAB_META = [
   {
     icon: (focused) => (
       <Image
-        source={{uri: 'https://img.icons8.com/3d-fluency/375/home.png'}}
+        source={require('../../Assets/Icons/tab/icons8-home-page-100.png')}
         style={{width: focused ? 30 : 26, height: focused ? 30 : 26}}
         resizeMode="contain"
       />
@@ -37,8 +37,8 @@ const TAB_META = [
   },
   {
     icon: (focused) => (
-       <Image
-        source={{uri: 'https://img.icons8.com/cotton/256/gallery.png'}}
+      <Image
+        source={require('../../Assets/Icons/tab/gallery.png')}
         style={{width: focused ? 30 : 26, height: focused ? 30 : 26}}
         resizeMode="contain"
       />
@@ -59,7 +59,7 @@ const TAB_META = [
   {
     icon: (focused) => (
       <Image
-        source={{uri: 'https://img.icons8.com/external-anggara-outline-color-anggara-putra/375/external-menu-user-interface-anggara-outline-color-anggara-putra.png'}}
+        source={require('../../Assets/Icons/tab/catgory.png')}
         style={{width: focused ? 30 : 26, height: focused ? 30 : 26}}
         resizeMode="contain"
       />
@@ -69,7 +69,7 @@ const TAB_META = [
   {
     icon: (focused) => (
       <Image
-        source={{uri: 'https://img.icons8.com/?size=100&id=52971&format=png&color=000000'}}
+        source={require('../../Assets/Icons/tab/events.png')}
         style={{width: focused ? 30 : 26, height: focused ? 30 : 26}}
         resizeMode="contain"
       />

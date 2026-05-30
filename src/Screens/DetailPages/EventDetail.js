@@ -21,7 +21,7 @@ import LinearGradient from 'react-native-linear-gradient';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {launchImageLibrary} from 'react-native-image-picker';
-import {FTP_PATH} from '@env';
+import {AWS_URL} from '@env';
 import {backPage} from '../../Services/CommonMethods';
 import {comnPost, comnPostForm} from '../../Services/Api/CommonServices';
 import {isGuestUser} from '../../Components/Common/GuestGateModal';
@@ -44,7 +44,7 @@ const C = {
 };
 
 const resolveImg = (url, path) => {
-  const uri = url || (path ? `${FTP_PATH}${path}` : null);
+  const uri = url || (path ? `${AWS_URL}${path}` : null);
   console.log('[EventDetail img]', uri);
   return uri;
 };

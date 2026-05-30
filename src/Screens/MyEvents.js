@@ -17,7 +17,7 @@ import {SafeAreaView} from 'react-native-safe-area-context';
 import {useFocusEffect} from '@react-navigation/native';
 import {connect} from 'react-redux';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import {FTP_PATH} from '@env';
+import {AWS_URL} from '@env';
 import CachedImage from '../Components/Customs/CachedImage';
 import {comnPost} from '../Services/Api/CommonServices';
 import {isVendorUser} from '../Components/Common/GuestGateModal';
@@ -62,7 +62,7 @@ const C = {
 const BLOCKED_STATUSES = ['cancelled', 'completed'];
 
 const EventCard = ({item, onPress, onEdit, onDelete}) => {
-  const imgUri = item.banner_image_url || (item.banner_image ? `${FTP_PATH}${item.banner_image}` : null);
+  const imgUri = item.banner_image_url || (item.banner_image ? `${AWS_URL}${item.banner_image}` : null);
   const sc = STATUS_COLORS[item.status] || STATUS_COLORS.draft;
   const canEdit = !BLOCKED_STATUSES.includes(item.status);
 

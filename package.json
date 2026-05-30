@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "android": "react-native run-android",
+    "android:dev": "cd android && ./gradlew clean && cd .. && ENVFILE=.env.development APP_ENV=development react-native run-android",
     "android:prod": "cd android && ./gradlew clean && cd .. && ENVFILE=.env.production APP_ENV=production react-native run-android",
     "android:release": "cd android && ./gradlew clean && cd .. && ENVFILE=.env.production APP_ENV=production react-native run-android --mode=release",
     "build:aab": "cd android && ./gradlew clean && ENVFILE=.env.production APP_ENV=production ./gradlew bundleRelease",

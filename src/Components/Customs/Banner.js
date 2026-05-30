@@ -7,7 +7,7 @@ import Path from '../../Services/Api/BaseUrl';
 import ProgressImage from 'react-native-image-progress';
 import * as Progress from 'react-native-progress';
 import {Linking} from 'react-native';
-import {FTP_PATH} from '@env';
+import {AWS_URL} from '@env';
 
 class AnimationStyle extends Component {
   state = {
@@ -87,7 +87,7 @@ const Banner = ({style, bannerImages}) => {
           const image = bannerImages[index].image;
           const imageUri = image.startsWith('http')
             ? image
-            : `${FTP_PATH}${image}`;
+            : `${AWS_URL}${image}`;
           const item = bannerImages[index];
           const url = item.redirect_url || item.meta_data?.url;
 

@@ -20,8 +20,9 @@ import {useFocusEffect} from '@react-navigation/native';
 import LinearGradient from 'react-native-linear-gradient';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import NetInfo from '@react-native-community/netinfo';
-import {FTP_PATH} from '@env';
+import {AWS_URL} from '@env';
 import CachedImage from '../../Components/Customs/CachedImage';
+import {useTranslation} from 'react-i18next';
 import {backPage} from '../../Services/CommonMethods';
 import {comnPost} from '../../Services/Api/CommonServices';
 import STRING from '../../Services/Constants/STRINGS';
@@ -108,7 +109,7 @@ const sk = StyleSheet.create({
 
 // ─── Inline Calendar picker (for filter sheet) ────────────────────────────────
 
-const CalendarView = ({value, minValue, onConfirm, onCancel}) => {
+const CalendarView = ({value, minValue, onConfirm, onCancel, cancelLabel, doneLabel}) => {
   const init = value ?? todayObj();
   const [year,  setYear]  = useState(init.year);
   const [month, setMonth] = useState(init.month);
@@ -155,9 +156,9 @@ const CalendarView = ({value, minValue, onConfirm, onCancel}) => {
         })}
       </View>
       <View style={cal.footer}>
-        <TouchableOpacity style={cal.cancelBtn} onPress={onCancel}><Text style={cal.cancelText}>Cancel</Text></TouchableOpacity>
+        <TouchableOpacity style={cal.cancelBtn} onPress={onCancel}><Text style={cal.cancelText}>{cancelLabel}</Text></TouchableOpacity>
         <TouchableOpacity style={cal.confirmBtn} onPress={() => onConfirm({year, month, day: Math.min(day, total)})}>
-          <Text style={cal.confirmText}>Done</Text>
+          <Text style={cal.confirmText}>{doneLabel}</Text>
         </TouchableOpacity>
       </View>
     </View>
@@ -180,13 +181,14 @@ const cal = StyleSheet.create({
 // ─── Event Card ───────────────────────────────────────────────────────────────
 
 const EventCard = ({item, onPress}) => {
+  const {t} = useTranslation();
   const formatDate = iso => {
     if (!iso) return '';
     return new Date(iso).toLocaleDateString('en-IN', {day: 'numeric', month: 'short', year: 'numeric'});
   };
   const imgUri = item.banner_image_url
-    || (item.banner_image ? `${FTP_PATH}${item.banner_image}` : null)
-    || (item.image ? `${FTP_PATH}${item.image}` : null);
+    || (item.banner_image ? `${AWS_URL}${item.banner_image}` : null)
+    || (item.image ? `${AWS_URL}${item.image}` : null);
   console.log('[EventsList img]', item.name, imgUri);
 
   return (
@@ -201,7 +203,7 @@ const EventCard = ({item, onPress}) => {
       {item.is_featured && (
         <View style={s.featuredPill}>
           <Ionicons name="star" size={10} color="#92400E" />
-          <Text style={s.featuredText}>Featured</Text>
+          <Text style={s.featuredText}>{t('EVENTS_LIST.FEATURED')}</Text>
         </View>
       )}
       <View style={s.datePill}>
@@ -226,15 +228,15 @@ const EventCard = ({item, onPress}) => {
           </View>
           <View style={s.stat}>
             <Ionicons name="checkmark-circle-outline" size={13} color={C.oceanMid} />
-            <Text style={s.statText}>{item.going_count ?? 0} going</Text>
+            <Text style={s.statText}>{item.going_count ?? 0} {t('EVENTS_LIST.GOING')}</Text>
           </View>
           <View style={s.stat}>
             <Ionicons name="star-outline" size={13} color={C.oceanMid} />
-            <Text style={s.statText}>{item.interested_count ?? 0} interested</Text>
+            <Text style={s.statText}>{item.interested_count ?? 0} {t('EVENTS_LIST.INTERESTED')}</Text>
           </View>
           {item.is_free && (
             <View style={s.freePill}>
-              <Text style={s.freePillText}>Free</Text>
+              <Text style={s.freePillText}>{t('EVENTS_LIST.FREE')}</Text>
             </View>
           )}
         </View>
@@ -246,6 +248,7 @@ const EventCard = ({item, onPress}) => {
 // ─── EventsList ───────────────────────────────────────────────────────────────
 
 const EventsList = ({navigation, route}) => {
+  const {t} = useTranslation();
   const insets = useSafeAreaInsets();
   const siteId   = route?.params?.site_id ?? null;
   const isTab    = !siteId;
@@ -415,11 +418,11 @@ const EventsList = ({navigation, route}) => {
 
   const activeChips = [
     filters.taluka      && {key: 'taluka',      label: filters.taluka},
-    filters.is_free     && {key: 'is_free',     label: 'Free only'},
-    filters.is_featured && {key: 'is_featured', label: 'Featured'},
-    filters.upcoming    && {key: 'upcoming',    label: 'Upcoming'},
-    filters.start_date  && {key: 'start_date',  label: `From ${strToDisp(filters.start_date)}`},
-    filters.end_date    && {key: 'end_date',     label: `To ${strToDisp(filters.end_date)}`},
+    filters.is_free     && {key: 'is_free',     label: t('EVENTS_LIST.FREE_ONLY')},
+    filters.is_featured && {key: 'is_featured', label: t('EVENTS_LIST.FEATURED')},
+    filters.upcoming    && {key: 'upcoming',    label: t('EVENTS_LIST.UPCOMING')},
+    filters.start_date  && {key: 'start_date',  label: `${t('EVENTS_LIST.FROM')} ${strToDisp(filters.start_date)}`},
+    filters.end_date    && {key: 'end_date',     label: `${t('EVENTS_LIST.TO')} ${strToDisp(filters.end_date)}`},
   ].filter(Boolean);
 
   // ─── Render ───────────────────────────────────────────────────────────────
@@ -434,13 +437,13 @@ const EventsList = ({navigation, route}) => {
   const renderEmpty = () => (
     <View style={s.emptyWrap}>
       <Text style={s.emptyIcon}>🎉</Text>
-      <Text style={s.emptyTitle}>No events found</Text>
+      <Text style={s.emptyTitle}>{t('EVENTS_LIST.EMPTY_TITLE')}</Text>
       <Text style={s.emptyText}>
-        {filterCount > 0 || search ? 'Try adjusting your filters.' : 'Be the first to create one!'}
+        {filterCount > 0 || search ? t('EVENTS_LIST.EMPTY_FILTER') : t('EVENTS_LIST.EMPTY_DEFAULT')}
       </Text>
       {(filterCount > 0 || search) && (
         <TouchableOpacity style={s.clearFiltersBtn} onPress={() => { setSearch(''); clearFilters(); }} activeOpacity={0.8}>
-          <Text style={s.clearFiltersBtnText}>Clear filters</Text>
+          <Text style={s.clearFiltersBtnText}>{t('EVENTS_LIST.CLEAR_FILTERS')}</Text>
         </TouchableOpacity>
       )}
     </View>
@@ -461,9 +464,9 @@ const EventsList = ({navigation, route}) => {
             <Ionicons name="arrow-back" size={20} color={C.white} />
           </TouchableOpacity>
           <View style={s.headerText}>
-            <Text style={s.headerTitle}>Events</Text>
+            <Text style={s.headerTitle}>{t('EVENTS_LIST.TITLE')}</Text>
             {!loading && events.length > 0 && (
-              <Text style={s.headerSub}>{events.length} upcoming</Text>
+              <Text style={s.headerSub}>{events.length} {t('EVENTS_LIST.UPCOMING')}</Text>
             )}
           </View>
           {isTab && (
@@ -486,7 +489,7 @@ const EventsList = ({navigation, route}) => {
               style={s.searchInput}
               value={search}
               onChangeText={handleSearchChange}
-              placeholder="Search events…"
+              placeholder={t('EVENTS_LIST.SEARCH_PLACEHOLDER')}
               placeholderTextColor={C.textLight}
               returnKeyType="search"
             />
@@ -518,7 +521,7 @@ const EventsList = ({navigation, route}) => {
       {offline && (
         <View style={s.offlineBanner}>
           <Ionicons name="cloud-offline-outline" size={16} color={C.white} />
-          <Text style={s.offlineText}>No internet connection</Text>
+          <Text style={s.offlineText}>{t('EVENTS_LIST.OFFLINE')}</Text>
         </View>
       )}
 
@@ -564,7 +567,7 @@ const EventsList = ({navigation, route}) => {
             <>
               {/* Sheet header */}
               <View style={fs.header}>
-                <Text style={fs.title}>Filters</Text>
+                <Text style={fs.title}>{t('EVENTS_LIST.FILTERS')}</Text>
                 <TouchableOpacity onPress={closeFilter} hitSlop={{top: 8, bottom: 8, left: 8, right: 8}}>
                   <Ionicons name="close" size={22} color={C.textMid} />
                 </TouchableOpacity>
@@ -573,18 +576,18 @@ const EventsList = ({navigation, route}) => {
               <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{paddingBottom: 16}}>
 
                 {/* Taluka */}
-                <Text style={fs.sectionLabel}>Taluka</Text>
+                <Text style={fs.sectionLabel}>{t('EVENTS_LIST.TALUKA')}</Text>
                 <View style={fs.talukaGrid}>
-                  {['Any', ...TALUKAS].map(t => {
-                    const val = t === 'Any' ? null : t;
+                  {[t('EVENTS_LIST.ANY'), ...TALUKAS].map(tl => {
+                    const val = tl === t('EVENTS_LIST.ANY') ? null : tl;
                     const active = pending.taluka === val;
                     return (
                       <TouchableOpacity
-                        key={t}
+                        key={tl}
                         style={[fs.talukaChip, active && fs.talukaChipActive]}
                         onPress={() => setPending(p => ({...p, taluka: val}))}
                         activeOpacity={0.8}>
-                        <Text style={[fs.talukaText, active && fs.talukaTextActive]}>{t}</Text>
+                        <Text style={[fs.talukaText, active && fs.talukaTextActive]}>{tl}</Text>
                       </TouchableOpacity>
                     );
                   })}
@@ -594,7 +597,7 @@ const EventsList = ({navigation, route}) => {
                 <View style={fs.toggleRow}>
                   <View style={fs.toggleLabel}>
                     <Ionicons name="ticket-outline" size={18} color={C.oceanMid} />
-                    <Text style={fs.toggleText}>Free Events Only</Text>
+                    <Text style={fs.toggleText}>{t('EVENTS_LIST.FREE_EVENTS_ONLY')}</Text>
                   </View>
                   <Switch
                     value={!!pending.is_free}
@@ -608,7 +611,7 @@ const EventsList = ({navigation, route}) => {
                 <View style={fs.toggleRow}>
                   <View style={fs.toggleLabel}>
                     <Ionicons name="star-outline" size={18} color={C.oceanMid} />
-                    <Text style={fs.toggleText}>Featured Events Only</Text>
+                    <Text style={fs.toggleText}>{t('EVENTS_LIST.FEATURED_EVENTS_ONLY')}</Text>
                   </View>
                   <Switch
                     value={!!pending.is_featured}
@@ -622,7 +625,7 @@ const EventsList = ({navigation, route}) => {
                 <View style={fs.toggleRow}>
                   <View style={fs.toggleLabel}>
                     <Ionicons name="time-outline" size={18} color={C.oceanMid} />
-                    <Text style={fs.toggleText}>Upcoming Events Only</Text>
+                    <Text style={fs.toggleText}>{t('EVENTS_LIST.UPCOMING_EVENTS_ONLY')}</Text>
                   </View>
                   <Switch
                     value={!!pending.upcoming}
@@ -633,7 +636,7 @@ const EventsList = ({navigation, route}) => {
                 </View>
 
                 {/* Date range */}
-                <Text style={fs.sectionLabel}>Date Range</Text>
+                <Text style={fs.sectionLabel}>{t('EVENTS_LIST.DATE_RANGE')}</Text>
                 <View style={fs.dateRow}>
                   <TouchableOpacity
                     style={[fs.datePill, pending.start_date && fs.datePillActive]}
@@ -641,7 +644,7 @@ const EventsList = ({navigation, route}) => {
                     activeOpacity={0.8}>
                     <Ionicons name="calendar-outline" size={14} color={pending.start_date ? C.oceanMid : C.textLight} />
                     <Text style={[fs.datePillText, !pending.start_date && fs.datePillPlaceholder]}>
-                      {strToDisp(pending.start_date) || 'From date'}
+                      {strToDisp(pending.start_date) || t('EVENTS_LIST.FROM_DATE')}
                     </Text>
                     {pending.start_date && (
                       <TouchableOpacity onPress={() => setPending(p => ({...p, start_date: null}))}
@@ -656,7 +659,7 @@ const EventsList = ({navigation, route}) => {
                     activeOpacity={0.8}>
                     <Ionicons name="calendar-outline" size={14} color={pending.end_date ? C.oceanMid : C.textLight} />
                     <Text style={[fs.datePillText, !pending.end_date && fs.datePillPlaceholder]}>
-                      {strToDisp(pending.end_date) || 'To date'}
+                      {strToDisp(pending.end_date) || t('EVENTS_LIST.TO_DATE')}
                     </Text>
                     {pending.end_date && (
                       <TouchableOpacity onPress={() => setPending(p => ({...p, end_date: null}))}
@@ -671,10 +674,10 @@ const EventsList = ({navigation, route}) => {
               {/* Sheet footer */}
               <View style={fs.footer}>
                 <TouchableOpacity style={fs.clearBtn} onPress={clearFilters} activeOpacity={0.8}>
-                  <Text style={fs.clearBtnText}>Clear All</Text>
+                  <Text style={fs.clearBtnText}>{t('EVENTS_LIST.CLEAR_ALL')}</Text>
                 </TouchableOpacity>
                 <TouchableOpacity style={fs.applyBtn} onPress={applyFilters} activeOpacity={0.85}>
-                  <Text style={fs.applyBtnText}>Apply</Text>
+                  <Text style={fs.applyBtnText}>{t('EVENTS_LIST.APPLY')}</Text>
                 </TouchableOpacity>
               </View>
             </>
@@ -687,7 +690,7 @@ const EventsList = ({navigation, route}) => {
                 <TouchableOpacity onPress={() => setSheetMode('filters')} hitSlop={{top: 8, bottom: 8, left: 8, right: 8}}>
                   <Ionicons name="arrow-back" size={20} color={C.textMid} />
                 </TouchableOpacity>
-                <Text style={fs.title}>{sheetMode === 'start_picker' ? 'From Date' : 'To Date'}</Text>
+                <Text style={fs.title}>{sheetMode === 'start_picker' ? t('EVENTS_LIST.FROM_DATE') : t('EVENTS_LIST.TO_DATE')}</Text>
                 <View style={{width: 22}} />
               </View>
               <CalendarView
@@ -703,6 +706,8 @@ const EventsList = ({navigation, route}) => {
                   setSheetMode('filters');
                 }}
                 onCancel={() => setSheetMode('filters')}
+                cancelLabel={t('EVENTS_LIST.CANCEL')}
+                doneLabel={t('EVENTS_LIST.DONE')}
               />
             </>
           )}

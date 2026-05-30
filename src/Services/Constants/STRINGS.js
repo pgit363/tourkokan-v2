@@ -92,6 +92,7 @@ const STRING = {
     ROUTES_LIST: 'RoutesList',
     SEARCH_LIST: 'SearchList',
     ALL_ROUTES_SEARCH: 'AllRoutesSearch',
+    BUS_ROUTE_LIST: 'BusRouteList',
     ROUTES_LIST: 'RoutesList',
     CITY_LIST: 'CityList',
     PROJECT_LIST: 'ProjectList',

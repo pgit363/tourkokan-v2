@@ -17,7 +17,7 @@ import NetInfo from '@react-native-community/netinfo';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import {useTranslation} from 'react-i18next';
 import {backPage, checkLogin, goBackHandler, navigateTo} from '../../Services/CommonMethods';
-import {getFromStorage} from '../../Services/Api/CommonServices';
+import {comnPost, getFromStorage} from '../../Services/Api/CommonServices';
 import Banner from '../../Components/Customs/Banner';
 
 // ─── Bus image map ────────────────────────────────────────────────────────────
@@ -99,27 +99,6 @@ const useShimmer = () => {
 
 // ─── Skeleton Components ──────────────────────────────────────────────────────
 
-const SkeletonHeadCard = ({opacity}) => (
-  <Animated.View style={[sk.headCard, {opacity}]}>
-    <View style={sk.typeBar} />
-    <View style={sk.body}>
-      <View style={sk.headerRow}>
-        <View style={sk.icon} />
-        <View style={sk.titleBlock}>
-          <View style={sk.headLine} />
-          <View style={sk.headLineSm} />
-        </View>
-      </View>
-      <View style={sk.divider} />
-      <View style={sk.headRow}>
-        <View style={sk.headChip} />
-        <View style={sk.headChip} />
-        <View style={sk.headChip} />
-      </View>
-    </View>
-  </Animated.View>
-);
-
 const SkeletonTimelineRow = ({opacity}) => (
   <Animated.View style={[sk.timelineRow, {opacity}]}>
     <View style={sk.dotWrap}>
@@ -137,7 +116,6 @@ const SkeletonList = () => {
   const opacity = useShimmer();
   return (
     <>
-      <SkeletonHeadCard opacity={opacity} />
       {Array.from({length: 8}).map((_, i) => (
         <SkeletonTimelineRow key={i} opacity={opacity} />
       ))}
@@ -146,26 +124,6 @@ const SkeletonList = () => {
 };
 
 const sk = StyleSheet.create({
-  headCard: {
-    backgroundColor: C.white,
-    borderRadius: 18,
-    marginHorizontal: 16,
-    marginTop: 12,
-    marginBottom: 4,
-    overflow: 'hidden',
-    borderWidth: 1.5,
-    borderColor: 'rgba(0,0,0,0.07)',
-  },
-  typeBar: {height: 32, backgroundColor: '#E5E7EB'},
-  body: {padding: 12},
-  headerRow: {flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 8},
-  icon: {width: 72, height: 72, borderRadius: 8, backgroundColor: '#F3F4F6'},
-  titleBlock: {flex: 1, gap: 8},
-  headLine: {height: 16, width: '70%', backgroundColor: '#E5E7EB', borderRadius: 8},
-  headLineSm: {height: 12, width: '45%', backgroundColor: '#F3F4F6', borderRadius: 6},
-  divider: {height: 1, backgroundColor: '#F3F4F6', marginBottom: 8},
-  headRow: {flexDirection: 'row', gap: 8},
-  headChip: {flex: 1, height: 36, backgroundColor: '#F3F4F6', borderRadius: 10},
   timelineRow: {
     flexDirection: 'row',
     gap: 0,
@@ -304,7 +262,7 @@ const RouteDetailCard = ({data, t}) => {
   const busImage = getBusImage(data?.bus_type?.type || '');
   const badgeColor = getBadgeColor(data?.bus_type?.meta_data || '');
   const routeName = `${data?.source_place?.name || ''} → ${data?.destination_place?.name || ''}`;
-  const stopsCount = data?.route_stops?.length ?? 0;
+  const stopsCount = data?.route_stops_count ?? data?.route_stops?.length ?? 0;
   const distance = data?.distance != null ? `${parseFloat(data.distance).toFixed(1)} km` : '—';
   const departure = data?.start_time || '—';
   const busType = data?.bus_type?.type || '';
@@ -383,7 +341,8 @@ const RoutesList = ({navigation, route}) => {
   const {t} = useTranslation();
   const insets = useSafeAreaInsets();
 
-  const stops = route?.params?.item?.route_stops ?? [];
+  const routeItem = route?.params?.item;
+  const [stops, setStops] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isOffline, setIsOffline] = useState(false);
   const [bannerObject, setBannerObject] = useState({});
@@ -393,18 +352,27 @@ const RoutesList = ({navigation, route}) => {
     checkLogin(navigation);
 
     const init = async () => {
-      // Check network
       const netState = await NetInfo.fetch();
       setIsOffline(!netState.isConnected);
 
-      // Load banner from storage
-      try {
-        const landingData = await getFromStorage(t('STORAGE.LANDING_RESPONSE'));
-        if (landingData) {
+      // Load banner and fetch stops in parallel for speed
+      const [landingData, stopsRes] = await Promise.all([
+        getFromStorage(t('STORAGE.LANDING_RESPONSE')).catch(() => null),
+        netState.isConnected && routeItem?.id
+          ? comnPost('v2/getRouteStops', {route_id: routeItem.id}).catch(() => null)
+          : Promise.resolve(null),
+      ]);
+
+      if (landingData) {
+        try {
           const parsed = JSON.parse(landingData);
           if (parsed?.banners) setBannerObject(parsed.banners);
-        }
-      } catch {}
+        } catch {}
+      }
+
+      if (stopsRes?.data?.success && Array.isArray(stopsRes.data.data)) {
+        setStops(stopsRes.data.data);
+      }
 
       setIsLoading(false);
     };

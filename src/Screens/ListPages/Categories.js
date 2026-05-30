@@ -201,7 +201,7 @@ const CategoryItem = ({item, isExpanded, onToggle, onSubCatPress}) => {
 
 // ---- Main Component ----
 const Categories = ({route, navigation, ...props}) => {
-  const {t} = useTranslation();
+  const {t, i18n} = useTranslation();
 
   const [categories, setCategories] = useState([]);
   const [expandedIndex, setExpandedIndex] = useState(0);
@@ -257,7 +257,7 @@ const Categories = ({route, navigation, ...props}) => {
         ).then(res => {
           if (res) {
             try {
-              const cats = JSON.parse(res);
+              const cats = Array.isArray(res) ? res : JSON.parse(res);
               setCategories(cats);
             } catch (e) {}
           }
@@ -275,12 +275,37 @@ const Categories = ({route, navigation, ...props}) => {
     };
   }, []);
 
-  // Re-fetch when language changes
+  // Re-fetch when language changes (screen already focused — focus effect won't fire)
+  const langInitRef = useRef(false);
+  useEffect(() => {
+    if (!langInitRef.current) {
+      langInitRef.current = true;
+      return;
+    }
+    getCategories().then(res => {
+      if (res && res.length > 0) {
+        setCategories(res);
+        saveToStorage(t('STORAGE.CATEGORIES_RESPONSE'), JSON.stringify(res));
+      }
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [i18n.language]);
+
+  // Re-fetch when returning to screen after language change
   useFocusEffect(
     useCallback(() => {
-      AsyncStorage.getItem('isLangChanged').then(val => {
+      AsyncStorage.getItem('isLangChanged').then(async val => {
         if (val === 'true') {
-          AsyncStorage.setItem('isLangChanged', 'false');
+          await AsyncStorage.setItem('isLangChanged', 'false');
+          // Prefer landing-page data (saved immediately by HomeScreen after re-fetch)
+          const stored = await getFromStorage(t('STORAGE.CATEGORIES_RESPONSE'));
+          if (stored) {
+            try {
+              const cats = JSON.parse(stored);
+              if (cats?.length > 0) { setCategories(cats); return; }
+            } catch (e) {}
+          }
+          // Fallback: direct API call (e.g. rapid navigation before landing page returned)
           getCategories().then(res => {
             if (res && res.length > 0) {
               setCategories(res);
