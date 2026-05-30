@@ -2,9 +2,9 @@ import React, {useEffect, useRef, useState} from 'react';
 import {
   Animated,
   Dimensions,
-  FlatList,
   Image,
   Platform,
+  ScrollView,
   StatusBar,
   StyleSheet,
   Text,
@@ -476,45 +476,34 @@ const RoutesList = ({navigation, route}) => {
       </View>
 
       {/* ── Content ── */}
-      {isLoading ? (
-        <FlatList
-          style={s.list}
-          data={[]}
-          renderItem={null}
-          ListHeaderComponent={<SkeletonList />}
-          keyboardShouldPersistTaps="handled"
-        />
-      ) : (
-        <FlatList
-          style={s.list}
-          contentContainerStyle={stops.length === 0 && s.emptyContainer}
-          data={stops}
-          keyExtractor={(item, index) =>
-            item?.id?.toString() || index.toString()
-          }
-          renderItem={({item, index}) => (
-            <>
-              <TimelineStop item={item} index={index} total={stops.length} />
-              {index === midBannerIndex && hasBannerMiddle && (
-                <View style={s.bannerWrap}>
-                  <Banner
-                    bannerImages={bannerObject.ROUTE_DETAIL_MIDDLE}
-                    style={{height: BANNER_H}}
-                  />
-                </View>
-              )}
-            </>
-          )}
-          ListHeaderComponent={<ListHeader />}
-          ListFooterComponent={<ListFooter />}
-          ListEmptyComponent={renderEmpty}
-          initialNumToRender={20}
-          maxToRenderPerBatch={15}
-          windowSize={7}
-          keyboardShouldPersistTaps="handled"
-          showsVerticalScrollIndicator={false}
-        />
-      )}
+      <ScrollView
+        style={s.list}
+        contentContainerStyle={stops.length === 0 && !isLoading && s.emptyContainer}
+        showsVerticalScrollIndicator={false}>
+        {isLoading ? (
+          <SkeletonList />
+        ) : stops.length === 0 ? (
+          renderEmpty()
+        ) : (
+          <>
+            <ListHeader />
+            {stops.map((item, index) => (
+              <View key={item?.id?.toString() || index.toString()}>
+                <TimelineStop item={item} index={index} total={stops.length} />
+                {index === midBannerIndex && hasBannerMiddle && (
+                  <View style={s.bannerWrap}>
+                    <Banner
+                      bannerImages={bannerObject.ROUTE_DETAIL_MIDDLE}
+                      style={{height: BANNER_H}}
+                    />
+                  </View>
+                )}
+              </View>
+            ))}
+            <ListFooter />
+          </>
+        )}
+      </ScrollView>
     </View>
   );
 };
