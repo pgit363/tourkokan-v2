@@ -290,6 +290,7 @@ const SiteDetailPage = ({navigation, route}) => {
 
   // ── Share ─────────────────────────────────────────────────────────────────────
   const onShare = async () => {
+    if (await isGuestUser()) { setIsGuestPopup(true); return; }
     try {
       await Share.share({
         message: `${city.name} — ${city.tag_line || ''}\nExplore on TourKokan!`,

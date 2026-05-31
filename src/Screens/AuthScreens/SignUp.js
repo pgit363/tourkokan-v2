@@ -11,7 +11,6 @@ import {
   Platform,
   ScrollView,
   Linking,
-  Alert,
 } from 'react-native';
 import {SignUpFields} from '../../Services/Constants/FIELDS';
 import TextField from '../../Components/Customs/TextField';
@@ -22,7 +21,7 @@ import {SafeAreaView} from 'react-native-safe-area-context';
 import Loader from '../../Components/Customs/Loader';
 import {connect} from 'react-redux';
 import {setLoader, saveAccess_token} from '../../Reducers/CommonActions';
-import {navigateTo} from '../../Services/CommonMethods';
+import {navigateTo, showAlert} from '../../Services/CommonMethods';
 import {launchImageLibrary} from 'react-native-image-picker';
 import GlobalText from '../../Components/Customs/Text';
 import COLOR from '../../Services/Constants/COLORS';
@@ -132,9 +131,10 @@ const SignUp = ({navigation, ...props}) => {
 
       if (!valid) {
         // Prompt the user to enable location services
-        Alert.alert(
+        showAlert(
           t('ALERT.LOCATION_REQUIRED'), // Title of the alert
           t('ALERT.ENABLE_LOCATION_SERVICES'), // Message to user
+          'warning',
           [
             // { text: t('ALERT.CANCEL'), style: 'cancel' }, // Cancel option
             {
@@ -436,9 +436,10 @@ const SignUp = ({navigation, ...props}) => {
 
       if (!valid) {
         // Prompt the user to enable location services
-        Alert.alert(
+        showAlert(
           t('ALERT.LOCATION_REQUIRED'), // Title of the alert
           t('ALERT.ENABLE_LOCATION_SERVICES'), // Message to user
+          'warning',
           [
             // { text: t('ALERT.CANCEL'), style: 'cancel' }, // Cancel option
             {

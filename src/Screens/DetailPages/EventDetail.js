@@ -149,6 +149,7 @@ const EventDetail = ({navigation, route}) => {
   };
 
   const handleShare = async () => {
+    if (await isGuestUser()) { setGuestVisible(true); return; }
     try {
       const result = await Share.share({
         title: event.title,

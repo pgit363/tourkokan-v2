@@ -1,20 +1,22 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import React, {useEffect, useRef, useState} from 'react';
-import {View} from 'react-native';
+import {View, Text, TouchableOpacity, StyleSheet} from 'react-native';
 import MapView, {Marker} from 'react-native-maps';
+import Ionicons from 'react-native-vector-icons/Ionicons';
 import styles from './Styles';
 import {comnPost, dataSync, getFromStorage} from '../Services/Api/CommonServices';
 import {connect} from 'react-redux';
 import {setLoader} from '../Reducers/CommonActions';
-import {checkLogin, goBackHandler} from '../Services/CommonMethods';
+import {backPage, checkLogin, goBackHandler} from '../Services/CommonMethods';
 import NetInfo from '@react-native-community/netinfo';
 import {useTranslation} from 'react-i18next';
 import CheckNet from '../Components/Common/CheckNet';
 import GlobalText from '../Components/Customs/Text';
-import {SafeAreaView} from 'react-native-safe-area-context';
+import {useSafeAreaInsets} from 'react-native-safe-area-context';
 
 const MapScreen = ({navigation, ...props}) => {
   const {t} = useTranslation();
+  const insets = useSafeAreaInsets();
   const mapRef = useRef(null);
 
   const [cities, setCities] = useState([]);
@@ -106,30 +108,35 @@ const MapScreen = ({navigation, ...props}) => {
   };
 
   return (
-    <SafeAreaView edges={['top', 'bottom']} style={styles.safeArea}>
+    <View style={mapStyles.screen}>
+      {/* Themed header — matches Settings / Emergency pattern */}
+      <View style={[mapStyles.header, {paddingTop: insets.top + 8}]}>
+        <TouchableOpacity
+          style={mapStyles.backBtn}
+          onPress={() => backPage(navigation)}
+          activeOpacity={0.8}
+          hitSlop={{top: 8, bottom: 8, left: 8, right: 8}}>
+          <Ionicons name="chevron-back" size={18} color="#FFFFFF" />
+        </TouchableOpacity>
+        {/* <Text style={mapStyles.headerTitle}>{t('MAP')}</Text> */}
+      </View>
+      <View style={mapStyles.headerCurve} />
+
       <CheckNet isOff={offline} />
+
       {offline ? (
         <View style={styles.offlineContainer}>
-          <GlobalText
-            style={styles.offlineText}
-            text={
-              offline
-                ? t('NO_INTERNET_MAP')
-                : !props.isLoading
-                ? t('NO_DATA')
-                : ''
-            }
-          />
+          <GlobalText style={styles.offlineText} text={t('NO_INTERNET_MAP')} />
         </View>
       ) : (
         cities.length > 0 && (
-          <View style={styles.mapContainer}>
+          <View style={mapStyles.mapWrapper}>
             <MapView
               ref={mapRef}
-              style={styles.map}
+              style={StyleSheet.absoluteFillObject}
               initialRegion={{
                 latitude: parseFloat(cities[0].latitude) || 16.6956,
-                longitude: parseFloat(cities[0].longitude) || 73.4660,
+                longitude: parseFloat(cities[0].longitude) || 73.466,
                 latitudeDelta: 0.7,
                 longitudeDelta: 0.7,
               }}
@@ -143,16 +150,11 @@ const MapScreen = ({navigation, ...props}) => {
               {cities.map(marker => {
                 const lat = parseFloat(marker.latitude);
                 const lng = parseFloat(marker.longitude);
-                if (isNaN(lat) || isNaN(lng)) {
-                  return null;
-                }
+                if (isNaN(lat) || isNaN(lng)) return null;
                 return (
                   <Marker
                     key={marker.id}
-                    coordinate={{
-                      latitude: lat,
-                      longitude: lng,
-                    }}
+                    coordinate={{latitude: lat, longitude: lng}}
                     title={marker.name}
                     description={marker.name}
                   />
@@ -162,7 +164,7 @@ const MapScreen = ({navigation, ...props}) => {
           </View>
         )
       )}
-    </SafeAreaView>
+    </View>
   );
 };
 
@@ -183,3 +185,48 @@ const mapDispatchToProps = dispatch => {
 };
 
 export default connect(mapStateToProps, mapDispatchToProps)(MapScreen);
+
+const C = {
+  oceanDeep: '#0D3D4A',
+  cream: '#FAF7F0',
+  white: '#FFFFFF',
+};
+
+const mapStyles = StyleSheet.create({
+  screen: {
+    flex: 1,
+    backgroundColor: C.cream,
+  },
+  header: {
+    backgroundColor: C.oceanDeep,
+    paddingHorizontal: 20,
+    paddingBottom: 36,
+  },
+  backBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: 'rgba(255,255,255,0.18)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 16,
+  },
+  headerTitle: {
+    fontSize: 28,
+    fontWeight: '700',
+    color: C.white,
+    letterSpacing: 0.2,
+  },
+  headerCurve: {
+    height: 36,
+    backgroundColor: C.cream,
+    borderTopLeftRadius: 9999,
+    borderTopRightRadius: 9999,
+    marginTop: -36,
+    zIndex: 1,
+  },
+  mapWrapper: {
+    flex: 1,
+    marginTop: -1,
+  },
+});

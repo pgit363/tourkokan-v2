@@ -177,6 +177,7 @@ const ProfileView = ({navigation, ...props}) => {
   const [refreshing, setRefreshing] = useState(false);
   const [logoutVisible, setLogoutVisible] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [isGuest, setIsGuest] = useState(false);
 
   const didFirstLoad = useRef(false);
   const contentFade = useRef(new Animated.Value(0)).current;
@@ -246,6 +247,9 @@ const ProfileView = ({navigation, ...props}) => {
     checkLogin(navigation);
 
     const init = async () => {
+      const guestFlag = await isGuestUser();
+      if (isMounted) setIsGuest(guestFlag);
+
       const localData = await getFromStorage(t('STORAGE.PROFILE_RESPONSE'));
       const currentUserId = await AsyncStorage.getItem(t('STORAGE.USER_ID'));
       if (localData && isMounted) {
@@ -379,13 +383,15 @@ const ProfileView = ({navigation, ...props}) => {
 
   const [copied, setCopied] = useState(false);
 
-  const handleCopy = () => {
+  const handleCopy = async () => {
+    if (await isGuestUser()) { setIsGuestPopup(true); return; }
     Clipboard.setString(profile.uid || '');
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
 
   const handleShare = async () => {
+    if (await isGuestUser()) { setIsGuestPopup(true); return; }
     try {
       const deepLink = `awesomeapp://SignUp?code=${profile.uid}`;
       const shareMessage =
@@ -427,6 +433,7 @@ const ProfileView = ({navigation, ...props}) => {
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleVendorCtaTap = async () => {
+    if (await isGuestUser()) { setIsGuestPopup(true); return; }
     setVendorChecking(true);
     try {
       const token = await AsyncStorage.getItem(STRING.STORAGE.ACCESS_TOKEN);
@@ -847,7 +854,7 @@ const ProfileView = ({navigation, ...props}) => {
                   {t('PROFILE_SCREEN.WALLET_LABEL')}
                 </Text>
                 <Text style={s.paymentValue}>
-                  {formatWallet(profile.wallets_sum_amount)}
+                  {formatWallet(isGuest ? 0 : profile.wallets_sum_amount)}
                 </Text>
                 <Text style={s.paymentDesc}>
                   {t('PROFILE_SCREEN.WALLET_DESC')}

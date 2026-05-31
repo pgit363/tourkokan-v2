@@ -8,12 +8,11 @@ import {
   Text,
   ActivityIndicator,
   RefreshControl,
-  Alert,
   BackHandler,
 } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import COLOR from '../Services/Constants/COLORS';
-import { backPage } from '../Services/CommonMethods';
+import { backPage, showAlert } from '../Services/CommonMethods';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -183,7 +182,7 @@ const Emergency = ({ navigation }) => {
     const storedMode = await getFromStorage(STRING.STORAGE.MODE);
     const appMode = storedMode !== null ? JSON.parse(storedMode) : true;
     if (!appMode) {
-      Alert.alert('Offline Mode', STRING.ALERT.MODE_OFFLINE);
+      showAlert('Offline Mode', STRING.ALERT.MODE_OFFLINE, 'warning');
       return;
     }
     const code = tabCodesRef.current[tab];
@@ -226,7 +225,7 @@ const Emergency = ({ navigation }) => {
     const storedMode = await getFromStorage(STRING.STORAGE.MODE);
     const appMode = storedMode !== null ? JSON.parse(storedMode) : true;
     if (!appMode) {
-      Alert.alert('Offline Mode', STRING.ALERT.MODE_OFFLINE);
+      showAlert('Offline Mode', STRING.ALERT.MODE_OFFLINE, 'warning');
       return;
     }
     setRefreshing(true);

@@ -1,5 +1,6 @@
 import axios from 'axios';
-import { Alert, BackHandler } from 'react-native';
+import { BackHandler } from 'react-native';
+import { showAlert } from '../CommonMethods';
 
 let isMaintenanceAlertVisible = false;
 
@@ -27,10 +28,10 @@ const handleMaintenanceMode = () => {
   if (isMaintenanceAlertVisible) return;
 
   isMaintenanceAlertVisible = true;
-  Alert.alert(
+  showAlert(
     'Maintenance Mode',
     'App is in maintenance mode. Please try again later.',
+    'error',
     [{ text: 'Close App', onPress: () => { isMaintenanceAlertVisible = false; BackHandler.exitApp(); } }],
-    { cancelable: false }
   );
 };

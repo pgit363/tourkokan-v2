@@ -9,7 +9,6 @@ import {
   TextInput,
   Platform,
   PermissionsAndroid,
-  Alert,
   ActivityIndicator,
   Dimensions,
 } from 'react-native';
@@ -30,7 +29,7 @@ import {
   getFromStorage,
 } from '../Services/Api/CommonServices';
 import {setLoader, setMode, setProfilePicture} from '../Reducers/CommonActions';
-import {checkLogin, backPage, navigateTo} from '../Services/CommonMethods';
+import {checkLogin, backPage, navigateTo, showAlert} from '../Services/CommonMethods';
 import STRING from '../Services/Constants/STRINGS';
 import CheckNet from '../Components/Common/CheckNet';
 import Popup from '../Components/Common/Popup';
@@ -245,11 +244,11 @@ const Profile = ({navigation, ...props}) => {
       return;
     }
     if (props.mode && !isConnected) {
-      Alert.alert('', t('ALERT.NO_INTERNET_AVAILABLE_MODE_ONLINE'));
+      showAlert('', t('ALERT.NO_INTERNET_AVAILABLE_MODE_ONLINE'), 'warning');
       return;
     }
     if (!props.mode && !isConnected) {
-      Alert.alert('', t('ALERT.NETWORK'));
+      showAlert('', t('ALERT.NETWORK'), 'warning');
       return;
     }
 
@@ -264,7 +263,7 @@ const Profile = ({navigation, ...props}) => {
           },
         );
         if (granted !== PermissionsAndroid.RESULTS.GRANTED) {
-          Alert.alert('', t('ALERT.LOCATION_SERVICES_DISABLED'));
+          showAlert('', t('ALERT.LOCATION_SERVICES_DISABLED'), 'error');
           return;
         }
       } catch {
@@ -282,7 +281,7 @@ const Profile = ({navigation, ...props}) => {
       err => {
         console.warn('Location error:', err);
         setDetectingLocation(false);
-        Alert.alert('', t('ALERT.LOCATION_SERVICES_DISABLED'));
+        showAlert('', t('ALERT.LOCATION_SERVICES_DISABLED'), 'error');
       },
       {enableHighAccuracy: false, timeout: 15000, maximumAge: 10000},
     );
@@ -298,11 +297,11 @@ const Profile = ({navigation, ...props}) => {
       return;
     }
     if (props.mode && !isConnected) {
-      Alert.alert('', t('ALERT.NO_INTERNET_AVAILABLE_MODE_ONLINE'));
+      showAlert('', t('ALERT.NO_INTERNET_AVAILABLE_MODE_ONLINE'), 'warning');
       return;
     }
     if (!props.mode && !isConnected) {
-      Alert.alert('', t('ALERT.NETWORK'));
+      showAlert('', t('ALERT.NETWORK'), 'warning');
       return;
     }
 

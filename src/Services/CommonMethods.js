@@ -1,6 +1,7 @@
 import {BackHandler, ToastAndroid} from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import STRING from './Constants/STRINGS';
+import {showThemedAlert} from '../Components/Common/GlobalAlert';
 
 let lastBackPressed = 0;
 
@@ -40,4 +41,8 @@ export const exitApp = () => {
     lastBackPressed = currentTime;
     return true;
   }
+};
+
+export const showAlert = (title, message, type = 'info', buttons = null) => {
+  showThemedAlert(title, message, type, buttons);
 };

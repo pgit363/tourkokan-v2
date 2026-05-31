@@ -3,7 +3,6 @@ import {
   View,
   Image,
   ActivityIndicator,
-  Alert,
   Keyboard,
   TouchableOpacity,
   StyleSheet,
@@ -19,6 +18,7 @@ import TextField from '../Components/Customs/TextField';
 import PrivacyPolicy from '../Components/Common/PrivacyPolicy';
 import * as LocationEnabler from 'react-native-android-location-enabler';
 import {saveToStorage} from '../Services/Api/CommonServices';
+import {showAlert} from '../Services/CommonMethods';
 import COLOR from '../Services/Constants/COLORS';
 import STRING from '../Services/Constants/STRINGS';
 import styles from './Styles';
@@ -91,12 +91,12 @@ const OnboardingScreen = ({onComplete}) => {
 
   const checkValidation = async index => {
     if ((!latitude || !longitude) && index >= 3) {
-      alert(STRING.ALERT.SHARE_LOCATION);
+      showAlert('', STRING.ALERT.SHARE_LOCATION, 'warning');
       setCurrentIndex(2);
       if (sliderRef.current) sliderRef.current.goToSlide(2);
       return;
     } else if (!textValues[4] && index >= 4) {
-      alert(STRING.ALERT.TNC);
+      showAlert('', STRING.ALERT.TNC, 'warning');
       setCurrentIndex(3);
       if (sliderRef.current) sliderRef.current.goToSlide(3);
       return;
@@ -110,16 +110,16 @@ const OnboardingScreen = ({onComplete}) => {
   const handleNextButton = () => {
     if (currentIndex === 3) {
       if (!textValues[4]) {
-        alert(STRING.ALERT.TNC);
+        showAlert('', STRING.ALERT.TNC, 'warning');
         return;
       }
       if (!latitude || !longitude) {
-        alert(STRING.ALERT.SHARE_LOCATION);
+        showAlert('', STRING.ALERT.SHARE_LOCATION, 'warning');
         return;
       }
     }
     if (currentIndex === 2 && (!latitude || !longitude)) {
-      alert(STRING.ALERT.SHARE_LOCATION);
+      showAlert('', STRING.ALERT.SHARE_LOCATION, 'warning');
       return;
     }
     if (currentIndex < slides.length - 1) {
@@ -150,18 +150,18 @@ const OnboardingScreen = ({onComplete}) => {
       } else {
         LocationEnabler.promptForEnableLocationIfNeeded()
           .then(() => {
-            Alert.alert('Success', STRING.ALERT.LOCATION_ENABLED);
+            showAlert('Success', STRING.ALERT.LOCATION_ENABLED, 'success');
             getOneTimeLocation();
           })
           .catch(error => {
             console.error(STRING.ALERT.LOC_ERROR, error);
-            Alert.alert('Error', STRING.ALERT.LOC_FAILED);
+            showAlert('Error', STRING.ALERT.LOC_FAILED, 'error');
             setIsLoading(false);
             setIsButtonDisabled(false);
           });
       }
     } catch (error) {
-      Alert.alert('Error', STRING.ALERT.WENT_WRONG);
+      showAlert('Error', STRING.ALERT.WENT_WRONG, 'error');
       setIsLoading(false);
       setIsButtonDisabled(false);
     }

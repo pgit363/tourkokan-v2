@@ -92,7 +92,6 @@ const ProjectList = ({navigation, ...props}) => {
               latitude: 19.2309972,
               longitude: 73.0838757,
             }}
-            onDragEnd={e => alert(JSON.stringify(e.nativeEvent.coordinate))}
             title={t('TEST_MARKER')}
             description={t('MARKER_DESCRIPTION')}
           />

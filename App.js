@@ -30,6 +30,7 @@ import {UpdateContext} from './src/Context/UpdateContext';
 import GlobalText from './src/Components/Customs/Text';
 import TextButton from './src/Components/Customs/Buttons/TextButton';
 import OnboardingScreen from './src/Screens/OnboardingScreen';
+import {GlobalAlertProvider} from './src/Components/Common/GlobalAlert';
 
 const firebaseConfig = {
   apiKey: 'AIzaSyDT01wLV3kMfc6OuQwK5f1UwAeZGOFviR4',
@@ -222,6 +223,7 @@ export default function App() {
             <StackNavigator initialRoute={initialRoute} />
             <UpdateOverlay />
             <SecurityOverlay />
+            <GlobalAlertProvider />
           </SafeAreaProvider>
         </UpdateContext.Provider>
       </Provider>
@@ -234,6 +236,7 @@ export default function App() {
       <OnboardingScreen onComplete={() => setIsFirstTime('false')} />
       <UpdateOverlay />
       <SecurityOverlay />
+      <GlobalAlertProvider />
     </SafeAreaProvider>
   );
 }

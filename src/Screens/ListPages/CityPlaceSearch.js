@@ -30,7 +30,7 @@ import {AWS_URL} from '@env';
 
 import {comnPost} from '../../Services/Api/CommonServices';
 import {navigateTo} from '../../Services/CommonMethods';
-import {useGuestGate, isGuestUser, GUEST_KEYS, incrementGuestCount, getGuestCount} from '../../Components/Common/GuestGateModal';
+import {useGuestGate, isGuestUser, GUEST_KEYS, incrementGuestCount} from '../../Components/Common/GuestGateModal';
 
 const RECENT_KEY = 'recentSearches_v2';
 const MAX_RECENT = 8;
@@ -76,8 +76,6 @@ const CityPlaceSearch = ({navigation, route}) => {
   const [recentSearches, setRecentSearches] = useState([]);
   const [activeView, setActiveView] = useState('list');
   const [hasSearched, setHasSearched] = useState(false);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [hasMore, setHasMore] = useState(false);
   const [selectedPlace, setSelectedPlace] = useState(null); // tapped map marker
   const [totalCount, setTotalCount] = useState(0); // API total records
   const [pageItems, setPageItems] = useState([]); // current page items only (not accumulated)
@@ -100,10 +98,8 @@ const CityPlaceSearch = ({navigation, route}) => {
     return () => handler.remove();
   }, [navigation]);
 
-  // ── Sync pagination state to ref to avoid stale closures ─────────────────
-  useEffect(() => {
-    pageStateRef.current = {currentPage, hasMore, isSearching};
-  }, [currentPage, hasMore, isSearching]);
+  // pageStateRef is updated directly at each state-setting site (not via useEffect)
+  // to avoid the race where onEndReached fires between render and useEffect execution.
 
   // ── Init ─────────────────────────────────────────────────────────────────
   useEffect(() => {
@@ -207,6 +203,7 @@ const CityPlaceSearch = ({navigation, route}) => {
 
   const loadInitialResults = async (parentId = null, cityName = null, categoryKey = null) => {
     setIsSearching(true);
+    pageStateRef.current = {...pageStateRef.current, isSearching: true, hasMore: false};
     setHasSearched(true);
     setActiveFilter(cityName ? {name: cityName, code: categoryKey || '__parent__'} : null);
     currentSearch.current = {search: '', categoryKey: categoryKey || null, parentId: parentId || null};
@@ -218,13 +215,13 @@ const CityPlaceSearch = ({navigation, route}) => {
       const {data, cp, lp, total} = parsePage(res);
       setResults(data);
       setPageItems(data);
-      setCurrentPage(cp);
-      setHasMore(cp < lp);
       setTotalCount(total);
+      pageStateRef.current = {currentPage: cp, hasMore: cp < lp, isSearching: false};
     } catch {
       setResults([]);
       setPageItems([]);
       setTotalCount(0);
+      pageStateRef.current = {currentPage: 1, hasMore: false, isSearching: false};
     } finally {
       setIsSearching(false);
     }
@@ -280,11 +277,10 @@ const CityPlaceSearch = ({navigation, route}) => {
         setActiveFilter(categoryKey ? {name: filterLabel || categoryKey, code: categoryKey} : null);
       }
       setIsSearching(true);
+      pageStateRef.current = {currentPage: 1, hasMore: false, isSearching: true};
       setHasSearched(true);
       setResults([]);
       setSelectedPlace(null);
-      setCurrentPage(1);
-      setHasMore(false);
       try {
         const payload = {search: term || '', apitype: 'list', global: 1, page: 1};
         if (categoryKey) payload.category = categoryKey;
@@ -293,13 +289,13 @@ const CityPlaceSearch = ({navigation, route}) => {
         const {data, cp, lp, total} = parsePage(res);
         setResults(data);
         setPageItems(data);
-        setCurrentPage(cp);
-        setHasMore(cp < lp);
         setTotalCount(total);
+        pageStateRef.current = {currentPage: cp, hasMore: cp < lp, isSearching: false};
       } catch {
         setResults([]);
         setPageItems([]);
         setTotalCount(0);
+        pageStateRef.current = {currentPage: 1, hasMore: false, isSearching: false};
       } finally {
         setIsSearching(false);
       }
@@ -334,8 +330,7 @@ const CityPlaceSearch = ({navigation, route}) => {
       console.log('loadMore API success - loaded', data.length, 'items');
 
       setResults(prev => [...prev, ...data]);
-      setCurrentPage(newCp);
-      setHasMore(newCp < lp);
+      pageStateRef.current = {currentPage: newCp, hasMore: newCp < lp, isSearching: false};
     } catch (err) {
       console.log('loadMore API error:', err.message);
     } finally {
