@@ -307,7 +307,7 @@ const HomeScreen = ({navigation, route, ...props}) => {
             });
             // Show mode popup only after content is visible, not on top of skeleton
             const isFirstTime = await getFromStorage(t('STORAGE.IS_FIRST_TIME'));
-            if (isFirstTime === 'true' && !isUpdatePendingRef.current) {
+            if (isFirstTime === 'true' || isFirstTime === true) {
               setModePopup(true);
               AsyncStorage.setItem(t('STORAGE.IS_FIRST_TIME'), JSON.stringify(false));
             }
@@ -918,6 +918,7 @@ const s = StyleSheet.create({
     width: '100%',
     overflow: 'hidden',
     backgroundColor: C.oceanDeep,
+    marginBottom: 0,
   },
   bannerSkeleton: {
     backgroundColor: '#1B4A56',
@@ -929,6 +930,7 @@ const s = StyleSheet.create({
     paddingHorizontal: 20,
     paddingVertical: 16,
     backgroundColor: 'rgba(250,247,240,0.95)',
+    marginBottom: 24,
   },
   searchBox: {
     flexDirection: 'row',
@@ -949,8 +951,14 @@ const s = StyleSheet.create({
   },
 
   // ── Sections ──
-  section: {marginBottom: 24},
+  section: {marginBottom: 24, paddingHorizontal: 0},
   sectionPad: {paddingHorizontal: 20, marginBottom: 24},
+  sectionSeparator: {
+    height: 8,
+    backgroundColor: C.sandPale,
+    marginHorizontal: -20,
+    marginBottom: 24,
+  },
   sectionTitle: {
     fontFamily: undefined,
     fontSize: 20,

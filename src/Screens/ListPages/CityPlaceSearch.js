@@ -84,6 +84,9 @@ const CityPlaceSearch = ({navigation, route}) => {
   const [storedCats, setStoredCats] = useState([]); // flattened categories from AsyncStorage
   const [activeFilter, setActiveFilter] = useState(null); // {name, code} or null
 
+  // Track pagination state in refs to avoid stale closures
+  const pageStateRef = useRef({currentPage: 1, hasMore: false, isSearching: false});
+
   // header height → dropdown top anchor
   const HEADER_H = insets.top + 130;
   const DROPDOWN_MAX_H = Math.min(420, SCREEN_H - HEADER_H - 80);
@@ -96,6 +99,11 @@ const CityPlaceSearch = ({navigation, route}) => {
     });
     return () => handler.remove();
   }, [navigation]);
+
+  // ── Sync pagination state to ref to avoid stale closures ─────────────────
+  useEffect(() => {
+    pageStateRef.current = {currentPage, hasMore, isSearching};
+  }, [currentPage, hasMore, isSearching]);
 
   // ── Init ─────────────────────────────────────────────────────────────────
   useEffect(() => {
@@ -301,30 +309,40 @@ const CityPlaceSearch = ({navigation, route}) => {
 
   // ── Pagination ────────────────────────────────────────────────────────────
   const loadMore = useCallback(async () => {
-    // useRef guard prevents duplicate calls from stale useCallback closures
-    if (isLoadingMoreRef.current || !hasMore || isSearching) return;
-    if (currentPage >= 2 && (await isGuestUser())) {
+    const {currentPage: cp, hasMore: hm, isSearching: is} = pageStateRef.current;
+
+    if (isLoadingMoreRef.current || !hm || is) {
+      return;
+    }
+    if (cp >= 2 && (await isGuestUser())) {
       showGuestPopup('Login to explore more places beyond page 2.');
       return;
     }
+
     isLoadingMoreRef.current = true;
     setIsLoadingMore(true);
-    const nextPage = currentPage + 1;
+    const nextPage = cp + 1;
+
     try {
       const {search, categoryKey, parentId} = currentSearch.current;
       const payload = {search, apitype: 'list', global: 1, page: nextPage};
       if (categoryKey) payload.category = categoryKey;
       if (parentId) payload.parent_id = parentId;
+
       const res = await comnPost('v2/sites', payload);
-      const {data, cp, lp} = parsePage(res);
+      const {data, cp: newCp, lp} = parsePage(res);
+      console.log('loadMore API success - loaded', data.length, 'items');
+
       setResults(prev => [...prev, ...data]);
-      setCurrentPage(cp);
-      setHasMore(cp < lp);
+      setCurrentPage(newCp);
+      setHasMore(newCp < lp);
+    } catch (err) {
+      console.log('loadMore API error:', err.message);
     } finally {
       isLoadingMoreRef.current = false;
       setIsLoadingMore(false);
     }
-  }, [currentPage, hasMore, isSearching]); // isLoadingMore removed — ref handles the guard
+  }, []); // Empty deps — function never recreates, pageStateRef provides current values
 
   const clearSearch = () => {
     setQuery('');

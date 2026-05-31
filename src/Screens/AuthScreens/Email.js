@@ -113,13 +113,13 @@ const Email = ({navigation, route, ...props}) => {
         const isGuestValGoogle = !!resData.data.isGuest;
         AsyncStorage.setItem('IS_GUEST', JSON.stringify(isGuestValGoogle));
         saveToStorage(t('STORAGE.MODE'), JSON.stringify(true));
-        props.setMode(true);
-        try {
-          const landingRes = await comnPost('v2/landingpage', {});
-          if (landingRes?.data?.data) {
-            await saveToStorage(t('STORAGE.LANDING_RESPONSE'), JSON.stringify(landingRes.data.data));
-          }
-        } catch (_) {}
+        // props.setMode(true);
+        // try {
+        //   const landingRes = await comnPost('v2/landingpage', {});
+        //   if (landingRes?.data?.data) {
+        //     await saveToStorage(t('STORAGE.LANDING_RESPONSE'), JSON.stringify(landingRes.data.data));
+        //   }
+        // } catch (_) {}
         props.setLoader(false);
         navigateTo(navigation, t('SCREEN.HOME'));
       } else {
@@ -389,7 +389,7 @@ const Email = ({navigation, route, ...props}) => {
             activeOpacity={0.8}>
             <View style={{backgroundColor: '#FFFFFF', borderRadius: 50, padding: 5}}>
               <Image
-                source={{uri: 'https://developers.google.com/identity/images/g-logo.png'}}
+                source={require('../../Assets/Icons/gmail-logo.png')}
                 style={{width: 20, height: 20}}
               />
             </View>

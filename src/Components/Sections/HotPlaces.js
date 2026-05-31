@@ -52,7 +52,7 @@ const HotPlaces = ({hot_sites = [], onCardPress, title = 'Hot Places'}) => {
 
 const s = StyleSheet.create({
   section: {
-    marginBottom: 8,
+    marginBottom: 24,
     backgroundColor: 'rgba(217,119,6,0.05)',
     paddingTop: 18,
     paddingBottom: 20,

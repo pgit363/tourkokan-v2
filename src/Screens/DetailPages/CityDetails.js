@@ -632,7 +632,7 @@ const CityDetails = ({navigation, route, offline, ...props}) => {
 
               {/* 7 ── Middle Banner ── */}
               {!isLoading && bannerObject?.CITY_MIDDLE?.length > 0 && (
-                <View style={{marginLeft: -16, marginBottom: 8, width: DIMENSIONS.screenWidth}}>
+                <View style={{marginLeft: -16, marginBottom: 24, width: DIMENSIONS.screenWidth}}>
                   <Banner
                     bannerImages={bannerObject.CITY_MIDDLE}
                     style={{height: DIMENSIONS.windowWidth / 3, marginBottom: 0}}
@@ -655,7 +655,7 @@ const CityDetails = ({navigation, route, offline, ...props}) => {
         {!isLoading &&
           bannerObject?.CITY_FOOTER &&
           bannerObject.CITY_FOOTER.length > 0 && (
-            <View style={{marginTop: 20, marginBottom: 80, width: '100%'}}>
+            <View style={{marginTop: 24, marginBottom: 80, width: '100%', paddingHorizontal: 16}}>
               <Banner
                 bannerImages={bannerObject.CITY_FOOTER}
                 style={{height: DIMENSIONS.windowWidth / 3, marginBottom: 0}}
@@ -771,7 +771,7 @@ const cd = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'flex-start',
     justifyContent: 'space-between',
-    marginBottom: 16,
+    marginBottom: 18,
   },
   titleRow: {
     flexDirection: 'row',
@@ -822,7 +822,7 @@ const cd = StyleSheet.create({
     backgroundColor: C2.card,
     borderRadius: 16,
     padding: 16,
-    marginBottom: 20,
+    marginBottom: 24,
     shadowColor: '#000',
     shadowOffset: {width: 0, height: 1},
     shadowOpacity: 0.06,
@@ -830,6 +830,13 @@ const cd = StyleSheet.create({
     elevation: 1,
   },
   section: {
+    marginBottom: 24,
+    paddingHorizontal: 0,
+  },
+  sectionSeparator: {
+    height: 1,
+    backgroundColor: 'rgba(0,0,0,0.06)',
+    marginHorizontal: -16,
     marginBottom: 24,
   },
   sectionHeader: {
