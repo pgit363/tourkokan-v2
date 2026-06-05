@@ -3,6 +3,7 @@ import {
   View,
   Text,
   FlatList,
+  RefreshControl,
   TouchableOpacity,
   Image,
   StyleSheet,
@@ -19,9 +20,13 @@ import {AWS_URL} from '@env';
 import {useTranslation} from 'react-i18next';
 import {useAppDialog} from '../Components/Common/AppDialog';
 import {backPage} from '../Services/CommonMethods';
-import {comnPost} from '../Services/Api/CommonServices';
+import {comnPost, dataSync, getFromStorage, saveToStorage} from '../Services/Api/CommonServices';
 import {isVendorUser} from '../Components/Common/GuestGateModal';
+import {useConnectivityGate} from '../Components/Common/useConnectivityGate';
 import STRING from '../Services/Constants/STRINGS';
+
+// Local cache key for the user's submitted sites (offline-first load)
+const MY_SITES_CACHE = 'my_submissions_cache';
 
 
 const C = {
@@ -108,7 +113,9 @@ const MySubmissionsScreen = ({navigation}) => {
   const {show: showDialog, dialog} = useAppDialog();
   const [submissions, setSubmissions] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [vendorGateVisible, setVendorGateVisible] = useState(false);
+  const {modal: connectivityModal, ensureOnline} = useConnectivityGate();
 
   const handleAddSite = async () => {
     if (await isVendorUser()) {
@@ -118,17 +125,62 @@ const MySubmissionsScreen = ({navigation}) => {
     }
   };
 
-  const fetchSubmissions = useCallback(() => {
-    setLoading(true);
-    comnPost('v2/mySubmissions', {per_page: 50})
-      .then(res => {
-        setSubmissions(res?.data?.data?.data || []);
-        setLoading(false);
-      })
-      .catch(() => setLoading(false));
-  }, []);
+  // Offline-first load: show cached sites immediately, then sync fresh data
+  // only when connected AND in online mode (dataSync handles that guard).
+  // Refer: Emergency / SiteDetailPage cache-first pattern.
+  const fetchSubmissions = useCallback(async () => {
+    // 1. Cached data first — no spinner if we already have something to show.
+    const cached = await getFromStorage(MY_SITES_CACHE);
+    if (cached) {
+      try {
+        const list = JSON.parse(cached);
+        if (Array.isArray(list)) {
+          setSubmissions(list);
+          setLoading(false);
+        }
+      } catch {}
+    }
 
-  useFocusEffect(fetchSubmissions);
+    // 2. Sync fresh data (skips the API call when offline or in offline mode).
+    const storedMode = await getFromStorage(t('STORAGE.MODE'));
+    const appMode = storedMode !== null ? JSON.parse(storedMode) : true;
+    try {
+      const result = await dataSync(
+        MY_SITES_CACHE,
+        () => comnPost('v2/mySubmissions', {per_page: 50}),
+        appMode,
+      );
+      if (result && typeof result === 'object') {
+        const list = result?.data?.data?.data || [];
+        setSubmissions(list);
+        saveToStorage(MY_SITES_CACHE, JSON.stringify(list));
+      } else if (typeof result === 'string') {
+        const list = JSON.parse(result);
+        if (Array.isArray(list)) setSubmissions(list);
+      }
+    } catch {}
+    setLoading(false);
+  }, [t]);
+
+  useFocusEffect(
+    useCallback(() => {
+      fetchSubmissions();
+    }, [fetchSubmissions]),
+  );
+
+  // Pull-to-refresh — connectivity guard via shared helper
+  // (see docs/offline-mode-connectivity-guard.md)
+  const onRefresh = () =>
+    ensureOnline(async () => {
+      setRefreshing(true);
+      try {
+        const res = await comnPost('v2/mySubmissions', {per_page: 50});
+        const list = res?.data?.data?.data || [];
+        setSubmissions(list);
+        saveToStorage(MY_SITES_CACHE, JSON.stringify(list));
+      } catch {}
+      setRefreshing(false);
+    });
 
   const confirmDelete = id => {
     showDialog({
@@ -324,9 +376,18 @@ const MySubmissionsScreen = ({navigation}) => {
           ListEmptyComponent={renderEmpty}
           showsVerticalScrollIndicator={false}
           ListFooterComponent={<View style={{height: insets.bottom + 24}} />}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+              colors={['#1B6B7B']}
+              tintColor="#1B6B7B"
+            />
+          }
         />
       )}
       {dialog}
+      {connectivityModal}
 
       {/* Vendor Gate Modal */}
       <Modal

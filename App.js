@@ -50,6 +50,7 @@ export default function App() {
   const {t} = useTranslation();
 
   const [isFirstTime, setIsFirstTime] = useState(null);
+  const [hasToken, setHasToken] = useState(false);
   const [loading, setLoading] = useState(true);
   const [initialRoute, setInitialRoute] = useState(STRING.SCREEN.EMAIL);
   const [updateApp, setUpdateApp] = useState(false);
@@ -65,6 +66,7 @@ export default function App() {
 
   useEffect(() => {
     const bootstrap = async () => {
+      console.log('[FLOW][App] bootstrap: start');
       const [[isFirstTimeValue, token]] = await Promise.all([
         Promise.all([
           getFromStorage(STRING.STORAGE.IS_FIRST_TIME),
@@ -72,12 +74,17 @@ export default function App() {
         ]),
         new Promise(resolve => setTimeout(resolve, 3000)),
       ]);
+      console.log('[FLOW][App] bootstrap: isFirstTime=', isFirstTimeValue, 'hasToken=', !!token);
       setIsFirstTime(isFirstTimeValue);
+      setHasToken(!!token);
       setInitialRoute(token ? STRING.SCREEN.HOME : STRING.SCREEN.EMAIL);
       setLoading(false);
       SplashScreen.hide();
       if (token) {
+        console.log('[FLOW][App] bootstrap: token present → callAPI() [landingpage trigger #App-bootstrap]');
         callAPI();
+      } else {
+        console.log('[FLOW][App] bootstrap: no token → NOT calling landingpage');
       }
     };
     bootstrap();
@@ -85,6 +92,7 @@ export default function App() {
   }, []);
 
   const callAPI = () => {
+    console.log('[FLOW][App] callAPI → dataSync(landingpage)');
     dataSync(STRING.STORAGE.LANDING_RESPONSE, callLandingPageAPI, true).then(() => {});
   };
 
@@ -116,7 +124,9 @@ export default function App() {
 
   const callLandingPageAPI = async site_id => {
     try {
+      console.log('[FLOW][App] ►► HITTING v2/landingpage (App.callLandingPageAPI) site_id=', site_id);
       const res = await comnPost('v2/landingpage', {site_id});
+      console.log('[FLOW][App] ◄◄ v2/landingpage returned (App.callLandingPageAPI)');
       if (res && res.data && res.data.data) {
         setOfflineData(res.data.data);
 
@@ -214,7 +224,9 @@ export default function App() {
     );
   }
 
-  if (isFirstTime === 'false') {
+  // A logged-in user (token present) has already onboarded — never show the
+  // intro again, even if isFirstTime got re-armed to 'true' by the login flow.
+  if (isFirstTime === 'false' || hasToken) {
     return (
       <Provider store={store}>
         <UpdateContext.Provider value={{isUpdatePending: updateApp}}>

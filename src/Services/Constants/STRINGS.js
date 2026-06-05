@@ -108,6 +108,7 @@ const STRING = {
     PRIVACY_POLICY: 'PrivacyPolicy',
     TERMS: 'Terms',
     ABOUT: 'About',
+    HELP_CENTER: 'HelpCenter',
 
     INBOX: 'Inbox',
     SITE_DETAIL: 'SiteDetailPage',

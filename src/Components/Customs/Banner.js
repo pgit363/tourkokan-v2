@@ -1,9 +1,6 @@
-import React, {Component} from 'react';
-import {View, Animated, LogBox, Image, TouchableOpacity} from 'react-native';
+import React, {Component, useState, useEffect} from 'react';
+import {View, Animated, Image, TouchableOpacity, useWindowDimensions} from 'react-native';
 import Carousel from 'react-native-reanimated-carousel';
-import DIMENSIONS from '../../Services/Constants/DIMENSIONS';
-import styles from './Styles';
-import Path from '../../Services/Api/BaseUrl';
 import ProgressImage from 'react-native-image-progress';
 import * as Progress from 'react-native-progress';
 import {Linking} from 'react-native';
@@ -24,16 +21,15 @@ class AnimationStyle extends Component {
 
   onLoadError = (error) => {
     const errorMessage = error?.nativeEvent?.error;
-  
     if (errorMessage && errorMessage.includes('404')) {
       console.warn('⚠️ Image not found (404).');
     } else {
       console.warn('⚠️ Image failed to load:', errorMessage);
     }
   };
-  
 
   render() {
+    const {resizeMode = 'contain', ...rest} = this.props;
     return (
       <Animated.View
         style={[
@@ -48,19 +44,19 @@ class AnimationStyle extends Component {
               },
             ],
           },
-          this.props.style,
+          rest.style,
         ]}>
         <ProgressImage
-          {...this.props}
-          indicator={Progress.Circle} // Optional: Add a progress indicator
+          {...rest}
+          indicator={Progress.Circle}
           indicatorProps={{
             size: 30,
             borderWidth: 0,
             color: 'rgba(150, 150, 150, 1)',
             unfilledColor: 'rgba(200, 200, 200, 0.2)',
           }}
-          resizeMode="stretch"
-          imageStyle={{ width: '100%', height: '100%' }}
+          resizeMode={resizeMode}
+          imageStyle={{width: '100%', height: '100%'}}
           onLoad={this.onLoad}
           onError={this.onLoadError}
         />
@@ -69,39 +65,69 @@ class AnimationStyle extends Component {
   }
 }
 
-const Banner = ({style, bannerImages}) => {
-  const bannerClick = imageUri => {
-    Linking.openURL(imageUri);
+const getImageUri = (image) =>
+  image.startsWith('http') ? image : `${AWS_URL}${image}`;
+
+const Banner = ({style, bannerImages, width, resizeMode}) => {
+  const {width: windowWidth} = useWindowDimensions();
+  const carouselWidth = width ?? windowWidth;
+
+  // If caller provides an explicit height, honour it and skip auto-sizing.
+  // This preserves the original hero-banner behaviour (fixed large height, cover fill).
+  const fixedHeight = style?.height ?? null;
+  const fallbackHeight = fixedHeight || Math.round(carouselWidth / 2.5);
+  const [carouselHeight, setCarouselHeight] = useState(fallbackHeight);
+
+  // Auto-size from image dimensions only when no explicit height is given (ad banners)
+  useEffect(() => {
+    if (fixedHeight) {
+      setCarouselHeight(fixedHeight);
+      return;
+    }
+    if (!bannerImages?.length) return;
+    const uri = getImageUri(bannerImages[0].image);
+    Image.getSize(
+      uri,
+      (imgW, imgH) => {
+        if (imgW > 0 && imgH > 0) {
+          setCarouselHeight(Math.round(carouselWidth * (imgH / imgW)));
+        }
+      },
+      () => {},
+    );
+  }, [bannerImages, carouselWidth, fixedHeight]);
+
+  // Hero banners (fixed height) use 'stretch' — original behaviour, fills exact container
+  // Ad banners (auto height) use 'contain' — shows full image at natural ratio
+  const imageResizeMode = resizeMode ?? (fixedHeight ? 'stretch' : 'contain');
+
+  const bannerClick = url => {
+    if (url) Linking.openURL(url).catch(() => {});
   };
 
   return (
-    <View style={[styles.banner, style]}>
+    <View style={[{width: carouselWidth, height: carouselHeight, overflow: 'hidden'}, style, {height: carouselHeight}]}>
       <Carousel
         loop={bannerImages.length > 1}
-        width={DIMENSIONS.windowWidth}
-        height={style?.height || DIMENSIONS.windowWidth / 2}
+        width={carouselWidth}
+        height={carouselHeight}
         autoPlay={bannerImages.length > 1}
         data={bannerImages}
         scrollAnimationDuration={3000}
         renderItem={({index}) => {
-          const image = bannerImages[index].image;
-          const imageUri = image.startsWith('http')
-            ? image
-            : `${AWS_URL}${image}`;
           const item = bannerImages[index];
+          const imageUri = getImageUri(item.image);
           const url = item.redirect_url || item.meta_data?.url;
-
           return (
             <TouchableOpacity
-              style={{ width: '100%', height: '100%' }}
-              onPress={() => (url ? bannerClick(url) : null)}>
+              style={{width: carouselWidth, height: carouselHeight}}
+              activeOpacity={url ? 0.85 : 1}
+              onPress={() => bannerClick(url)}>
               <AnimationStyle
                 source={{uri: imageUri}}
-                style={[styles.bannerImage, { width: '100%', height: '100%', resizeMode: 'stretch' }]}
-                onLoad={() => console.log(`Image ${imageUri} loaded`)}
-                onError={error => {
-                  console.error(`Image ${imageUri} failed to load`, error);
-                }}
+                style={{width: carouselWidth, height: carouselHeight}}
+                resizeMode={imageResizeMode}
+                onError={() => {}}
               />
             </TouchableOpacity>
           );

@@ -1,7 +1,7 @@
 import React, {useEffect, useRef, useState} from 'react';
 import {
   Animated,
-  Dimensions,
+  useWindowDimensions,
   Image,
   Platform,
   ScrollView,
@@ -19,6 +19,7 @@ import {useTranslation} from 'react-i18next';
 import {backPage, checkLogin, goBackHandler, navigateTo} from '../../Services/CommonMethods';
 import {comnPost, getFromStorage} from '../../Services/Api/CommonServices';
 import Banner from '../../Components/Customs/Banner';
+import {useRoutesOfflineGate} from '../../Components/Common/RoutesOfflineGate';
 
 // ─── Bus image map ────────────────────────────────────────────────────────────
 
@@ -60,8 +61,6 @@ const getBadgeColor = (metaData = '') => {
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
-const {width: SW} = Dimensions.get('window');
-const BANNER_H = Math.round(SW / 3);
 
 const C = {
   oceanDeep: '#0D3D4A',
@@ -340,6 +339,10 @@ const rc = StyleSheet.create({
 const RoutesList = ({navigation, route}) => {
   const {t} = useTranslation();
   const insets = useSafeAreaInsets();
+  const {modal: offlineModal} = useRoutesOfflineGate();
+  const {width: winW} = useWindowDimensions();
+  // bannerWrap has marginHorizontal:16 on each side → inner width = winW - 32
+  const bannerW = winW - 32;
 
   const routeItem = route?.params?.item;
   const [stops, setStops] = useState([]);
@@ -414,7 +417,7 @@ const RoutesList = ({navigation, route}) => {
         <View style={s.bannerWrap}>
           <Banner
             bannerImages={bannerObject.ROUTE_DETAIL_FOOTER}
-            style={{height: BANNER_H}}
+            width={bannerW}
           />
         </View>
       )}
@@ -494,7 +497,7 @@ const RoutesList = ({navigation, route}) => {
                   <View style={s.bannerWrap}>
                     <Banner
                       bannerImages={bannerObject.ROUTE_DETAIL_MIDDLE}
-                      style={{height: BANNER_H}}
+                      width={bannerW}
                     />
                   </View>
                 )}
@@ -504,6 +507,7 @@ const RoutesList = ({navigation, route}) => {
           </>
         )}
       </ScrollView>
+      {offlineModal}
     </View>
   );
 };
@@ -626,7 +630,6 @@ const s = StyleSheet.create({
     marginTop: 24,
     borderRadius: 16,
     overflow: 'hidden',
-    height: BANNER_H,
   },
 });
 

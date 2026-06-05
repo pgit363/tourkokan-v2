@@ -12,7 +12,8 @@ import {
 } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import COLOR from '../Services/Constants/COLORS';
-import { backPage, showAlert } from '../Services/CommonMethods';
+import { backPage } from '../Services/CommonMethods';
+import { useConnectivityGate } from '../Components/Common/useConnectivityGate';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -76,6 +77,7 @@ const Emergency = ({ navigation }) => {
   const tabScrollRef = useRef(null);
   const tabLayoutsRef = useRef({});
   const loadingMoreRef = useRef(false);
+  const {modal: connectivityModal, ensureOnline} = useConnectivityGate();
 
   const quickActions = [
     { name: t('EMERGENCY_SCREEN.AMBULANCE'), number: '108', icon: '🚑' },
@@ -178,13 +180,7 @@ const Emergency = ({ navigation }) => {
     }
   }, [navigation]);
 
-  const fetchTabPage = useCallback(async (tab, page) => {
-    const storedMode = await getFromStorage(STRING.STORAGE.MODE);
-    const appMode = storedMode !== null ? JSON.parse(storedMode) : true;
-    if (!appMode) {
-      showAlert('Offline Mode', STRING.ALERT.MODE_OFFLINE, 'warning');
-      return;
-    }
+  const fetchTabPage = useCallback((tab, page) => ensureOnline(async () => {
     const code = tabCodesRef.current[tab];
     if (!code) return;
 
@@ -219,22 +215,16 @@ const Emergency = ({ navigation }) => {
       loadingMoreRef.current = false;
       setLoadingMore(false);
     }
-  }, [navigation]);
+  }), [ensureOnline]);
 
-  const onRefresh = useCallback(async () => {
-    const storedMode = await getFromStorage(STRING.STORAGE.MODE);
-    const appMode = storedMode !== null ? JSON.parse(storedMode) : true;
-    if (!appMode) {
-      showAlert('Offline Mode', STRING.ALERT.MODE_OFFLINE, 'warning');
-      return;
-    }
+  const onRefresh = useCallback(() => ensureOnline(async () => {
     setRefreshing(true);
     try {
       await fetchInitial(true);
     } finally {
       setRefreshing(false);
     }
-  }, [fetchInitial]);
+  }), [ensureOnline, fetchInitial]);
 
   const onEndReached = useCallback(() => {
     if (activeTab === 'Other' || !activeTab) return;
@@ -430,29 +420,32 @@ const Emergency = ({ navigation }) => {
     ) : null;
 
   return (
-    <FlatList
-      data={activeTab ? contacts[activeTab] : []}
-      renderItem={renderContactCard}
-      keyExtractor={(_item, index) => index.toString()}
-      contentContainerStyle={styles.contactsList}
-      ListHeaderComponent={ListHeader}
-      ListEmptyComponent={ListEmpty}
-      ListFooterComponent={ListFooter}
-      onEndReached={onEndReached}
-      onEndReachedThreshold={0.4}
-      removeClippedSubviews={true}
-      maxToRenderPerBatch={10}
-      windowSize={10}
-      initialNumToRender={10}
-      refreshControl={
-        <RefreshControl
-          refreshing={refreshing}
-          onRefresh={onRefresh}
-          colors={['#DC2626']}
-          tintColor="#DC2626"
-        />
-      }
-    />
+    <>
+      <FlatList
+        data={activeTab ? contacts[activeTab] : []}
+        renderItem={renderContactCard}
+        keyExtractor={(_item, index) => index.toString()}
+        contentContainerStyle={styles.contactsList}
+        ListHeaderComponent={ListHeader}
+        ListEmptyComponent={ListEmpty}
+        ListFooterComponent={ListFooter}
+        onEndReached={onEndReached}
+        onEndReachedThreshold={0.4}
+        removeClippedSubviews={true}
+        maxToRenderPerBatch={10}
+        windowSize={10}
+        initialNumToRender={10}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            colors={['#DC2626']}
+            tintColor="#DC2626"
+          />
+        }
+      />
+      {connectivityModal}
+    </>
   );
 };
 

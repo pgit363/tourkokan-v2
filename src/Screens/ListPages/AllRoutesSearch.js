@@ -2,7 +2,6 @@ import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {
   ActivityIndicator,
   Animated,
-  Dimensions,
   FlatList,
   Image,
   Platform,
@@ -10,6 +9,7 @@ import {
   StyleSheet,
   Text,
   TouchableOpacity,
+  useWindowDimensions,
   View,
 } from 'react-native';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
@@ -34,11 +34,10 @@ import {
   navigateTo,
 } from '../../Services/CommonMethods';
 import Banner from '../../Components/Customs/Banner';
+import {useRoutesOfflineGate} from '../../Components/Common/RoutesOfflineGate';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
-const {width: SW} = Dimensions.get('window');
-const BANNER_H = Math.round(SW / 3);
 
 const C = {
   oceanDeep: '#0D3D4A',
@@ -234,8 +233,15 @@ const RouteCard = ({item, onPress, t}) => {
 
 // ─── Main Component ────────────────────────────────────────────────────────────
 
-const AllRoutesSearch = ({navigation, route}) => {
+const AllRoutesSearch = ({navigation, route, ...props}) => {
   const {t} = useTranslation();
+  const {modal: offlineModal} = useRoutesOfflineGate({
+    mode: props.mode,
+    onModeChange: props.setMode,
+  });
+  const {width: winW} = useWindowDimensions();
+  // adBannerOuter has marginHorizontal:20 → inner width = winW - 40
+  const bannerW = winW - 40;
   const insets = useSafeAreaInsets();
 
   const source = route?.params?.source;
@@ -489,7 +495,7 @@ const AllRoutesSearch = ({navigation, route}) => {
           <View style={s.bannerWrap}>
             <Banner
               bannerImages={bannerObject.ROUTE_LIST_FOOTER}
-              style={{height: BANNER_H}}
+              width={bannerW}
             />
           </View>
         </View>
@@ -521,7 +527,7 @@ const AllRoutesSearch = ({navigation, route}) => {
             <View style={s.bannerWrap}>
               <Banner
                 bannerImages={bannerObject.ROUTE_LIST_MIDDLE}
-                style={{height: BANNER_H}}
+                width={bannerW}
               />
             </View>
           </View>
@@ -596,6 +602,7 @@ const AllRoutesSearch = ({navigation, route}) => {
         />
       )}
       {guestModal}
+      {offlineModal}
     </View>
   );
 };
@@ -816,7 +823,6 @@ const s = StyleSheet.create({
   bannerWrap: {
     borderRadius: 16,
     overflow: 'hidden',
-    height: BANNER_H,
   },
 });
 

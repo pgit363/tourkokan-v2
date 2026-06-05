@@ -88,7 +88,7 @@ const VerifyOTP = ({navigation, route, ...props}) => {
             t('STORAGE.USER_ID'),
             JSON.stringify(res.data.data.user.id),
           );
-          // props.saveAccess_token(res.data.data.access_token);
+          props.saveAccess_token(res.data.data.access_token);
           props.setLoader(false);
           AsyncStorage.setItem(
             t('STORAGE.IS_FIRST_TIME'),

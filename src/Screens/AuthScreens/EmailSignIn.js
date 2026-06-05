@@ -219,6 +219,7 @@ const EmailSignIn = ({navigation, route, ...props}) => {
   };
 
   const login = () => {
+    console.log('[FLOW][Email] login: pressed, email=', email);
     props.setLoader(true);
 
     if (!validateEmail(email)) {
@@ -240,8 +241,10 @@ const EmailSignIn = ({navigation, route, ...props}) => {
       password,
     };
     // createUser()
+    console.log('[FLOW][Email] login: calling v2/auth/login');
     comnPost('v2/auth/login', data)
       .then(res => {
+        console.log('[FLOW][Email] login: response success=', res?.data?.success);
         if (res.data.success) {
           AsyncStorage.setItem(
             t('STORAGE.ACCESS_TOKEN'),
@@ -251,7 +254,8 @@ const EmailSignIn = ({navigation, route, ...props}) => {
             t('STORAGE.USER_ID'),
             JSON.stringify(res.data.data.user.id),
           );
-          // props.saveAccess_token(res.data.data.access_token);
+          console.log('[FLOW][Email] login: token saved → redux saveAccess_token (this triggers HomeScreen init useEffect dep)');
+          props.saveAccess_token(res.data.data.access_token);
           props.setLoader(false);
           AsyncStorage.setItem(
             t('STORAGE.IS_FIRST_TIME'),
@@ -260,6 +264,7 @@ const EmailSignIn = ({navigation, route, ...props}) => {
           AsyncStorage.setItem('IS_GUEST', JSON.stringify(!!res.data.data.isGuest));
           saveToStorage(t('STORAGE.MODE'), JSON.stringify(true));
           props.setMode(true);
+          console.log('[FLOW][Email] login: navigateTo HOME');
           navigateTo(navigation, t('SCREEN.HOME'));
           // navigation.dispatch(
           //   CommonActions.reset({

@@ -206,9 +206,10 @@ export const removeFromStorage = async name => {
 
 export const dataSync = async (name, callBack = () => {}, online) => {
   const offline = await isOffline();
-  console.log(' = = = ', offline || !online, '  ', offline, '  ', !online);
+  // Treat null/undefined mode as online (first install has no stored mode yet)
+  const isOnline = online === null || online === undefined ? true : online;
 
-  if (offline || !online) {
+  if (offline || !isOnline) {
     console.log('name, ', name);
     const storedData = await getFromStorage(name);
     return storedData || offline;

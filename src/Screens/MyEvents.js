@@ -19,10 +19,14 @@ import {connect} from 'react-redux';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import {AWS_URL} from '@env';
 import CachedImage from '../Components/Customs/CachedImage';
-import {comnPost} from '../Services/Api/CommonServices';
+import {comnPost, getFromStorage, isOffline, saveToStorage} from '../Services/Api/CommonServices';
 import {isVendorUser} from '../Components/Common/GuestGateModal';
+import {useConnectivityGate} from '../Components/Common/useConnectivityGate';
 import STRING from '../Services/Constants/STRINGS';
 import {backPage} from '../Services/CommonMethods';
+
+// Local cache key for the user's events (offline-first load)
+const MY_EVENTS_CACHE = 'my_events_cache';
 
 const STATUS_TABS = [
   {key: null, label: 'All'},
@@ -134,7 +138,10 @@ const MyEvents = ({navigation}) => {
   const [vendorGateVisible, setVendorGateVisible] = useState(false);
 
   const fetchingRef = useRef(false);
+  const {modal: connectivityModal, ensureOnline} = useConnectivityGate();
 
+  // Offline-first load + connectivity guard — same logic as My Sites
+  // (refer: Emergency / SiteDetailPage cache-first pattern).
   const fetchEvents = useCallback(async (p, st, isRefresh = false) => {
     if (p === 1 && !isRefresh && fetchingRef.current) return;
     if (p > 1 && fetchingRef.current) return;
@@ -148,6 +155,32 @@ const MyEvents = ({navigation}) => {
       setLoadingMore(true);
     }
 
+    // 1. Cached data first for the default first page (no status filter).
+    if (p === 1 && !isRefresh && !st) {
+      const cached = await getFromStorage(MY_EVENTS_CACHE);
+      if (cached) {
+        try {
+          const list = JSON.parse(cached);
+          if (Array.isArray(list)) {
+            setEvents(list);
+            setLoading(false);
+          }
+        } catch {}
+      }
+    }
+
+    // 2. Guard: only hit the API when connected AND in online mode.
+    const storedMode = await getFromStorage(STRING.STORAGE.MODE);
+    const appMode = storedMode !== null ? JSON.parse(storedMode) : true;
+    const offline = await isOffline();
+    if (!appMode || offline) {
+      fetchingRef.current = false;
+      setLoading(false);
+      setRefreshing(false);
+      setLoadingMore(false);
+      return;
+    }
+
     const payload = {page: p, limit: PAGE_SIZE};
     if (st) payload.status = st;
 
@@ -159,6 +192,8 @@ const MyEvents = ({navigation}) => {
       setEvents(prev => p === 1 || isRefresh ? list : [...prev, ...list]);
       setHasMore(p * PAGE_SIZE < total);
       setPage(p);
+      // Cache the default first page for offline-first next time.
+      if (p === 1 && !st) saveToStorage(MY_EVENTS_CACHE, JSON.stringify(list));
     } catch (e) {
     } finally {
       fetchingRef.current = false;
@@ -184,7 +219,7 @@ const MyEvents = ({navigation}) => {
     }, [status]),
   );
 
-  const onRefresh = () => fetchEvents(1, status, true);
+  const onRefresh = () => ensureOnline(() => fetchEvents(1, status, true));
 
   const onEndReached = () => {
     if (!fetchingRef.current && hasMore) {
@@ -314,6 +349,7 @@ const MyEvents = ({navigation}) => {
         />
       )}
       {dialog}
+      {connectivityModal}
 
       {/* Vendor Gate Modal */}
       <Modal

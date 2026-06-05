@@ -21,6 +21,7 @@ import Settings from '../Screens/Settings';
 import PrivacyPolicyScreen from '../Screens/PrivacyPolicyScreen';
 import TermsScreen from '../Screens/TermsScreen';
 import AboutScreen from '../Screens/AboutScreen';
+import HelpCenterScreen from '../Screens/HelpCenterScreen';
 import VersionCheck from 'react-native-version-check';
 import STRING from '../Services/Constants/STRINGS';
 import UpdatePopup from '../Components/Common/UpdatePopup';
@@ -91,6 +92,7 @@ const DrawerNavigator = () => {
     {type: 'image', source: require('../Assets/Images/DrawerIcons/settings.webp'), label: t('DRAWER.SETTINGS'), screen: STRING.SCREEN.SETTINGS, navigate: true},
     {type: 'image', source: require('../Assets/Images/DrawerIcons/about.webp'), label: t('DRAWER.ABOUT'), screen: STRING.SCREEN.ABOUT, navigate: true},
     {type: 'emoji', source: '🗺️', label: t('DRAWER.MAP'), screen: STRING.SCREEN.MAP_SCREEN, navigate: true},
+    {type: 'image', source: require('../Assets/Icons/faq.png'), label: t('DRAWER.HELP_CENTER'), screen: STRING.SCREEN.HELP_CENTER, navigate: true},
   ];
 
   const CustomDrawerContent = ({navigation, state}) => {
@@ -217,6 +219,7 @@ const DrawerNavigator = () => {
       <Drawer.Screen name={STRING.SCREEN.TERMS} component={TermsScreen} />
       <Drawer.Screen name={STRING.SCREEN.ABOUT} component={AboutScreen} />
       <Drawer.Screen name={STRING.SCREEN.MAP_SCREEN} component={MapScreen} />
+      <Drawer.Screen name={STRING.SCREEN.HELP_CENTER} component={HelpCenterScreen} />
     </Drawer.Navigator>
   );
 };

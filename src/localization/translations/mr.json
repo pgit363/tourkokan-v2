@@ -463,9 +463,19 @@
     "SETTINGS": "सेटिंग्ज",
     "ABOUT": "आमच्याबद्दल",
     "MAP": "नकाशा",
+    "HELP_CENTER": "मदत केंद्र",
     "CHECK_UPDATE": "अपडेट तपासा",
     "TAGLINE": "सूर्य, वाळू आणि शांती",
     "FOOTER": "Probyte Solution LLP द्वारे डिझाइन आणि विकसित."
+  },
+
+  "HELP_CENTER": {
+    "TITLE": "मदत केंद्र",
+    "SUBTITLE": "सामान्य प्रश्नांची उत्तरे शोधा",
+    "STILL_NEED_HELP_TITLE": "अजून मदत हवी आहे का?",
+    "STILL_NEED_HELP_SUBTEXT": "आमची टीम तुमच्या प्रश्नांची उत्तरे देण्यास तयार आहे.",
+    "CONTACT_BTN": "संपर्क करा",
+    "EMAIL_BTN": "ईमेल करा"
   },
 
   "UPDATE_POPUP": {

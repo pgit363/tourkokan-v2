@@ -4,9 +4,11 @@ import {
   Text,
   TouchableOpacity,
   ScrollView,
+  RefreshControl,
   StatusBar,
   Animated,
   Dimensions,
+  useWindowDimensions,
   Platform,
   BackHandler,
   StyleSheet,
@@ -28,6 +30,7 @@ import {AWS_URL} from '@env';
 import CachedImage from '../../Components/Customs/CachedImage';
 
 import {comnPost, getFromStorage} from '../../Services/Api/CommonServices';
+import {useConnectivityGate} from '../../Components/Common/useConnectivityGate';
 import {navigateTo} from '../../Services/CommonMethods';
 import STRING from '../../Services/Constants/STRINGS';
 import Banner from '../../Components/Customs/Banner';
@@ -80,24 +83,30 @@ const getCatEmoji = code => {
 };
 
 // ─── Ad Banner (matches HomeScreen AdBanner component) ────────────────────────
-const AdBanner = ({bannerImages, label, bannerHeight}) => (
-  <View style={st.adBannerWrap}>
-    <View style={st.adLabelBadge}>
-      <Text style={st.adLabelText}>{label || 'Ad'}</Text>
-    </View>
-    {bannerImages?.length > 0 ? (
-      <Banner
-        bannerImages={bannerImages}
-        style={{height: bannerHeight || SW / 3, borderRadius: RADIUS - 2, overflow: 'hidden'}}
-      />
-    ) : (
-      <View style={st.adPlaceholder}>
-        <Text style={st.adIcon}>📢</Text>
-        <Text style={st.adText}>Ad Space Available</Text>
+const AdBanner = ({bannerImages, label}) => {
+  const {width: winW} = useWindowDimensions();
+  // adSection has paddingHorizontal:16 on each side → inner width = winW - 32
+  const bannerW = winW - 32;
+  return (
+    <View style={st.adBannerWrap}>
+      <View style={st.adLabelBadge}>
+        <Text style={st.adLabelText}>{label || 'Ad'}</Text>
       </View>
-    )}
-  </View>
-);
+      {bannerImages?.length > 0 ? (
+        <Banner
+          bannerImages={bannerImages}
+          width={bannerW}
+          style={{borderRadius: RADIUS - 2, overflow: 'hidden'}}
+        />
+      ) : (
+        <View style={st.adPlaceholder}>
+          <Text style={st.adIcon}>📢</Text>
+          <Text style={st.adText}>Ad Space Available</Text>
+        </View>
+      )}
+    </View>
+  );
+};
 
 // ─── Skeleton components ──────────────────────────────────────────────────────
 const SkLine = ({w, h = 12, style, opacity}) => (
@@ -171,7 +180,7 @@ const SiteDetailPage = ({navigation, route}) => {
   const [city, setCity] = useState(route.params?.city || {});
   const [isFav, setIsFav] = useState(!!route.params?.city?.is_favorite);
   const [activeGalleryIdx, setActiveGalleryIdx] = useState(0);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [offline, setOffline] = useState(false);
   const [bannerObject, setBannerObject] = useState({});
   const [isAlert, setIsAlert] = useState(false);
@@ -179,6 +188,8 @@ const SiteDetailPage = ({navigation, route}) => {
   const [descExpanded, setDescExpanded] = useState(false);
   const [userRating, setUserRating] = useState(0);
   const [isGuestPopup, setIsGuestPopup] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
+  const {modal: connectivityModal, ensureOnline} = useConnectivityGate();
 
   // ── Back handler ─────────────────────────────────────────────────────────────
   useEffect(() => {
@@ -229,6 +240,16 @@ const SiteDetailPage = ({navigation, route}) => {
       setIsLoading(false);
     }
   };
+
+  // ── Pull-to-refresh ──────────────────────────────────────────────────────────
+  // Connectivity guard per docs/offline-mode-connectivity-guard.md: only fetch
+  // when connected AND in online mode; otherwise tell the user why.
+  const onRefresh = () =>
+    ensureOnline(async () => {
+      setRefreshing(true);
+      await fetchFreshData();
+      setRefreshing(false);
+    });
 
   // ── Guest helper ─────────────────────────────────────────────────────────────
   const handleGuestLogin = async () => {
@@ -863,8 +884,20 @@ const SiteDetailPage = ({navigation, route}) => {
     <View style={st.root}>
       <StatusBar backgroundColor="transparent" barStyle="light-content" translucent />
       <Popup message={alertMessage} onPress={() => setIsAlert(false)} visible={isAlert} />
+      {connectivityModal}
 
-      <ScrollView style={st.scroll} showsVerticalScrollIndicator={false} contentContainerStyle={st.scrollContent}>
+      <ScrollView
+        style={st.scroll}
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={st.scrollContent}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            colors={['#1B6B7B']}
+            tintColor="#1B6B7B"
+          />
+        }>
 
         {/* 1. Hero */}
         {(isLoading && !city.name) ? <SkeletonHero /> : renderHero()}
@@ -898,7 +931,6 @@ const SiteDetailPage = ({navigation, route}) => {
             <AdBanner
               bannerImages={bannerObject?.CITY_MIDDLE}
               label="Sponsored"
-              bannerHeight={SW / 2.5}
             />
           )}
         </View>
@@ -946,7 +978,6 @@ const SiteDetailPage = ({navigation, route}) => {
             <AdBanner
               bannerImages={bannerObject?.CITY_FOOTER}
               label="Ad"
-              bannerHeight={SW / 3.5}
             />
           )}
         </View>

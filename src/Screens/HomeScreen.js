@@ -19,9 +19,9 @@ import {
   Image,
   RefreshControl,
   Linking,
-  Alert,
   BackHandler,
   Modal,
+  useWindowDimensions,
 } from 'react-native';
 import {SafeAreaView, useSafeAreaInsets} from 'react-native-safe-area-context';
 import LinearGradient from 'react-native-linear-gradient';
@@ -62,6 +62,7 @@ import {
   setProfilePicture,
 } from '../Reducers/CommonActions';
 import {exitApp, navigateTo} from '../Services/CommonMethods';
+import {useConnectivityGate} from '../Components/Common/useConnectivityGate';
 import {UpdateContext} from '../Context/UpdateContext';
 import HotPlaces from '../Components/Sections/HotPlaces';
 import STRING from '../Services/Constants/STRINGS';
@@ -161,28 +162,38 @@ const SpotCard = ({item}) => (
 );
 
 // Ad banner — always shows dashed outline; dynamic banner inside or static placeholder
-const AdBanner = ({bannerImages, label, size, bannerHeight}) => (
-  <View style={ts.adBannerWrap}>
-    <View style={ts.adLabelBadge}>
-      <Text style={ts.adLabelText}>{label || 'Premium Ad'}</Text>
-    </View>
-    {bannerImages?.length > 0 ? (
-      <Banner
-        bannerImages={bannerImages}
-        style={{height: bannerHeight || SW / 3, borderRadius: RADIUS - 2, overflow: 'hidden'}}
-      />
-    ) : (
-      <View style={ts.adPlaceholder}>
-        <Text style={ts.adIcon}>📢</Text>
-        <Text style={ts.adText}>Ad Space Available</Text>
-        <Text style={ts.adSize}>{size || '340×160px · Click to advertise'}</Text>
+const AdBanner = ({bannerImages, label, size, bannerHeight}) => {
+  const {width: winW} = useWindowDimensions();
+  // inner width = screen minus sectionPad horizontal padding (20 × 2)
+  const adBannerW = winW - 40;
+  return (
+    <View style={ts.adBannerWrap}>
+      <View style={ts.adLabelBadge}>
+        <Text style={ts.adLabelText}>{label || 'Premium Ad'}</Text>
       </View>
-    )}
-  </View>
-);
+      {bannerImages?.length > 0 ? (
+        <Banner
+          bannerImages={bannerImages}
+          width={adBannerW}
+          style={{borderRadius: RADIUS - 2, overflow: 'hidden'}}
+        />
+      ) : (
+        <View style={[ts.adPlaceholder, {height: bannerHeight}]}>
+          <Text style={ts.adIcon}>📢</Text>
+          <Text style={ts.adText}>Ad Space Available</Text>
+          <Text style={ts.adSize}>{size || 'Tap to advertise here'}</Text>
+        </View>
+      )}
+    </View>
+  );
+};
 
 
 // ─── HomeScreen ────────────────────────────────────────────────────────────────
+
+// [FLOW] counts how many times callLandingPageAPI is invoked vs how many actually hit the network
+let LANDING_CALL_COUNT = 0;
+let LANDING_HIT_COUNT = 0;
 
 const HomeScreen = ({navigation, route, ...props}) => {
   const {t, i18n} = useTranslation();
@@ -213,6 +224,7 @@ const HomeScreen = ({navigation, route, ...props}) => {
 
   const [mode, setMode] = useState(true);
   const [unreadCount, setUnreadCount] = useState(0);
+  const {modal: connectivityModal, ensureOnline} = useConnectivityGate();
 
   const [state, dispatch] = useReducer(
     (prevState, action) => {
@@ -288,9 +300,18 @@ const HomeScreen = ({navigation, route, ...props}) => {
   // ── Init ──
   useEffect(() => {
     let isMounted = true;
+    let unsubscribe = () => {};
+    // Track connectivity so we only fetch on the FIRST connected event and on
+    // genuine offline→online reconnects — NetInfo fires on every detail change,
+    // which was causing the landing page API to be hit multiple times.
+    let wasConnected = null;
+    let didInitialFetch = false;
+    console.log('[FLOW][Home] init useEffect RUN. access_token=', props.access_token);
 
     const init = async () => {
+      dispatch({type: 'SET_LOADING', payload: true});
       const localData = await getFromStorage(t('STORAGE.LANDING_RESPONSE'));
+      console.log('[FLOW][Home] init: localData present?', !!localData);
       if (localData && isMounted) {
         try {
           const res = JSON.parse(localData);
@@ -305,12 +326,6 @@ const HomeScreen = ({navigation, route, ...props}) => {
               type: 'SET_DATA',
               payload: {cities: res.cities, routes: res.routes, bannerObject: res.banners, trending: res.trending || {}, hot_sites: res.hot_sites || []},
             });
-            // Show mode popup only after content is visible, not on top of skeleton
-            const isFirstTime = await getFromStorage(t('STORAGE.IS_FIRST_TIME'));
-            if (isFirstTime === 'true' || isFirstTime === true) {
-              setModePopup(true);
-              AsyncStorage.setItem(t('STORAGE.IS_FIRST_TIME'), JSON.stringify(false));
-            }
           }
         } catch (e) {
           console.log(e);
@@ -330,8 +345,9 @@ const HomeScreen = ({navigation, route, ...props}) => {
 
       await AsyncStorage.setItem('isUpdated', 'false');
 
-      const token = await AsyncStorage.getItem(t('STORAGE.ACCESS_TOKEN'));
+      const token = await AsyncStorage.getItem(t('STORAGE.ACCESS_TOKEN')) || props.access_token;
       if (!token) {
+        console.log('[FLOW][Home] init: no token → navigate EMAIL');
         navigateTo(navigation, t('SCREEN.EMAIL'));
         return;
       }
@@ -340,17 +356,33 @@ const HomeScreen = ({navigation, route, ...props}) => {
         setIsLandingDataFetched(true);
       }
 
-      const unsubscribe = NetInfo.addEventListener(async netState => {
+      console.log('[FLOW][Home] init: registering NetInfo listener');
+      unsubscribe = NetInfo.addEventListener(async netState => {
         if (!isMounted) return;
-        setOffline(!netState.isConnected);
+        const connected = !!netState.isConnected;
+        console.log('[FLOW][Home] NetInfo listener FIRED. isConnected=', connected);
+        setOffline(!connected);
 
         const storedMode = JSON.parse(await getFromStorage(t('STORAGE.MODE')));
         setMode(storedMode);
 
-        if (!netState.isConnected) {
+        if (!connected) {
           dispatch({type: 'SET_LOADING', payload: false});
+          wasConnected = connected;
+          return;
         }
 
+        // Only fetch on the first connected event or on a real offline→online
+        // reconnect — ignore NetInfo's repeated same-state fires.
+        const reconnected = wasConnected === false;
+        wasConnected = connected;
+        if (didInitialFetch && !reconnected) {
+          console.log('[FLOW][Home] NetInfo: already fetched & not a reconnect → SKIP');
+          return;
+        }
+        didInitialFetch = true;
+
+        console.log('[FLOW][Home] NetInfo → dataSync(landingpage) storedMode=', storedMode, '[landingpage trigger #Home-init-NetInfo]');
         dataSync(t('STORAGE.LANDING_RESPONSE'), () => callLandingPageAPI(), storedMode).then(resp => {
           try {
             if (resp) {
@@ -362,7 +394,7 @@ const HomeScreen = ({navigation, route, ...props}) => {
                   if (validKeys.length > 0) newActiveTab = validKeys[0];
                 }
                 setActiveTab(newActiveTab);
-                    dispatch({
+                dispatch({
                   type: 'SET_DATA',
                   payload: {cities: res.cities, routes: res.routes, bannerObject: res.banners, trending: res.trending || {}, hot_sites: res.hot_sites || []},
                 });
@@ -380,20 +412,43 @@ const HomeScreen = ({navigation, route, ...props}) => {
           }
         });
       });
-
-      return () => {
-        unsubscribe();
-        isMounted = false;
-      };
     };
 
     init();
+
+    return () => {
+      isMounted = false;
+      unsubscribe();
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [props.access_token]);
+
+  // ── First-login mode popup ──
+  // Shown once content is visible (not over the skeleton) and regardless of
+  // whether landing data came from cache or a fresh fetch. IS_FIRST_TIME is set
+  // to 'true' by the login flow and cleared here so it only shows once.
+  useEffect(() => {
+    if (isLoading) return;
+    let cancelled = false;
+    (async () => {
+      const firstTime = await getFromStorage(t('STORAGE.IS_FIRST_TIME'));
+      console.log('[FLOW][Home] mode popup check: isLoading=false, isFirstTime=', firstTime);
+      if (cancelled) return;
+      if (firstTime === 'true' || firstTime === true) {
+        console.log('[FLOW][Home] mode popup → SHOW');
+        setModePopup(true);
+        AsyncStorage.setItem(t('STORAGE.IS_FIRST_TIME'), JSON.stringify(false));
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [isLoading, t]);
 
   // ── Focus sync ──
   useFocusEffect(
     React.useCallback(() => {
+      console.log('[FLOW][Home] focus useFocusEffect RUN');
       const fetchData = async () => {
         const isUpdated = await AsyncStorage.getItem('isUpdated');
         checkToken();
@@ -404,7 +459,9 @@ const HomeScreen = ({navigation, route, ...props}) => {
           props.setMode(storedMode);
         }
 
+        console.log('[FLOW][Home] focus fetchData: isUpdated=', isUpdated, 'props.mode=', props.mode);
         if (isUpdated === 'true' && props.mode) {
+          console.log('[FLOW][Home] focus → callLandingPageAPI() [landingpage trigger #Home-focus]');
           dispatch({type: 'SET_LOADING', payload: true});
           await callLandingPageAPI();
         }
@@ -435,8 +492,12 @@ const HomeScreen = ({navigation, route, ...props}) => {
 
   // ── API ──
   const callLandingPageAPI = useCallback(async site_id => {
+    LANDING_CALL_COUNT += 1;
+    const callNo = LANDING_CALL_COUNT;
+    console.log(`[FLOW][Home] callLandingPageAPI ENTER #${callNo} site_id=`, site_id, 'isFetching=', isFetchingRef.current);
     try {
       if (isFetchingRef.current) {
+        console.log(`[FLOW][Home] callLandingPageAPI #${callNo} SKIPPED (already fetching)`);
         dispatch({type: 'SET_LOADING', payload: false});
         return;
       }
@@ -444,6 +505,7 @@ const HomeScreen = ({navigation, route, ...props}) => {
 
       const storedMode = JSON.parse(await getFromStorage(t('STORAGE.MODE')));
       if (!storedMode) {
+        console.log(`[FLOW][Home] callLandingPageAPI #${callNo} SKIPPED (offline mode)`);
         dispatch({type: 'SET_LOADING', payload: false});
         return;
       }
@@ -453,8 +515,10 @@ const HomeScreen = ({navigation, route, ...props}) => {
 
       // Only show skeleton on initial load (no cached data).
       // When called as background refresh, update data silently.
+      LANDING_HIT_COUNT += 1;
+      console.log(`[FLOW][Home] ►► HITTING v2/landingpage (call #${callNo}, network hit #${LANDING_HIT_COUNT}) data=`, data);
       const res = await comnPost('v2/landingpage', data, navigation);
-      console.log(res?.data);
+      console.log(`[FLOW][Home] ◄◄ v2/landingpage returned (call #${callNo})`);
 
       if (res?.data?.data) {
         if (i18n.language !== res.data.language) i18n.changeLanguage(res.data.language);
@@ -545,15 +609,16 @@ const HomeScreen = ({navigation, route, ...props}) => {
     }
   };
 
-  const onRefresh = async () => {
+  // Pull-to-refresh — connectivity guard via shared helper
+  // (see docs/offline-mode-connectivity-guard.md)
+  const onRefresh = () => {
     props.setSource('');
     props.setDestination('');
-    setRefreshing(true);
-    const storedMode = JSON.parse(await getFromStorage(t('STORAGE.MODE')));
-    if (storedMode) {
+    ensureOnline(() => {
+      setRefreshing(true);
       callLandingPageAPI();
-    }
-    setRefreshing(false);
+      setRefreshing(false);
+    });
   };
 
   const onCitySelect = async city => {
@@ -576,6 +641,7 @@ const HomeScreen = ({navigation, route, ...props}) => {
     isFetchingRef.current = false;
     dispatch({type: 'SET_LOADING', payload: true});
 
+    console.log('[FLOW][Home] onCitySelect → callLandingPageAPI() [landingpage trigger #Home-citySelect] city=', city?.name, city?.id);
     if (city.id === 0) {
       // Sindhudurg (default) — clear stored city so callLandingPageAPI sends no site_id
       await saveToStorage(t('STORAGE.SELECTED_CITY_ID'), JSON.stringify(null));
@@ -606,7 +672,11 @@ const HomeScreen = ({navigation, route, ...props}) => {
       {/* ── BANNER ── */}
       <View style={[s.bannerWrap, {height: BANNER_HEIGHT}]}>
         {bannerObject?.HOME_HERO?.length > 0 ? (
-          <Banner bannerImages={bannerObject.HOME_HERO} style={{height: BANNER_HEIGHT}} />
+          <Banner
+            bannerImages={bannerObject.HOME_HERO}
+            width={DIMENSIONS.screenWidth}
+            style={{height: BANNER_HEIGHT}}
+          />
         ) : (
           <Banner
             bannerImages={[
@@ -614,6 +684,7 @@ const HomeScreen = ({navigation, route, ...props}) => {
               {id: 2, image: 'https://c4.wallpaperflare.com/wallpaper/631/683/713/nature-bridge-sky-city-wallpaper-preview.jpg'},
               {id: 3, image: 'https://c4.wallpaperflare.com/wallpaper/977/138/381/tbilisi-georgia-wallpaper-preview.jpg'},
             ]}
+            width={DIMENSIONS.screenWidth}
             style={{height: BANNER_HEIGHT}}
           />
         )}
@@ -676,8 +747,7 @@ const HomeScreen = ({navigation, route, ...props}) => {
         <AdBanner
           bannerImages={bannerObject?.HOME_MIDDLE}
           label={t('HOME.AD_LABEL')}
-          size="340×160px · Above fold"
-          bannerHeight={SW / 2.5}
+          size="Premium Ad · Tap to advertise"
         />
       </View>
 
@@ -712,8 +782,7 @@ const HomeScreen = ({navigation, route, ...props}) => {
       <AdBanner
         bannerImages={bannerObject?.HOME_FOOTER}
         label={t('HOME.AD_STANDARD_LABEL')}
-        size="Tap to advertise here"
-        bannerHeight={SW / 3.5}
+        size="Standard Ad · Tap to advertise"
       />
     </View>
   ), [bannerObject, t]);
@@ -767,6 +836,7 @@ const HomeScreen = ({navigation, route, ...props}) => {
 
       {/* ── Alert popup ── */}
       <Popup message={alertMessage} onPress={() => setIsAlert(false)} visible={isAlert} />
+      {connectivityModal}
 
       {/* ── Full-page skeleton (shown while loading) ── */}
       {isLoading ? <HomeScreenSkeleton /> : null}
@@ -1318,7 +1388,6 @@ const ts = StyleSheet.create({
     borderColor: C.sandMid,
     borderStyle: 'dashed',
     overflow: 'hidden',
-    minHeight: 120,
   },
   adLabelBadge: {
     position: 'absolute',

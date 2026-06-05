@@ -880,8 +880,8 @@ const ProfileView = ({navigation, ...props}) => {
               style={[s.codeChip, copied && s.codeChipCopied]}
               onPress={handleCopy}
               activeOpacity={0.8}>
-              <Text style={s.codeChipValue}>
-                {profile.uid || '------'}
+              <Text style={[s.codeChipValue, isGuest && s.codeChipValueBlurred]}>
+                {isGuest ? 'XXXXXX' : profile.uid || '------'}
               </Text>
               <View style={s.codeChipDivider} />
               <Ionicons
@@ -1512,6 +1512,14 @@ const s = StyleSheet.create({
     fontWeight: '700',
     color: C.white,
     letterSpacing: 2,
+  },
+  // Guest mode: hide the real code behind a blur smudge (transparent text +
+  // text shadow). Tapping the chip opens the guest gate popup via handleCopy.
+  codeChipValueBlurred: {
+    color: 'transparent',
+    textShadowColor: 'rgba(255,255,255,0.9)',
+    textShadowOffset: {width: 0, height: 0},
+    textShadowRadius: 10,
   },
   codeChipDivider: {
     width: 1,

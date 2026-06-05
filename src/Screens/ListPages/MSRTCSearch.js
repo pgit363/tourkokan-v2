@@ -8,7 +8,7 @@ import {
   Image,
   ScrollView,
   StatusBar,
-  Dimensions,
+  useWindowDimensions,
 } from 'react-native';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import LinearGradient from 'react-native-linear-gradient';
@@ -21,14 +21,13 @@ import {getFromStorage} from '../../Services/Api/CommonServices';
 import {setLoader, setMode, setSource, setDestination} from '../../Reducers/CommonActions';
 import {backPage, checkLogin, goBackHandler, navigateTo} from '../../Services/CommonMethods';
 import Banner from '../../Components/Customs/Banner';
+import {useRoutesOfflineGate} from '../../Components/Common/RoutesOfflineGate';
 import MSRTCSearchPanel from '../../Components/Common/MSRTCSearchPanel';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
 const RECENT_KEY = 'recent_routes';
 const MAX_RECENT = 5;
-const {width: SW} = Dimensions.get('window');
-const BANNER_H = Math.round(SW / 3);
 // Tab bar height (PILL_H 64 + FAB_SIZE/2 32 + FAB_LIFT 8)
 const TAB_BAR_H = 104;
 
@@ -86,25 +85,31 @@ const sk = StyleSheet.create({
 
 // ─── Ad Banner (same style as HomeScreen middle) ──────────────────────────────
 
-const AdBanner = ({bannerImages}) => (
-  <View style={s.adBannerWrap}>
-    <View style={s.adLabelBadge}>
-      <Text style={s.adLabelText}>Premium Ad</Text>
-    </View>
-    {bannerImages?.length > 0 ? (
-      <Banner
-        bannerImages={bannerImages}
-        style={{height: BANNER_H, borderRadius: 16, overflow: 'hidden'}}
-      />
-    ) : (
-      <View style={s.adPlaceholder}>
-        <Text style={s.adIcon}>📢</Text>
-        <Text style={s.adText}>Ad Space Available</Text>
-        <Text style={s.adSize}>340×160px · Click to advertise</Text>
+const AdBanner = ({bannerImages}) => {
+  const {width: winW} = useWindowDimensions();
+  // adBannerWrap has marginHorizontal:20 → inner width = winW - 40
+  const bannerW = winW - 40;
+  return (
+    <View style={s.adBannerWrap}>
+      <View style={s.adLabelBadge}>
+        <Text style={s.adLabelText}>Premium Ad</Text>
       </View>
-    )}
-  </View>
-);
+      {bannerImages?.length > 0 ? (
+        <Banner
+          bannerImages={bannerImages}
+          width={bannerW}
+          style={{borderRadius: 16, overflow: 'hidden'}}
+        />
+      ) : (
+        <View style={s.adPlaceholder}>
+          <Text style={s.adIcon}>📢</Text>
+          <Text style={s.adText}>Ad Space Available</Text>
+          <Text style={s.adSize}>Tap to advertise here</Text>
+        </View>
+      )}
+    </View>
+  );
+};
 
 // ─── Main Component ────────────────────────────────────────────────────────────
 
@@ -112,6 +117,10 @@ const MSRTCSearch = ({navigation, route, ...props}) => {
   const {t} = useTranslation();
   const insets = useSafeAreaInsets();
   const bottomPad = Math.max(insets.bottom, 10);
+  const {modal: offlineModal} = useRoutesOfflineGate({
+    mode: props.mode,
+    onModeChange: props.setMode,
+  });
 
   const [recentRoutes, setRecentRoutes] = useState([]);
   const [bannerObject, setBannerObject] = useState({});
@@ -266,6 +275,7 @@ const MSRTCSearch = ({navigation, route, ...props}) => {
           </>
         )}
       </ScrollView>
+      {offlineModal}
     </View>
   );
 };

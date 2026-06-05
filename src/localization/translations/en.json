@@ -460,9 +460,19 @@
     "SETTINGS": "Settings",
     "ABOUT": "About",
     "MAP": "Map",
+    "HELP_CENTER": "Help Center",
     "CHECK_UPDATE": "Check for Update",
     "TAGLINE": "Sun, Sand & Serenity",
     "FOOTER": "Designed and Developed by Probyte Solution LLP."
+  },
+
+  "HELP_CENTER": {
+    "TITLE": "Help Center",
+    "SUBTITLE": "Find answers to common questions",
+    "STILL_NEED_HELP_TITLE": "Still need help?",
+    "STILL_NEED_HELP_SUBTEXT": "Our team is happy to answer your questions.",
+    "CONTACT_BTN": "Contact Us",
+    "EMAIL_BTN": "Email Us"
   },
 
   "UPDATE_POPUP": {

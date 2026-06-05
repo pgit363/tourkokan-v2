@@ -10,6 +10,7 @@ import {
   Text,
   StyleSheet,
   RefreshControl,
+  useWindowDimensions,
 } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import COLOR from '../../Services/Constants/COLORS';
@@ -53,9 +54,11 @@ import PackageCardSkeleton from '../../Components/Cards/PackageCardSkeleton';
 import Banner from '../../Components/Customs/Banner';
 import STRING from '../../Services/Constants/STRINGS';
 import HotPlaces from '../../Components/Sections/HotPlaces';
+import {useConnectivityGate} from '../../Components/Common/useConnectivityGate';
 
 const CityDetails = ({navigation, route, offline, ...props}) => {
   const {t} = useTranslation();
+  const {width: winW} = useWindowDimensions();
   const refRBSheet = useRef();
 
   const [city, setCity] = useState([]); // State to store city
@@ -76,6 +79,7 @@ const CityDetails = ({navigation, route, offline, ...props}) => {
   const [alertMessage, setAlertMessage] = useState('');
   const [isGuestPopup, setIsGuestPopup] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
+  const {modal: connectivityModal, ensureOnline} = useConnectivityGate();
 
   useEffect(() => {
     const backHandler = goBackHandler(navigation);
@@ -365,21 +369,24 @@ const CityDetails = ({navigation, route, offline, ...props}) => {
     setIsAlert(false);
   };
 
-  const onRefresh = () => {
-    setRefreshing(true);
-    comnPost('v2/getSite', {id: cityId})
-      .then(res => {
-        if (res?.data?.success) {
-          setCity(res.data.data);
-          setIsFav(res.data.data.is_favorite);
-          setRating(parseFloat(res.data.data.rating_avg_rate) || 0);
-          setCommentCount(res.data.data.comment_count);
-          setLocationMap(res.data.data.latitude, res.data.data.longitude);
-        }
-        setRefreshing(false);
-      })
-      .catch(() => setRefreshing(false));
-  };
+  // Connectivity guard via shared helper (see docs/offline-mode-connectivity-guard.md):
+  // only fetch when connected AND online; offline mode → "Go Online" popup.
+  const onRefresh = () =>
+    ensureOnline(() => {
+      setRefreshing(true);
+      comnPost('v2/getSite', {id: cityId})
+        .then(res => {
+          if (res?.data?.success) {
+            setCity(res.data.data);
+            setIsFav(res.data.data.is_favorite);
+            setRating(parseFloat(res.data.data.rating_avg_rate) || 0);
+            setCommentCount(res.data.data.comment_count);
+            setLocationMap(res.data.data.latitude, res.data.data.longitude);
+          }
+          setRefreshing(false);
+        })
+        .catch(() => setRefreshing(false));
+    });
 
   const handleGuestLogin = async () => {
     setIsGuestPopup(false);
@@ -407,16 +414,20 @@ const CityDetails = ({navigation, route, offline, ...props}) => {
         style={styles.cityHeader}
       />
       <ScrollView
-        style={{backgroundColor: '#F8F7F4'}}
+        style={{flex: 1, backgroundColor: '#F8F7F4'}}
+        alwaysBounceVertical={true}
+        scrollEventThrottle={16}
         refreshControl={
           <RefreshControl
             refreshing={refreshing}
             onRefresh={onRefresh}
             colors={['#1B6B7B']}
             tintColor="#1B6B7B"
+            progressViewOffset={DIMENSIONS.headerHeight || 56}
           />
         }>
         <Popup message={alertMessage} onPress={closePopup} visible={isAlert} />
+        {connectivityModal}
         <Loader />
 
         {city && (
@@ -632,10 +643,11 @@ const CityDetails = ({navigation, route, offline, ...props}) => {
 
               {/* 7 ── Middle Banner ── */}
               {!isLoading && bannerObject?.CITY_MIDDLE?.length > 0 && (
-                <View style={{marginLeft: -16, marginBottom: 24, width: DIMENSIONS.screenWidth}}>
+                <View style={{marginLeft: -16, marginBottom: 24, width: winW}}>
                   <Banner
                     bannerImages={bannerObject.CITY_MIDDLE}
-                    style={{height: DIMENSIONS.windowWidth / 3, marginBottom: 0}}
+                    width={winW}
+                    style={{overflow: 'hidden'}}
                   />
                 </View>
               )}
@@ -658,7 +670,8 @@ const CityDetails = ({navigation, route, offline, ...props}) => {
             <View style={{marginTop: 24, marginBottom: 80, width: '100%', paddingHorizontal: 16}}>
               <Banner
                 bannerImages={bannerObject.CITY_FOOTER}
-                style={{height: DIMENSIONS.windowWidth / 3, marginBottom: 0}}
+                width={winW - 32}
+                style={{borderRadius: 14, overflow: 'hidden'}}
               />
             </View>
           )}

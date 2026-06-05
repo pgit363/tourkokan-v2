@@ -46,6 +46,7 @@ import EventDetail from '../Screens/DetailPages/EventDetail';
 import CreateEvent from '../Screens/CreateEvent';
 import UpdateEvent from '../Screens/UpdateEvent';
 import MyEvents from '../Screens/MyEvents';
+import HelpCenterScreen from '../Screens/HelpCenterScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -217,6 +218,7 @@ const StackNavigator = ({initialRoute}) => {
           <Stack.Screen name={t('SCREEN.CREATE_EVENT')} component={CreateEvent} />
           <Stack.Screen name={t('SCREEN.UPDATE_EVENT')} component={UpdateEvent} />
           <Stack.Screen name={t('SCREEN.MY_EVENTS')} component={MyEvents} />
+          <Stack.Screen name={t('SCREEN.HELP_CENTER')} component={HelpCenterScreen} />
 
         </Stack.Group>
       </Stack.Navigator>
