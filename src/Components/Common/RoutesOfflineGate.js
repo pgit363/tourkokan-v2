@@ -26,6 +26,7 @@ import {
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import Feather from 'react-native-vector-icons/Feather';
+import {useTranslation} from 'react-i18next';
 import store from '../../../Store';
 import {setMode as setModeAction} from '../../Reducers/CommonActions';
 
@@ -50,58 +51,77 @@ const MODE_STORAGE_KEY = 'mode';
 
 // ─── Component ───────────────────────────────────────────────────────────────
 
-const RoutesOfflineGate = ({visible, onDismiss, onModeChange}) => (
-  <Modal
-    visible={visible}
-    transparent
-    animationType="fade"
-    statusBarTranslucent
-    onRequestClose={onDismiss}>
-    <Pressable style={s.backdrop} onPress={onDismiss}>
-      <Pressable style={s.card} onPress={() => {}}>
+/**
+ * Single, condition-aware connectivity popup used app-wide.
+ *
+ * Props:
+ *   visible       boolean
+ *   onDismiss     () => void
+ *   onModeChange  (newMode:boolean) => void   — tapped "Go Online"
+ *   title         string?  — defaults to the routes wording
+ *   message       string?  — defaults to the routes wording
+ *   showGoOnline  boolean  — show the "Go Online" action (only when switching to
+ *                            online would help, i.e. internet is available)
+ */
+const RoutesOfflineGate = ({
+  visible,
+  onDismiss,
+  onModeChange,
+  title,
+  message,
+  showGoOnline = true,
+}) => {
+  const {t} = useTranslation();
+  return (
+    <Modal
+      visible={visible}
+      transparent
+      animationType="fade"
+      statusBarTranslucent
+      onRequestClose={onDismiss}>
+      <Pressable style={s.backdrop} onPress={onDismiss}>
+        <Pressable style={s.card} onPress={() => {}}>
 
-        {/* Icon */}
-        <View style={[s.iconWrap, {backgroundColor: C.amberBg}]}>
-          <Feather name="wifi-off" size={30} color={C.amber} />
-        </View>
+          {/* Icon */}
+          <View style={[s.iconWrap, {backgroundColor: C.amberBg}]}>
+            <Feather name="wifi-off" size={30} color={C.amber} />
+          </View>
 
-        {/* Title */}
-        <Text style={s.title}>Internet Required</Text>
+          {/* Title */}
+          <Text style={s.title}>{title || 'Internet Required'}</Text>
 
-        {/* Message */}
-        <Text style={s.message}>
-          Bus routes and schedules require an internet connection to load.
-          Switch to Online mode to search and browse live route data.
-        </Text>
+          {/* Message */}
+          <Text style={s.message}>
+            {message ||
+              'Bus routes and schedules require an internet connection to load. Switch to Online mode to search and browse live route data.'}
+          </Text>
 
-        {/* Mode buttons */}
-        <View style={s.btnRow}>
-          <TouchableOpacity
-            style={[s.btn, s.btnOnline]}
-            onPress={() => onModeChange(true)}
-            activeOpacity={0.85}>
-            <Ionicons name="cloud-outline" size={17} color={C.white} style={s.btnIcon} />
-            <Text style={[s.btnText, {color: C.white}]}>Go Online</Text>
-          </TouchableOpacity>
+          {/* Actions */}
+          <View style={s.btnRow}>
+            {showGoOnline && (
+              <TouchableOpacity
+                style={[s.btn, s.btnOnline]}
+                onPress={() => onModeChange(true)}
+                activeOpacity={0.85}>
+                <Ionicons name="cloud-outline" size={17} color={C.white} style={s.btnIcon} />
+                <Text style={[s.btnText, {color: C.white}]}>{t('BUS_ROUTE_SCREEN.CHANGE_MODE')}</Text>
+              </TouchableOpacity>
+            )}
 
-          <TouchableOpacity
-            style={[s.btn, s.btnOffline]}
-            onPress={onDismiss}
-            activeOpacity={0.85}>
-            <Feather name="wifi-off" size={17} color={C.textLight} style={s.btnIcon} />
-            <Text style={[s.btnText, {color: C.textLight}]}>Stay Offline</Text>
-          </TouchableOpacity>
-        </View>
+            <TouchableOpacity
+              style={[s.btn, s.btnOffline]}
+              onPress={onDismiss}
+              activeOpacity={0.85}>
+              <Feather name="wifi-off" size={17} color={C.textLight} style={s.btnIcon} />
+              <Text style={[s.btnText, {color: C.textLight}]}>{t('BUTTON.OK')}</Text>
+            </TouchableOpacity>
+          </View>
 
-        {/* Dismiss */}
-        <TouchableOpacity onPress={onDismiss} style={s.dismiss} activeOpacity={0.7}>
-          <Text style={s.dismissText}>Continue without internet</Text>
-        </TouchableOpacity>
-
+        </Pressable>
       </Pressable>
-    </Pressable>
-  </Modal>
-);
+    </Modal>
+  );
+};
 
 // ─── Hook ─────────────────────────────────────────────────────────────────────
 

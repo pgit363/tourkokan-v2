@@ -29,7 +29,7 @@ const C = {
   glassBorder: 'rgba(0,0,0,0.07)',
 };
 
-const TrendingCard = ({item, onPress}) => {
+const TrendingCard = ({item, onPress, cardWidth, imgHeight}) => {
   const fallback = require('../../Assets/Images/no-image.png');
   const uri = item.image
     ? `${AWS_URL}${item.image}`
@@ -41,8 +41,11 @@ const TrendingCard = ({item, onPress}) => {
   const rating = Number(item.rating_avg_rate);
 
   return (
-    <TouchableOpacity style={ts.trendCard} onPress={onPress} activeOpacity={0.85}>
-      <View style={ts.trendImgWrap}>
+    <TouchableOpacity
+      style={[ts.trendCard, cardWidth && {width: cardWidth}]}
+      onPress={onPress}
+      activeOpacity={0.85}>
+      <View style={[ts.trendImgWrap, imgHeight && {height: imgHeight}]}>
         <CachedImage
           source={uri ? {uri} : fallback}
           style={ts.trendImg}

@@ -13,6 +13,7 @@ import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import {useTranslation} from 'react-i18next';
 import {connect} from 'react-redux';
 import STRING from '../../Services/Constants/STRINGS';
+import {useConnectivityGate} from './useConnectivityGate';
 
 const {width: SW} = Dimensions.get('window');
 
@@ -36,6 +37,7 @@ const TopComponent = ({
   profilePicture,
 }) => {
   const {t} = useTranslation();
+  const {modal: connectivityModal, ensureOnline} = useConnectivityGate();
 
   return (
     <View style={s.container}>
@@ -72,7 +74,7 @@ const TopComponent = ({
         <View style={s.right}>
           <TouchableOpacity
             style={s.glassBtn}
-            onPress={() => navigation.navigate(STRING.SCREEN.INBOX)}
+            onPress={() => ensureOnline(() => navigation.navigate(STRING.SCREEN.INBOX))}
             activeOpacity={0.75}
             hitSlop={{top: 8, bottom: 8, left: 8, right: 8}}>
             <Image
@@ -104,6 +106,7 @@ const TopComponent = ({
           </TouchableOpacity>
         </View>
       </View>
+      {connectivityModal}
     </View>
   );
 };

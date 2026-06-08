@@ -31,6 +31,7 @@ import {AWS_URL} from '@env';
 import {comnPost} from '../../Services/Api/CommonServices';
 import {navigateTo} from '../../Services/CommonMethods';
 import {useGuestGate, isGuestUser, GUEST_KEYS, incrementGuestCount} from '../../Components/Common/GuestGateModal';
+import {useConnectivityGate} from '../../Components/Common/useConnectivityGate';
 
 const RECENT_KEY = 'recentSearches_v2';
 const MAX_RECENT = 8;
@@ -65,6 +66,7 @@ const CityPlaceSearch = ({navigation, route}) => {
   const viewabilityConfig = useRef({itemVisiblePercentThreshold: 60});
 
   const {show: showGuestPopup, modal: guestModal} = useGuestGate(navigation);
+  const {modal: connectivityModal, ensureOnline} = useConnectivityGate();
 
   const [query, setQuery] = useState('');
   const [offline, setOffline] = useState(false);
@@ -201,31 +203,33 @@ const CityPlaceSearch = ({navigation, route}) => {
     return {data: p?.data || [], cp: p?.current_page || 1, lp: p?.last_page || 1, total: p?.total || 0};
   };
 
-  const loadInitialResults = async (parentId = null, cityName = null, categoryKey = null) => {
-    setIsSearching(true);
-    pageStateRef.current = {...pageStateRef.current, isSearching: true, hasMore: false};
-    setHasSearched(true);
-    setActiveFilter(cityName ? {name: cityName, code: categoryKey || '__parent__'} : null);
-    currentSearch.current = {search: '', categoryKey: categoryKey || null, parentId: parentId || null};
-    try {
-      const payload = {search: '', apitype: 'list', global: 1, page: 1};
-      if (currentSearch.current.parentId) payload.parent_id = currentSearch.current.parentId;
-      if (currentSearch.current.categoryKey) payload.category = currentSearch.current.categoryKey;
-      const res = await comnPost('v2/sites', payload);
-      const {data, cp, lp, total} = parsePage(res);
-      setResults(data);
-      setPageItems(data);
-      setTotalCount(total);
-      pageStateRef.current = {currentPage: cp, hasMore: cp < lp, isSearching: false};
-    } catch {
-      setResults([]);
-      setPageItems([]);
-      setTotalCount(0);
-      pageStateRef.current = {currentPage: 1, hasMore: false, isSearching: false};
-    } finally {
-      setIsSearching(false);
-    }
-  };
+  // Offline mode → prompt to go online instead of searching.
+  const loadInitialResults = (parentId = null, cityName = null, categoryKey = null) =>
+    ensureOnline(async () => {
+      setIsSearching(true);
+      pageStateRef.current = {...pageStateRef.current, isSearching: true, hasMore: false};
+      setHasSearched(true);
+      setActiveFilter(cityName ? {name: cityName, code: categoryKey || '__parent__'} : null);
+      currentSearch.current = {search: '', categoryKey: categoryKey || null, parentId: parentId || null};
+      try {
+        const payload = {search: '', apitype: 'list', global: 1, page: 1};
+        if (currentSearch.current.parentId) payload.parent_id = currentSearch.current.parentId;
+        if (currentSearch.current.categoryKey) payload.category = currentSearch.current.categoryKey;
+        const res = await comnPost('v2/sites', payload);
+        const {data, cp, lp, total} = parsePage(res);
+        setResults(data);
+        setPageItems(data);
+        setTotalCount(total);
+        pageStateRef.current = {currentPage: cp, hasMore: cp < lp, isSearching: false};
+      } catch {
+        setResults([]);
+        setPageItems([]);
+        setTotalCount(0);
+        pageStateRef.current = {currentPage: 1, hasMore: false, isSearching: false};
+      } finally {
+        setIsSearching(false);
+      }
+    });
 
   const loadRecentSearches = async () => {
     try {
@@ -276,31 +280,34 @@ const CityPlaceSearch = ({navigation, route}) => {
       if (!silent) {
         setActiveFilter(categoryKey ? {name: filterLabel || categoryKey, code: categoryKey} : null);
       }
-      setIsSearching(true);
-      pageStateRef.current = {currentPage: 1, hasMore: false, isSearching: true};
-      setHasSearched(true);
-      setResults([]);
-      setSelectedPlace(null);
-      try {
-        const payload = {search: term || '', apitype: 'list', global: 1, page: 1};
-        if (categoryKey) payload.category = categoryKey;
-
-        const res = await comnPost('v2/sites', payload);
-        const {data, cp, lp, total} = parsePage(res);
-        setResults(data);
-        setPageItems(data);
-        setTotalCount(total);
-        pageStateRef.current = {currentPage: cp, hasMore: cp < lp, isSearching: false};
-      } catch {
+      // Offline mode → prompt to go online instead of hitting the search API.
+      ensureOnline(async () => {
+        setIsSearching(true);
+        pageStateRef.current = {currentPage: 1, hasMore: false, isSearching: true};
+        setHasSearched(true);
         setResults([]);
-        setPageItems([]);
-        setTotalCount(0);
-        pageStateRef.current = {currentPage: 1, hasMore: false, isSearching: false};
-      } finally {
-        setIsSearching(false);
-      }
+        setSelectedPlace(null);
+        try {
+          const payload = {search: term || '', apitype: 'list', global: 1, page: 1};
+          if (categoryKey) payload.category = categoryKey;
+
+          const res = await comnPost('v2/sites', payload);
+          const {data, cp, lp, total} = parsePage(res);
+          setResults(data);
+          setPageItems(data);
+          setTotalCount(total);
+          pageStateRef.current = {currentPage: cp, hasMore: cp < lp, isSearching: false};
+        } catch {
+          setResults([]);
+          setPageItems([]);
+          setTotalCount(0);
+          pageStateRef.current = {currentPage: 1, hasMore: false, isSearching: false};
+        } finally {
+          setIsSearching(false);
+        }
+      });
     },
-    [query],
+    [query, ensureOnline],
   );
 
   // ── Pagination ────────────────────────────────────────────────────────────
@@ -315,29 +322,32 @@ const CityPlaceSearch = ({navigation, route}) => {
       return;
     }
 
-    isLoadingMoreRef.current = true;
-    setIsLoadingMore(true);
-    const nextPage = cp + 1;
+    // Offline mode → prompt to go online before paginating.
+    ensureOnline(async () => {
+      isLoadingMoreRef.current = true;
+      setIsLoadingMore(true);
+      const nextPage = cp + 1;
 
-    try {
-      const {search, categoryKey, parentId} = currentSearch.current;
-      const payload = {search, apitype: 'list', global: 1, page: nextPage};
-      if (categoryKey) payload.category = categoryKey;
-      if (parentId) payload.parent_id = parentId;
+      try {
+        const {search, categoryKey, parentId} = currentSearch.current;
+        const payload = {search, apitype: 'list', global: 1, page: nextPage};
+        if (categoryKey) payload.category = categoryKey;
+        if (parentId) payload.parent_id = parentId;
 
-      const res = await comnPost('v2/sites', payload);
-      const {data, cp: newCp, lp} = parsePage(res);
-      console.log('loadMore API success - loaded', data.length, 'items');
+        const res = await comnPost('v2/sites', payload);
+        const {data, cp: newCp, lp} = parsePage(res);
+        console.log('loadMore API success - loaded', data.length, 'items');
 
-      setResults(prev => [...prev, ...data]);
-      pageStateRef.current = {currentPage: newCp, hasMore: newCp < lp, isSearching: false};
-    } catch (err) {
-      console.log('loadMore API error:', err.message);
-    } finally {
-      isLoadingMoreRef.current = false;
-      setIsLoadingMore(false);
-    }
-  }, []); // Empty deps — function never recreates, pageStateRef provides current values
+        setResults(prev => [...prev, ...data]);
+        pageStateRef.current = {currentPage: newCp, hasMore: newCp < lp, isSearching: false};
+      } catch (err) {
+        console.log('loadMore API error:', err.message);
+      } finally {
+        isLoadingMoreRef.current = false;
+        setIsLoadingMore(false);
+      }
+    });
+  }, [ensureOnline]); // pageStateRef provides current values
 
   const clearSearch = () => {
     setQuery('');
@@ -820,6 +830,7 @@ const CityPlaceSearch = ({navigation, route}) => {
         />
       )}
       {guestModal}
+      {connectivityModal}
     </View>
   );
 };

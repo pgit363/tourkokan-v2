@@ -19,6 +19,7 @@ import {SafeAreaView} from 'react-native-safe-area-context';
 import {Image} from '@rneui/themed';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {isGuestUser, isVendorUser} from '../Components/Common/GuestGateModal';
+import {useConnectivityGate} from '../Components/Common/useConnectivityGate';
 import {connect} from 'react-redux';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import {useTranslation} from 'react-i18next';
@@ -403,6 +404,7 @@ const ProfileView = ({navigation, ...props}) => {
   };
 
   const [isGuestPopup, setIsGuestPopup] = useState(false);
+  const {modal: connectivityModal, ensureOnline} = useConnectivityGate();
 
   // ── Vendor role state
   const [isVendor, setIsVendor] = useState(false);
@@ -434,28 +436,31 @@ const ProfileView = ({navigation, ...props}) => {
 
   const handleVendorCtaTap = async () => {
     if (await isGuestUser()) { setIsGuestPopup(true); return; }
-    setVendorChecking(true);
-    try {
-      const token = await AsyncStorage.getItem(STRING.STORAGE.ACCESS_TOKEN);
-      const res = await comnGet('v2/myRoleRequests', token, null);
-      const list = res?.data?.data?.data || [];
-      const req = list.find(r => r.role?.code === 'vendor');
-      if (req?.status === 'pending') {
-        setVendorRequest(req);
-      } else {
-        setVendorRequest(req || null);
+    // Offline mode → prompt to go online before hitting vendor APIs.
+    ensureOnline(async () => {
+      setVendorChecking(true);
+      try {
+        const token = await AsyncStorage.getItem(STRING.STORAGE.ACCESS_TOKEN);
+        const res = await comnGet('v2/myRoleRequests', token, null);
+        const list = res?.data?.data?.data || [];
+        const req = list.find(r => r.role?.code === 'vendor');
+        if (req?.status === 'pending') {
+          setVendorRequest(req);
+        } else {
+          setVendorRequest(req || null);
+          setVendorSubmitMsg('');
+          setVendorRequestVisible(true);
+        }
+      } catch {
         setVendorSubmitMsg('');
         setVendorRequestVisible(true);
+      } finally {
+        setVendorChecking(false);
       }
-    } catch {
-      setVendorSubmitMsg('');
-      setVendorRequestVisible(true);
-    } finally {
-      setVendorChecking(false);
-    }
+    });
   };
 
-  const handleVendorSubmit = async () => {
+  const handleVendorSubmit = () => ensureOnline(async () => {
     setVendorSubmitting(true);
     setVendorSubmitMsg('');
     const res = await comnPost('v2/requestRole', {role_code: 'vendor', ...(vendorReason.trim() && {reason: vendorReason.trim()})}, null);
@@ -474,7 +479,7 @@ const ProfileView = ({navigation, ...props}) => {
       const msg = typeof raw === 'object' ? Object.values(raw).flat().join('\n') : (raw || t('ALERT.FAILED'));
       setVendorSubmitMsg(msg);
     }
-  };
+  });
 
   const handleGuestLogin = async () => {
     setIsGuestPopup(false);
@@ -1100,6 +1105,7 @@ const ProfileView = ({navigation, ...props}) => {
         </View>
       </Modal>
 
+      {connectivityModal}
     </SafeAreaView>
   );
 };

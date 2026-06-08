@@ -117,13 +117,14 @@ const MySubmissionsScreen = ({navigation}) => {
   const [vendorGateVisible, setVendorGateVisible] = useState(false);
   const {modal: connectivityModal, ensureOnline} = useConnectivityGate();
 
-  const handleAddSite = async () => {
-    if (await isVendorUser()) {
-      navigation.navigate(STRING.SCREEN.SUBMIT_PLACE);
-    } else {
-      setVendorGateVisible(true);
-    }
-  };
+  const handleAddSite = () =>
+    ensureOnline(async () => {
+      if (await isVendorUser()) {
+        navigation.navigate(STRING.SCREEN.SUBMIT_PLACE);
+      } else {
+        setVendorGateVisible(true);
+      }
+    });
 
   // Offline-first load: show cached sites immediately, then sync fresh data
   // only when connected AND in online mode (dataSync handles that guard).

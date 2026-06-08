@@ -281,13 +281,15 @@ const MyEvents = ({navigation}) => {
         <Text style={styles.headerTitle}>My Events</Text>
         <TouchableOpacity
           style={styles.newBtn}
-          onPress={async () => {
-            if (await isVendorUser()) {
-              navigation.navigate(STRING.SCREEN.CREATE_EVENT);
-            } else {
-              setVendorGateVisible(true);
-            }
-          }}
+          onPress={() =>
+            ensureOnline(async () => {
+              if (await isVendorUser()) {
+                navigation.navigate(STRING.SCREEN.CREATE_EVENT);
+              } else {
+                setVendorGateVisible(true);
+              }
+            })
+          }
           activeOpacity={0.8}>
           <Ionicons name="add" size={20} color={C.white} />
           <Text style={styles.newBtnText}>New</Text>

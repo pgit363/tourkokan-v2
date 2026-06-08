@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Adaptive-icon foreground. The launcher logo nearly fills its square, so we
+  inset it ~22% to keep it inside the 72dp adaptive safe zone (otherwise the
+  circular/squircle mask on the tablet / iQOO crops the palm trees & text).
+-->
+<inset xmlns:android="http://schemas.android.com/apk/res/android"
+    android:drawable="@mipmap/ic_launcher_fg"
+    android:inset="22%" />

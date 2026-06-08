@@ -14,7 +14,7 @@ import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import LinearGradient from 'react-native-linear-gradient';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import {backPage} from '../Services/CommonMethods';
-import {comnPost} from '../Services/Api/CommonServices';
+import {comnPost, getFromStorage} from '../Services/Api/CommonServices';
 import STRING from '../Services/Constants/STRINGS';
 
 const {width: SW} = Dimensions.get('window');
@@ -96,7 +96,14 @@ const InboxScreen = ({navigation}) => {
   const [readingId, setReadingId] = useState(null);
   const [expandedId, setExpandedId] = useState(null);
 
-  const fetchMessages = useCallback(() => {
+  const fetchMessages = useCallback(async () => {
+    // Restrict the API call in offline mode (the bell already gates entry; this
+    // is a safety net so myMessages never fires when mode is offline).
+    const storedMode = JSON.parse((await getFromStorage(STRING.STORAGE.MODE)) ?? 'true');
+    if (!storedMode) {
+      setLoading(false);
+      return;
+    }
     setLoading(true);
     comnPost('v2/myMessages', {per_page: 50})
       .then(res => {

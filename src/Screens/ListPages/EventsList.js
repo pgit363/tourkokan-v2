@@ -25,6 +25,7 @@ import CachedImage from '../../Components/Customs/CachedImage';
 import {useTranslation} from 'react-i18next';
 import {backPage} from '../../Services/CommonMethods';
 import {comnPost} from '../../Services/Api/CommonServices';
+import {useConnectivityGate} from '../../Components/Common/useConnectivityGate';
 import STRING from '../../Services/Constants/STRINGS';
 
 const C = {
@@ -258,6 +259,7 @@ const EventsList = ({navigation, route}) => {
   const [refreshing,  setRefreshing]  = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
   const [offline,     setOffline]     = useState(false);
+  const {modal: connectivityModal, ensureOnline} = useConnectivityGate();
 
   // ── Search + filter state ──
   const [search,         setSearch]         = useState('');
@@ -351,13 +353,13 @@ const EventsList = ({navigation, route}) => {
 
   useFocusEffect(
     useCallback(() => {
-      if (offline) return;
       if (isTab || !initialFetch.current) {
         initialFetch.current = true;
-        fetchEvents(1, search, filters);
+        // Offline mode (with internet available) → prompt to go online.
+        ensureOnline(() => fetchEvents(1, search, filters));
       }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [fetchEvents, offline, isTab]),
+    }, [fetchEvents, ensureOnline, isTab]),
   );
 
   // ── Search debounce ──
@@ -403,10 +405,10 @@ const EventsList = ({navigation, route}) => {
     fetchEvents(1, search, next);
   };
 
-  const onRefresh = () => fetchEvents(1, search, filters, true);
+  const onRefresh = () => ensureOnline(() => fetchEvents(1, search, filters, true));
   const onEndReached = () => {
     if (!loadingMoreRef.current && lastPageRef.current && pageRef.current < lastPageRef.current) {
-      fetchEvents(pageRef.current + 1, search, filters);
+      ensureOnline(() => fetchEvents(pageRef.current + 1, search, filters));
     }
   };
 
@@ -714,6 +716,7 @@ const EventsList = ({navigation, route}) => {
 
         </View>
       </Modal>
+      {connectivityModal}
     </View>
   );
 };

@@ -63,6 +63,7 @@ import {
 } from '../Reducers/CommonActions';
 import {exitApp, navigateTo} from '../Services/CommonMethods';
 import {useConnectivityGate} from '../Components/Common/useConnectivityGate';
+import {useResponsive} from '../Services/responsive';
 import {UpdateContext} from '../Context/UpdateContext';
 import HotPlaces from '../Components/Sections/HotPlaces';
 import STRING from '../Services/Constants/STRINGS';
@@ -94,7 +95,7 @@ const RADIUS = 18;
 // ─── Sub-components ────────────────────────────────────────────────────────────
 
 // Taluka card (glassmorphism)
-const TalukaCard = ({item, onPress}) => {
+const TalukaCard = ({item, onPress, cardWidth, imgHeight}) => {
   const fallback = require('../Assets/Images/no-image.png');
   const uri = item.image
     ? `${AWS_URL}${item.image}`
@@ -104,8 +105,11 @@ const TalukaCard = ({item, onPress}) => {
   console.log('[TalukaCard img]', item.name, uri);
 
   return (
-    <TouchableOpacity style={ts.talukaCard} onPress={onPress} activeOpacity={0.85}>
-      <View style={ts.talukaImgWrap}>
+    <TouchableOpacity
+      style={[ts.talukaCard, cardWidth && {width: cardWidth}]}
+      onPress={onPress}
+      activeOpacity={0.85}>
+      <View style={[ts.talukaImgWrap, imgHeight && {height: imgHeight}]}>
         <CachedImage
           source={uri ? {uri} : fallback}
           style={ts.talukaImg}
@@ -225,6 +229,16 @@ const HomeScreen = ({navigation, route, ...props}) => {
   const [mode, setMode] = useState(true);
   const [unreadCount, setUnreadCount] = useState(0);
   const {modal: connectivityModal, ensureOnline} = useConnectivityGate();
+  const {isTablet, width: rWidth, contentWidth} = useResponsive();
+  // Hero: keep phone ratio on phones; cap height on tablets so it isn't a
+  // ~600dp stretched/cropped band.
+  const heroHeight = isTablet
+    ? Math.min(Math.round(rWidth / 2.4), 380)
+    : BANNER_HEIGHT;
+  // Bigger horizontal cards on tablet (keeps the carousel layout), sized
+  // proportionally to the usable content width like the ad banner.
+  const cardWidth = isTablet ? Math.round(contentWidth * 0.34) : 180;
+  const cardImgH = Math.round(cardWidth * 0.66);
 
   const [state, dispatch] = useReducer(
     (prevState, action) => {
@@ -475,7 +489,10 @@ const HomeScreen = ({navigation, route, ...props}) => {
   useFocusEffect(
     useCallback(() => {
       if (!mode || offline) return;
-      const fetchCount = () => {
+      const fetchCount = async () => {
+        // Respect offline mode even if local state lags (read storage fresh).
+        const storedMode = JSON.parse((await getFromStorage(t('STORAGE.MODE'))) ?? 'true');
+        if (!storedMode) return;
         comnPost('v2/unreadMessageCount')
           .then(res => {
             const d = res?.data?.data;
@@ -670,12 +687,12 @@ const HomeScreen = ({navigation, route, ...props}) => {
   const listHeader = useMemo(() => (
     <>
       {/* ── BANNER ── */}
-      <View style={[s.bannerWrap, {height: BANNER_HEIGHT}]}>
+      <View style={[s.bannerWrap, {height: heroHeight}]}>
         {bannerObject?.HOME_HERO?.length > 0 ? (
           <Banner
             bannerImages={bannerObject.HOME_HERO}
             width={DIMENSIONS.screenWidth}
-            style={{height: BANNER_HEIGHT}}
+            style={{height: heroHeight}}
           />
         ) : (
           <Banner
@@ -685,7 +702,7 @@ const HomeScreen = ({navigation, route, ...props}) => {
               {id: 3, image: 'https://c4.wallpaperflare.com/wallpaper/977/138/381/tbilisi-georgia-wallpaper-preview.jpg'},
             ]}
             width={DIMENSIONS.screenWidth}
-            style={{height: BANNER_HEIGHT}}
+            style={{height: heroHeight}}
           />
         )}
       </View>
@@ -709,7 +726,12 @@ const HomeScreen = ({navigation, route, ...props}) => {
           data={sortedCities}
           keyExtractor={(item, i) => `${item.id}_${i}`}
           renderItem={({item}) => (
-            <TalukaCard item={item} onPress={() => getSiteDetails(item)} />
+            <TalukaCard
+              item={item}
+              onPress={() => getSiteDetails(item)}
+              cardWidth={cardWidth}
+              imgHeight={isTablet ? cardImgH : undefined}
+            />
           )}
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={s.talukasList}
@@ -718,26 +740,27 @@ const HomeScreen = ({navigation, route, ...props}) => {
       </View>
 
       {/* ── BUS TIMETABLE CARD ── */}
+      <Text style={s.sectionTitle}>{t('HOME.BUS_SECTION')}</Text>
       <View style={s.sectionPad}>
         <TouchableOpacity
           activeOpacity={0.85}
-          onPress={() => navigateTo(navigation, STRING.SCREEN.BUS_ROUTE_LIST)}
+          onPress={() => ensureOnline(() => navigateTo(navigation, STRING.SCREEN.BUS_ROUTE_LIST))}
           style={s.busCardWrap}>
           <LinearGradient
             colors={['rgba(196,151,42,0.9)', 'rgba(107,66,38,0.9)']}
             start={{x: 0, y: 0}}
             end={{x: 1, y: 1}}
-            style={s.busCard}>
+            style={[s.busCard, isTablet && {padding: 28}]}>
             <Image
               source={require('../Assets/Images/Bus1_png_high.png')}
-              style={s.busIcon}
+              style={[s.busIcon, isTablet && {width: 68, height: 68}]}
               resizeMode="contain"
             />
             <View style={s.busInfo}>
-              <Text style={s.busTitle}>{t('HOME.BUS_TITLE')}</Text>
-              <Text style={s.busSubtitle}>{t('HOME.BUS_SUBTITLE')}</Text>
+              <Text style={[s.busTitle, isTablet && {fontSize: 21}]}>{t('HOME.BUS_TITLE')}</Text>
+              <Text style={[s.busSubtitle, isTablet && {fontSize: 14}]}>{t('HOME.BUS_SUBTITLE')}</Text>
             </View>
-            <Ionicons name="arrow-forward" size={22} color="rgba(255,255,255,0.7)" />
+            <Ionicons name="arrow-forward" size={isTablet ? 26 : 22} color="rgba(255,255,255,0.7)" />
           </LinearGradient>
         </TouchableOpacity>
       </View>
@@ -760,22 +783,23 @@ const HomeScreen = ({navigation, route, ...props}) => {
       />
 
       {/* ── EVENTS ── */}
+      <Text style={s.sectionTitle}>{t('HOME.EVENTS_SECTION')}</Text>
       <View style={s.section}>
         <TouchableOpacity
-          style={s.eventsBanner}
-          onPress={() => navigation.navigate(STRING.SCREEN.EVENTS_LIST)}
+          style={[s.eventsBanner, isTablet && {padding: 28}]}
+          onPress={() => ensureOnline(() => navigation.navigate(STRING.SCREEN.EVENTS_LIST))}
           activeOpacity={0.85}>
-          <Ionicons name="calendar" size={28} color="#FFFFFF" />
+          <Ionicons name="calendar" size={isTablet ? 34 : 28} color="#FFFFFF" />
           <View style={{flex: 1}}>
-            <Text style={s.eventsBannerTitle}>Upcoming Events</Text>
-            <Text style={s.eventsBannerSub}>Festivals, meets & more across Kokan</Text>
+            <Text style={[s.eventsBannerTitle, isTablet && {fontSize: 21}]}>{t('HOME.EVENTS_TITLE')}</Text>
+            <Text style={[s.eventsBannerSub, isTablet && {fontSize: 14}]}>{t('HOME.EVENTS_SUBTITLE')}</Text>
           </View>
-          <Ionicons name="arrow-forward-circle" size={26} color="rgba(255,255,255,0.8)" />
+          <Ionicons name="arrow-forward-circle" size={isTablet ? 32 : 26} color="rgba(255,255,255,0.8)" />
         </TouchableOpacity>
       </View>
     </>
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  ), [bannerObject, cities, trending, hot_sites, offline, navigation]);
+  ), [bannerObject, cities, trending, hot_sites, offline, navigation, isTablet, rWidth, heroHeight, cardWidth, cardImgH, ensureOnline]);
 
   const listFooter = useMemo(() => (
     <View style={[s.sectionPad, {paddingBottom: 100}]}>
@@ -849,6 +873,7 @@ const HomeScreen = ({navigation, route, ...props}) => {
           extraHeight={DIMENSIONS.halfHeight}
           enableOnAndroid
           style={s.scroll}
+          contentContainerStyle={isTablet ? {width: '100%', maxWidth: contentWidth, alignSelf: 'center'} : undefined}
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
           ListHeaderComponent={listHeader}
           ListFooterComponent={listFooter}

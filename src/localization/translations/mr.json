@@ -582,8 +582,12 @@
   "HOME": {
     "SEARCH_PLACEHOLDER": "समुद्र किनारे, किल्ले, खाद्य शोधा...",
     "EXPLORE_TALUKAS": "तालुके शोधा",
+    "BUS_SECTION": "स्थानिक प्रवास",
     "BUS_TITLE": "स्थानिक बस वेळापत्रक तपासा",
     "BUS_SUBTITLE": "MSRTC मार्ग आणि वेळ शोधा",
+    "EVENTS_SECTION": "कार्यक्रम",
+    "EVENTS_TITLE": "आगामी कार्यक्रम",
+    "EVENTS_SUBTITLE": "कोकणातील सण, मेळावे आणि बरेच काही",
     "POPULAR_SPOTS": "लोकप्रिय ठिकाणे",
     "NEARBY": "जवळची ठिकाणे",
     "AD_LABEL": "प्रीमियम जाहिरात",

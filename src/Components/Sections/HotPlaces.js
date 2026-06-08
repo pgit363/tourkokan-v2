@@ -2,6 +2,7 @@ import React from 'react';
 import {View, Text, FlatList, StyleSheet} from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import {TrendingCard} from './PopularSpots';
+import {useResponsive} from '../../Services/responsive';
 
 const C = {
   amberDeep: '#92400E',
@@ -18,6 +19,11 @@ const C = {
  *   title       {string}   — optional section heading (default "Hot Places")
  */
 const HotPlaces = ({hot_sites = [], onCardPress, title = 'Hot Places'}) => {
+  const {isTablet, contentWidth} = useResponsive();
+  // Bigger cards on tablet, proportional to usable width (like the ad banner).
+  const cardWidth = isTablet ? Math.round(contentWidth * 0.4) : undefined;
+  const imgHeight = cardWidth ? Math.round(cardWidth * 0.7) : undefined;
+
   if (!hot_sites?.length) return null;
 
   return (
@@ -40,7 +46,12 @@ const HotPlaces = ({hot_sites = [], onCardPress, title = 'Hot Places'}) => {
         data={hot_sites}
         keyExtractor={(item, i) => `hot_${item.id}_${i}`}
         renderItem={({item}) => (
-          <TrendingCard item={item} onPress={() => onCardPress?.(item)} />
+          <TrendingCard
+            item={item}
+            onPress={() => onCardPress?.(item)}
+            cardWidth={cardWidth}
+            imgHeight={imgHeight}
+          />
         )}
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={s.list}

@@ -817,10 +817,12 @@ const SiteDetailPage = ({navigation, route}) => {
           </View>
           <TouchableOpacity
             onPress={() =>
-              navigateTo(navigation, t('SCREEN.CITY_PLACE_SEARCH'), {
-                initialParentId: city.id,
-                initialCityName: city.name,
-              })
+              ensureOnline(() =>
+                navigateTo(navigation, t('SCREEN.CITY_PLACE_SEARCH'), {
+                  initialParentId: city.id,
+                  initialCityName: city.name,
+                }),
+              )
             }
             style={st.seeMoreBtn}
             hitSlop={{top: 8, bottom: 8, left: 8, right: 8}}>
@@ -951,11 +953,6 @@ const SiteDetailPage = ({navigation, route}) => {
               <View style={st.sectionTitleDot} />
               <Text style={st.sectionTitle}>Events</Text>
             </View>
-            <TouchableOpacity
-              onPress={() => navigation.navigate(STRING.SCREEN.EVENTS_LIST, {site_id: city.id})}
-              hitSlop={{top: 8, bottom: 8, left: 8, right: 8}}>
-              <Text style={{fontSize: 13, color: C.oceanMid, fontWeight: '600'}}>See All</Text>
-            </TouchableOpacity>
           </View>
           <TouchableOpacity
             style={[st.eventsBanner, {marginHorizontal: 20}]}

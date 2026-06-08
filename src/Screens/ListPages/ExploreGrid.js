@@ -33,6 +33,7 @@ import {
 import {setDestination, setLoader, setSource} from '../../Reducers/CommonActions';
 import {checkLogin, goBackHandler} from '../../Services/CommonMethods';
 import Popup from '../../Components/Common/Popup';
+import {useConnectivityGate} from '../../Components/Common/useConnectivityGate';
 import {useGuestGate, isGuestUser} from '../../Components/Common/GuestGateModal';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
@@ -110,6 +111,7 @@ const ExploreGrid = ({route, navigation, ...props}) => {
   const {t} = useTranslation();
   const insets = useSafeAreaInsets();
   const {show: showGuestPopup, modal: guestModal} = useGuestGate(navigation);
+  const {modal: connectivityModal, ensureOnline} = useConnectivityGate();
   const [gallery, setGallery] = useState([]);
   const [offline, setOffline] = useState(false);
   const [searchValue, setSearchValue] = useState('');
@@ -207,7 +209,8 @@ const ExploreGrid = ({route, navigation, ...props}) => {
         showGuestPopup('Login to explore more gallery photos beyond page 2.');
         return;
       }
-      fetchData(nextPage);
+      // Offline mode → prompt to go online before paginating.
+      ensureOnline(() => fetchData(nextPage));
     }
   };
 
@@ -371,6 +374,7 @@ const ExploreGrid = ({route, navigation, ...props}) => {
 
       <Popup message={alertMessage} onPress={() => setIsAlert(false)} visible={isAlert} />
       {guestModal}
+      {connectivityModal}
     </View>
   );
 };

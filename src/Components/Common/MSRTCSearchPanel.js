@@ -14,6 +14,7 @@ import {setSource, setDestination, setLoader} from '../../Reducers/CommonActions
 import {navigateTo} from '../../Services/CommonMethods';
 import STRING from '../../Services/Constants/STRINGS';
 import {useGuestGate, isGuestUser, GUEST_KEYS, incrementGuestCount} from './GuestGateModal';
+import {useConnectivityGate} from './useConnectivityGate';
 
 // ─── Design tokens ────────────────────────────────────────────────────────────
 
@@ -35,6 +36,7 @@ const C = {
 const MSRTCSearchPanel = ({navigation, ...props}) => {
   const {t} = useTranslation();
   const {show: showGuestPopup, modal: guestModal} = useGuestGate(navigation);
+  const {modal: connectivityModal, ensureOnline} = useConnectivityGate();
   const [errorText, setErrorText] = useState('');
 
   // Sync Redux state when returning from SearchPlace screen
@@ -49,19 +51,22 @@ const MSRTCSearchPanel = ({navigation, ...props}) => {
   const isValid = !!(props.source?.id && props.destination?.id);
   const canSwap = !!(srcName || destName);
 
-  const pressedSource = () => {
-    navigateTo(navigation, t('SCREEN.SEARCH_PLACE'), {
-      type: STRING.LABEL.SOURCE,
-      from: t('SCREEN.ROUTES'),
-    });
-  };
+  // Routes need live data → gate source/destination pickers + search by mode.
+  const pressedSource = () =>
+    ensureOnline(() =>
+      navigateTo(navigation, t('SCREEN.SEARCH_PLACE'), {
+        type: STRING.LABEL.SOURCE,
+        from: t('SCREEN.ROUTES'),
+      }),
+    );
 
-  const pressedDest = () => {
-    navigateTo(navigation, t('SCREEN.SEARCH_PLACE'), {
-      type: STRING.LABEL.DESTINATION,
-      from: t('SCREEN.ROUTES'),
-    });
-  };
+  const pressedDest = () =>
+    ensureOnline(() =>
+      navigateTo(navigation, t('SCREEN.SEARCH_PLACE'), {
+        type: STRING.LABEL.DESTINATION,
+        from: t('SCREEN.ROUTES'),
+      }),
+    );
 
   const swap = () => {
     const a = props.source;
@@ -88,10 +93,13 @@ const MSRTCSearchPanel = ({navigation, ...props}) => {
       return;
     }
     setErrorText('');
-    navigateTo(navigation, t('SCREEN.ALL_ROUTES_SEARCH'), {
-      source: props.source,
-      destination: props.destination,
-    });
+    // Offline mode → prompt to go online before searching routes.
+    ensureOnline(() =>
+      navigateTo(navigation, t('SCREEN.ALL_ROUTES_SEARCH'), {
+        source: props.source,
+        destination: props.destination,
+      }),
+    );
   };
 
   return (
@@ -191,6 +199,7 @@ const MSRTCSearchPanel = ({navigation, ...props}) => {
       </TouchableOpacity>
 
       {guestModal}
+      {connectivityModal}
     </View>
   );
 };

@@ -16,7 +16,7 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import {useTranslation} from 'react-i18next';
 import {comnPost, getFromStorage, saveToStorage} from '../../Services/Api/CommonServices';
 import {backPage, checkLogin, goBackHandler, navigateTo} from '../../Services/CommonMethods';
-import {useRoutesOfflineGate} from '../../Components/Common/RoutesOfflineGate';
+import {useConnectivityGate} from '../../Components/Common/useConnectivityGate';
 
 const BUS_IMAGES = {
   shivshahi: require('../../Assets/Images/Buses/Shivshahi.png'),
@@ -58,7 +58,7 @@ const getBadgeColor = (metaData = '') => {
 const BusRouteList = ({navigation}) => {
   const {t} = useTranslation();
   const insets = useSafeAreaInsets();
-  const {modal: offlineModal} = useRoutesOfflineGate();
+  const {modal: connectivityModal, ensureOnline} = useConnectivityGate();
 
   const [list, setList] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -98,20 +98,24 @@ const BusRouteList = ({navigation}) => {
       } catch {}
     }
 
-    await fetchRoutes(false);
+    // Routes need live data — gate the network fetch by mode/connectivity.
+    // (Cached routes above are still shown; offline → "Go Online" popup.)
+    ensureOnline(async () => {
+      await fetchRoutes(false);
 
-    setTimeout(() => {
-      if (
-        !autoLoadedRef.current &&
-        lastPageRef.current !== null &&
-        lastPageRef.current > 1 &&
-        isMounted.current &&
-        !isLoadingMoreRef.current
-      ) {
-        autoLoadedRef.current = true;
-        fetchRoutes(true);
-      }
-    }, 50);
+      setTimeout(() => {
+        if (
+          !autoLoadedRef.current &&
+          lastPageRef.current !== null &&
+          lastPageRef.current > 1 &&
+          isMounted.current &&
+          !isLoadingMoreRef.current
+        ) {
+          autoLoadedRef.current = true;
+          fetchRoutes(true);
+        }
+      }, 50);
+    });
   };
 
   const fetchRoutes = async (loadMore = false) => {
@@ -164,7 +168,8 @@ const BusRouteList = ({navigation}) => {
       lastPageRef.current &&
       currentPageRef.current < lastPageRef.current
     ) {
-      fetchRoutes(true);
+      // Offline mode → prompt to go online before loading the next page.
+      ensureOnline(() => fetchRoutes(true));
     }
   };
 
@@ -276,7 +281,7 @@ const BusRouteList = ({navigation}) => {
         contentContainerStyle={s.listContent}
         showsVerticalScrollIndicator={false}
       />
-      {offlineModal}
+      {connectivityModal}
     </View>
   );
 };
