@@ -17,6 +17,9 @@ import {useTranslation} from 'react-i18next';
 import {comnPost, getFromStorage, saveToStorage} from '../../Services/Api/CommonServices';
 import {backPage, checkLogin, goBackHandler, navigateTo} from '../../Services/CommonMethods';
 import {useConnectivityGate} from '../../Components/Common/useConnectivityGate';
+import {createLogger} from '../../Services/Logger';
+
+const log = createLogger('BusRouteList');
 
 const BUS_IMAGES = {
   shivshahi: require('../../Assets/Images/Buses/Shivshahi.png'),
@@ -95,7 +98,7 @@ const BusRouteList = ({navigation}) => {
           lastPageRef.current = paginatedData?.last_page ?? null;
           setIsLoading(false);
         }
-      } catch (e) { console.warn("[caught]", e); }
+      } catch (e) { log.warn("[caught]", e); }
     }
 
     // Routes need live data — gate the network fetch by mode/connectivity.
@@ -152,7 +155,7 @@ const BusRouteList = ({navigation}) => {
         currentPageRef.current = current;
         lastPageRef.current = last;
       }
-    } catch (e) { console.warn("[caught]", e); }
+    } catch (e) { log.warn("[caught]", e); }
     finally {
       if (isMounted.current) {
         setIsLoading(false);

@@ -36,6 +36,9 @@ import {checkLogin, goBackHandler} from '../../Services/CommonMethods';
 import Popup from '../../Components/Common/Popup';
 import {useConnectivityGate} from '../../Components/Common/useConnectivityGate';
 import {useGuestGate, isGuestUser} from '../../Components/Common/GuestGateModal';
+import {createLogger} from '../../Services/Logger';
+
+const log = createLogger('ExploreGrid');
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -151,7 +154,7 @@ const ExploreGrid = ({route, navigation, ...props}) => {
         if (resp && typeof resp === 'string') {
           try {
             setGallery(JSON.parse(resp));
-          } catch (e) { console.warn("[caught]", e); }
+          } catch (e) { log.warn("[caught]", e); }
         }
         props.setLoader(false);
         setLoading(false);

@@ -26,6 +26,9 @@ import {backPage} from '../Services/CommonMethods';
 import STRING from '../Services/Constants/STRINGS';
 import UpdatePopup from '../Components/Common/UpdatePopup';
 import ModePopup from '../Components/Common/ModePopup';
+import {createLogger} from '../Services/Logger';
+
+const log = createLogger('Settings');
 
 // ─── Design tokens ─────────────────────────────────────────────────────────────
 
@@ -164,7 +167,7 @@ const Settings = ({navigation, mode, setMode: reduxSetMode}) => {
       await comnPost('v2/updateProfile', {language: lang});
       await AsyncStorage.setItem('isUpdated', 'true');
     } catch (err) {
-      console.log('Language API Error:', err);
+      log.debug('Language API Error:', err);
     }
 
     i18n.changeLanguage(lang);
@@ -206,7 +209,7 @@ const Settings = ({navigation, mode, setMode: reduxSetMode}) => {
         setUpdatePopup({visible: true, type: 'uptodate', storeUrl: null});
       }
     } catch (error) {
-      console.log(error);
+      log.debug(error);
     }
   };
 

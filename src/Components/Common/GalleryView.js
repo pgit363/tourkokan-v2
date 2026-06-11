@@ -5,6 +5,9 @@ import * as Progress from 'react-native-progress';
 import ImageViewing from 'react-native-image-viewing';
 import styles from './Styles';
 import {AWS_URL} from '@env';
+import {createLogger} from '../../Services/Logger';
+
+const log = createLogger('GalleryView');
 
 const ImageViewer = ({images}) => {
   const [selectedImage, setSelectedImage] = useState(images[0]);
@@ -31,7 +34,7 @@ const ImageViewer = ({images}) => {
             unfilledColor: 'rgba(200, 200, 200, 0.2)',
           }}
           resizeMode="cover"
-          onError={error => console.error('Thumbnail image load error:', error)}
+          onError={error => log.error('Thumbnail image load error:', error)}
         />
       </TouchableOpacity>
     );
@@ -50,7 +53,7 @@ const ImageViewer = ({images}) => {
           unfilledColor: 'rgba(200, 200, 200, 0.2)',
         }}
         resizeMode="contain"
-        onError={error => console.error('Main image load error:', error)}
+        onError={error => log.error('Main image load error:', error)}
       />
       <View style={styles.thumbnailView}>
         <FlatList

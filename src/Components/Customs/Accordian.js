@@ -8,6 +8,9 @@ import DIMENSIONS from '../../Services/Constants/DIMENSIONS';
 import SubCatCard from '../Cards/SubCatCard';
 import {navigateTo} from '../../Services/CommonMethods';
 import {useTranslation} from 'react-i18next';
+import {createLogger} from '../../Services/Logger';
+
+const log = createLogger('Accordian');
 
 const Accordion = ({data, navigation}) => {
   const {t} = useTranslation();
@@ -27,7 +30,7 @@ const Accordion = ({data, navigation}) => {
   useEffect(() => {
     data.forEach((item) => {
       if (item.icon && typeof item.icon === 'string' && item.icon !== '0') {
-        console.log('Icon:', item.icon); // Log only once per item
+        log.debug('Icon:', item.icon); // Log only once per item
       }
     });
   }, [data]);

@@ -35,6 +35,9 @@ import {
 } from '../../Services/CommonMethods';
 import Banner from '../../Components/Customs/Banner';
 import {useRoutesOfflineGate} from '../../Components/Common/RoutesOfflineGate';
+import {createLogger} from '../../Services/Logger';
+
+const log = createLogger('AllRoutesSearch');
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -292,7 +295,7 @@ const AllRoutesSearch = ({navigation, route, ...props}) => {
             setIsLoading(false);
             cacheLoaded = true;
           }
-        } catch (e) { console.warn("[caught]", e); }
+        } catch (e) { log.warn("[caught]", e); }
       }
 
       // Fetch fresh from API
@@ -332,7 +335,7 @@ const AllRoutesSearch = ({navigation, route, ...props}) => {
         const parsed = JSON.parse(raw);
         if (parsed?.banners && isMounted.current) setBannerObject(parsed.banners);
       }
-    } catch (e) { console.warn("[caught]", e); }
+    } catch (e) { log.warn("[caught]", e); }
   };
 
   // ── API ────────────────────────────────────────────────────────────────────
@@ -393,7 +396,7 @@ const AllRoutesSearch = ({navigation, route, ...props}) => {
                 RECENT_KEY,
                 JSON.stringify([entry, ...filtered].slice(0, MAX_RECENT)),
               );
-            } catch (e) { console.warn("[caught]", e); }
+            } catch (e) { log.warn("[caught]", e); }
           }
         }
         setCurrentPage(current);
@@ -414,7 +417,7 @@ const AllRoutesSearch = ({navigation, route, ...props}) => {
               setIsOffline(true);
             }
           }
-        } catch (e) { console.warn("[caught]", e); }
+        } catch (e) { log.warn("[caught]", e); }
       }
     } finally {
       if (isMounted.current) {

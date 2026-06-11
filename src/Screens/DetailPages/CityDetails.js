@@ -55,6 +55,9 @@ import Banner from '../../Components/Customs/Banner';
 import STRING from '../../Services/Constants/STRINGS';
 import HotPlaces from '../../Components/Sections/HotPlaces';
 import {useConnectivityGate} from '../../Components/Common/useConnectivityGate';
+import {createLogger} from '../../Services/Logger';
+
+const log = createLogger('CityDetails');
 
 const CityDetails = ({navigation, route, offline, ...props}) => {
   const {t} = useTranslation();
@@ -208,7 +211,7 @@ const CityDetails = ({navigation, route, offline, ...props}) => {
           // getDetails()
         })
         .catch(err => {
-          console.log(err);
+          log.debug(err);
         });
     } else {
       setShowOnlineMode(true);
@@ -292,12 +295,12 @@ const CityDetails = ({navigation, route, offline, ...props}) => {
       });
 
       if (result.action === Share.sharedAction) {
-        console.log('Content shared successfully');
+        log.debug('Content shared successfully');
       } else if (result.action === Share.dismissedAction) {
-        console.log('Share dismissed');
+        log.debug('Share dismissed');
       }
     } catch (error) {
-      console.error('Error sharing content:', error.message);
+      log.error('Error sharing content:', error.message);
     }
   };
 

@@ -12,6 +12,9 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import {comnPost} from '../../Services/Api/CommonServices';
 import {useTranslation} from 'react-i18next';
 import {AWS_URL} from '@env';
+import {createLogger} from '../../Services/Logger';
+
+const log = createLogger('CityCardSmall');
 
 const CityCardSmall = ({data, reload, navigation, addComment, onClick}) => {
   const {t} = useTranslation();
@@ -53,12 +56,12 @@ const CityCardSmall = ({data, reload, navigation, addComment, onClick}) => {
       });
 
       if (result.action === Share.sharedAction) {
-        console.log('Content shared successfully');
+        log.debug('Content shared successfully');
       } else if (result.action === Share.dismissedAction) {
-        console.log('Share dismissed');
+        log.debug('Share dismissed');
       }
     } catch (error) {
-      console.error('Error sharing content:', error.message);
+      log.error('Error sharing content:', error.message);
     }
   };
 

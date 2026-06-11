@@ -29,6 +29,9 @@ import Feather from 'react-native-vector-icons/Feather';
 import {useTranslation} from 'react-i18next';
 import store from '../../../Store';
 import {setMode as setModeAction} from '../../Reducers/CommonActions';
+import {createLogger} from '../../Services/Logger';
+
+const log = createLogger('RoutesOfflineGate');
 
 // ─── Design tokens ────────────────────────────────────────────────────────────
 
@@ -169,7 +172,7 @@ export const useRoutesOfflineGate = ({mode: modeProp, onModeChange: onModeChange
   const handleModeChange = useCallback(async newMode => {
     try {
       await AsyncStorage.setItem(MODE_STORAGE_KEY, JSON.stringify(newMode));
-    } catch (e) { console.warn("[caught]", e); }
+    } catch (e) { log.warn("[caught]", e); }
     // Update Redux store (works for both connected and unconnected screens)
     store.dispatch(setModeAction(newMode));
     // Also call the prop-based setter if the screen passes one

@@ -13,6 +13,9 @@ import {useTranslation} from 'react-i18next';
 import CheckNet from '../Components/Common/CheckNet';
 import GlobalText from '../Components/Customs/Text';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
+import {createLogger} from '../Services/Logger';
+
+const log = createLogger('MapScreen');
 
 const MapScreen = ({navigation, ...props}) => {
   const {t} = useTranslation();
@@ -48,7 +51,7 @@ const MapScreen = ({navigation, ...props}) => {
             if (resp && typeof resp === 'string') {
               try {
                 setCities(JSON.parse(resp));
-              } catch (e) { console.warn('[caught]', e); }
+              } catch (e) { log.warn('[caught]', e); }
             }
           },
         );
@@ -108,7 +111,7 @@ const MapScreen = ({navigation, ...props}) => {
           }
         })
         .catch(error => {
-          console.error('Error fetching cities:', error);
+          log.error('Error fetching cities:', error);
         });
     }
   };

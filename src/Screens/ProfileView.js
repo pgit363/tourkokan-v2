@@ -40,6 +40,9 @@ import MapView, {Marker} from 'react-native-maps';
 import Clipboard from '@react-native-clipboard/clipboard';
 import CheckNet from '../Components/Common/CheckNet';
 import SkeletonBox from '../Components/Common/SkeletonBox';
+import {createLogger} from '../Services/Logger';
+
+const log = createLogger('ProfileView');
 
 // ─── Constants ─────────────────────────────────────────────────────────────────
 
@@ -369,7 +372,7 @@ const ProfileView = ({navigation, ...props}) => {
       try {
         await Share.share({message: msg});
       } catch (err) {
-        console.error('Location share error:', err);
+        log.error('Location share error:', err);
       }
     }
   };
@@ -382,7 +385,7 @@ const ProfileView = ({navigation, ...props}) => {
     try {
       // Fire API logout in background — don't block on result
       comnPost('v2/logout').catch(() => {});
-      try { await GoogleSignin.signOut(); } catch (e) { console.warn("[caught]", e); }
+      try { await GoogleSignin.signOut(); } catch (e) { log.warn("[caught]", e); }
     } finally {
       // Always clear everything regardless of API/network result
       await AsyncStorage.clear();
@@ -411,7 +414,7 @@ const ProfileView = ({navigation, ...props}) => {
         t('REFER_EARN') + `\nReferral code: ${profile.uid}`;
       await Share.share({message: shareMessage, url: deepLink});
     } catch (err) {
-      console.error('Share error:', err);
+      log.error('Share error:', err);
     }
   };
 

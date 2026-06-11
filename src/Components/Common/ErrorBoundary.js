@@ -8,6 +8,9 @@
 
 import React from 'react';
 import {View, Text, TouchableOpacity, Image, StyleSheet} from 'react-native';
+import {createLogger} from '../../Services/Logger';
+
+const log = createLogger('ErrorBoundary');
 
 class ErrorBoundary extends React.Component {
   state = {hasError: false};
@@ -17,8 +20,8 @@ class ErrorBoundary extends React.Component {
   }
 
   componentDidCatch(error, info) {
-    // Keep a console trail; hook a crash reporter (Crashlytics) here later.
-    console.error('[ErrorBoundary]', error, info?.componentStack);
+    // Keep a log trail; hook a crash reporter (Crashlytics) here later.
+    log.error(error, info?.componentStack);
   }
 
   handleReset = () => this.setState({hasError: false});

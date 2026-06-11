@@ -23,6 +23,9 @@ import COLOR from '../Services/Constants/COLORS';
 import DIMENSIONS from '../Services/Constants/DIMENSIONS';
 import STRING from '../Services/Constants/STRINGS';
 import styles from './Styles';
+import {createLogger} from '../Services/Logger';
+
+const log = createLogger('OnboardingScreen');
 
 const slides = [
   {
@@ -155,7 +158,7 @@ const OnboardingScreen = ({onComplete}) => {
             getOneTimeLocation();
           })
           .catch(error => {
-            console.error(STRING.ALERT.LOC_ERROR, error);
+            log.error(STRING.ALERT.LOC_ERROR, error);
             showAlert('Error', STRING.ALERT.LOC_FAILED, 'error');
             setIsLoading(false);
             setIsButtonDisabled(false);
@@ -183,7 +186,7 @@ const OnboardingScreen = ({onComplete}) => {
       setButtonColor(COLOR.red);
       setIsLoading(false);
       setIsButtonDisabled(false);
-      console.error('Error fetching location:', error);
+      log.error('Error fetching location:', error);
     }
   };
 

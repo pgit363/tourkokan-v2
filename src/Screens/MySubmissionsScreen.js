@@ -24,6 +24,9 @@ import {comnPost, dataSync, getFromStorage, saveToStorage} from '../Services/Api
 import {isVendorUser} from '../Components/Common/GuestGateModal';
 import {useConnectivityGate} from '../Components/Common/useConnectivityGate';
 import STRING from '../Services/Constants/STRINGS';
+import {createLogger} from '../Services/Logger';
+
+const log = createLogger('MySubmissionsScreen');
 
 // Local cache key for the user's submitted sites (offline-first load)
 const MY_SITES_CACHE = 'my_submissions_cache';
@@ -139,7 +142,7 @@ const MySubmissionsScreen = ({navigation}) => {
           setSubmissions(list);
           setLoading(false);
         }
-      } catch (e) { console.warn("[caught]", e); }
+      } catch (e) { log.warn("[caught]", e); }
     }
 
     // 2. Sync fresh data (skips the API call when offline or in offline mode).
@@ -159,7 +162,7 @@ const MySubmissionsScreen = ({navigation}) => {
         const list = JSON.parse(result);
         if (Array.isArray(list)) setSubmissions(list);
       }
-    } catch (e) { console.warn("[caught]", e); }
+    } catch (e) { log.warn("[caught]", e); }
     setLoading(false);
   }, [t]);
 
@@ -179,7 +182,7 @@ const MySubmissionsScreen = ({navigation}) => {
         const list = res?.data?.data?.data || [];
         setSubmissions(list);
         saveToStorage(MY_SITES_CACHE, JSON.stringify(list));
-      } catch (e) { console.warn("[caught]", e); }
+      } catch (e) { log.warn("[caught]", e); }
       setRefreshing(false);
     });
 

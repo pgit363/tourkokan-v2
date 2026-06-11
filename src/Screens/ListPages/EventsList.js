@@ -27,6 +27,9 @@ import {backPage} from '../../Services/CommonMethods';
 import {comnPost} from '../../Services/Api/CommonServices';
 import {useConnectivityGate} from '../../Components/Common/useConnectivityGate';
 import STRING from '../../Services/Constants/STRINGS';
+import {createLogger} from '../../Services/Logger';
+
+const log = createLogger('EventsList');
 
 const C = {
   oceanDeep: '#0D3D4A',
@@ -190,7 +193,7 @@ const EventCard = ({item, onPress}) => {
   const imgUri = item.banner_image_url
     || (item.banner_image ? `${AWS_URL}${item.banner_image}` : null)
     || (item.image ? `${AWS_URL}${item.image}` : null);
-  console.log('[EventsList img]', item.name, imgUri);
+  log.debug('[EventsList img]', item.name, imgUri);
 
   return (
     <TouchableOpacity style={s.card} onPress={onPress} activeOpacity={0.88}>
@@ -325,7 +328,7 @@ const EventsList = ({navigation, route}) => {
     if (f.end_date)   payload.end_date   = f.end_date;
 
     const myId = ++fetchIdRef.current;
-    console.log('[EventsList] POST v2/listEvents', payload);
+    log.debug('[EventsList] POST v2/listEvents', payload);
     comnPost('v2/listEvents', payload)
       .then(res => {
         if (fetchIdRef.current !== myId) return;

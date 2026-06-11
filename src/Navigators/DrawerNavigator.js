@@ -25,6 +25,9 @@ import HelpCenterScreen from '../Screens/HelpCenterScreen';
 import VersionCheck from 'react-native-version-check';
 import STRING from '../Services/Constants/STRINGS';
 import UpdatePopup from '../Components/Common/UpdatePopup';
+import {createLogger} from '../Services/Logger';
+
+const log = createLogger('DrawerNavigator');
 
 const Drawer = createDrawerNavigator();
 
@@ -58,7 +61,7 @@ const DrawerNavigator = () => {
     try {
       await Linking.openURL(url);
     } catch (err) {
-      console.error('Failed to open URL:', err);
+      log.error('Failed to open URL:', err);
     }
   };
 
@@ -71,7 +74,7 @@ const DrawerNavigator = () => {
         setUpdatePopup({visible: true, type: 'uptodate', storeUrl: null});
       }
     } catch (error) {
-      console.log(error);
+      log.debug(error);
     }
   };
 

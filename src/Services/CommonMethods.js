@@ -2,6 +2,9 @@ import {BackHandler, ToastAndroid} from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import STRING from './Constants/STRINGS';
 import {showThemedAlert} from '../Components/Common/GlobalAlert';
+import {createLogger} from './Logger';
+
+const log = createLogger('CommonMethods');
 
 let lastBackPressed = 0;
 
@@ -26,7 +29,7 @@ export const checkLogin = async navigation => {
   if (!token) {
     try {
       navigation.reset({index: 0, routes: [{name: STRING.SCREEN.EMAIL}]});
-    } catch (e) { console.warn("[caught]", e); }
+    } catch (e) { log.warn("[caught]", e); }
   }
 };
 

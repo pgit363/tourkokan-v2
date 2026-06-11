@@ -27,6 +27,9 @@ import {comnPost, comnPostForm} from '../../Services/Api/CommonServices';
 import {isGuestUser} from '../../Components/Common/GuestGateModal';
 import GuestGateModal from '../../Components/Common/GuestGateModal';
 import STRING from '../../Services/Constants/STRINGS';
+import {createLogger} from '../../Services/Logger';
+
+const log = createLogger('EventDetail');
 
 const {width: SW} = Dimensions.get('window');
 const GALLERY_SIZE = (SW - 48) / 3;
@@ -45,7 +48,7 @@ const C = {
 
 const resolveImg = (url, path) => {
   const uri = url || (path ? `${AWS_URL}${path}` : null);
-  console.log('[EventDetail img]', uri);
+  log.debug('[EventDetail img]', uri);
   return uri;
 };
 
@@ -163,7 +166,7 @@ const EventDetail = ({navigation, route}) => {
             }
           }).catch(() => {});
       }
-    } catch (e) { console.warn("[caught]", e); }
+    } catch (e) { log.warn("[caught]", e); }
   };
 
   // ── Gallery management (owner + completed) ────────────────────────────────

@@ -34,6 +34,9 @@ import STRING from '../Services/Constants/STRINGS';
 import CheckNet from '../Components/Common/CheckNet';
 import Popup from '../Components/Common/Popup';
 import ModePopup from '../Components/Common/ModePopup';
+import {createLogger} from '../Services/Logger';
+
+const log = createLogger('Profile');
 
 // ─── Design tokens ─────────────────────────────────────────────────────────────
 
@@ -215,7 +218,7 @@ const Profile = ({navigation, ...props}) => {
       }
       return null;
     } catch (err) {
-      console.error('[Profile] GET user-profile ✗ error:', err);
+      log.error('[Profile] GET user-profile ✗ error:', err);
       return null;
     }
   };
@@ -279,7 +282,7 @@ const Profile = ({navigation, ...props}) => {
         setDetectingLocation(false);
       },
       err => {
-        console.warn('Location error:', err);
+        log.warn('Location error:', err);
         setDetectingLocation(false);
         showAlert('', t('ALERT.LOCATION_SERVICES_DISABLED'), 'error');
       },
@@ -315,11 +318,11 @@ const Profile = ({navigation, ...props}) => {
     if (locationLat != null) data.latitude = locationLat;
     if (locationLng != null) data.longitude = locationLng;
 
-    console.log('[Profile] POST updateProfile → payload:', data);
+    log.debug('[Profile] POST updateProfile → payload:', data);
 
     comnPost('v2/updateProfile', data, navigation)
       .then(res => {
-        console.log('[Profile] POST updateProfile ← response:', res?.data);
+        log.debug('[Profile] POST updateProfile ← response:', res?.data);
         props.setLoader(false);
         setIsSaving(false);
 
@@ -347,7 +350,7 @@ const Profile = ({navigation, ...props}) => {
         }
       })
       .catch(err => {
-        console.error('[Profile] POST updateProfile ✗ error:', err);
+        log.error('[Profile] POST updateProfile ✗ error:', err);
         props.setLoader(false);
         setIsSaving(false);
         setAlertMessage(t('ALERT.FAILED'));

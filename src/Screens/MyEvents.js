@@ -24,6 +24,9 @@ import {isVendorUser} from '../Components/Common/GuestGateModal';
 import {useConnectivityGate} from '../Components/Common/useConnectivityGate';
 import STRING from '../Services/Constants/STRINGS';
 import {backPage} from '../Services/CommonMethods';
+import {createLogger} from '../Services/Logger';
+
+const log = createLogger('MyEvents');
 
 // Local cache key for the user's events (offline-first load)
 const MY_EVENTS_CACHE = 'my_events_cache';
@@ -165,7 +168,7 @@ const MyEvents = ({navigation}) => {
             setEvents(list);
             setLoading(false);
           }
-        } catch (e) { console.warn("[caught]", e); }
+        } catch (e) { log.warn("[caught]", e); }
       }
     }
 

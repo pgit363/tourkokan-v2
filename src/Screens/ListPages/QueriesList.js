@@ -42,6 +42,9 @@ import STRING from '../../Services/Constants/STRINGS';
 import ContactUs from '../ContactUs';
 import ModePopup from '../../Components/Common/ModePopup';
 import {setMode} from '../../Reducers/CommonActions';
+import {createLogger} from '../../Services/Logger';
+
+const log = createLogger('QueriesList');
 
 if (Platform.OS === 'android') {
   UIManager.setLayoutAnimationEnabledExperimental &&
@@ -303,7 +306,7 @@ const QueriesList = ({navigation, route, ...props}) => {
             setQueries(cached.data);
             if (cached.counts) setCounts(cached.counts);
           }
-        } catch (e) { console.warn("[caught]", e); }
+        } catch (e) { log.warn("[caught]", e); }
       } else if (result && typeof result === 'object') {
         // Online: result is the axios response from comnPost
         const resData = result?.data?.data;

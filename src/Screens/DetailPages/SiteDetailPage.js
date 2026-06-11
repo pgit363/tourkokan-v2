@@ -39,6 +39,9 @@ import BottomSheet from '../../Components/Customs/BottomSheet';
 import CommentsSheet from '../../Components/Common/CommentsSheet';
 import HotPlaces from '../../Components/Sections/HotPlaces';
 import DIMENSIONS from '../../Services/Constants/DIMENSIONS';
+import {createLogger} from '../../Services/Logger';
+
+const log = createLogger('SiteDetailPage');
 
 const {width: SW} = Dimensions.get('window');
 
@@ -216,7 +219,7 @@ const SiteDetailPage = ({navigation, route}) => {
         const parsed = JSON.parse(raw);
         if (parsed?.banners) setBannerObject(parsed.banners);
       }
-    } catch (e) { console.warn("[caught]", e); }
+    } catch (e) { log.warn("[caught]", e); }
   };
 
   const fetchFreshData = async () => {
@@ -236,7 +239,7 @@ const SiteDetailPage = ({navigation, route}) => {
         setUserRating(parseFloat(fresh.rating_avg_rate) || 0);
         await AsyncStorage.setItem(`siteDetail_${id}`, JSON.stringify(fresh));
       }
-    } catch (e) { console.warn("[caught]", e); } finally {
+    } catch (e) { log.warn("[caught]", e); } finally {
       setIsLoading(false);
     }
   };
@@ -280,7 +283,7 @@ const SiteDetailPage = ({navigation, route}) => {
       }).then(() => {
         AsyncStorage.setItem('isUpdated', 'true');
       }).catch(() => {});
-    } catch (e) { console.warn("[caught]", e); }
+    } catch (e) { log.warn("[caught]", e); }
   };
 
   // ── Star rating submit ────────────────────────────────────────────────────────
@@ -306,7 +309,7 @@ const SiteDetailPage = ({navigation, route}) => {
       }).then(() => {
         AsyncStorage.setItem('isUpdated', 'true');
       }).catch(() => {});
-    } catch (e) { console.warn("[caught]", e); }
+    } catch (e) { log.warn("[caught]", e); }
   };
 
   // ── Share ─────────────────────────────────────────────────────────────────────
@@ -317,7 +320,7 @@ const SiteDetailPage = ({navigation, route}) => {
         message: `${city.name} — ${city.tag_line || ''}\nExplore on TourKokan!`,
         title: city.name,
       });
-    } catch (e) { console.warn("[caught]", e); }
+    } catch (e) { log.warn("[caught]", e); }
   };
 
   // ── Directions ───────────────────────────────────────────────────────────────
@@ -341,7 +344,7 @@ const SiteDetailPage = ({navigation, route}) => {
     else if (item.path) uri = `${AWS_URL}${item.path}`;
     else if (item.image) uri = `${AWS_URL}${item.image}`;
     else if (item.gallery?.[0]?.path) uri = `${AWS_URL}${item.gallery[0].path}`;
-    console.log('[SiteDetail getImgUri]', uri);
+    log.debug('[SiteDetail getImgUri]', uri);
     return uri;
   }, []);
 
@@ -351,7 +354,7 @@ const SiteDetailPage = ({navigation, route}) => {
     if (gallery[activeGalleryIdx]?.path) uri = `${AWS_URL}${gallery[activeGalleryIdx].path}`;
     else if (gallery[activeGalleryIdx]?.image) uri = `${AWS_URL}${gallery[activeGalleryIdx].image}`;
     else if (city?.image) uri = `${AWS_URL}${city.image}`;
-    console.log('[SiteDetail hero img]', city?.name, uri);
+    log.debug('[SiteDetail hero img]', city?.name, uri);
     return uri;
   }, [city, activeGalleryIdx]);
 

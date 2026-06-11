@@ -8,6 +8,9 @@ import {
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import STRING from '../../Services/Constants/STRINGS';
+import {createLogger} from '../../Services/Logger';
+
+const log = createLogger('GuestGateModal');
 
 // ─── Async helpers ────────────────────────────────────────────────────────────
 
@@ -15,7 +18,7 @@ export const isGuestUser = async () => {
   try {
     const raw = await AsyncStorage.getItem('IS_GUEST');
     const val = JSON.parse(raw) === true;
-    console.log('[isGuestUser] raw =', raw, '| result =', val);
+    log.debug('[isGuestUser] raw =', raw, '| result =', val);
     return val;
   } catch {
     return false;

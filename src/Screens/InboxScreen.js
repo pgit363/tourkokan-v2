@@ -16,6 +16,9 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import {backPage} from '../Services/CommonMethods';
 import {comnPost, getFromStorage} from '../Services/Api/CommonServices';
 import STRING from '../Services/Constants/STRINGS';
+import {createLogger} from '../Services/Logger';
+
+const log = createLogger('InboxScreen');
 
 const {width: SW} = Dimensions.get('window');
 
@@ -127,7 +130,7 @@ const InboxScreen = ({navigation}) => {
         setMessages(prev =>
           prev.map(m => (m.id === item.id ? {...m, is_read: true} : m)),
         );
-      } catch (e) { console.warn("[caught]", e); }
+      } catch (e) { log.warn("[caught]", e); }
       setReadingId(null);
     }
   };

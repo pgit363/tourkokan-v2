@@ -34,6 +34,9 @@ import {
   navigateTo,
 } from '../../Services/CommonMethods';
 import ModePopup from '../../Components/Common/ModePopup';
+import {createLogger} from '../../Services/Logger';
+
+const log = createLogger('Categories');
 
 if (
   Platform.OS === 'android' &&
@@ -242,7 +245,7 @@ const Categories = ({route, navigation, ...props}) => {
         try {
           const cats = JSON.parse(localData);
           setCategories(cats);
-        } catch (e) { console.warn("[caught]", e); }
+        } catch (e) { log.warn("[caught]", e); }
         setIsLoading(false);
         props.setLoader(false);
       } else {
@@ -275,7 +278,7 @@ const Categories = ({route, navigation, ...props}) => {
             try {
               const cats = Array.isArray(res) ? res : JSON.parse(res);
               setCategories(cats);
-            } catch (e) { console.warn("[caught]", e); }
+            } catch (e) { log.warn("[caught]", e); }
           }
           setIsLoading(false);
           props.setLoader(false);
@@ -320,7 +323,7 @@ const Categories = ({route, navigation, ...props}) => {
             try {
               const cats = JSON.parse(stored);
               if (cats?.length > 0) { setCategories(cats); return; }
-            } catch (e) { console.warn("[caught]", e); }
+            } catch (e) { log.warn("[caught]", e); }
           }
           // Fallback: direct API call (e.g. rapid navigation before landing page returned)
           getCategories().then(res => {

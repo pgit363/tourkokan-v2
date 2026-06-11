@@ -40,6 +40,9 @@ import CityCardSmall from '../../Components/Cards/CityCardSmall';
 import PlaceCard from '../../Components/Cards/PlaceCard';
 import PackageCard from '../../Components/Cards/PackageCard';
 import {SafeAreaView} from 'react-native-safe-area-context';
+import {createLogger} from '../../Services/Logger';
+
+const log = createLogger('CityList');
 
 const CityList = ({navigation, route, ...props}) => {
   const {t} = useTranslation();
@@ -96,7 +99,7 @@ const CityList = ({navigation, route, ...props}) => {
           if (resp && typeof resp === 'string') {
             try {
               setCities(JSON.parse(resp));
-            } catch (e) { console.warn('[caught]', e); }
+            } catch (e) { log.warn('[caught]', e); }
           }
           setLoading(false);
           props.setLoader(false);

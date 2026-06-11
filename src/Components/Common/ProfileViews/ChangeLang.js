@@ -12,6 +12,9 @@ import ComingSoon from '../ComingSoon';
 import {connect} from 'react-redux';
 import NetInfo from '@react-native-community/netinfo';
 import Popup from '../Popup';
+import {createLogger} from '../../../Services/Logger';
+
+const log = createLogger('ChangeLang');
 
 const ChangeLang = ({refreshOption, setLoader, close, ...props}) => {
   const {t, i18n} = useTranslation();
@@ -68,7 +71,7 @@ const ChangeLang = ({refreshOption, setLoader, close, ...props}) => {
         await comnPost('v2/updateProfile', data);
         AsyncStorage.setItem('isUpdated', 'true');
       } catch (err) {
-        console.log('API Error:', err);
+        log.debug('API Error:', err);
       }
 
       setLoader(false);

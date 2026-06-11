@@ -5,6 +5,9 @@ import ProgressImage from 'react-native-image-progress';
 import * as Progress from 'react-native-progress';
 import {Linking} from 'react-native';
 import {AWS_URL} from '@env';
+import {createLogger} from '../../Services/Logger';
+
+const log = createLogger('Banner');
 
 class AnimationStyle extends Component {
   state = {
@@ -22,9 +25,9 @@ class AnimationStyle extends Component {
   onLoadError = (error) => {
     const errorMessage = error?.nativeEvent?.error;
     if (errorMessage && errorMessage.includes('404')) {
-      console.warn('⚠️ Image not found (404).');
+      log.warn('⚠️ Image not found (404).');
     } else {
-      console.warn('⚠️ Image failed to load:', errorMessage);
+      log.warn('⚠️ Image failed to load:', errorMessage);
     }
   };
 

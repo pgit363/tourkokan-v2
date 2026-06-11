@@ -5,6 +5,31 @@ import STRING from '../Constants/STRINGS';
 import NetInfo from '@react-native-community/netinfo';
 import {API_PATH} from '@env';
 import store from '../../../Store';
+import {createLogger} from '../Logger';
+
+const log = createLogger('CommonServices');
+
+// ── API tracing ────────────────────────────────────────────────────────────────
+// One interceptor pair traces every request/response/failure with timing,
+// instead of per-call logging in each comn* helper. debug-level → dev only.
+axios.interceptors.request.use(req => {
+  req.meta = {start: Date.now()};
+  log.api('→', (req.method || 'get').toUpperCase(), req.url);
+  return req;
+});
+axios.interceptors.response.use(
+  res => {
+    const ms = res.config?.meta ? `${Date.now() - res.config.meta.start}ms` : '';
+    log.api('←', res.status, (res.config?.method || '').toUpperCase(), res.config?.url, ms);
+    return res;
+  },
+  err => {
+    const cfg = err.config || {};
+    const ms = cfg.meta ? `${Date.now() - cfg.meta.start}ms` : '';
+    log.api('✗', err.response?.status ?? 'NETWORK', (cfg.method || '').toUpperCase(), cfg.url, ms, err.message);
+    return Promise.reject(err);
+  },
+);
 
 // Only the keys that belong to the authenticated user session.
 // Offline cache, language, mode and onboarding state are intentionally kept.
@@ -121,7 +146,6 @@ export const comnDel = async (url, data, navigation) => {
   const headers = {'Content-Type': 'application/json'};
   if (token) headers.Authorization = `Bearer ${token}`;
   const config = {headers};
-  console.log(myUrl);
   try {
     const res = await axios.delete(myUrl, {data, ...config});
     return res;
@@ -140,7 +164,7 @@ export const login = async () => {
     const res = await axios.post('/auth/login', data);
     return res.data.access_token;
   } catch (err) {
-    console.error('Login error: ', err);
+    log.error('Login error:', err);
     return err;
   }
 };
@@ -158,7 +182,7 @@ export const saveToStorage = async (name, data) => {
     await AsyncStorage.setItem(name, data);
     return true;
   } catch (err) {
-    console.error('Storage error: ', err);
+    log.error('Storage error:', err);
     return false;
   }
 };
@@ -167,7 +191,7 @@ export const getFromStorage = async name => {
   try {
     return await AsyncStorage.getItem(name);
   } catch (err) {
-    console.error('Get from storage error: ', err);
+    log.error('Get from storage error:', err);
     return null;
   }
 };
@@ -177,7 +201,7 @@ export const removeFromStorage = async name => {
     await AsyncStorage.removeItem(name);
     return true;
   } catch (err) {
-    console.error('Remove from storage error: ', err);
+    log.error('Remove from storage error:', err);
     return false;
   }
 };
@@ -221,7 +245,7 @@ export const dataSync = async (name, callBack = () => {}, online) => {
   const isOnline = online === null || online === undefined ? true : online;
 
   if (offline || !isOnline) {
-    console.log('name, ', name);
+    log.debug('dataSync: offline/offline-mode → serving cache for', name);
     const storedData = await getFromStorage(name);
     return storedData || offline;
   } else {
@@ -229,11 +253,11 @@ export const dataSync = async (name, callBack = () => {}, online) => {
       try {
         return await callBack();
       } catch (err) {
-        console.warn('Error in callBack execution: ', err);
+        log.warn('dataSync: callback failed:', err);
         return null;
       }
     } else {
-      console.warn('Error: callBack is not a function');
+      log.warn('dataSync: callBack is not a function');
       return null;
     }
   }

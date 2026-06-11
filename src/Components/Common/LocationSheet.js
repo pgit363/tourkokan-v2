@@ -21,6 +21,9 @@ import Geolocation from '@react-native-community/geolocation';
 import {useTranslation} from 'react-i18next';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {GOOGLE_API, GOOGLE_API_KEY} from '@env';
+import {createLogger} from '../../Services/Logger';
+
+const log = createLogger('LocationSheet');
 
 const LocationSheet = ({
   openLocationSheet,
@@ -100,7 +103,7 @@ const LocationSheet = ({
           setLocationStatus(t('PERMISSION_DENIED'));
         }
       } catch (err) {
-        console.warn(err);
+        log.warn(err);
       }
     }
   };
@@ -156,7 +159,7 @@ const LocationSheet = ({
             {enableHighAccuracy: false, timeout: 15000},
           )
           .catch(e => {});
-      } catch (e) { console.warn("[caught]", e); }
+      } catch (e) { log.warn("[caught]", e); }
     } else {
       try {
         RNAndroidLocationEnabler.promptForEnableLocationIfNeeded({
@@ -170,7 +173,7 @@ const LocationSheet = ({
             closeLocationSheet();
           });
         return true;
-      } catch (e) { console.warn("[caught]", e); }
+      } catch (e) { log.warn("[caught]", e); }
     }
   };
 

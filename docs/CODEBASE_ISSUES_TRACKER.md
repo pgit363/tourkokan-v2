@@ -87,6 +87,7 @@ full QA. Mitigated for now by T1 + T3.
 ---
 
 ## Progress log
+- **Logging ✅** (2026-06-12) Event-based global logging system — `src/Services/Logger.js` (event bus + sinks, ENV-gated console sink: dev=all, prod=warn/error). Auto-instrumented chokepoints: every screen visit (NavigationContainer in StackNavigator), every API call w/ timing (axios interceptors in CommonServices), every redux action (Store.js middleware), uncaught JS errors (index.js). `installConsoleGate()` no-ops stray console.log/info/debug in production. All `[FLOW]`/`[GATE]` logs migrated to `log.flow()` (dev-only). Conventions: `docs/LOGGING.md`.
 - **T9 ✅** (2026-06-11) Hero banners now `cover` (proportional fill + crop) instead of `stretch`; onboarding intro art now `contain` (its edge labels must survive). Explicit `resizeMode` props still win.
 - **T8 ✅** NetInfo-fetch sweep (2026-06-11). Pattern applied: track `wasConnected` inside the effect; on each NetInfo event compute `changed = wasConnected !== connected`; skip fetch unless first event or genuine reconnect; clear loaders and bail when offline. Fixed: ExploreGrid, MapScreen, ProfileView, Categories, CityList, QueriesList (details in checklist). Side fixes: ExploreGrid passed an invoked promise instead of a callback to `dataSync`; MapScreen hardcoded `setOffline(false)` and could `JSON.parse` a non-string; CityList double-fetched on mount via the `route.params` effect.
 - **T1 ✅** Added `ErrorBoundary` (logs to console; hook Crashlytics later) wrapping both render branches in `App.js`.

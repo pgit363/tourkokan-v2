@@ -33,6 +33,9 @@ import Feather from 'react-native-vector-icons/Feather';
 import {CommonActions} from '@react-navigation/native';
 import {useTranslation} from 'react-i18next';
 import STRING from '../../Services/Constants/STRINGS';
+import {createLogger} from '../../Services/Logger';
+
+const log = createLogger('EmailSignIn');
 
 const EmailSignIn = ({navigation, route, ...props}) => {
   const {t} = useTranslation();
@@ -90,9 +93,9 @@ const EmailSignIn = ({navigation, route, ...props}) => {
         ['John Doe', 'john@example.com'],
         (tx, results) => {
           if (results.rowsAffected > 0) {
-            console.log('Record inserted successfully.');
+            log.debug('Record inserted successfully.');
           } else {
-            console.log('Failed to insert record.');
+            log.warn('Failed to insert record.');
           }
         },
       );
@@ -105,7 +108,7 @@ const EmailSignIn = ({navigation, route, ...props}) => {
         const len = results.rows.length;
         for (let i = 0; i < len; i++) {
           const {id, name, email} = results.rows.item(i);
-          console.log(`User ${id}: ${name} (${email})`);
+          log.debug(`User ${id}: ${name} (${email})`);
         }
       });
     });
@@ -220,7 +223,7 @@ const EmailSignIn = ({navigation, route, ...props}) => {
   };
 
   const login = () => {
-    console.log('[FLOW][Email] login: pressed, email=', email);
+    log.flow('login: pressed, email=', email);
     props.setLoader(true);
 
     if (!validateEmail(email)) {
@@ -242,10 +245,10 @@ const EmailSignIn = ({navigation, route, ...props}) => {
       password,
     };
     // createUser()
-    console.log('[FLOW][Email] login: calling v2/auth/login');
+    log.flow('login: calling v2/auth/login');
     comnPost('v2/auth/login', data)
       .then(res => {
-        console.log('[FLOW][Email] login: response success=', res?.data?.success);
+        log.flow('login: response success=', res?.data?.success);
         if (res?.data?.success) {
           AsyncStorage.setItem(
             t('STORAGE.ACCESS_TOKEN'),
@@ -255,7 +258,7 @@ const EmailSignIn = ({navigation, route, ...props}) => {
             t('STORAGE.USER_ID'),
             JSON.stringify(res?.data?.data?.user.id),
           );
-          console.log('[FLOW][Email] login: token saved → redux saveAccess_token (this triggers HomeScreen init useEffect dep)');
+          log.flow('login: token saved → redux saveAccess_token (this triggers HomeScreen init useEffect dep)');
           props.saveAccess_token(res?.data?.data?.access_token);
           props.setLoader(false);
           AsyncStorage.setItem(
@@ -265,7 +268,7 @@ const EmailSignIn = ({navigation, route, ...props}) => {
           AsyncStorage.setItem('IS_GUEST', JSON.stringify(!!res?.data?.data?.isGuest));
           saveToStorage(STRING.STORAGE.MODE, JSON.stringify(true));
           props.setMode(true);
-          console.log('[FLOW][Email] login: navigateTo HOME');
+          log.flow('login: navigateTo HOME');
           navigateTo(navigation, t('SCREEN.HOME'));
           // navigation.dispatch(
           //   CommonActions.reset({

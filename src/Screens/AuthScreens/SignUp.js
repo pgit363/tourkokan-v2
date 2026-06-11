@@ -36,6 +36,9 @@ import PrivacyPolicy from '../../Components/Common/PrivacyPolicy';
 import DeviceInfo from 'react-native-device-info';
 import {GoogleSignin} from '@react-native-google-signin/google-signin';
 import {GOOGLE_WEB_CLIENT_ID, API_PATH} from '@env';
+import {createLogger} from '../../Services/Logger';
+
+const log = createLogger('SignUp');
 
 const SignUp = ({navigation, ...props}) => {
   const opacity = useRef(new Animated.Value(0)).current;
@@ -103,7 +106,7 @@ const SignUp = ({navigation, ...props}) => {
       const result = await response.json();
       // Store result token if successful
     } catch (error) {
-      console.error('error- - ', error);
+      log.error('error- - ', error);
     }
   };
 
@@ -479,7 +482,7 @@ const SignUp = ({navigation, ...props}) => {
           props.setLoader(false);
         }
       } catch (err) {
-        console.warn(err);
+        log.warn(err);
         props.setLoader(false);
       }
     }

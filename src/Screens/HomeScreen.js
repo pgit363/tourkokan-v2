@@ -36,6 +36,9 @@ import NetInfo from '@react-native-community/netinfo';
 import {Overlay} from '@rneui/themed';
 import {AWS_URL} from '@env';
 import CachedImage from '../Components/Customs/CachedImage';
+import {createLogger} from '../Services/Logger';
+
+const log = createLogger('HomeScreen');
 
 import TopComponent from '../Components/Common/TopComponent';
 import TopComponentSkeleton from '../Components/Common/TopComponentSkeleton';
@@ -102,7 +105,7 @@ const TalukaCard = ({item, onPress, cardWidth, imgHeight}) => {
     : item.gallery?.[0]?.path
     ? `${AWS_URL}${item.gallery[0].path}`
     : null;
-  console.log('[TalukaCard img]', item.name, uri);
+  log.debug('[TalukaCard img]', item.name, uri);
 
   return (
     <TouchableOpacity
@@ -320,12 +323,12 @@ const HomeScreen = ({navigation, route, ...props}) => {
     // which was causing the landing page API to be hit multiple times.
     let wasConnected = null;
     let didInitialFetch = false;
-    console.log('[FLOW][Home] init useEffect RUN. access_token=', props.access_token);
+    log.flow('init useEffect RUN. access_token=', props.access_token);
 
     const init = async () => {
       dispatch({type: 'SET_LOADING', payload: true});
       const localData = await getFromStorage(t('STORAGE.LANDING_RESPONSE'));
-      console.log('[FLOW][Home] init: localData present?', !!localData);
+      log.flow('init: localData present?', !!localData);
       if (localData && isMounted) {
         try {
           const res = JSON.parse(localData);
@@ -342,7 +345,7 @@ const HomeScreen = ({navigation, route, ...props}) => {
             });
           }
         } catch (e) {
-          console.log(e);
+          log.warn('cached landing parse failed:', e);
         }
       } else {
         dispatch({type: 'SET_LOADING', payload: true});
@@ -361,7 +364,7 @@ const HomeScreen = ({navigation, route, ...props}) => {
 
       const token = await AsyncStorage.getItem(t('STORAGE.ACCESS_TOKEN')) || props.access_token;
       if (!token) {
-        console.log('[FLOW][Home] init: no token → navigate EMAIL');
+        log.flow('init: no token → navigate EMAIL');
         navigateTo(navigation, t('SCREEN.EMAIL'));
         return;
       }
@@ -370,11 +373,11 @@ const HomeScreen = ({navigation, route, ...props}) => {
         setIsLandingDataFetched(true);
       }
 
-      console.log('[FLOW][Home] init: registering NetInfo listener');
+      log.flow('init: registering NetInfo listener');
       unsubscribe = NetInfo.addEventListener(async netState => {
         if (!isMounted) return;
         const connected = !!netState.isConnected;
-        console.log('[FLOW][Home] NetInfo listener FIRED. isConnected=', connected);
+        log.flow('NetInfo listener FIRED. isConnected=', connected);
         setOffline(!connected);
 
         const storedMode = JSON.parse(await getFromStorage(STRING.STORAGE.MODE));
@@ -391,12 +394,12 @@ const HomeScreen = ({navigation, route, ...props}) => {
         const reconnected = wasConnected === false;
         wasConnected = connected;
         if (didInitialFetch && !reconnected) {
-          console.log('[FLOW][Home] NetInfo: already fetched & not a reconnect → SKIP');
+          log.flow('NetInfo: already fetched & not a reconnect → SKIP');
           return;
         }
         didInitialFetch = true;
 
-        console.log('[FLOW][Home] NetInfo → dataSync(landingpage) storedMode=', storedMode, '[landingpage trigger #Home-init-NetInfo]');
+        log.flow('NetInfo → dataSync(landingpage) storedMode=', storedMode, '[landingpage trigger #Home-init-NetInfo]');
         dataSync(t('STORAGE.LANDING_RESPONSE'), () => callLandingPageAPI(), storedMode).then(resp => {
           try {
             if (resp) {
@@ -446,10 +449,10 @@ const HomeScreen = ({navigation, route, ...props}) => {
     let cancelled = false;
     (async () => {
       const firstTime = await getFromStorage(t('STORAGE.IS_FIRST_TIME'));
-      console.log('[FLOW][Home] mode popup check: isLoading=false, isFirstTime=', firstTime);
+      log.flow('mode popup check: isLoading=false, isFirstTime=', firstTime);
       if (cancelled) return;
       if (firstTime === 'true' || firstTime === true) {
-        console.log('[FLOW][Home] mode popup → SHOW');
+        log.flow('mode popup → SHOW');
         setModePopup(true);
         AsyncStorage.setItem(t('STORAGE.IS_FIRST_TIME'), JSON.stringify(false));
       }
@@ -462,7 +465,7 @@ const HomeScreen = ({navigation, route, ...props}) => {
   // ── Focus sync ──
   useFocusEffect(
     React.useCallback(() => {
-      console.log('[FLOW][Home] focus useFocusEffect RUN');
+      log.flow('focus useFocusEffect RUN');
       const fetchData = async () => {
         const isUpdated = await AsyncStorage.getItem('isUpdated');
         checkToken();
@@ -473,9 +476,9 @@ const HomeScreen = ({navigation, route, ...props}) => {
           props.setMode(storedMode);
         }
 
-        console.log('[FLOW][Home] focus fetchData: isUpdated=', isUpdated, 'props.mode=', props.mode);
+        log.flow('focus fetchData: isUpdated=', isUpdated, 'props.mode=', props.mode);
         if (isUpdated === 'true' && props.mode) {
-          console.log('[FLOW][Home] focus → callLandingPageAPI() [landingpage trigger #Home-focus]');
+          log.flow('focus → callLandingPageAPI() [landingpage trigger #Home-focus]');
           dispatch({type: 'SET_LOADING', payload: true});
           await callLandingPageAPI();
         }
@@ -511,10 +514,10 @@ const HomeScreen = ({navigation, route, ...props}) => {
   const callLandingPageAPI = useCallback(async site_id => {
     LANDING_CALL_COUNT += 1;
     const callNo = LANDING_CALL_COUNT;
-    console.log(`[FLOW][Home] callLandingPageAPI ENTER #${callNo} site_id=`, site_id, 'isFetching=', isFetchingRef.current);
+    log.flow(`callLandingPageAPI ENTER #${callNo} site_id=`, site_id, 'isFetching=', isFetchingRef.current);
     try {
       if (isFetchingRef.current) {
-        console.log(`[FLOW][Home] callLandingPageAPI #${callNo} SKIPPED (already fetching)`);
+        log.flow(`callLandingPageAPI #${callNo} SKIPPED (already fetching)`);
         dispatch({type: 'SET_LOADING', payload: false});
         return;
       }
@@ -522,7 +525,7 @@ const HomeScreen = ({navigation, route, ...props}) => {
 
       const storedMode = JSON.parse(await getFromStorage(STRING.STORAGE.MODE));
       if (!storedMode) {
-        console.log(`[FLOW][Home] callLandingPageAPI #${callNo} SKIPPED (offline mode)`);
+        log.flow(`callLandingPageAPI #${callNo} SKIPPED (offline mode)`);
         dispatch({type: 'SET_LOADING', payload: false});
         return;
       }
@@ -533,9 +536,9 @@ const HomeScreen = ({navigation, route, ...props}) => {
       // Only show skeleton on initial load (no cached data).
       // When called as background refresh, update data silently.
       LANDING_HIT_COUNT += 1;
-      console.log(`[FLOW][Home] ►► HITTING v2/landingpage (call #${callNo}, network hit #${LANDING_HIT_COUNT}) data=`, data);
+      log.flow(`►► HITTING v2/landingpage (call #${callNo}, network hit #${LANDING_HIT_COUNT}) data=`, data);
       const res = await comnPost('v2/landingpage', data, navigation);
-      console.log(`[FLOW][Home] ◄◄ v2/landingpage returned (call #${callNo})`);
+      log.flow(`◄◄ v2/landingpage returned (call #${callNo})`);
 
       if (res?.data?.data) {
         if (i18n.language !== res.data.language) i18n.changeLanguage(res.data.language);
@@ -658,7 +661,7 @@ const HomeScreen = ({navigation, route, ...props}) => {
     isFetchingRef.current = false;
     dispatch({type: 'SET_LOADING', payload: true});
 
-    console.log('[FLOW][Home] onCitySelect → callLandingPageAPI() [landingpage trigger #Home-citySelect] city=', city?.name, city?.id);
+    log.flow('onCitySelect → callLandingPageAPI() [landingpage trigger #Home-citySelect] city=', city?.name, city?.id);
     if (city.id === 0) {
       // Sindhudurg (default) — clear stored city so callLandingPageAPI sends no site_id
       await saveToStorage(t('STORAGE.SELECTED_CITY_ID'), JSON.stringify(null));

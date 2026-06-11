@@ -29,6 +29,9 @@ import NetInfo from '@react-native-community/netinfo';
 import store from '../../../Store';
 import {setMode as setModeAction} from '../../Reducers/CommonActions';
 import RoutesOfflineGate from './RoutesOfflineGate';
+import {createLogger} from '../../Services/Logger';
+
+const log = createLogger('ConnectivityGate');
 
 // Matches the app's existing mode storage key (STRING.STORAGE.MODE === 'mode').
 const MODE_STORAGE_KEY = 'mode';
@@ -56,7 +59,7 @@ export const useConnectivityGate = () => {
       try {
         const raw = await AsyncStorage.getItem(MODE_STORAGE_KEY);
         storedMode = raw !== null ? JSON.parse(raw) : true;
-      } catch (e) { console.warn("[caught]", e); }
+      } catch (e) { log.warn('storage read/write failed:', e); }
 
       const net = await NetInfo.fetch();
       const isConnected = !!net.isConnected;
@@ -104,7 +107,7 @@ export const useConnectivityGate = () => {
   const handleModeChange = useCallback(async newMode => {
     try {
       await AsyncStorage.setItem(MODE_STORAGE_KEY, JSON.stringify(newMode));
-    } catch (e) { console.warn("[caught]", e); }
+    } catch (e) { log.warn('storage read/write failed:', e); }
     store.dispatch(setModeAction(newMode));
     setGate(g => ({...g, visible: false}));
     if (newMode) {

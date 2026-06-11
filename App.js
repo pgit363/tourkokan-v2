@@ -32,7 +32,10 @@ import TextButton from './src/Components/Customs/Buttons/TextButton';
 import OnboardingScreen from './src/Screens/OnboardingScreen';
 import {GlobalAlertProvider} from './src/Components/Common/GlobalAlert';
 import ErrorBoundary from './src/Components/Common/ErrorBoundary';
+import {createLogger} from './src/Services/Logger';
 import OrientationNotice from './src/Components/Common/OrientationNotice';
+
+const log = createLogger('App');
 
 const firebaseConfig = {
   apiKey: 'AIzaSyDT01wLV3kMfc6OuQwK5f1UwAeZGOFviR4',
@@ -68,7 +71,7 @@ export default function App() {
 
   useEffect(() => {
     const bootstrap = async () => {
-      console.log('[FLOW][App] bootstrap: start');
+      log.flow('bootstrap: start');
       const [[isFirstTimeValue, token]] = await Promise.all([
         Promise.all([
           getFromStorage(STRING.STORAGE.IS_FIRST_TIME),
@@ -76,17 +79,17 @@ export default function App() {
         ]),
         new Promise(resolve => setTimeout(resolve, 3000)),
       ]);
-      console.log('[FLOW][App] bootstrap: isFirstTime=', isFirstTimeValue, 'hasToken=', !!token);
+      log.flow('bootstrap: isFirstTime=', isFirstTimeValue, 'hasToken=', !!token);
       setIsFirstTime(isFirstTimeValue);
       setHasToken(!!token);
       setInitialRoute(token ? STRING.SCREEN.HOME : STRING.SCREEN.EMAIL);
       setLoading(false);
       SplashScreen.hide();
       if (token) {
-        console.log('[FLOW][App] bootstrap: token present → callAPI() [landingpage trigger #App-bootstrap]');
+        log.flow('bootstrap: token present → callAPI() [landingpage trigger #App-bootstrap]');
         callAPI();
       } else {
-        console.log('[FLOW][App] bootstrap: no token → NOT calling landingpage');
+        log.flow('bootstrap: no token → NOT calling landingpage');
       }
     };
     bootstrap();
@@ -94,7 +97,7 @@ export default function App() {
   }, []);
 
   const callAPI = () => {
-    console.log('[FLOW][App] callAPI → dataSync(landingpage)');
+    log.flow('callAPI → dataSync(landingpage)');
     dataSync(STRING.STORAGE.LANDING_RESPONSE, callLandingPageAPI, true).then(() => {});
   };
 
@@ -126,9 +129,9 @@ export default function App() {
 
   const callLandingPageAPI = async site_id => {
     try {
-      console.log('[FLOW][App] ►► HITTING v2/landingpage (App.callLandingPageAPI) site_id=', site_id);
+      log.flow('►► HITTING v2/landingpage (App.callLandingPageAPI) site_id=', site_id);
       const res = await comnPost('v2/landingpage', {site_id});
-      console.log('[FLOW][App] ◄◄ v2/landingpage returned (App.callLandingPageAPI)');
+      log.flow('◄◄ v2/landingpage returned (App.callLandingPageAPI)');
       if (res && res.data && res.data.data) {
         setOfflineData(res.data.data);
 
@@ -152,7 +155,7 @@ export default function App() {
         }
       }
     } catch (error) {
-      console.log(error);
+      log.error('bootstrap failed:', error);
     }
   };
 

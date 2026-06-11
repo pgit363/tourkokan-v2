@@ -23,6 +23,9 @@ import {backPage, checkLogin, goBackHandler, navigateTo} from '../../Services/Co
 import Banner from '../../Components/Customs/Banner';
 import {useRoutesOfflineGate} from '../../Components/Common/RoutesOfflineGate';
 import MSRTCSearchPanel from '../../Components/Common/MSRTCSearchPanel';
+import {createLogger} from '../../Services/Logger';
+
+const log = createLogger('MSRTCSearch');
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -160,7 +163,7 @@ const MSRTCSearch = ({navigation, route, ...props}) => {
         const parsed = JSON.parse(landingData);
         if (parsed?.banners) setBannerObject(parsed.banners);
       }
-    } catch (e) { console.warn("[caught]", e); }
+    } catch (e) { log.warn("[caught]", e); }
   };
 
   const clearRecentRoutes = async () => {

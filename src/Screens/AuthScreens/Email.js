@@ -46,6 +46,9 @@ import {GOOGLE_WEB_CLIENT_ID} from '@env';
 import STRING from '../../Services/Constants/STRINGS';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
+import {createLogger} from '../../Services/Logger';
+
+const log = createLogger('Email');
 
 const Email = ({navigation, route, ...props}) => {
   const {t, i18n} = useTranslation();
@@ -81,7 +84,7 @@ const Email = ({navigation, route, ...props}) => {
       let referral_code = await getFromStorage(t('STORAGE.REFERRAL_CODE'));
 
       const userInfo = await GoogleSignin.signIn();
-      console.log('ID TOKEN:', userInfo?.data?.idToken ?? userInfo?.idToken);
+      log.debug('ID TOKEN:', userInfo?.data?.idToken ?? userInfo?.idToken);
 
       const idToken = userInfo?.data?.idToken ?? userInfo?.idToken;
       if (!idToken) {
@@ -99,7 +102,7 @@ const Email = ({navigation, route, ...props}) => {
         language: t('LANG'),
       };
 
-      console.log(payload);
+      log.debug(payload);
       
       const res = await comnPost('v2/auth/googleAuth', payload);
       const resData = res?.data ?? res?.response?.data;
@@ -180,9 +183,9 @@ const Email = ({navigation, route, ...props}) => {
         ['John Doe', 'john@example.com'],
         (tx, results) => {
           if (results.rowsAffected > 0) {
-            console.log('Record inserted successfully.');
+            log.debug('Record inserted successfully.');
           } else {
-            console.log('Failed to insert record.');
+            log.debug('Failed to insert record.');
           }
         },
       );
@@ -195,7 +198,7 @@ const Email = ({navigation, route, ...props}) => {
         const len = results.rows.length;
         for (let i = 0; i < len; i++) {
           const {id, name, email} = results.rows.item(i);
-          console.log(`User ${id}: ${name} (${email})`);
+          log.debug(`User ${id}: ${name} (${email})`);
         }
       });
     });
@@ -318,7 +321,7 @@ const Email = ({navigation, route, ...props}) => {
           if (landingRes?.data?.data) {
             await saveToStorage(t('STORAGE.LANDING_RESPONSE'), JSON.stringify(landingRes.data.data));
           }
-        } catch (e) { console.warn("[caught]", e); }
+        } catch (e) { log.warn("[caught]", e); }
         props.setLoader(false);
         navigateTo(navigation, t('SCREEN.HOME'));
       } else {

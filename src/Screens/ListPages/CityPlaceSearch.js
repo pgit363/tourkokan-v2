@@ -32,6 +32,9 @@ import {comnPost} from '../../Services/Api/CommonServices';
 import {navigateTo} from '../../Services/CommonMethods';
 import {useGuestGate, isGuestUser, GUEST_KEYS, incrementGuestCount} from '../../Components/Common/GuestGateModal';
 import {useConnectivityGate} from '../../Components/Common/useConnectivityGate';
+import {createLogger} from '../../Services/Logger';
+
+const log = createLogger('CityPlaceSearch');
 
 const RECENT_KEY = 'recentSearches_v2';
 const MAX_RECENT = 8;
@@ -132,7 +135,7 @@ const CityPlaceSearch = ({navigation, route}) => {
         });
       });
       setStoredCats(flat);
-    } catch (e) { console.warn("[caught]", e); }
+    } catch (e) { log.warn("[caught]", e); }
   };
 
   // ── Auto-search after 3 chars (300 ms debounce) + auto-hide suggestions ───
@@ -237,7 +240,7 @@ const CityPlaceSearch = ({navigation, route}) => {
     try {
       const raw = await AsyncStorage.getItem(RECENT_KEY);
       if (raw) setRecentSearches(JSON.parse(raw));
-    } catch (e) { console.warn("[caught]", e); }
+    } catch (e) { log.warn("[caught]", e); }
   };
 
   const saveRecentSearch = async term => {
@@ -247,7 +250,7 @@ const CityPlaceSearch = ({navigation, route}) => {
       recent = [term, ...recent.filter(r => r !== term)].slice(0, MAX_RECENT);
       await AsyncStorage.setItem(RECENT_KEY, JSON.stringify(recent));
       setRecentSearches(recent);
-    } catch (e) { console.warn("[caught]", e); }
+    } catch (e) { log.warn("[caught]", e); }
   };
 
   const clearRecentSearches = async () => {

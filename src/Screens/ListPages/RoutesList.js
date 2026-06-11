@@ -20,6 +20,9 @@ import {backPage, checkLogin, goBackHandler, navigateTo} from '../../Services/Co
 import {comnPost, getFromStorage} from '../../Services/Api/CommonServices';
 import Banner from '../../Components/Customs/Banner';
 import {useRoutesOfflineGate} from '../../Components/Common/RoutesOfflineGate';
+import {createLogger} from '../../Services/Logger';
+
+const log = createLogger('RoutesList');
 
 // ─── Bus image map ────────────────────────────────────────────────────────────
 
@@ -370,7 +373,7 @@ const RoutesList = ({navigation, route}) => {
         try {
           const parsed = JSON.parse(landingData);
           if (parsed?.banners) setBannerObject(parsed.banners);
-        } catch (e) { console.warn("[caught]", e); }
+        } catch (e) { log.warn("[caught]", e); }
       }
 
       if (stopsRes?.data?.success && Array.isArray(stopsRes.data.data)) {
