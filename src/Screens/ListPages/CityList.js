@@ -15,6 +15,7 @@ import {
   saveToStorage,
   getFromStorage,
 } from '../../Services/Api/CommonServices';
+import STRING from '../../Services/Constants/STRINGS';
 import {connect} from 'react-redux';
 import Loader from '../../Components/Customs/Loader';
 import Header from '../../Components/Common/Header';
@@ -74,18 +75,28 @@ const CityList = ({navigation, route, ...props}) => {
         setLoading(true);
       }
 
-      // 2. Sync in background
+      // 2. Sync in background — fetch only on the first connected event or a
+      // genuine offline→online reconnect; NetInfo fires on every detail change.
+      let wasConnected = null;
       unsubscribe = NetInfo.addEventListener(state => {
         if (!isMounted) return;
-        setOffline(!state.isConnected);
+        const connected = !!state.isConnected;
+        setOffline(!connected);
+        const changed = wasConnected !== connected;
+        wasConnected = connected;
+        if (!connected) {
+          setLoading(false);
+          props.setLoader(false);
+          return;
+        }
+        if (!changed) return;
 
         dataSync(t('STORAGE.CITIES_RESPONSE'), () => fetchCities(1, true), props.mode).then(resp => {
           if (!isMounted) return;
-          if (resp) {
-            let res = JSON.parse(resp);
-            setCities(res);
-          } else if (resp) {
-            setOffline(true);
+          if (resp && typeof resp === 'string') {
+            try {
+              setCities(JSON.parse(resp));
+            } catch (e) { console.warn('[caught]', e); }
           }
           setLoading(false);
           props.setLoader(false);
@@ -102,8 +113,17 @@ const CityList = ({navigation, route, ...props}) => {
     };
   }, []);
 
+  // Refetch on param changes only — the initial fetch is handled by the
+  // NetInfo listener above, so skip this effect's first run to avoid a
+  // duplicate mount-time API call.
+  const paramsInitRef = useRef(false);
   useEffect(() => {
+    if (!paramsInitRef.current) {
+      paramsInitRef.current = true;
+      return;
+    }
     fetchCities(1, true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [route.params]);
 
   const fetchCities = (page, reset) => {
@@ -193,7 +213,7 @@ const CityList = ({navigation, route, ...props}) => {
       showGuestPopup('Login to explore more cities beyond page 2.');
       return;
     }
-    const mode = JSON.parse(await getFromStorage(t('STORAGE.MODE')));
+    const mode = JSON.parse(await getFromStorage(STRING.STORAGE.MODE));
     // Check the internet connectivity state
     const state = await NetInfo.fetch();
     const isConnected = state.isConnected;

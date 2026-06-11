@@ -45,8 +45,8 @@ const SearchList = ({navigation, route, ...props}) => {
       dataSync(t('STORAGE.ROUTES_RESPONSE'), searchRoute(), props.mode).then(
         resp => {
           let res = JSON.parse(resp);
-          if (res.data && res.data.data) {
-            setList(res.data.data.data);
+          if (res.data && res?.data?.data) {
+            setList(res?.data?.data?.data);
           } else if (resp) {
             setOffline(true);
           }
@@ -75,12 +75,12 @@ const SearchList = ({navigation, route, ...props}) => {
       };
       comnPost(`v2/routes?page=${nextPage}`, data)
         .then(res => {
-          if (res.data.success) {
-            if (res && res.data.data)
+          if (res?.data?.success) {
+            if (res && res?.data?.data)
               saveToStorage(t('STORAGE.ROUTES_RESPONSE'), JSON.stringify(res));
-            let myNextUrl = res.data.data.next_page_url;
+            let myNextUrl = res?.data?.data?.next_page_url;
             setNextUrl(myNextUrl);
-            setList([...list, ...res.data.data.data]);
+            setList([...list, ...res?.data?.data?.data]);
             setNextPage(myNextUrl[myNextUrl.length - 1]);
             props.setLoader(false);
           } else {

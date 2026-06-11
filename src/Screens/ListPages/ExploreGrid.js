@@ -19,6 +19,7 @@ import ProgressImage from 'react-native-image-progress';
 import * as Progress from 'react-native-progress';
 import {connect} from 'react-redux';
 import {useTranslation} from 'react-i18next';
+import STRING from '../../Services/Constants/STRINGS';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import {useFocusEffect} from '@react-navigation/native';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
@@ -130,13 +131,27 @@ const ExploreGrid = ({route, navigation, ...props}) => {
     checkLogin(navigation);
     const backHandler = goBackHandler(navigation);
 
+    // Fetch only on the first connected event or a genuine offline→online
+    // reconnect — NetInfo fires on every detail change (same bug class as the
+    // HomeScreen 3× landing-call).
+    let wasConnected = null;
     const unsubscribe = NetInfo.addEventListener(state => {
-      setOffline(!state.isConnected);
-      dataSync(t('STORAGE.GALLERY'), fetchData(1, true), props.mode).then(resp => {
-        if (resp) {
+      const connected = !!state.isConnected;
+      setOffline(!connected);
+      const changed = wasConnected !== connected;
+      wasConnected = connected;
+      if (!connected) {
+        props.setLoader(false);
+        setLoading(false);
+        return;
+      }
+      if (!changed) return;
+
+      dataSync(t('STORAGE.GALLERY'), () => fetchData(1, true), props.mode).then(resp => {
+        if (resp && typeof resp === 'string') {
           try {
             setGallery(JSON.parse(resp));
-          } catch {}
+          } catch (e) { console.warn("[caught]", e); }
         }
         props.setLoader(false);
         setLoading(false);
@@ -164,7 +179,7 @@ const ExploreGrid = ({route, navigation, ...props}) => {
   // ── Data fetching ────────────────────────────────────────────────────────
 
   const fetchData = async (page, reset = false) => {
-    const mode = JSON.parse(await getFromStorage(t('STORAGE.MODE')));
+    const mode = JSON.parse(await getFromStorage(STRING.STORAGE.MODE));
     if (!mode) return;
     if (loading && !reset) return;
 
@@ -177,15 +192,15 @@ const ExploreGrid = ({route, navigation, ...props}) => {
       page,
     })
       .then(res => {
-        if (res.data.success) {
-          const newGallery = res.data.data.data;
+        if (res?.data?.success) {
+          const newGallery = res?.data?.data?.data;
           if (reset) {
             setGallery(newGallery);
             saveToStorage(t('STORAGE.GALLERY'), JSON.stringify(newGallery));
           } else {
             setGallery(prev => [...prev, ...newGallery]);
           }
-          setHasMore(!!res.data.data.next_page_url);
+          setHasMore(!!res?.data?.data?.next_page_url);
           setNextPage(page + 1);
         }
       })
@@ -344,7 +359,10 @@ const ExploreGrid = ({route, navigation, ...props}) => {
           renderItem={renderItem}
           keyExtractor={item => item.id.toString()}
           numColumns={NUM_COLS}
-          contentContainerStyle={s.gridContent}
+          contentContainerStyle={[
+            s.gridContent,
+            {paddingBottom: insets.bottom + 110},
+          ]}
           columnWrapperStyle={s.gridRow}
           showsVerticalScrollIndicator={false}
           initialNumToRender={12}

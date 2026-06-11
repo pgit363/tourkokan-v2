@@ -303,7 +303,7 @@ const QueriesList = ({navigation, route, ...props}) => {
             setQueries(cached.data);
             if (cached.counts) setCounts(cached.counts);
           }
-        } catch (_) {}
+        } catch (e) { console.warn("[caught]", e); }
       } else if (result && typeof result === 'object') {
         // Online: result is the axios response from comnPost
         const resData = result?.data?.data;
@@ -332,10 +332,16 @@ const QueriesList = ({navigation, route, ...props}) => {
         setLoading(false);
       }
 
-      // 2. Subscribe to NetInfo; dataSync decides online→API or offline→cache
+      // 2. Subscribe to NetInfo; dataSync decides online→API or offline→cache.
+      // Act only on the first event or a genuine connectivity change — NetInfo
+      // fires on every detail change.
+      let wasConnected = null;
       unsubscribeNetInfo = NetInfo.addEventListener(state => {
         const connected = !!state.isConnected;
         setIsOnline(connected);
+        const changed = wasConnected !== connected;
+        wasConnected = connected;
+        if (!changed) return;
 
         // If offline mode is active or no internet, just load from cache — don't call API
         if (!connected || !modeRef.current) {

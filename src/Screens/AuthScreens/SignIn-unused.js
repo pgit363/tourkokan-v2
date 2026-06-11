@@ -64,15 +64,15 @@ const SignIn = ({navigation, ...props}) => {
     };
     comnPost('v2/auth/sendOtp', data)
       .then(res => {
-        if (res.data.success) {
+        if (res?.data?.success) {
           setIsAlert(true);
-          setAlertMessage(res.data.message);
+          setAlertMessage(res?.data?.message);
           props.setLoader(false);
           setSuccessAlert(true);
         } else {
-          if (res.data.message.mobile) {
+          if (res?.data?.message?.mobile) {
             setIsAlert(true);
-            setAlertMessage(res.data.message.mobile[0]);
+            setAlertMessage(res?.data?.message?.mobile[0]);
             props.setLoader(false);
           }
         }

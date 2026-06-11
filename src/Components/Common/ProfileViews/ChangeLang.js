@@ -6,6 +6,7 @@ import styles from './Styles';
 import TextButton from '../../Customs/Buttons/TextButton';
 import {useTranslation} from 'react-i18next';
 import {comnPost, getFromStorage} from '../../../Services/Api/CommonServices';
+import STRING from '../../../Services/Constants/STRINGS';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import ComingSoon from '../ComingSoon';
 import {connect} from 'react-redux';
@@ -32,7 +33,7 @@ const ChangeLang = ({refreshOption, setLoader, close, ...props}) => {
 
   const saveLang = async () => {
     setLoader(true);
-    const mode = JSON.parse(await getFromStorage(t('STORAGE.MODE')));
+    const mode = JSON.parse(await getFromStorage(STRING.STORAGE.MODE));
     // Check the internet connectivity state
     const state = await NetInfo.fetch();
     const isConnected = state.isConnected;

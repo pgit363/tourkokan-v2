@@ -63,6 +63,7 @@ const CityPlaceSearch = ({navigation, route}) => {
   const cardsListRef = useRef(null);
   const currentSearch = useRef({search: '', categoryKey: null});
   const isLoadingMoreRef = useRef(false);
+  const guestPromptedRef = useRef(false); // show the guest gate once per search session
   const viewabilityConfig = useRef({itemVisiblePercentThreshold: 60});
 
   const {show: showGuestPopup, modal: guestModal} = useGuestGate(navigation);
@@ -131,7 +132,7 @@ const CityPlaceSearch = ({navigation, route}) => {
         });
       });
       setStoredCats(flat);
-    } catch {}
+    } catch (e) { console.warn("[caught]", e); }
   };
 
   // ── Auto-search after 3 chars (300 ms debounce) + auto-hide suggestions ───
@@ -207,6 +208,7 @@ const CityPlaceSearch = ({navigation, route}) => {
   const loadInitialResults = (parentId = null, cityName = null, categoryKey = null) =>
     ensureOnline(async () => {
       setIsSearching(true);
+      guestPromptedRef.current = false;
       pageStateRef.current = {...pageStateRef.current, isSearching: true, hasMore: false};
       setHasSearched(true);
       setActiveFilter(cityName ? {name: cityName, code: categoryKey || '__parent__'} : null);
@@ -235,7 +237,7 @@ const CityPlaceSearch = ({navigation, route}) => {
     try {
       const raw = await AsyncStorage.getItem(RECENT_KEY);
       if (raw) setRecentSearches(JSON.parse(raw));
-    } catch {}
+    } catch (e) { console.warn("[caught]", e); }
   };
 
   const saveRecentSearch = async term => {
@@ -245,7 +247,7 @@ const CityPlaceSearch = ({navigation, route}) => {
       recent = [term, ...recent.filter(r => r !== term)].slice(0, MAX_RECENT);
       await AsyncStorage.setItem(RECENT_KEY, JSON.stringify(recent));
       setRecentSearches(recent);
-    } catch {}
+    } catch (e) { console.warn("[caught]", e); }
   };
 
   const clearRecentSearches = async () => {
@@ -283,6 +285,7 @@ const CityPlaceSearch = ({navigation, route}) => {
       // Offline mode → prompt to go online instead of hitting the search API.
       ensureOnline(async () => {
         setIsSearching(true);
+        guestPromptedRef.current = false;
         pageStateRef.current = {currentPage: 1, hasMore: false, isSearching: true};
         setHasSearched(true);
         setResults([]);
@@ -317,37 +320,51 @@ const CityPlaceSearch = ({navigation, route}) => {
     if (isLoadingMoreRef.current || !hm || is) {
       return;
     }
-    if (cp >= 2 && (await isGuestUser())) {
-      showGuestPopup('Login to explore more places beyond page 2.');
-      return;
-    }
 
-    // Offline mode → prompt to go online before paginating.
-    ensureOnline(async () => {
-      isLoadingMoreRef.current = true;
-      setIsLoadingMore(true);
-      const nextPage = cp + 1;
+    // Set the guard before any await — the onScroll fallback can fire several
+    // times per scroll and would otherwise start duplicate page requests.
+    isLoadingMoreRef.current = true;
+    try {
+      if (cp >= 2 && (await isGuestUser())) {
+        // Prompt once per search session — the scroll fallback would otherwise
+        // re-open the popup on every scroll event near the end.
+        if (!guestPromptedRef.current) {
+          guestPromptedRef.current = true;
+          showGuestPopup('Login to explore more places beyond page 2.');
+        }
+        return;
+      }
 
-      try {
+      await ensureOnline(async () => {
+        setIsLoadingMore(true);
+        const nextPage = cp + 1;
         const {search, categoryKey, parentId} = currentSearch.current;
         const payload = {search, apitype: 'list', global: 1, page: nextPage};
         if (categoryKey) payload.category = categoryKey;
         if (parentId) payload.parent_id = parentId;
 
         const res = await comnPost('v2/sites', payload);
+        // comnPost resolves with {success:false} on failure — leave paging
+        // untouched so the next end-reach retries instead of going dead.
+        if (res?.data?.success === false || !Array.isArray(res?.data?.data?.data)) {
+          return;
+        }
         const {data, cp: newCp, lp} = parsePage(res);
-        console.log('loadMore API success - loaded', data.length, 'items');
 
-        setResults(prev => [...prev, ...data]);
+        // Safety net: never append a record that's already in the list.
+        setResults(prev => {
+          const seen = new Set(prev.map(r => r.id));
+          const fresh = data.filter(d => !seen.has(d.id));
+          return fresh.length ? [...prev, ...fresh] : prev;
+        });
         pageStateRef.current = {currentPage: newCp, hasMore: newCp < lp, isSearching: false};
-      } catch (err) {
-        console.log('loadMore API error:', err.message);
-      } finally {
-        isLoadingMoreRef.current = false;
-        setIsLoadingMore(false);
-      }
-    });
-  }, [ensureOnline]); // pageStateRef provides current values
+      });
+    } catch (_) {
+    } finally {
+      isLoadingMoreRef.current = false;
+      setIsLoadingMore(false);
+    }
+  }, [ensureOnline, showGuestPopup]); // pageStateRef provides current values
 
   const clearSearch = () => {
     setQuery('');
@@ -808,6 +825,11 @@ const CityPlaceSearch = ({navigation, route}) => {
         </View>
       ) : (
         <FlatList
+          // Remount when results transition empty ↔ loaded: VirtualizedList
+          // otherwise keeps the render window from the initial empty mount,
+          // which blocks onEndReached from ever firing (same issue as
+          // Emergency.js — see its FlatList key comment).
+          key={`results-${hasSearched && results.length > 0 ? 'loaded' : 'empty'}`}
           data={hasSearched ? results : []}
           renderItem={activeView === 'grid' ? renderResultGrid : renderResultList}
           keyExtractor={item => String(item.id)}
@@ -820,6 +842,16 @@ const CityPlaceSearch = ({navigation, route}) => {
           ListEmptyComponent={ListEmptyComp}
           onEndReached={loadMore}
           onEndReachedThreshold={0.5}
+          onScroll={e => {
+            const {contentOffset, contentSize, layoutMeasurement} = e.nativeEvent;
+            const distanceFromEnd = contentSize.height - layoutMeasurement.height - contentOffset.y;
+            // Manual end-reach fallback: VirtualizedList skips onEndReached
+            // when its internal render window is stale, so drive the same
+            // guarded loadMore from the raw scroll metrics instead.
+            if (distanceFromEnd <= layoutMeasurement.height * 0.5) {
+              loadMore();
+            }
+          }}
           ListFooterComponent={
             isLoadingMore ? (
               <View style={s.loadMoreSpinner}>

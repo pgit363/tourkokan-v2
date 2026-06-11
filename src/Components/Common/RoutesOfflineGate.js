@@ -169,7 +169,7 @@ export const useRoutesOfflineGate = ({mode: modeProp, onModeChange: onModeChange
   const handleModeChange = useCallback(async newMode => {
     try {
       await AsyncStorage.setItem(MODE_STORAGE_KEY, JSON.stringify(newMode));
-    } catch {}
+    } catch (e) { console.warn("[caught]", e); }
     // Update Redux store (works for both connected and unconnected screens)
     store.dispatch(setModeAction(newMode));
     // Also call the prop-based setter if the screen passes one

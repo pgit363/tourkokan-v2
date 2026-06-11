@@ -19,6 +19,7 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import NetInfo from '@react-native-community/netinfo';
 import {connect} from 'react-redux';
 import {useTranslation} from 'react-i18next';
+import STRING from '../../Services/Constants/STRINGS';
 import {
   comnPost,
   dataSync,
@@ -229,6 +230,7 @@ const Categories = ({route, navigation, ...props}) => {
   }, [shimmer]);
 
   useEffect(() => {
+    let isMounted = true;
     let unsubscribe;
     const backHandler = goBackHandler(navigation);
     checkLogin(navigation);
@@ -240,26 +242,40 @@ const Categories = ({route, navigation, ...props}) => {
         try {
           const cats = JSON.parse(localData);
           setCategories(cats);
-        } catch (e) {}
+        } catch (e) { console.warn("[caught]", e); }
         setIsLoading(false);
         props.setLoader(false);
       } else {
         setIsLoading(true);
       }
 
+      // Fetch only on the first connected event or a genuine offline→online
+      // reconnect — NetInfo fires on every detail change.
+      let wasConnected = null;
       unsubscribe = NetInfo.addEventListener(state => {
-        setOffline(!state.isConnected);
+        if (!isMounted) return;
+        const connected = !!state.isConnected;
+        setOffline(!connected);
+        const changed = wasConnected !== connected;
+        wasConnected = connected;
+        if (!connected) {
+          setIsLoading(false);
+          props.setLoader(false);
+          return;
+        }
+        if (!changed) return;
         // Use modeRef.current so we always read the latest mode, not a stale closure value
         dataSync(
           t('STORAGE.CATEGORIES_RESPONSE'),
           () => getCategories(),
           modeRef.current,
         ).then(res => {
+          if (!isMounted) return;
           if (res) {
             try {
               const cats = Array.isArray(res) ? res : JSON.parse(res);
               setCategories(cats);
-            } catch (e) {}
+            } catch (e) { console.warn("[caught]", e); }
           }
           setIsLoading(false);
           props.setLoader(false);
@@ -270,6 +286,7 @@ const Categories = ({route, navigation, ...props}) => {
     init();
 
     return () => {
+      isMounted = false;
       backHandler.remove();
       if (unsubscribe) unsubscribe();
     };
@@ -303,7 +320,7 @@ const Categories = ({route, navigation, ...props}) => {
             try {
               const cats = JSON.parse(stored);
               if (cats?.length > 0) { setCategories(cats); return; }
-            } catch (e) {}
+            } catch (e) { console.warn("[caught]", e); }
           }
           // Fallback: direct API call (e.g. rapid navigation before landing page returned)
           getCategories().then(res => {
@@ -320,7 +337,7 @@ const Categories = ({route, navigation, ...props}) => {
   const onRefresh = async () => {
     setRefreshing(true);
     // Read current mode fresh from storage — same pattern as HomeScreen.js
-    const currentMode = JSON.parse(await getFromStorage(t('STORAGE.MODE')));
+    const currentMode = JSON.parse(await getFromStorage(STRING.STORAGE.MODE));
     if (!currentMode || offline) {
       setShowOnlineMode(true);
       setRefreshing(false);
@@ -358,7 +375,7 @@ const Categories = ({route, navigation, ...props}) => {
   };
 
   const handleModeChange = async newMode => {
-    await saveToStorage(t('STORAGE.MODE'), JSON.stringify(newMode));
+    await saveToStorage(STRING.STORAGE.MODE, JSON.stringify(newMode));
     props.setMode(newMode);
     setShowOnlineMode(false);
   };

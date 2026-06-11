@@ -1,0 +1,73 @@
+initial page load
+Emergency.js:435 [EMG] RENDER activeTab=  | renderedCount= 0 | tabs= 0 | initialLoading= true | paging[active]= undefined
+Emergency.js:90 [EMG] fetchInitial START isRefresh= false | PER_PAGE= 10
+Emergency.js:120 [EMG] populateTabs tab= Hospital code= hospital sitesLen= 13 → hasMore= true
+Emergency.js:120 [EMG] populateTabs tab= Police Station code= police_station sitesLen= 15 → hasMore= true
+Emergency.js:120 [EMG] populateTabs tab= Fire Brigade code= fire_brigade sitesLen= 7 → hasMore= false
+Emergency.js:120 [EMG] populateTabs tab= Blood Bank code= blood_bank sitesLen= 2 → hasMore= false
+Emergency.js:120 [EMG] populateTabs tab= Ambulance code= ambulance sitesLen= 10 → hasMore= true
+Emergency.js:435 [EMG] RENDER activeTab=  | renderedCount= 0 | tabs= 6 | initialLoading= true | paging[active]= undefined
+Emergency.js:435 [EMG] RENDER activeTab=  | renderedCount= 0 | tabs= 6 | initialLoading= true | paging[active]= undefined
+Emergency.js:435 [EMG] RENDER activeTab=  | renderedCount= 0 | tabs= 6 | initialLoading= true | paging[active]= undefined
+Emergency.js:435 [EMG] RENDER activeTab= Hospital | renderedCount= 13 | tabs= 6 | initialLoading= true | paging[active]= {"page":1,"hasMore":true}
+Emergency.js:129 [EMG] populateTabs DONE tabs= (6) ['Hospital', 'Police Station', 'Fire Brigade', 'Blood Bank', 'Ambulance', 'Other'] | paging= {"Hospital":{"page":1,"hasMore":true},"Police Station":{"page":1,"hasMore":true},"Fire Brigade":{"page":1,"hasMore":false},"Blood Bank":{"page":1,"hasMore":false},"Ambulance":{"page":1,"hasMore":true}}
+Emergency.js:435 [EMG] RENDER activeTab= Hospital | renderedCount= 13 | tabs= 6 | initialLoading= false | paging[active]= {"page":1,"hasMore":true}
+Emergency.js:156 [EMG] sync: appMode= true
+Emergency.js:163 [EMG] sync: dataSync result type= object | isCacheString= false
+Emergency.js:179 [EMG] sync: subCategories count= 5
+Emergency.js:120 [EMG] populateTabs tab= Hospital code= hospital sitesLen= 13 → hasMore= true
+Emergency.js:120 [EMG] populateTabs tab= Police Station code= police_station sitesLen= 15 → hasMore= true
+Emergency.js:120 [EMG] populateTabs tab= Fire Brigade code= fire_brigade sitesLen= 7 → hasMore= false
+Emergency.js:120 [EMG] populateTabs tab= Blood Bank code= blood_bank sitesLen= 2 → hasMore= false
+Emergency.js:120 [EMG] populateTabs tab= Ambulance code= ambulance sitesLen= 10 → hasMore= true
+Emergency.js:435 [EMG] RENDER activeTab= Hospital | renderedCount= 13 | tabs= 6 | initialLoading= false | paging[active]= {"page":1,"hasMore":true}
+Emergency.js:435 [EMG] RENDER activeTab= Hospital | renderedCount= 13 | tabs= 6 | initialLoading= false | paging[active]= {"page":1,"hasMore":true}
+Emergency.js:435 [EMG] RENDER activeTab= Hospital | renderedCount= 13 | tabs= 6 | initialLoading= false | paging[active]= {"page":1,"hasMore":true}
+Emergency.js:435 [EMG] RENDER activeTab= Hospital | renderedCount= 13 | tabs= 6 | initialLoading= false | paging[active]= {"page":1,"hasMore":true}
+Emergency.js:129 [EMG] populateTabs DONE tabs= (6) ['Hospital', 'Police Station', 'Fire Brigade', 'Blood Bank', 'Ambulance', 'Other'] | paging= {"Hospital":{"page":1,"hasMore":true},"Police Station":{"page":1,"hasMore":true},"Fire Brigade":{"page":1,"hasMore":false},"Blood Bank":{"page":1,"hasMore":false},"Ambulance":{"page":1,"hasMore":true}}
+
+
+
+
+after app reload and pagination working
+Emergency.js:435 [EMG] RENDER activeTab=  | renderedCount= 0 | tabs= 0 | initialLoading= true | paging[active]= undefined
+Emergency.js:90 [EMG] fetchInitial START isRefresh= false | PER_PAGE= 10
+Emergency.js:120 [EMG] populateTabs tab= Hospital code= hospital sitesLen= 13 → hasMore= true
+Emergency.js:120 [EMG] populateTabs tab= Police Station code= police_station sitesLen= 15 → hasMore= true
+Emergency.js:120 [EMG] populateTabs tab= Fire Brigade code= fire_brigade sitesLen= 7 → hasMore= false
+Emergency.js:120 [EMG] populateTabs tab= Blood Bank code= blood_bank sitesLen= 2 → hasMore= false
+Emergency.js:120 [EMG] populateTabs tab= Ambulance code= ambulance sitesLen= 10 → hasMore= true
+Emergency.js:435 [EMG] RENDER activeTab=  | renderedCount= 0 | tabs= 6 | initialLoading= true | paging[active]= undefined
+Emergency.js:435 [EMG] RENDER activeTab=  | renderedCount= 0 | tabs= 6 | initialLoading= true | paging[active]= undefined
+Emergency.js:435 [EMG] RENDER activeTab=  | renderedCount= 0 | tabs= 6 | initialLoading= true | paging[active]= undefined
+Emergency.js:435 [EMG] RENDER activeTab= Hospital | renderedCount= 13 | tabs= 6 | initialLoading= true | paging[active]= {"page":1,"hasMore":true}
+Emergency.js:129 [EMG] populateTabs DONE tabs= (6) ['Hospital', 'Police Station', 'Fire Brigade', 'Blood Bank', 'Ambulance', 'Other'] | paging= {"Hospital":{"page":1,"hasMore":true},"Police Station":{"page":1,"hasMore":true},"Fire Brigade":{"page":1,"hasMore":false},"Blood Bank":{"page":1,"hasMore":false},"Ambulance":{"page":1,"hasMore":true}}
+Emergency.js:435 [EMG] RENDER activeTab= Hospital | renderedCount= 13 | tabs= 6 | initialLoading= false | paging[active]= {"page":1,"hasMore":true}
+Emergency.js:156 [EMG] sync: appMode= true
+Emergency.js:163 [EMG] sync: dataSync result type= object | isCacheString= false
+Emergency.js:179 [EMG] sync: subCategories count= 5
+Emergency.js:120 [EMG] populateTabs tab= Hospital code= hospital sitesLen= 13 → hasMore= true
+Emergency.js:120 [EMG] populateTabs tab= Police Station code= police_station sitesLen= 15 → hasMore= true
+Emergency.js:120 [EMG] populateTabs tab= Fire Brigade code= fire_brigade sitesLen= 7 → hasMore= false
+Emergency.js:120 [EMG] populateTabs tab= Blood Bank code= blood_bank sitesLen= 2 → hasMore= false
+Emergency.js:120 [EMG] populateTabs tab= Ambulance code= ambulance sitesLen= 10 → hasMore= true
+Emergency.js:435 [EMG] RENDER activeTab= Hospital | renderedCount= 13 | tabs= 6 | initialLoading= false | paging[active]= {"page":1,"hasMore":true}
+Emergency.js:435 [EMG] RENDER activeTab= Hospital | renderedCount= 13 | tabs= 6 | initialLoading= false | paging[active]= {"page":1,"hasMore":true}
+Emergency.js:435 [EMG] RENDER activeTab= Hospital | renderedCount= 13 | tabs= 6 | initialLoading= false | paging[active]= {"page":1,"hasMore":true}
+Emergency.js:435 [EMG] RENDER activeTab= Hospital | renderedCount= 13 | tabs= 6 | initialLoading= false | paging[active]= {"page":1,"hasMore":true}
+Emergency.js:129 [EMG] populateTabs DONE tabs= (6) ['Hospital', 'Police Station', 'Fire Brigade', 'Blood Bank', 'Ambulance', 'Other'] | paging= {"Hospital":{"page":1,"hasMore":true},"Police Station":{"page":1,"hasMore":true},"Fire Brigade":{"page":1,"hasMore":false},"Blood Bank":{"page":1,"hasMore":false},"Ambulance":{"page":1,"hasMore":true}}
+Emergency.js:239 [EMG] onEndReached activeTab= Hospital | pagingInfo= {"page":1,"hasMore":true} | loadingMore= false | initialLoading= false
+Emergency.js:245 [EMG] onEndReached → fetchTabPage page 2
+Emergency.js:435 [EMG] RENDER activeTab= Hospital | renderedCount= 13 | tabs= 6 | initialLoading= false | paging[active]= {"page":1,"hasMore":true}
+Emergency.js:239 [EMG] onEndReached activeTab= Hospital | pagingInfo= {"page":1,"hasMore":true} | loadingMore= true | initialLoading= false
+Emergency.js:242 [EMG] onEndReached BLOCKED (hasMore= true loadingMore= true initialLoading= false )
+Emergency.js:201 [Emergency] fetchTabPage tab="Hospital" page=2 code="hospital" raw res: {version: '2.0.0', language: 'en', success: true, message: 'Sites successfully Retrieved...!', data: {…}}
+Emergency.js:204 [Emergency] fetchTabPage data count: 3, hasMore: false
+Emergency.js:206 [Emergency] fetchTabPage first item sample: {id: 3369, name: 'St.Lukes Hospital', parent_id: 3046, user_id: null, bus_stop_type: 'Stop', tag_line: null, description: 'raw', domain_name: null, logo: null, icon: null, …}
+Emergency.js:215 [EMG] fetchTabPage APPEND tab= Hospital page= 2 added= 3 newTotal= 16
+Emergency.js:435 [EMG] RENDER activeTab= Hospital | renderedCount= 16 | tabs= 6 | initialLoading= false | paging[active]= {"page":1,"hasMore":true}
+Emergency.js:435 [EMG] RENDER activeTab= Hospital | renderedCount= 16 | tabs= 6 | initialLoading= false | paging[active]= {"page":2,"hasMore":false}
+Emergency.js:220 [EMG] fetchTabPage setPaging tab= Hospital → page= 2 hasMore= false
+Emergency.js:435 [EMG] RENDER activeTab= Hospital | renderedCount= 16 | tabs= 6 | initialLoading= false | paging[active]= {"page":2,"hasMore":false}
+Emergency.js:239 [EMG] onEndReached activeTab= Hospital | pagingInfo= {"page":2,"hasMore":false} | loadingMore= false | initialLoading= false
+Emergency.js:242 [EMG] onEndReached BLOCKED (hasMore= false loadingMore= false initialLoading= false )

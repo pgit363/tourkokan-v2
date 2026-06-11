@@ -89,7 +89,7 @@ const SearchPanel = ({ navigation, from, onSwap, ...props }) => {
   };
 
   const gotoRoutes = async () => {
-    const mode = JSON.parse(await getFromStorage(t('STORAGE.MODE')));
+    const mode = JSON.parse(await getFromStorage(STRING.STORAGE.MODE));
     // Check the internet connectivity state
     const state = await NetInfo.fetch();
     const isConnected = state.isConnected;
@@ -158,9 +158,9 @@ const SearchPanel = ({ navigation, from, onSwap, ...props }) => {
     };
     comnPost(`v2/sites`, data)
       .then(res => {
-        if (res.data.success) {
+        if (res?.data?.success) {
           props.setLoader(false);
-          setPlacesList(res.data.data.data);
+          setPlacesList(res?.data?.data?.data);
         } else {
           props.setLoader(false);
         }
@@ -180,9 +180,9 @@ const SearchPanel = ({ navigation, from, onSwap, ...props }) => {
     };
     comnPost(`v2/sites?page=${page}`, data)
       .then(res => {
-        if (res.data.success) {
-          let nextUrl = res.data.data.next_page_url;
-          setPlacesList([...placesList, ...res.data.data.data]);
+        if (res?.data?.success) {
+          let nextUrl = res?.data?.data?.next_page_url;
+          setPlacesList([...placesList, ...res?.data?.data?.data]);
           setNextPage(nextUrl[nextUrl.length - 1]);
           props.setLoader(false);
         } else {

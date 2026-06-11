@@ -170,7 +170,7 @@ const ContactUs = ({
   const submit = async () => {
     if (!validate()) return;
 
-    const mode = JSON.parse(await getFromStorage(t('STORAGE.MODE')));
+    const mode = JSON.parse(await getFromStorage(STRING.STORAGE.MODE));
     const state = await NetInfo.fetch();
     const isConnected = state.isConnected;
 

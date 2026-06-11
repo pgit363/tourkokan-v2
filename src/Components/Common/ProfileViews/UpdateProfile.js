@@ -64,14 +64,14 @@ const UpdateProfile = ({
         };
         try {
           const res = await comnPost('v2/updateProfile', data);
-          if (res.data.success) {
+          if (res?.data?.success) {
             await AsyncStorage.setItem('isUpdated', 'true');
-            refreshOption(res.data.data);
+            refreshOption(res?.data?.data);
           } else {
             setIsAlert(true);
             setAlertMessage(
-              res.data.message?.email ||
-                res.data.message?.mobile ||
+              res?.data?.message?.email ||
+                res?.data?.message?.mobile ||
                 res.data?.message ||
                 t('NETWORK'),
             );

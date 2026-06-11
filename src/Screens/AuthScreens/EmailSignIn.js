@@ -32,6 +32,7 @@ import Popup from '../../Components/Common/Popup';
 import Feather from 'react-native-vector-icons/Feather';
 import {CommonActions} from '@react-navigation/native';
 import {useTranslation} from 'react-i18next';
+import STRING from '../../Services/Constants/STRINGS';
 
 const EmailSignIn = ({navigation, route, ...props}) => {
   const {t} = useTranslation();
@@ -151,18 +152,18 @@ const EmailSignIn = ({navigation, route, ...props}) => {
   //   };
   //   comnPost('v2/auth/verifyOtp', data)
   //     .then(res => {
-  //       if (res.data.success) {
+  //       if (res?.data?.success) {
   //         // setIsAlert(true);
-  //         // setAlertMessage(res.data.message);
+  //         // setAlertMessage(res?.data?.message);
   //         AsyncStorage.setItem(
   //           t('STORAGE.ACCESS_TOKEN'),
-  //           res.data.data.access_token,
+  //           res?.data?.data?.access_token,
   //         );
   //         AsyncStorage.setItem(
   //           t('STORAGE.USER_ID'),
-  //           JSON.stringify(res.data.data.user.id),
+  //           JSON.stringify(res?.data?.data?.user.id),
   //         );
-  //         props.saveAccess_token(res.data.data.access_token);
+  //         props.saveAccess_token(res?.data?.data?.access_token);
   //         props.setLoader(false);
   //         // setIsSuccess(true)
   //         AsyncStorage.setItem(
@@ -178,7 +179,7 @@ const EmailSignIn = ({navigation, route, ...props}) => {
   //       } else {
   //         setIsAlert(true);
   //         setAlertMessage(
-  //           res.data.message.email ? res.data.message.email : res.data.message,
+  //           res?.data?.message?.email ? res?.data?.message?.email : res?.data?.message,
   //         );
   //         props.setLoader(false);
   //         setIsSuccess(false);
@@ -245,24 +246,24 @@ const EmailSignIn = ({navigation, route, ...props}) => {
     comnPost('v2/auth/login', data)
       .then(res => {
         console.log('[FLOW][Email] login: response success=', res?.data?.success);
-        if (res.data.success) {
+        if (res?.data?.success) {
           AsyncStorage.setItem(
             t('STORAGE.ACCESS_TOKEN'),
-            res.data.data.access_token,
+            res?.data?.data?.access_token,
           );
           AsyncStorage.setItem(
             t('STORAGE.USER_ID'),
-            JSON.stringify(res.data.data.user.id),
+            JSON.stringify(res?.data?.data?.user.id),
           );
           console.log('[FLOW][Email] login: token saved → redux saveAccess_token (this triggers HomeScreen init useEffect dep)');
-          props.saveAccess_token(res.data.data.access_token);
+          props.saveAccess_token(res?.data?.data?.access_token);
           props.setLoader(false);
           AsyncStorage.setItem(
             t('STORAGE.IS_FIRST_TIME'),
             JSON.stringify(true),
           );
-          AsyncStorage.setItem('IS_GUEST', JSON.stringify(!!res.data.data.isGuest));
-          saveToStorage(t('STORAGE.MODE'), JSON.stringify(true));
+          AsyncStorage.setItem('IS_GUEST', JSON.stringify(!!res?.data?.data?.isGuest));
+          saveToStorage(STRING.STORAGE.MODE, JSON.stringify(true));
           props.setMode(true);
           console.log('[FLOW][Email] login: navigateTo HOME');
           navigateTo(navigation, t('SCREEN.HOME'));
@@ -275,11 +276,11 @@ const EmailSignIn = ({navigation, route, ...props}) => {
         } else {
           setIsAlert(true);
           setAlertMessage(
-            res.data.message.email
-              ? res.data.message.email
-              : res.data.message.password
-              ? res.data.message.password
-              : res.data.message,
+            res?.data?.message?.email
+              ? res?.data?.message?.email
+              : res?.data?.message?.password
+              ? res?.data?.message?.password
+              : res?.data?.message,
           );
           props.setLoader(false);
           // setIsSuccess(false);

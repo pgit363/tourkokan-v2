@@ -31,6 +31,8 @@ import GlobalText from './src/Components/Customs/Text';
 import TextButton from './src/Components/Customs/Buttons/TextButton';
 import OnboardingScreen from './src/Screens/OnboardingScreen';
 import {GlobalAlertProvider} from './src/Components/Common/GlobalAlert';
+import ErrorBoundary from './src/Components/Common/ErrorBoundary';
+import OrientationNotice from './src/Components/Common/OrientationNotice';
 
 const firebaseConfig = {
   apiKey: 'AIzaSyDT01wLV3kMfc6OuQwK5f1UwAeZGOFviR4',
@@ -228,28 +230,34 @@ export default function App() {
   // intro again, even if isFirstTime got re-armed to 'true' by the login flow.
   if (isFirstTime === 'false' || hasToken) {
     return (
-      <Provider store={store}>
-        <UpdateContext.Provider value={{isUpdatePending: updateApp}}>
-          <SafeAreaProvider>
-            <StatusBar style="dark" backgroundColor="transparent" translucent={true} />
-            <StackNavigator initialRoute={initialRoute} />
-            <UpdateOverlay />
-            <SecurityOverlay />
-            <GlobalAlertProvider />
-          </SafeAreaProvider>
-        </UpdateContext.Provider>
-      </Provider>
+      <ErrorBoundary>
+        <Provider store={store}>
+          <UpdateContext.Provider value={{isUpdatePending: updateApp}}>
+            <SafeAreaProvider>
+              <StatusBar style="dark" backgroundColor="transparent" translucent={true} />
+              <StackNavigator initialRoute={initialRoute} />
+              <UpdateOverlay />
+              <SecurityOverlay />
+              <OrientationNotice />
+              <GlobalAlertProvider />
+            </SafeAreaProvider>
+          </UpdateContext.Provider>
+        </Provider>
+      </ErrorBoundary>
     );
   }
 
   return (
-    <SafeAreaProvider>
-      <StatusBar style="dark" backgroundColor="transparent" translucent={true} />
-      <OnboardingScreen onComplete={() => setIsFirstTime('false')} />
-      <UpdateOverlay />
-      <SecurityOverlay />
-      <GlobalAlertProvider />
-    </SafeAreaProvider>
+    <ErrorBoundary>
+      <SafeAreaProvider>
+        <StatusBar style="dark" backgroundColor="transparent" translucent={true} />
+        <OnboardingScreen onComplete={() => setIsFirstTime('false')} />
+        <UpdateOverlay />
+        <SecurityOverlay />
+        <OrientationNotice />
+        <GlobalAlertProvider />
+      </SafeAreaProvider>
+    </ErrorBoundary>
   );
 }
 

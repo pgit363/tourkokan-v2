@@ -370,7 +370,7 @@ const RoutesList = ({navigation, route}) => {
         try {
           const parsed = JSON.parse(landingData);
           if (parsed?.banners) setBannerObject(parsed.banners);
-        } catch {}
+        } catch (e) { console.warn("[caught]", e); }
       }
 
       if (stopsRes?.data?.success && Array.isArray(stopsRes.data.data)) {

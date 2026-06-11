@@ -98,18 +98,18 @@ const PasswordLogin = ({navigation, route, ...props}) => {
     // createUser()
     comnPost('auth/login', data)
       .then(res => {
-        if (res.data.success) {
+        if (res?.data?.success) {
           // setIsAlert(true);
-          // setAlertMessage(res.data.message);
+          // setAlertMessage(res?.data?.message);
           AsyncStorage.setItem(
             t('STORAGE.ACCESS_TOKEN'),
-            res.data.data.access_token,
+            res?.data?.data?.access_token,
           );
           AsyncStorage.setItem(
             t('STORAGE.USER_ID'),
-            JSON.stringify(res.data.data.user.id),
+            JSON.stringify(res?.data?.data?.user.id),
           );
-          props.saveAccess_token(res.data.data.access_token);
+          props.saveAccess_token(res?.data?.data?.access_token);
           props.setLoader(false);
           // setIsSuccess(true)
           AsyncStorage.setItem(
@@ -125,11 +125,11 @@ const PasswordLogin = ({navigation, route, ...props}) => {
         } else {
           setIsAlert(true);
           setAlertMessage(
-            res.data.message.email
-              ? res.data.message.email
-              : res.data.message.password
-              ? res.data.message.password
-              : res.data.message,
+            res?.data?.message?.email
+              ? res?.data?.message?.email
+              : res?.data?.message?.password
+              ? res?.data?.message?.password
+              : res?.data?.message,
           );
           props.setLoader(false);
           setIsSuccess(false);

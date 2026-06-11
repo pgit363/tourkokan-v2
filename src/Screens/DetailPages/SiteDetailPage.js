@@ -216,12 +216,12 @@ const SiteDetailPage = ({navigation, route}) => {
         const parsed = JSON.parse(raw);
         if (parsed?.banners) setBannerObject(parsed.banners);
       }
-    } catch {}
+    } catch (e) { console.warn("[caught]", e); }
   };
 
   const fetchFreshData = async () => {
     try {
-      const storedMode = JSON.parse(await getFromStorage(t('STORAGE.MODE')));
+      const storedMode = JSON.parse(await getFromStorage(STRING.STORAGE.MODE));
       if (!storedMode) return;
       const net = await NetInfo.fetch();
       if (!net.isConnected) return;
@@ -236,7 +236,7 @@ const SiteDetailPage = ({navigation, route}) => {
         setUserRating(parseFloat(fresh.rating_avg_rate) || 0);
         await AsyncStorage.setItem(`siteDetail_${id}`, JSON.stringify(fresh));
       }
-    } catch {} finally {
+    } catch (e) { console.warn("[caught]", e); } finally {
       setIsLoading(false);
     }
   };
@@ -262,7 +262,7 @@ const SiteDetailPage = ({navigation, route}) => {
   const onFavPress = async () => {
     try {
       if (await isGuestUser()) { setIsGuestPopup(true); return; }
-      const storedMode = JSON.parse(await getFromStorage(t('STORAGE.MODE')));
+      const storedMode = JSON.parse(await getFromStorage(STRING.STORAGE.MODE));
       const net = await NetInfo.fetch();
       if (!net.isConnected || !storedMode) {
         setAlertMessage(!net.isConnected
@@ -280,14 +280,14 @@ const SiteDetailPage = ({navigation, route}) => {
       }).then(() => {
         AsyncStorage.setItem('isUpdated', 'true');
       }).catch(() => {});
-    } catch {}
+    } catch (e) { console.warn("[caught]", e); }
   };
 
   // ── Star rating submit ────────────────────────────────────────────────────────
   const onStarRatingPress = async rate => {
     try {
       if (await isGuestUser()) { setIsGuestPopup(true); return; }
-      const storedMode = JSON.parse(await getFromStorage(t('STORAGE.MODE')));
+      const storedMode = JSON.parse(await getFromStorage(STRING.STORAGE.MODE));
       const net = await NetInfo.fetch();
       if (!net.isConnected || !storedMode) {
         setAlertMessage(!net.isConnected
@@ -306,7 +306,7 @@ const SiteDetailPage = ({navigation, route}) => {
       }).then(() => {
         AsyncStorage.setItem('isUpdated', 'true');
       }).catch(() => {});
-    } catch {}
+    } catch (e) { console.warn("[caught]", e); }
   };
 
   // ── Share ─────────────────────────────────────────────────────────────────────
@@ -317,7 +317,7 @@ const SiteDetailPage = ({navigation, route}) => {
         message: `${city.name} — ${city.tag_line || ''}\nExplore on TourKokan!`,
         title: city.name,
       });
-    } catch {}
+    } catch (e) { console.warn("[caught]", e); }
   };
 
   // ── Directions ───────────────────────────────────────────────────────────────

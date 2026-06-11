@@ -95,7 +95,7 @@ const BusRouteList = ({navigation}) => {
           lastPageRef.current = paginatedData?.last_page ?? null;
           setIsLoading(false);
         }
-      } catch {}
+      } catch (e) { console.warn("[caught]", e); }
     }
 
     // Routes need live data — gate the network fetch by mode/connectivity.
@@ -152,7 +152,7 @@ const BusRouteList = ({navigation}) => {
         currentPageRef.current = current;
         lastPageRef.current = last;
       }
-    } catch {}
+    } catch (e) { console.warn("[caught]", e); }
     finally {
       if (isMounted.current) {
         setIsLoading(false);

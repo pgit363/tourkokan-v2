@@ -97,9 +97,10 @@ const Banner = ({style, bannerImages, width, resizeMode}) => {
     );
   }, [bannerImages, carouselWidth, fixedHeight]);
 
-  // Hero banners (fixed height) use 'stretch' — original behaviour, fills exact container
+  // Hero banners (fixed height) use 'cover' — fills the container proportionally,
+  // cropping edges instead of distorting (T9; was 'stretch')
   // Ad banners (auto height) use 'contain' — shows full image at natural ratio
-  const imageResizeMode = resizeMode ?? (fixedHeight ? 'stretch' : 'contain');
+  const imageResizeMode = resizeMode ?? (fixedHeight ? 'cover' : 'contain');
 
   const bannerClick = url => {
     if (url) Linking.openURL(url).catch(() => {});

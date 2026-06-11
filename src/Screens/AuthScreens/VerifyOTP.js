@@ -12,6 +12,7 @@ import {
 import TextButton from '../../Components/Customs/Buttons/TextButton';
 import styles from './Styles';
 import {comnPost, saveToStorage} from '../../Services/Api/CommonServices';
+import STRING from '../../Services/Constants/STRINGS';
 import {connect} from 'react-redux';
 import {
   saveAccess_token,
@@ -79,23 +80,23 @@ const VerifyOTP = ({navigation, route, ...props}) => {
 
     comnPost('v2/auth/verifyOtp', data)
       .then(res => {
-        if (res.data.success) {
+        if (res?.data?.success) {
           AsyncStorage.setItem(
             t('STORAGE.ACCESS_TOKEN'),
-            res.data.data.access_token,
+            res?.data?.data?.access_token,
           );
           AsyncStorage.setItem(
             t('STORAGE.USER_ID'),
-            JSON.stringify(res.data.data.user.id),
+            JSON.stringify(res?.data?.data?.user.id),
           );
-          props.saveAccess_token(res.data.data.access_token);
+          props.saveAccess_token(res?.data?.data?.access_token);
           props.setLoader(false);
           AsyncStorage.setItem(
             t('STORAGE.IS_FIRST_TIME'),
             JSON.stringify(true),
           );
-          AsyncStorage.setItem('IS_GUEST', JSON.stringify(!!res.data.data.isGuest));
-          saveToStorage(t('STORAGE.MODE'), JSON.stringify(true));
+          AsyncStorage.setItem('IS_GUEST', JSON.stringify(!!res?.data?.data?.isGuest));
+          saveToStorage(STRING.STORAGE.MODE, JSON.stringify(true));
           props.setMode(true);
           navigateTo(navigation, t('SCREEN.HOME'));
           // navigation.dispatch(
@@ -106,7 +107,7 @@ const VerifyOTP = ({navigation, route, ...props}) => {
           // );
         } else {
           setIsAlert(true);
-          setAlertMessage(res.data.message?.otp || res.data.message);
+          setAlertMessage(res?.data?.message?.otp || res?.data?.message);
           props.setLoader(false);
         }
       })

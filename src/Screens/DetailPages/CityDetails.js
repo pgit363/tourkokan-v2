@@ -127,15 +127,15 @@ const CityDetails = ({navigation, route, offline, ...props}) => {
     };
     comnPost(`v2/getSite`, data)
       .then(res => {
-        if (res.data.success) {
-          setCity(res.data.data);
-          setIsFav(res.data.data.is_favorite);
-          setRating(parseFloat(res.data.data.rating_avg_rate) || 0);
-          setCommentCount(res.data.data.comment_count);
-          setLocationMap(res.data.data.latitude, res.data.data.longitude);
+        if (res?.data?.success) {
+          setCity(res?.data?.data);
+          setIsFav(res?.data?.data?.is_favorite);
+          setRating(parseFloat(res?.data?.data?.rating_avg_rate) || 0);
+          setCommentCount(res?.data?.data?.comment_count);
+          setLocationMap(res?.data?.data?.latitude, res?.data?.data?.longitude);
           setLoader(false);
         } else {
-          setError(res.data.message);
+          setError(res?.data?.message);
           setLoader(false);
         }
       })
@@ -166,7 +166,7 @@ const CityDetails = ({navigation, route, offline, ...props}) => {
       setIsGuestPopup(true);
       return;
     }
-    const mode = JSON.parse(await getFromStorage(t('STORAGE.MODE')));
+    const mode = JSON.parse(await getFromStorage(STRING.STORAGE.MODE));
     // Check the internet connectivity state
     const state = await NetInfo.fetch();
     const isConnected = state.isConnected;
@@ -221,7 +221,7 @@ const CityDetails = ({navigation, route, offline, ...props}) => {
       setIsGuestPopup(true);
       return;
     }
-    const mode = JSON.parse(await getFromStorage(t('STORAGE.MODE')));
+    const mode = JSON.parse(await getFromStorage(STRING.STORAGE.MODE));
     // Check the internet connectivity state
     const state = await NetInfo.fetch();
     const isConnected = state.isConnected;
@@ -377,11 +377,11 @@ const CityDetails = ({navigation, route, offline, ...props}) => {
       comnPost('v2/getSite', {id: cityId})
         .then(res => {
           if (res?.data?.success) {
-            setCity(res.data.data);
-            setIsFav(res.data.data.is_favorite);
-            setRating(parseFloat(res.data.data.rating_avg_rate) || 0);
-            setCommentCount(res.data.data.comment_count);
-            setLocationMap(res.data.data.latitude, res.data.data.longitude);
+            setCity(res?.data?.data);
+            setIsFav(res?.data?.data?.is_favorite);
+            setRating(parseFloat(res?.data?.data?.rating_avg_rate) || 0);
+            setCommentCount(res?.data?.data?.comment_count);
+            setLocationMap(res?.data?.data?.latitude, res?.data?.data?.longitude);
           }
           setRefreshing(false);
         })

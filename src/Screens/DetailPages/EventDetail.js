@@ -163,7 +163,7 @@ const EventDetail = ({navigation, route}) => {
             }
           }).catch(() => {});
       }
-    } catch (_) {}
+    } catch (e) { console.warn("[caught]", e); }
   };
 
   // ── Gallery management (owner + completed) ────────────────────────────────

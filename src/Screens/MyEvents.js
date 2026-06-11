@@ -165,7 +165,7 @@ const MyEvents = ({navigation}) => {
             setEvents(list);
             setLoading(false);
           }
-        } catch {}
+        } catch (e) { console.warn("[caught]", e); }
       }
     }
 

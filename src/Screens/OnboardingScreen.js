@@ -20,6 +20,7 @@ import * as LocationEnabler from 'react-native-android-location-enabler';
 import {saveToStorage} from '../Services/Api/CommonServices';
 import {showAlert} from '../Services/CommonMethods';
 import COLOR from '../Services/Constants/COLORS';
+import DIMENSIONS from '../Services/Constants/DIMENSIONS';
 import STRING from '../Services/Constants/STRINGS';
 import styles from './Styles';
 
@@ -250,13 +251,24 @@ const OnboardingScreen = ({onComplete}) => {
               />
             </View>
           ) : item.type === 'terms' ? (
-            <View>
-              <PrivacyPolicy />
+            <View style={[styles.termsSlide, {paddingTop: insets.top}]}>
+              <PrivacyPolicy
+                containerStyle={[
+                  styles.termsPolicyCard,
+                  {
+                    height:
+                      DIMENSIONS.screenHeight -
+                      (insets.top + insets.bottom + 185),
+                  },
+                ]}
+              />
               <CheckBox
                 title={STRING.ACCEPT_TNC}
                 onPress={() => privacyClicked()}
                 checked={isPrivacyChecked}
-                textStyle={{fontSize: 12.5}}
+                checkedColor={COLOR.themeBlue}
+                containerStyle={styles.termsCheckboxContainer}
+                textStyle={styles.termsCheckboxText}
               />
             </View>
           ) : null}

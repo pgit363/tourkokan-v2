@@ -85,6 +85,13 @@ task setEnv {
 }
 preBuild.dependsOn setEnv
 
+// Release signing secrets loaded from git-ignored android/keystore.properties
+def keystorePropertiesFile = rootProject.file("keystore.properties")
+def keystoreProperties = new Properties()
+if (keystorePropertiesFile.exists()) {
+    keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
+}
+
 android {
     ndkVersion rootProject.ext.ndkVersion
     buildToolsVersion rootProject.ext.buildToolsVersion
@@ -95,7 +102,7 @@ android {
         applicationId "com.tourkokan"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 44
+        versionCode 45
         versionName "2.0.3"
     }
     signingConfigs {
@@ -106,12 +113,13 @@ android {
             keyPassword 'android'
         }
         release {
-            // storeFile file('/Users/balkrushnawalke/Documents/malvani/react_native/More_Latest/tourkokan/tourkokan-release.keystore')
-            // storeFile file('/var/www/html/latestpackages/android/app/keystore/tourkokan-release.keystore')
-            storeFile file('/Users/pranavkamble/Documents/tourkokan-v2/android/app/tourkokan-release.keystore')
-            storePassword 'tourkokan'
-            keyAlias 'my-key-alias'
-            keyPassword 'tourkokan'
+            // Secrets come from android/keystore.properties (git-ignored).
+            if (keystorePropertiesFile.exists()) {
+                storeFile file(keystoreProperties['storeFile'])
+                storePassword keystoreProperties['storePassword']
+                keyAlias keystoreProperties['keyAlias']
+                keyPassword keystoreProperties['keyPassword']
+            }
         }
     }
     buildTypes {

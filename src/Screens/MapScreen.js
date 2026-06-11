@@ -33,16 +33,22 @@ const MapScreen = ({navigation, ...props}) => {
         setCities(JSON.parse(localData));
       }
 
+      // Fetch only on the first connected event or a genuine offline→online
+      // reconnect — NetInfo fires on every detail change.
+      let wasConnected = null;
       unsubscribe = NetInfo.addEventListener(state => {
-        setOffline(false);
+        const connected = !!state.isConnected;
+        setOffline(!connected);
+        const changed = wasConnected !== connected;
+        wasConnected = connected;
+        if (!connected || !changed) return;
 
         dataSync(t('STORAGE.CITIES_RESPONSE'), () => getCities(), props.mode).then(
           resp => {
-            if (resp) {
-              let res = JSON.parse(resp);
-              setCities(res);
-            } else if (resp) {
-              setOffline(true);
+            if (resp && typeof resp === 'string') {
+              try {
+                setCities(JSON.parse(resp));
+              } catch (e) { console.warn('[caught]', e); }
             }
           },
         );

@@ -134,9 +134,9 @@ const RoutesSearchPanel = ({
     };
     comnPost(`v2/sites`, data)
       .then(res => {
-        if (res.data.success) {
+        if (res?.data?.success) {
           props.setLoader(false);
-          setPlacesList(res.data.data.data);
+          setPlacesList(res?.data?.data?.data);
         } else {
           props.setLoader(false);
         }
@@ -156,9 +156,9 @@ const RoutesSearchPanel = ({
     };
     comnPost(`v2/sites?page=${page}`, data)
       .then(res => {
-        if (res.data.success) {
-          let nextUrl = res.data.data.next_page_url;
-          setPlacesList([...placesList, ...res.data.data.data]);
+        if (res?.data?.success) {
+          let nextUrl = res?.data?.data?.next_page_url;
+          setPlacesList([...placesList, ...res?.data?.data?.data]);
           setNextPage(nextUrl[nextUrl.length - 1]);
           props.setLoader(false);
         } else {

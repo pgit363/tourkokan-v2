@@ -546,9 +546,12 @@ const EventsList = ({navigation, route}) => {
           showsVerticalScrollIndicator={false}
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[C.oceanMid]} tintColor={C.oceanMid} />}
           ListFooterComponent={
-            loadingMore
-              ? <ActivityIndicator color={C.oceanMid} style={{marginVertical: 16}} />
-              : <View style={{height: insets.bottom + 100}} />
+            <>
+              {loadingMore && (
+                <ActivityIndicator color={C.oceanMid} style={{marginVertical: 16}} />
+              )}
+              <View style={{height: insets.bottom + 100}} />
+            </>
           }
         />
       )}

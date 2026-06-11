@@ -461,7 +461,9 @@ const styles = StyleSheet.create({
   image: {
     height: DIMENSIONS.screenHeight - 250,
     width: DIMENSIONS.screenWidth,
-    resizeMode: 'stretch',
+    // 'contain' (T9; was 'stretch') — the intro art has place-name labels at its
+    // edges, so it must not be cropped or distorted; bands blend with white slides
+    resizeMode: 'contain',
     marginTop: DIMENSIONS.headerHeight - 20,
   },
   text: {
@@ -583,6 +585,36 @@ const styles = StyleSheet.create({
   bottomFields: {
     top: 10,
     alignItems: 'center',
+  },
+  termsSlide: {
+    alignItems: 'center',
+  },
+  termsPolicyCard: {
+    marginTop: 0,
+    marginBottom: 0,
+    backgroundColor: COLOR.white,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: '#E7E5E4',
+    overflow: 'hidden',
+  },
+  termsCheckboxContainer: {
+    width: DIMENSIONS.bannerWidth,
+    backgroundColor: COLOR.white,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#E7E5E4',
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    marginTop: 12,
+    marginBottom: 0,
+    marginLeft: 0,
+    marginRight: 0,
+  },
+  termsCheckboxText: {
+    fontSize: 12.5,
+    color: '#44403C',
+    fontWeight: '600',
   },
   buttonContainer: {
     flexDirection: 'row',

@@ -127,7 +127,7 @@ const InboxScreen = ({navigation}) => {
         setMessages(prev =>
           prev.map(m => (m.id === item.id ? {...m, is_read: true} : m)),
         );
-      } catch {}
+      } catch (e) { console.warn("[caught]", e); }
       setReadingId(null);
     }
   };

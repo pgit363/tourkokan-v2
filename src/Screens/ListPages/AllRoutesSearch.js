@@ -292,7 +292,7 @@ const AllRoutesSearch = ({navigation, route, ...props}) => {
             setIsLoading(false);
             cacheLoaded = true;
           }
-        } catch {}
+        } catch (e) { console.warn("[caught]", e); }
       }
 
       // Fetch fresh from API
@@ -332,7 +332,7 @@ const AllRoutesSearch = ({navigation, route, ...props}) => {
         const parsed = JSON.parse(raw);
         if (parsed?.banners && isMounted.current) setBannerObject(parsed.banners);
       }
-    } catch {}
+    } catch (e) { console.warn("[caught]", e); }
   };
 
   // ── API ────────────────────────────────────────────────────────────────────
@@ -393,7 +393,7 @@ const AllRoutesSearch = ({navigation, route, ...props}) => {
                 RECENT_KEY,
                 JSON.stringify([entry, ...filtered].slice(0, MAX_RECENT)),
               );
-            } catch {}
+            } catch (e) { console.warn("[caught]", e); }
           }
         }
         setCurrentPage(current);
@@ -414,7 +414,7 @@ const AllRoutesSearch = ({navigation, route, ...props}) => {
               setIsOffline(true);
             }
           }
-        } catch {}
+        } catch (e) { console.warn("[caught]", e); }
       }
     } finally {
       if (isMounted.current) {

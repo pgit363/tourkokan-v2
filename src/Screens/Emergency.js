@@ -55,6 +55,7 @@ const ICON_MAP = {
 const PER_PAGE = 10;
 
 const mapSiteToContact = (item, icon) => ({
+  id: item.id,
   name: item.name,
   meta: `${item.site?.name || 'Sindhudurg'} · ${item.categories?.[0]?.name || ''}`,
   number: item.address?.length > 0 ? item.address[item.address.length - 1].phone : '',
@@ -77,6 +78,7 @@ const Emergency = ({ navigation }) => {
   const tabScrollRef = useRef(null);
   const tabLayoutsRef = useRef({});
   const loadingMoreRef = useRef(false);
+  const pagedTabsRef = useRef(new Set());
   const {modal: connectivityModal, ensureOnline} = useConnectivityGate();
 
   const quickActions = [
@@ -87,6 +89,7 @@ const Emergency = ({ navigation }) => {
 
   const fetchInitial = useCallback(async (isRefresh = false) => {
     const storageKey = STRING.STORAGE.EMERGENCY; // 'emergency' — populated by landing page API
+    if (isRefresh) pagedTabsRef.current = new Set();
 
     const parseSubCategories = parsed => {
       if (!parsed) return [];
@@ -107,13 +110,20 @@ const Emergency = ({ navigation }) => {
       subCategories.forEach(sc => {
         if (!sc.name) return;
         const icon = ICON_MAP[sc.code] || '📞';
-        newContacts[sc.name] = (sc.sites || []).map(site => ({
+        const allSites = sc.sites || [];
+        // The category APIs return up to 15 sites per sub-category, but page 2
+        // of v2/sites starts at record 11 — keep page 1 aligned with PER_PAGE
+        // so loading the next page never re-appends records 11-15.
+        const pageOne = allSites.slice(0, PER_PAGE);
+        const total = typeof sc.sites_count === 'number' ? sc.sites_count : allSites.length;
+        newContacts[sc.name] = pageOne.map(site => ({
+          id: site.id,
           name: site.name,
           meta: `Sindhudurg · ${sc.name}`,
           number: '',
           icon,
         }));
-        newPaging[sc.name] = { page: 1, hasMore: (sc.sites?.length || 0) >= PER_PAGE };
+        newPaging[sc.name] = { page: 1, hasMore: total > pageOne.length };
         newTabCodes[sc.name] = sc.code;
         newTabs.push(sc.name);
       });
@@ -121,8 +131,22 @@ const Emergency = ({ navigation }) => {
       newTabs.push('Other');
       tabCodesRef.current = newTabCodes;
       setTabs(newTabs);
-      setContacts(newContacts);
-      setPaging(newPaging);
+      // The background sync re-runs this after the user may have paginated —
+      // keep the contacts/paging of tabs that already loaded extra pages.
+      setContacts(prev => {
+        const merged = { ...newContacts };
+        pagedTabsRef.current.forEach(tab => {
+          if (prev[tab] && merged[tab]) merged[tab] = prev[tab];
+        });
+        return merged;
+      });
+      setPaging(prev => {
+        const merged = { ...newPaging };
+        pagedTabsRef.current.forEach(tab => {
+          if (prev[tab] && merged[tab]) merged[tab] = prev[tab];
+        });
+        return merged;
+      });
       setActiveTab(prev => prev && newTabs.includes(prev) ? prev : newTabs[0]);
     };
 
@@ -180,42 +204,48 @@ const Emergency = ({ navigation }) => {
     }
   }, [navigation]);
 
-  const fetchTabPage = useCallback((tab, page) => ensureOnline(async () => {
+  const fetchTabPage = useCallback(async (tab, page) => {
     const code = tabCodesRef.current[tab];
-    if (!code) return;
+    if (!code || loadingMoreRef.current) return;
 
+    // Set the guard before any await — onEndReached fires several times per
+    // scroll and would otherwise start duplicate requests for the same page.
     loadingMoreRef.current = true;
-    setLoadingMore(true);
     try {
-      const res = await comnPost(
-        `v2/sites?page=${page}`,
-        { apitype: 'list', category: code, per_page: PER_PAGE },
-        navigation,
-      );
-      console.log(`[Emergency] fetchTabPage tab="${tab}" page=${page} code="${code}" raw res:`, res?.data);
-      const data = res?.data?.data?.data || [];
-      const hasMore = !!res?.data?.data?.next_page_url;
-      console.log(`[Emergency] fetchTabPage data count: ${data.length}, hasMore: ${hasMore}`);
-      if (data.length > 0) {
-        console.log('[Emergency] fetchTabPage first item sample:', data[0]);
-      }
-      const icon = ICON_MAP[code] || '📞';
-      const mapped = data.map(item => mapSiteToContact(item, icon));
+      await ensureOnline(async () => {
+        setLoadingMore(true);
+        const res = await comnPost(
+          `v2/sites?page=${page}`,
+          { apitype: 'list', category: code, per_page: PER_PAGE },
+          navigation,
+        );
+        const body = res?.data?.data;
+        // comnPost resolves with {success:false} on failure — leave paging
+        // untouched so the next end-reach retries instead of going dead.
+        if (res?.data?.success === false || !Array.isArray(body?.data)) return;
 
-      if (mapped.length > 0) {
+        const hasMore = !!body.next_page_url;
+        const icon = ICON_MAP[code] || '📞';
+        const mapped = body.data.map(item => mapSiteToContact(item, icon));
+
         setContacts(prev => {
           const existing = prev[tab] || [];
-          const updated = page === 1 ? mapped : [...existing, ...mapped];
-          return { ...prev, [tab]: updated };
+          if (page === 1) return { ...prev, [tab]: mapped };
+          // The category APIs and v2/sites order differently — drop records
+          // page 1 already contains instead of appending duplicates.
+          const seen = new Set(existing.map(c => c.id).filter(id => id != null));
+          const fresh = mapped.filter(c => c.id == null || !seen.has(c.id));
+          return fresh.length ? { ...prev, [tab]: [...existing, ...fresh] } : prev;
         });
-      }
-      setPaging(prev => ({ ...prev, [tab]: { page, hasMore } }));
+        setPaging(prev => ({ ...prev, [tab]: { page, hasMore } }));
+        if (page > 1) pagedTabsRef.current.add(tab);
+      });
     } catch (_) {
     } finally {
       loadingMoreRef.current = false;
       setLoadingMore(false);
     }
-  }), [ensureOnline]);
+  }, [ensureOnline, navigation]);
 
   const onRefresh = useCallback(() => ensureOnline(async () => {
     setRefreshing(true);
@@ -422,15 +452,32 @@ const Emergency = ({ navigation }) => {
   return (
     <>
       <FlatList
+        // Remount per tab: the list otherwise keeps VirtualizedList's render
+        // window from the initial empty mount (activeTab=''), which blocks
+        // onEndReached from ever firing (its `last === itemCount - 1` check).
+        key={activeTab || 'loading'}
         data={activeTab ? contacts[activeTab] : []}
         renderItem={renderContactCard}
-        keyExtractor={(_item, index) => index.toString()}
+        keyExtractor={(item, index) =>
+          item.id != null ? `${activeTab}-${item.id}` : `${activeTab}-${index}`
+        }
         contentContainerStyle={styles.contactsList}
         ListHeaderComponent={ListHeader}
         ListEmptyComponent={ListEmpty}
         ListFooterComponent={ListFooter}
         onEndReached={onEndReached}
         onEndReachedThreshold={0.4}
+        onScroll={e => {
+          const {contentOffset, contentSize, layoutMeasurement} = e.nativeEvent;
+          const distanceFromEnd = contentSize.height - layoutMeasurement.height - contentOffset.y;
+          // Manual end-reach fallback: VirtualizedList skips onEndReached when
+          // its internal render window is stale, so drive the same guarded
+          // handler from the raw scroll metrics. onEndReached's hasMore and
+          // in-flight checks make duplicate triggers harmless.
+          if (distanceFromEnd <= layoutMeasurement.height * 0.4) {
+            onEndReached();
+          }
+        }}
         removeClippedSubviews={true}
         maxToRenderPerBatch={10}
         windowSize={10}

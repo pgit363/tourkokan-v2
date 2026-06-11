@@ -10,29 +10,29 @@ import BusRouteList from '../Screens/ListPages/BusRouteList';
 import MSRTCSearch from '../Screens/ListPages/MSRTCSearch';
 import PasswordLogin from '../Screens/AuthScreens/PasswordLogin';
 import Email from '../Screens/AuthScreens/Email';
-import LangSelection from '../Screens/AuthScreens/LangSelection';
+// import LangSelection from '../Screens/AuthScreens/LangSelection'; // unused — file renamed to -unused
 import ContactUs from '../Screens/ContactUs';
-import SignIn from '../Screens/AuthScreens/SignIn';
+// import SignIn from '../Screens/AuthScreens/SignIn-unused'; // unused
 import SignUp from '../Screens/AuthScreens/SignUp';
-import SearchList from '../Screens/ListPages/SearchList';
+// import SearchList from '../Screens/ListPages/SearchList-unused'; // unused
 import RoutesList from '../Screens/ListPages/RoutesList';
-import BusTimings from '../Screens/BusTimings';
-import CategoryProjects from '../Screens/CategoryProjects';
+// import BusTimings from '../Screens/BusTimings-unused'; // unused
+// import CategoryProjects from '../Screens/CategoryProjects-unused'; // unused
 import CityDetails from '../Screens/DetailPages/CityDetails';
 import SiteDetailPage from '../Screens/DetailPages/SiteDetailPage';
 import CityList from '../Screens/ListPages/CityList';
-import Explore from '../Screens/ListPages/Explore';
+// import Explore from '../Screens/ListPages/Explore-unused'; // unused
 import Categories from '../Screens/ListPages/Categories';
 import ExploreGrid from '../Screens/ListPages/ExploreGrid';
-import ProjectList from '../Screens/ListPages/ProjectList';
+// import ProjectList from '../Screens/ListPages/ProjectList-unused'; // unused
 import QueriesList from '../Screens/ListPages/QueriesList';
 import CityPlaceSearch from '../Screens/ListPages/CityPlaceSearch';
-import StopList from '../Screens/ListPages/StopList';
+// import StopList from '../Screens/ListPages/StopList-unused'; // unused
 import EmailSignIn from '../Screens/AuthScreens/EmailSignIn';
-import AuthScreen from '../Screens/AuthScreens/AuthScreen';
+// import AuthScreen from '../Screens/AuthScreens/AuthScreen-unused'; // unused
 import VerifyOTP from '../Screens/AuthScreens/VerifyOTP';
 import PlaceDetails from '../Screens/DetailPages/PlaceDetails';
-import ProjectDetails from '../Screens/DetailPages/ProjectDetails';
+// import ProjectDetails from '../Screens/DetailPages/ProjectDetails-unused'; // unused
 import StopDetails from '../Screens/DetailPages/StopDetails';
 import SearchPlace from '../Screens/SearchPlace';
 import MapScreen from '../Screens/MapScreen';
@@ -122,7 +122,7 @@ const StackNavigator = ({initialRoute}) => {
             component={DrawerNavigator}
             options={{headerShown: false}}
           />
-          <Stack.Screen name={t('SCREEN.SEARCH_LIST')} component={SearchList} />
+          {/* <Stack.Screen name={t('SCREEN.SEARCH_LIST')} component={SearchList} /> unused */}
           <Stack.Screen
             name={t('SCREEN.ALL_ROUTES_SEARCH')}
             component={AllRoutesSearch}
@@ -136,13 +136,13 @@ const StackNavigator = ({initialRoute}) => {
             component={MSRTCSearch}
           />
           <Stack.Screen name={t('SCREEN.ROUTES_LIST')} component={RoutesList} />
-          <Stack.Screen name={t('SCREEN.BUS_TIMINGS')} component={BusTimings} />
+          {/* <Stack.Screen name={t('SCREEN.BUS_TIMINGS')} component={BusTimings} /> unused */}
           {/* <Stack.Screen
             name={t('SCREEN.LANG_SELECTION')}
             component={LangSelection}
           /> */}
-          <Stack.Screen name={t('SCREEN.AUTH_SCREEN')} component={AuthScreen} />
-          <Stack.Screen name={t('SCREEN.LOGIN')} component={SignIn} />
+          {/* <Stack.Screen name={t('SCREEN.AUTH_SCREEN')} component={AuthScreen} /> unused */}
+          {/* <Stack.Screen name={t('SCREEN.LOGIN')} component={SignIn} /> unused */}
           <Stack.Screen
             name={t('SCREEN.EMAIL_SIGN_IN')}
             component={EmailSignIn}
@@ -154,24 +154,24 @@ const StackNavigator = ({initialRoute}) => {
           />
           <Stack.Screen name={t('SCREEN.VERIFY_OTP')} component={VerifyOTP} />
           <Stack.Screen name={t('SCREEN.SIGN_UP')} component={SignUp} />
-          <Stack.Screen
+          {/* <Stack.Screen
             name={t('SCREEN.CATEGORY_PROJECTS')}
             component={CategoryProjects}
-          />
+          /> unused */}
           <Stack.Screen name={t('SCREEN.CITY_LIST')} component={CityList} />
-          <Stack.Screen name={t('SCREEN.EXPLORE')} component={Explore} />
+          {/* <Stack.Screen name={t('SCREEN.EXPLORE')} component={Explore} /> unused */}
           <Stack.Screen name={t('SCREEN.CATEGORIES')} component={Categories} />
-          <Stack.Screen
+          {/* <Stack.Screen
             name={t('SCREEN.PROJECT_LIST')}
             component={ProjectList}
-          />
+          /> unused */}
           <Stack.Screen
             name={t('SCREEN.QUERIES_LIST')}
             component={QueriesList}
           />
           <Stack.Screen name={t('SCREEN.CONTACT_US')} component={ContactUs} />
 
-          <Stack.Screen name={t('SCREEN.STOP_LIST')} component={StopList} />
+          {/* <Stack.Screen name={t('SCREEN.STOP_LIST')} component={StopList} /> unused */}
           <Stack.Screen
             name={t('SCREEN.CITY_DETAILS')}
             component={CityDetails}
@@ -184,10 +184,10 @@ const StackNavigator = ({initialRoute}) => {
             name={t('SCREEN.PLACE_DETAILS')}
             component={PlaceDetails}
           />
-          <Stack.Screen
+          {/* <Stack.Screen
             name={t('SCREEN.PROJECT_DETAILS')}
             component={ProjectDetails}
-          />
+          /> unused */}
           <Stack.Screen
             name={t('SCREEN.STOP_DETAILS')}
             component={StopDetails}

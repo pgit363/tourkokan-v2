@@ -377,7 +377,7 @@ const HomeScreen = ({navigation, route, ...props}) => {
         console.log('[FLOW][Home] NetInfo listener FIRED. isConnected=', connected);
         setOffline(!connected);
 
-        const storedMode = JSON.parse(await getFromStorage(t('STORAGE.MODE')));
+        const storedMode = JSON.parse(await getFromStorage(STRING.STORAGE.MODE));
         setMode(storedMode);
 
         if (!connected) {
@@ -467,7 +467,7 @@ const HomeScreen = ({navigation, route, ...props}) => {
         const isUpdated = await AsyncStorage.getItem('isUpdated');
         checkToken();
 
-        const storedMode = JSON.parse(await getFromStorage(t('STORAGE.MODE')));
+        const storedMode = JSON.parse(await getFromStorage(STRING.STORAGE.MODE));
         if (storedMode !== null && storedMode !== undefined) {
           setMode(storedMode);
           props.setMode(storedMode);
@@ -491,7 +491,7 @@ const HomeScreen = ({navigation, route, ...props}) => {
       if (!mode || offline) return;
       const fetchCount = async () => {
         // Respect offline mode even if local state lags (read storage fresh).
-        const storedMode = JSON.parse((await getFromStorage(t('STORAGE.MODE'))) ?? 'true');
+        const storedMode = JSON.parse((await getFromStorage(STRING.STORAGE.MODE)) ?? 'true');
         if (!storedMode) return;
         comnPost('v2/unreadMessageCount')
           .then(res => {
@@ -520,7 +520,7 @@ const HomeScreen = ({navigation, route, ...props}) => {
       }
       isFetchingRef.current = true;
 
-      const storedMode = JSON.parse(await getFromStorage(t('STORAGE.MODE')));
+      const storedMode = JSON.parse(await getFromStorage(STRING.STORAGE.MODE));
       if (!storedMode) {
         console.log(`[FLOW][Home] callLandingPageAPI #${callNo} SKIPPED (offline mode)`);
         dispatch({type: 'SET_LOADING', payload: false});
@@ -639,7 +639,7 @@ const HomeScreen = ({navigation, route, ...props}) => {
   };
 
   const onCitySelect = async city => {
-    const storedMode = JSON.parse(await getFromStorage(t('STORAGE.MODE')));
+    const storedMode = JSON.parse(await getFromStorage(STRING.STORAGE.MODE));
     const netState = await NetInfo.fetch();
     const isConnected = netState.isConnected;
 
@@ -677,7 +677,7 @@ const HomeScreen = ({navigation, route, ...props}) => {
   const closeLocationSheet = () => refRBSheet.current.close();
 
   const changeMode = async val => {
-    await saveToStorage(t('STORAGE.MODE'), JSON.stringify(val));
+    await saveToStorage(STRING.STORAGE.MODE, JSON.stringify(val));
     setMode(val);
     props.setMode(val);
     setModePopup(false);

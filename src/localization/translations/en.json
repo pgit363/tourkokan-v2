@@ -832,5 +832,9 @@
     "ALREADY_VENDOR_DESC": "You can add sites, events, and experiences.",
     "REQUEST_SUCCESS": "Vendor request submitted! Admin will review shortly.",
     "SECTION_TITLE": "Vendor Access"
+  },
+  "ORIENTATION_NOTICE": {
+    "TITLE": "Please Rotate Your Device",
+    "MESSAGE": "For the best experience, please use the app in vertical (portrait) mode."
   }
 }

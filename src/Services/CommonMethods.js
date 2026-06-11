@@ -26,7 +26,7 @@ export const checkLogin = async navigation => {
   if (!token) {
     try {
       navigation.reset({index: 0, routes: [{name: STRING.SCREEN.EMAIL}]});
-    } catch {}
+    } catch (e) { console.warn("[caught]", e); }
   }
 };
 

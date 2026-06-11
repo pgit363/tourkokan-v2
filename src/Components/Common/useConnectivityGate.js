@@ -56,14 +56,15 @@ export const useConnectivityGate = () => {
       try {
         const raw = await AsyncStorage.getItem(MODE_STORAGE_KEY);
         storedMode = raw !== null ? JSON.parse(raw) : true;
-      } catch {}
+      } catch (e) { console.warn("[caught]", e); }
 
       const net = await NetInfo.fetch();
       const isConnected = !!net.isConnected;
 
-      // 1. connected + online → proceed.
+      // 1. connected + online → proceed. Await so callers can tell when the
+      // action (e.g. a paginated fetch) has actually finished.
       if (isConnected && storedMode) {
-        onProceed?.();
+        await onProceed?.();
         return true;
       }
 
@@ -103,7 +104,7 @@ export const useConnectivityGate = () => {
   const handleModeChange = useCallback(async newMode => {
     try {
       await AsyncStorage.setItem(MODE_STORAGE_KEY, JSON.stringify(newMode));
-    } catch {}
+    } catch (e) { console.warn("[caught]", e); }
     store.dispatch(setModeAction(newMode));
     setGate(g => ({...g, visible: false}));
     if (newMode) {

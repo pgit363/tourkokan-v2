@@ -156,7 +156,7 @@ const LocationSheet = ({
             {enableHighAccuracy: false, timeout: 15000},
           )
           .catch(e => {});
-      } catch (e) {}
+      } catch (e) { console.warn("[caught]", e); }
     } else {
       try {
         RNAndroidLocationEnabler.promptForEnableLocationIfNeeded({
@@ -170,7 +170,7 @@ const LocationSheet = ({
             closeLocationSheet();
           });
         return true;
-      } catch (e) {}
+      } catch (e) { console.warn("[caught]", e); }
     }
   };
 

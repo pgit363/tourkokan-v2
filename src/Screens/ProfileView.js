@@ -263,9 +263,21 @@ const ProfileView = ({navigation, ...props}) => {
         }
       }
 
+      // Fetch only on the first connected event or a genuine offline→online
+      // reconnect — NetInfo fires on every detail change.
+      let wasConnected = null;
       unsubscribeNetInfo = NetInfo.addEventListener(state => {
         if (!isMounted) return;
-        setOffline(!state.isConnected);
+        const connected = !!state.isConnected;
+        setOffline(!connected);
+        const changed = wasConnected !== connected;
+        wasConnected = connected;
+        if (!connected) {
+          props.setLoader(false);
+          setRefreshing(false);
+          return;
+        }
+        if (!changed) return;
         dataSync(
           t('STORAGE.PROFILE_RESPONSE'),
           () => getUserProfile(),
@@ -370,7 +382,7 @@ const ProfileView = ({navigation, ...props}) => {
     try {
       // Fire API logout in background — don't block on result
       comnPost('v2/logout').catch(() => {});
-      try { await GoogleSignin.signOut(); } catch {}
+      try { await GoogleSignin.signOut(); } catch (e) { console.warn("[caught]", e); }
     } finally {
       // Always clear everything regardless of API/network result
       await AsyncStorage.clear();

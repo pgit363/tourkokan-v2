@@ -139,11 +139,11 @@ const MySubmissionsScreen = ({navigation}) => {
           setSubmissions(list);
           setLoading(false);
         }
-      } catch {}
+      } catch (e) { console.warn("[caught]", e); }
     }
 
     // 2. Sync fresh data (skips the API call when offline or in offline mode).
-    const storedMode = await getFromStorage(t('STORAGE.MODE'));
+    const storedMode = await getFromStorage(STRING.STORAGE.MODE);
     const appMode = storedMode !== null ? JSON.parse(storedMode) : true;
     try {
       const result = await dataSync(
@@ -159,7 +159,7 @@ const MySubmissionsScreen = ({navigation}) => {
         const list = JSON.parse(result);
         if (Array.isArray(list)) setSubmissions(list);
       }
-    } catch {}
+    } catch (e) { console.warn("[caught]", e); }
     setLoading(false);
   }, [t]);
 
@@ -179,7 +179,7 @@ const MySubmissionsScreen = ({navigation}) => {
         const list = res?.data?.data?.data || [];
         setSubmissions(list);
         saveToStorage(MY_SITES_CACHE, JSON.stringify(list));
-      } catch {}
+      } catch (e) { console.warn("[caught]", e); }
       setRefreshing(false);
     });
 

@@ -35,6 +35,9 @@ local.properties
 !debug.keystore
 .kotlin/
 
+# Android signing secrets (keep out of git)
+android/keystore.properties
+
 # node.js
 #
 node_modules/

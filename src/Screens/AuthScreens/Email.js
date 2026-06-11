@@ -112,14 +112,14 @@ const Email = ({navigation, route, ...props}) => {
         AsyncStorage.setItem(t('STORAGE.IS_FIRST_TIME'), JSON.stringify(true));
         const isGuestValGoogle = !!resData.data.isGuest;
         AsyncStorage.setItem('IS_GUEST', JSON.stringify(isGuestValGoogle));
-        saveToStorage(t('STORAGE.MODE'), JSON.stringify(true));
+        saveToStorage(STRING.STORAGE.MODE, JSON.stringify(true));
         // props.setMode(true);
         // try {
         //   const landingRes = await comnPost('v2/landingpage', {});
         //   if (landingRes?.data?.data) {
         //     await saveToStorage(t('STORAGE.LANDING_RESPONSE'), JSON.stringify(landingRes.data.data));
         //   }
-        // } catch (_) {}
+        // } catch (e) { console.warn("[caught]", e); }
         props.setLoader(false);
         navigateTo(navigation, t('SCREEN.HOME'));
       } else {
@@ -160,7 +160,7 @@ const Email = ({navigation, route, ...props}) => {
 
   const getAsyncValues = async () => {
     let language = await getFromStorage(t('STORAGE.LANGUAGE'));
-    let mode = await getFromStorage(t('STORAGE.MODE'));
+    let mode = await getFromStorage(STRING.STORAGE.MODE);
     i18n.changeLanguage(language);
     props.setMode(mode);
   };
@@ -303,28 +303,28 @@ const Email = ({navigation, route, ...props}) => {
     };
     try {
       const res = await comnPost('v2/auth/register', data);
-      if (res.data.success) {
-        await AsyncStorage.setItem(t('STORAGE.ACCESS_TOKEN'), res.data.data.access_token);
-        AsyncStorage.setItem(t('STORAGE.USER_ID'), JSON.stringify(res.data.data.user.id));
-        AsyncStorage.setItem(t('STORAGE.USER_EMAIL'), res.data.data.user.email || '');
-        AsyncStorage.setItem(t('STORAGE.USER_NAME'), res.data.data.user.name || '');
-        const isGuestVal = !!res.data.data.isGuest;
+      if (res?.data?.success) {
+        await AsyncStorage.setItem(t('STORAGE.ACCESS_TOKEN'), res?.data?.data?.access_token);
+        AsyncStorage.setItem(t('STORAGE.USER_ID'), JSON.stringify(res?.data?.data?.user.id));
+        AsyncStorage.setItem(t('STORAGE.USER_EMAIL'), res?.data?.data?.user.email || '');
+        AsyncStorage.setItem(t('STORAGE.USER_NAME'), res?.data?.data?.user.name || '');
+        const isGuestVal = !!res?.data?.data?.isGuest;
         AsyncStorage.setItem('IS_GUEST', JSON.stringify(isGuestVal));
         AsyncStorage.setItem(t('STORAGE.IS_FIRST_TIME'), JSON.stringify(true));
-        saveToStorage(t('STORAGE.MODE'), JSON.stringify(true));
+        saveToStorage(STRING.STORAGE.MODE, JSON.stringify(true));
         props.setMode(true);
         try {
           const landingRes = await comnPost('v2/landingpage', {});
           if (landingRes?.data?.data) {
             await saveToStorage(t('STORAGE.LANDING_RESPONSE'), JSON.stringify(landingRes.data.data));
           }
-        } catch (_) {}
+        } catch (e) { console.warn("[caught]", e); }
         props.setLoader(false);
         navigateTo(navigation, t('SCREEN.HOME'));
       } else {
         props.setLoader(false);
         setIsAlert(true);
-        setAlertMessage(res.data.message || t('ALERT.WENT_WRONG'));
+        setAlertMessage(res?.data?.message || t('ALERT.WENT_WRONG'));
       }
     } catch (_) {
       props.setLoader(false);

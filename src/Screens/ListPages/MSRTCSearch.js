@@ -160,7 +160,7 @@ const MSRTCSearch = ({navigation, route, ...props}) => {
         const parsed = JSON.parse(landingData);
         if (parsed?.banners) setBannerObject(parsed.banners);
       }
-    } catch {}
+    } catch (e) { console.warn("[caught]", e); }
   };
 
   const clearRecentRoutes = async () => {

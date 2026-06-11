@@ -209,9 +209,9 @@ const Profile = ({navigation, ...props}) => {
       if (res?.data?.data) {
         await saveToStorage(
           t('STORAGE.PROFILE_RESPONSE'),
-          JSON.stringify(res.data.data),
+          JSON.stringify(res?.data?.data),
         );
-        return res.data.data;
+        return res?.data?.data;
       }
       return null;
     } catch (err) {
@@ -331,13 +331,13 @@ const Profile = ({navigation, ...props}) => {
         }
 
         AsyncStorage.setItem('isUpdated', 'true');
-        if (res.data.success) {
+        if (res?.data?.success) {
           const updated = {...profile, mobile, dob: formatDateToAPI(dob), gender};
           saveToStorage(t('STORAGE.PROFILE_RESPONSE'), JSON.stringify(updated));
           props.setProfilePicture(profile.profile_picture || null);
           navigateTo(navigation, STRING.SCREEN.PROFILE_VIEW);
         } else {
-          const raw = res.data.message;
+          const raw = res?.data?.message;
           const msg = typeof raw === 'string'
             ? raw
             : Object.values(raw).flat()[0] ?? t('ALERT.FAILED');

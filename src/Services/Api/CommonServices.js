@@ -38,6 +38,21 @@ const handle401 = async navigation => {
   }
 };
 
+// Consistent failure shape so callers reading `res.data.*` never crash on a
+// network/server error (previously the raw axios Error was returned). Preserves
+// the server's error body (message/validation) when present.
+const buildErrorResponse = err => {
+  const serverData = err?.response?.data;
+  return {
+    data:
+      serverData && typeof serverData === 'object'
+        ? {...serverData, success: false}
+        : {success: false, message: err?.message || 'Network error', data: null},
+    status: err?.response?.status,
+    error: err,
+  };
+};
+
 export const comnGet = async (url, apiToken, navigation) => {
   let myUrl = API_PATH + url;
   const config = {
@@ -48,7 +63,7 @@ export const comnGet = async (url, apiToken, navigation) => {
     return res;
   } catch (err) {
     if (err.response?.status == 401) await handle401(navigation);
-    return err;
+    return buildErrorResponse(err);
   }
 };
 
@@ -58,19 +73,15 @@ export const comnPost = async (url, data, navigation) => {
   const headers = {'Content-Type': 'application/json'};
   if (token) headers.Authorization = `Bearer ${token}`;
   const config = {headers};
-  
-  console.log('url', myUrl, 'token', token, 'headers', headers);
 
   try {
     const res = await axios.post(myUrl, data, config);
-    console.log("resp", res);
-    
     return res;
   } catch (err) {
     if (err.response?.status == 401) {
       await handle401(navigation);
     }
-    return err;
+    return buildErrorResponse(err);
   }
 };
 
@@ -85,7 +96,7 @@ export const comnPostForm = async (url, formData, navigation) => {
     return res;
   } catch (err) {
     if (err.response?.status == 401) await handle401(navigation);
-    return err;
+    return buildErrorResponse(err);
   }
 };
 
@@ -100,7 +111,7 @@ export const comnPut = async (url, data, navigation) => {
     return res;
   } catch (err) {
     if (err.response?.status == 401) await handle401(navigation);
-    return err;
+    return buildErrorResponse(err);
   }
 };
 
@@ -116,7 +127,7 @@ export const comnDel = async (url, data, navigation) => {
     return res;
   } catch (err) {
     if (err.response?.status == 401) await handle401(navigation);
-    return err;
+    return buildErrorResponse(err);
   }
 };
 
