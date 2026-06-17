@@ -26,8 +26,10 @@ import {backPage} from '../../Services/CommonMethods';
 import {comnPost, comnPostForm} from '../../Services/Api/CommonServices';
 import {isGuestUser} from '../../Components/Common/GuestGateModal';
 import GuestGateModal from '../../Components/Common/GuestGateModal';
+import ImagePlaceholder from '../../Components/Common/ImagePlaceholder';
 import STRING from '../../Services/Constants/STRINGS';
 import {createLogger} from '../../Services/Logger';
+import {scaleFontSizes, useResponsive} from '../../Services/responsive';
 
 const log = createLogger('EventDetail');
 
@@ -76,6 +78,7 @@ const ENDPOINT = {
 
 const EventDetail = ({navigation, route}) => {
   const insets = useSafeAreaInsets();
+  const {isTablet} = useResponsive();
   const {show: showDialog, dialog} = useAppDialog();
   const [event, setEvent] = useState(route?.params?.event ?? {});
   const [guestVisible, setGuestVisible] = useState(false);
@@ -303,11 +306,14 @@ const EventDetail = ({navigation, route}) => {
 
         {/* Hero banner */}
         {heroUri ? (
-          <Image source={{uri: heroUri}} style={s.heroImage} />
+          <Image source={{uri: heroUri}} style={[s.heroImage, isTablet && {height: 340}]} />
         ) : (
-          <LinearGradient colors={[C.oceanMid, C.forestDeep]} style={s.heroFallback}>
-            <Ionicons name="calendar" size={52} color="rgba(255,255,255,0.4)" />
-          </LinearGradient>
+          <ImagePlaceholder
+            style={[s.heroImage, isTablet && {height: 340}]}
+            icon="calendar-outline"
+            iconSize={isTablet ? 72 : 56}
+            showLabel
+          />
         )}
 
         <View style={s.body}>
@@ -487,7 +493,7 @@ const EventDetail = ({navigation, route}) => {
   );
 };
 
-const s = StyleSheet.create({
+const s = StyleSheet.create(scaleFontSizes({
   root: {flex: 1, backgroundColor: C.cream},
   header: {paddingHorizontal: 20, paddingBottom: 48, position: 'relative', overflow: 'hidden'},
   headerRow: {flexDirection: 'row', alignItems: 'center', gap: 8},
@@ -500,8 +506,7 @@ const s = StyleSheet.create({
     position: 'absolute', bottom: 0, left: 0, right: 0, height: 36,
     backgroundColor: C.cream, borderTopLeftRadius: 28, borderTopRightRadius: 28,
   },
-  heroImage: {width: SW, height: 220, resizeMode: 'cover'},
-  heroFallback: {width: SW, height: 160, alignItems: 'center', justifyContent: 'center'},
+  heroImage: {width: '100%', height: 220, resizeMode: 'cover'},
   body: {padding: 20, gap: 10},
   title: {fontSize: 22, fontWeight: '700', color: C.textDark, lineHeight: 30},
   metaRow: {flexDirection: 'row', alignItems: 'center', gap: 10},
@@ -579,6 +584,6 @@ const s = StyleSheet.create({
   interactCountActive: {color: C.white},
   interactLabel: {fontSize: 10, color: C.textLight},
   interactLabelActive: {color: 'rgba(255,255,255,0.8)'},
-});
+}));
 
 export default EventDetail;

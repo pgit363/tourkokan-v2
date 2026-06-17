@@ -21,6 +21,7 @@ import {comnPost, getFromStorage} from '../../Services/Api/CommonServices';
 import Banner from '../../Components/Customs/Banner';
 import {useRoutesOfflineGate} from '../../Components/Common/RoutesOfflineGate';
 import {createLogger} from '../../Services/Logger';
+import {scaleFontSizes} from '../../Services/responsive';
 
 const log = createLogger('RoutesList');
 
@@ -125,7 +126,7 @@ const SkeletonList = () => {
   );
 };
 
-const sk = StyleSheet.create({
+const sk = StyleSheet.create(scaleFontSizes({
   timelineRow: {
     flexDirection: 'row',
     gap: 0,
@@ -138,7 +139,7 @@ const sk = StyleSheet.create({
   contentWrap: {flex: 1, paddingBottom: 20, paddingLeft: 12, gap: 6},
   contentName: {height: 14, width: '55%', backgroundColor: '#E5E7EB', borderRadius: 7},
   contentSub: {height: 11, width: '35%', backgroundColor: '#F3F4F6', borderRadius: 6},
-});
+}));
 
 // ─── Timeline Stop Item ───────────────────────────────────────────────────────
 
@@ -174,7 +175,7 @@ const TimelineStop = ({item, index, total}) => {
   );
 };
 
-const tl = StyleSheet.create({
+const tl = StyleSheet.create(scaleFontSizes({
   row: {
     flexDirection: 'row',
     paddingHorizontal: 20,
@@ -256,7 +257,7 @@ const tl = StyleSheet.create({
     color: C.oceanMid,
     fontWeight: '500',
   },
-});
+}));
 
 // ─── Route Detail Card (mirrors AllRoutesSearch card, non-interactive) ────────
 
@@ -304,7 +305,7 @@ const RouteDetailCard = ({data, t}) => {
   );
 };
 
-const rc = StyleSheet.create({
+const rc = StyleSheet.create(scaleFontSizes({
   card: {
     backgroundColor: C.white,
     borderRadius: 18,
@@ -335,7 +336,7 @@ const rc = StyleSheet.create({
   statDiv: {width: 1, height: 28, backgroundColor: 'rgba(0,0,0,0.07)'},
   statValue: {fontSize: 13, fontWeight: '600', color: C.oceanMid, marginBottom: 2},
   statLabel: {fontSize: 10, color: C.textLight, textTransform: 'uppercase', letterSpacing: 0.3},
-});
+}));
 
 // ─── Main Component ────────────────────────────────────────────────────────────
 
@@ -517,7 +518,7 @@ const RoutesList = ({navigation, route}) => {
 
 // ─── Styles ────────────────────────────────────────────────────────────────────
 
-const s = StyleSheet.create({
+const s = StyleSheet.create(scaleFontSizes({
   root: {flex: 1, backgroundColor: C.cream},
 
   // Header
@@ -634,6 +635,6 @@ const s = StyleSheet.create({
     borderRadius: 16,
     overflow: 'hidden',
   },
-});
+}));
 
 export default RoutesList;

@@ -9,14 +9,16 @@ import Fontisto from 'react-native-vector-icons/Fontisto';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import {useTranslation} from 'react-i18next';
+import {useResponsive} from '../../Services/responsive';
 
 const RouteHeadCard = ({data, cardClick, style, showDetails = true}) => {
+  const {width: winW, isTablet, ms} = useResponsive();
   const {t} = useTranslation();
   let imagePath = `../../Assets/Images/Buses/OrdinaryExpress.png`;
 
   return (
     <TouchableOpacity
-      style={[styles.routeHeadCard, style]}
+      style={[styles.routeHeadCard, {width: winW - 40}, style]}
       onPress={() => showDetails && cardClick()}
       disabled={!showDetails}>
       {showDetails ? (
@@ -46,7 +48,7 @@ const RouteHeadCard = ({data, cardClick, style, showDetails = true}) => {
                   <MaterialIcons
                     name="location-pin"
                     color={COLOR.themeBlue}
-                    size={DIMENSIONS.smallIcon}
+                    size={isTablet ? ms(DIMENSIONS.smallIcon) : DIMENSIONS.smallIcon}
                     style={styles.routeCardIcons}
                   />
                   <GlobalText text={`${data.distance?.toFixed(2)} ${t('KM')}`} />
@@ -55,7 +57,7 @@ const RouteHeadCard = ({data, cardClick, style, showDetails = true}) => {
                   <MaterialCommunityIcons
                     name="bus-stop"
                     color={COLOR.themeBlue}
-                    size={DIMENSIONS.smallIcon}
+                    size={isTablet ? ms(DIMENSIONS.smallIcon) : DIMENSIONS.smallIcon}
                     style={styles.routeCardIcons}
                   />
                   <GlobalText text={`${data.route_stops.length} ${t('STOPS')}`} />
@@ -71,7 +73,7 @@ const RouteHeadCard = ({data, cardClick, style, showDetails = true}) => {
                   <MaterialCommunityIcons
                     name="clock-outline"
                     color={COLOR.themeBlue}
-                    size={DIMENSIONS.smallIcon}
+                    size={isTablet ? ms(DIMENSIONS.smallIcon) : DIMENSIONS.smallIcon}
                     style={styles.routeCardIcons}
                   />
                   <GlobalText text={`${data.start_time}`} />
@@ -80,7 +82,7 @@ const RouteHeadCard = ({data, cardClick, style, showDetails = true}) => {
                   <Fontisto
                     name="bus-ticket"
                     color={COLOR.themeBlue}
-                    size={DIMENSIONS.smallIcon}
+                    size={isTablet ? ms(DIMENSIONS.smallIcon) : DIMENSIONS.smallIcon}
                     style={styles.routeCardIcons}
                   />
                   <GlobalText text={`${t('UN_RESERVED')}`} />

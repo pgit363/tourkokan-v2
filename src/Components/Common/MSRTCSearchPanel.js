@@ -15,6 +15,7 @@ import {navigateTo} from '../../Services/CommonMethods';
 import STRING from '../../Services/Constants/STRINGS';
 import {useGuestGate, isGuestUser, GUEST_KEYS, incrementGuestCount} from './GuestGateModal';
 import {useConnectivityGate} from './useConnectivityGate';
+import {scaleFontSizes} from '../../Services/responsive';
 
 // ─── Design tokens ────────────────────────────────────────────────────────────
 
@@ -206,7 +207,7 @@ const MSRTCSearchPanel = ({navigation, ...props}) => {
 
 // ─── Styles ───────────────────────────────────────────────────────────────────
 
-const s = StyleSheet.create({
+const s = StyleSheet.create(scaleFontSizes({
   card: {
     backgroundColor: C.white,
     borderRadius: 20,
@@ -356,7 +357,7 @@ const s = StyleSheet.create({
     color: C.white,
     letterSpacing: 0.3,
   },
-});
+}));
 
 // ─── Redux ────────────────────────────────────────────────────────────────────
 

@@ -13,8 +13,13 @@ import GlobalText from '../Customs/Text';
 import ComingSoon from '../Common/ComingSoon';
 import {useTranslation} from 'react-i18next';
 import {AWS_URL} from '@env';
+import {useResponsive} from '../../Services/responsive';
 
 const PlaceCard = ({data, reload, navigation, addComment, onClick}) => {
+  // Live, tablet-capped sizing (replaces module-load bannerWidth/halfWidth styles).
+  const {width: winW, isTablet, ms} = useResponsive();
+  const cardH = Math.min(winW / 2 - 50, 220);
+  const imgSize = {width: Math.min(winW / 2 - 60, 210), minHeight: cardH, maxHeight: cardH};
   const {t} = useTranslation();
 
   const [isFav, setIsFav] = useState(data.is_favorite);
@@ -62,19 +67,19 @@ const PlaceCard = ({data, reload, navigation, addComment, onClick}) => {
   };
 
   return (
-    <View style={styles.placeContainer}>
+    <View style={[styles.placeContainer, {width: winW - 40, minHeight: cardH, maxHeight: cardH}]}>
       <TouchableOpacity style={styles.placeImageView} onPress={() => onClick()}>
         {data.image ? (
           <ImageBackground
             source={{uri: AWS_URL + data.image}}
-            style={styles.placeImage}
+            style={[styles.placeImage, imgSize]}
             imageStyle={styles.placeImageStyle}
             resizeMode="cover"
           />
         ) : (
           <ImageBackground
             source={require('../../Assets/Images/no-image.png')}
-            style={styles.placeImage}
+            style={[styles.placeImage, imgSize]}
             imageStyle={styles.placeImageStyle}
             resizeMode="cover"
           />
@@ -102,7 +107,7 @@ const PlaceCard = ({data, reload, navigation, addComment, onClick}) => {
                 <Octicons
                   name="comment"
                   color={COLOR.black}
-                  size={DIMENSIONS.iconSize}
+                  size={isTablet ? ms(DIMENSIONS.iconSize) : DIMENSIONS.iconSize}
                 />
               </View>
               <TouchableOpacity
@@ -111,7 +116,7 @@ const PlaceCard = ({data, reload, navigation, addComment, onClick}) => {
                 <Octicons
                   name={isFav ? 'heart-fill' : 'heart'}
                   color={isFav ? COLOR.red : COLOR.black}
-                  size={DIMENSIONS.iconSize}
+                  size={isTablet ? ms(DIMENSIONS.iconSize) : DIMENSIONS.iconSize}
                 />
               </TouchableOpacity>
             </View>

@@ -41,6 +41,7 @@ import Clipboard from '@react-native-clipboard/clipboard';
 import CheckNet from '../Components/Common/CheckNet';
 import SkeletonBox from '../Components/Common/SkeletonBox';
 import {createLogger} from '../Services/Logger';
+import {scaleFontSizes} from '../Services/responsive';
 
 const log = createLogger('ProfileView');
 
@@ -1127,7 +1128,7 @@ const ProfileView = ({navigation, ...props}) => {
 
 // ─── Styles ────────────────────────────────────────────────────────────────────
 
-const s = StyleSheet.create({
+const s = StyleSheet.create(scaleFontSizes({
   safe: {flex: 1, backgroundColor: C.white},
   scroll: {flex: 1, backgroundColor: C.cream},
 
@@ -1903,7 +1904,7 @@ const s = StyleSheet.create({
   vrSubmitText: {fontSize: 15, fontWeight: '700', color: C.white},
   vrCancelBtn: {paddingVertical: 12, alignItems: 'center'},
   vrCancelText: {fontSize: 13, color: C.textLight},
-});
+}));
 
 // ─── Redux ─────────────────────────────────────────────────────────────────────
 
@@ -1918,7 +1919,7 @@ const mapDispatchToProps = dispatch => ({
   setProfilePicture: url => dispatch(setProfilePicture(url)),
 });
 
-const guestSt = StyleSheet.create({
+const guestSt = StyleSheet.create(scaleFontSizes({
   backdrop: {
     flex: 1,
     backgroundColor: 'rgba(0,0,0,0.55)',
@@ -1986,6 +1987,6 @@ const guestSt = StyleSheet.create({
     fontWeight: '500',
     color: '#78716C',
   },
-});
+}));
 
 export default connect(mapStateToProps, mapDispatchToProps)(ProfileView);

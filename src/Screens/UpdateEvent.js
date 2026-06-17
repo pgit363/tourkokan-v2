@@ -23,6 +23,7 @@ import {AWS_URL} from '@env';
 import {backPage} from '../Services/CommonMethods';
 import {comnPost, comnPostForm} from '../Services/Api/CommonServices';
 import STRING from '../Services/Constants/STRINGS';
+import {scaleFontSizes} from '../Services/responsive';
 
 const C = {
   oceanDeep: '#0D3D4A',
@@ -554,7 +555,7 @@ const UpdateEvent = ({navigation, route}) => {
 
 // ─── Styles ───────────────────────────────────────────────────────────────────
 
-const s = StyleSheet.create({
+const s = StyleSheet.create(scaleFontSizes({
   root: {flex: 1, backgroundColor: C.cream},
   header: {paddingHorizontal: 20, paddingBottom: 48, position: 'relative', overflow: 'hidden'},
   headerRow: {flexDirection: 'row', alignItems: 'center', gap: 12},
@@ -647,10 +648,10 @@ const s = StyleSheet.create({
     flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8,
   },
   deleteBtnText: {fontSize: 15, fontWeight: '600', color: '#DC2626'},
-});
+}));
 
 const CELL_SIZE = 42;
-const cp = StyleSheet.create({
+const cp = StyleSheet.create(scaleFontSizes({
   overlay: {flex: 1, backgroundColor: 'rgba(0,0,0,0.4)'},
   sheet: {backgroundColor: C.white, borderTopLeftRadius: 24, borderTopRightRadius: 24, paddingBottom: 24},
   header: {
@@ -673,15 +674,15 @@ const cp = StyleSheet.create({
   cellText: {fontSize: 14, color: C.textDark, fontWeight: '500'},
   cellTextSelected: {color: C.white, fontWeight: '700'},
   cellTextDisabled: {color: C.textLight},
-});
+}));
 
-const td = StyleSheet.create({
+const td = StyleSheet.create(scaleFontSizes({
   item: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
     paddingHorizontal: 20, paddingVertical: 16,
     borderBottomWidth: 1, borderBottomColor: 'rgba(0,0,0,0.06)',
   },
   itemText: {fontSize: 15, color: C.textDark, fontWeight: '500'},
-});
+}));
 
 export default UpdateEvent;

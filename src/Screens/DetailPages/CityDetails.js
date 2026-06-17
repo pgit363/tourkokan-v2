@@ -56,6 +56,7 @@ import STRING from '../../Services/Constants/STRINGS';
 import HotPlaces from '../../Components/Sections/HotPlaces';
 import {useConnectivityGate} from '../../Components/Common/useConnectivityGate';
 import {createLogger} from '../../Services/Logger';
+import {scaleFontSizes} from '../../Services/responsive';
 
 const log = createLogger('CityDetails');
 
@@ -769,7 +770,7 @@ const C2 = {
   amber: '#F59E0B',
 };
 
-const cd = StyleSheet.create({
+const cd = StyleSheet.create(scaleFontSizes({
   heroWrap: {
     width: '100%',
   },
@@ -934,9 +935,9 @@ const cd = StyleSheet.create({
     color: '#fff',
     letterSpacing: 0.3,
   },
-});
+}));
 
-const guestStyles = StyleSheet.create({
+const guestStyles = StyleSheet.create(scaleFontSizes({
   backdrop: {
     flex: 1,
     backgroundColor: 'rgba(0,0,0,0.55)',
@@ -1006,6 +1007,6 @@ const guestStyles = StyleSheet.create({
     fontWeight: '500',
     color: '#78716C',
   },
-});
+}));
 
 export default connect(mapStateToProps, mapDispatchToProps)(CityDetails);

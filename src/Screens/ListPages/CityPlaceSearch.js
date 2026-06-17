@@ -13,8 +13,8 @@ import {
   Image,
   Keyboard,
   Animated,
-  Dimensions,
   Platform,
+  useWindowDimensions,
   Linking,
 } from 'react-native';
 import {s, C} from './CityPlaceSearchStyles';
@@ -32,14 +32,15 @@ import {comnPost} from '../../Services/Api/CommonServices';
 import {navigateTo} from '../../Services/CommonMethods';
 import {useGuestGate, isGuestUser, GUEST_KEYS, incrementGuestCount} from '../../Components/Common/GuestGateModal';
 import {useConnectivityGate} from '../../Components/Common/useConnectivityGate';
+import ImagePlaceholder from '../../Components/Common/ImagePlaceholder';
 import {createLogger} from '../../Services/Logger';
+import {useResponsive} from '../../Services/responsive';
 
 const log = createLogger('CityPlaceSearch');
 
 const RECENT_KEY = 'recentSearches_v2';
 const MAX_RECENT = 8;
-const {height: SCREEN_H, width: SCREEN_W} = Dimensions.get('window');
-const MAP_CARD_W = SCREEN_W - 80; // side-peek effect
+// Map-card width is computed live in the component (rotation/tablet aware).
 const MAP_CARD_GAP = 12;
 
 // Emoji fallback for stored category codes that have no icon URL
@@ -93,7 +94,11 @@ const CityPlaceSearch = ({navigation, route}) => {
 
   // header height → dropdown top anchor
   const HEADER_H = insets.top + 130;
-  const DROPDOWN_MAX_H = Math.min(420, SCREEN_H - HEADER_H - 80);
+  const {width: winW, height: winH, isTablet, ms} = useResponsive();
+  const DROPDOWN_MAX_H = Math.min(420, winH - HEADER_H - 80);
+  // Side-peek card: near-full width on phones, capped on tablets so the
+  // carousel still peeks neighbours instead of one huge card.
+  const mapCardW = isTablet ? Math.min(winW - 160, 480) : winW - 80;
 
   // ── Back handler ──────────────────────────────────────────────────────────
   useEffect(() => {
@@ -460,19 +465,23 @@ const CityPlaceSearch = ({navigation, route}) => {
         style={s.resultCard}
         onPress={() => openPlace(item)}
         activeOpacity={0.85}>
-        <View style={s.resultImageWrap}>
+        <View style={[s.resultImageWrap, isTablet && {height: 280}]}>
           {uri ? (
             <Image source={{uri}} style={StyleSheet.absoluteFill} resizeMode="cover" />
           ) : (
-            <Text style={{fontSize: 52}}>📍</Text>
+            <ImagePlaceholder
+              style={StyleSheet.absoluteFill}
+              icon="image-outline"
+              iconSize={isTablet ? 56 : 44}
+            />
           )}
           <View style={s.resultBadge}>
             <Text style={s.resultBadgeText}>{getCategoryName(item)}</Text>
           </View>
         </View>
         <View style={s.resultInfo}>
-          <Text style={s.resultName} numberOfLines={1}>{item.name}</Text>
-          <Text style={s.resultLocation} numberOfLines={1}>📍 {getCityName(item)}</Text>
+          <Text style={[s.resultName, isTablet && {fontSize: ms(16)}]} numberOfLines={1}>{item.name}</Text>
+          <Text style={[s.resultLocation, isTablet && {fontSize: ms(12)}]} numberOfLines={1}>📍 {getCityName(item)}</Text>
           <View style={s.resultMeta}>
             <Text style={s.resultMetaText}>
               ⭐ {item.rating_avg_rate ? Number(item.rating_avg_rate).toFixed(1) : '—'}
@@ -505,8 +514,8 @@ const CityPlaceSearch = ({navigation, route}) => {
           )}
         </View>
         <View style={s.resultContent}>
-          <Text style={s.resultCompactName} numberOfLines={1}>{item.name}</Text>
-          <Text style={s.resultCompactMeta} numberOfLines={1}>
+          <Text style={[s.resultCompactName, isTablet && {fontSize: ms(15)}]} numberOfLines={1}>{item.name}</Text>
+          <Text style={[s.resultCompactMeta, isTablet && {fontSize: ms(11)}]} numberOfLines={1}>
             📍 {getCityName(item)}{'  '}⭐{' '}
             {item.rating_avg_rate ? Number(item.rating_avg_rate).toFixed(1) : '—'}
           </Text>
@@ -588,9 +597,9 @@ const CityPlaceSearch = ({navigation, route}) => {
             keyExtractor={item => String(item.id)}
             style={s.mapCardList}
             contentContainerStyle={{
-              paddingHorizontal: (SCREEN_W - MAP_CARD_W) / 2,
+              paddingHorizontal: (winW - mapCardW) / 2,
             }}
-            snapToInterval={MAP_CARD_W + MAP_CARD_GAP}
+            snapToInterval={mapCardW + MAP_CARD_GAP}
             snapToAlignment="center"
             decelerationRate="fast"
             showsHorizontalScrollIndicator={false}
@@ -603,7 +612,7 @@ const CityPlaceSearch = ({navigation, route}) => {
               const isActive = selectedPlace?.id === item.id;
               return (
                 <TouchableOpacity
-                  style={[s.mapHCard, {width: MAP_CARD_W}, isActive && s.mapHCardActive]}
+                  style={[s.mapHCard, {width: mapCardW}, isActive && s.mapHCardActive]}
                   onPress={() => openPlace(item)}
                   activeOpacity={0.9}>
                   <View style={s.mapHCardThumb}>
@@ -618,8 +627,8 @@ const CityPlaceSearch = ({navigation, route}) => {
                     )}
                   </View>
                   <View style={s.mapHCardInfo}>
-                    <Text style={s.mapHCardName} numberOfLines={1}>{item.name}</Text>
-                    <Text style={s.mapHCardMeta} numberOfLines={1}>
+                    <Text style={[s.mapHCardName, isTablet && {fontSize: ms(15)}]} numberOfLines={1}>{item.name}</Text>
+                    <Text style={[s.mapHCardMeta, isTablet && {fontSize: ms(12)}]} numberOfLines={1}>
                       📍 {getCityName(item)}
                     </Text>
                     <Text style={s.mapHCardCat}>
@@ -902,9 +911,15 @@ const SkeletonGridItem = ({opacity}) => (
 
 const SkeletonCards = () => {
   const opacity = useShimmer();
+  // Fill the visible height — taller screens (tablets) get more placeholders
+  // instead of a blank lower half. ~222dp per grid card incl. margin.
+  const {height: winH} = useWindowDimensions();
+  const count = Math.max(6, Math.ceil((winH - 250) / 222));
   return (
     <View style={{paddingHorizontal: 16, paddingTop: 12}}>
-      {[0, 1, 2, 3, 4, 5].map(i => <SkeletonGridItem key={i} opacity={opacity} />)}
+      {Array.from({length: count}).map((_, i) => (
+        <SkeletonGridItem key={i} opacity={opacity} />
+      ))}
     </View>
   );
 };
@@ -924,9 +939,14 @@ const SkeletonListItem = ({opacity}) => (
 
 const SkeletonListCards = () => {
   const opacity = useShimmer();
+  // ~94dp per list row incl. margin — fill the visible height on any device.
+  const {height: winH} = useWindowDimensions();
+  const count = Math.max(8, Math.ceil((winH - 250) / 94));
   return (
     <View style={{paddingHorizontal: 16, paddingTop: 12}}>
-      {[0, 1, 2, 3, 4, 5, 6, 7].map(i => <SkeletonListItem key={i} opacity={opacity} />)}
+      {Array.from({length: count}).map((_, i) => (
+        <SkeletonListItem key={i} opacity={opacity} />
+      ))}
     </View>
   );
 };

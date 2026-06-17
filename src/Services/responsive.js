@@ -44,6 +44,35 @@ export const isTabletDevice = () => {
   return Math.min(width, height) >= TABLET_BREAKPOINT;
 };
 
+/**
+ * scaleFontSizes(styleObject): returns a copy of a plain style map with every
+ * `fontSize` (and its paired `lineHeight`) moderate-scaled for the current
+ * device. Wrap the object passed to StyleSheet.create():
+ *
+ *   const styles = StyleSheet.create(scaleFontSizes({ title: {fontSize: 16} }));
+ *
+ * On phones moderateScale is a no-op, so phone output is identical. Scaling
+ * happens once at module load — fine because the app nudges users back to
+ * portrait (OrientationNotice) rather than relaying out on rotation.
+ */
+export const scaleFontSizes = styleObject => {
+  if (!styleObject || typeof styleObject !== 'object') return styleObject;
+  const out = {};
+  for (const key of Object.keys(styleObject)) {
+    const v = styleObject[key];
+    if (v && typeof v === 'object' && !Array.isArray(v) && typeof v.fontSize === 'number') {
+      const copy = {...v, fontSize: moderateScale(v.fontSize)};
+      if (typeof v.lineHeight === 'number') {
+        copy.lineHeight = moderateScale(v.lineHeight);
+      }
+      out[key] = copy;
+    } else {
+      out[key] = v;
+    }
+  }
+  return out;
+};
+
 export const useResponsive = () => {
   const {width, height} = useWindowDimensions();
   const shortest = Math.min(width, height);

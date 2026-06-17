@@ -1,10 +1,12 @@
 import React, {useState, useEffect, useRef, useCallback} from 'react';
 import {
   View,
+  Text,
   FlatList,
   TouchableOpacity,
   ActivityIndicator,
   RefreshControl,
+  StyleSheet,
 } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import COLOR from '../../Services/Constants/COLORS';
@@ -293,26 +295,19 @@ const CityList = ({navigation, route, ...props}) => {
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }
         ListEmptyComponent={
-          <View
-            style={{
-              height: DIMENSIONS.screenHeight,
-              alignItems: 'center',
-              padding: 50,
-            }}>
-            <GlobalText
-              style={{fontWeight: 'bold'}}
-              text={
-                offline ? (
-                  <GlobalText
-                    style={{fontWeight: 'bold'}}
-                    text={t('NO_INTERNET')}
-                  />
-                ) : (
-                  <FlatListSkeleton />
-                )
-              }
-            />
-          </View>
+          loading ? (
+            // Still fetching — show the skeleton placeholder.
+            <FlatListSkeleton />
+          ) : (
+            // Loaded: either offline, or a genuinely empty result.
+            <View style={cityListEmpty.wrap}>
+              <Text style={cityListEmpty.icon}>{offline ? '📡' : '🏙️'}</Text>
+              <GlobalText
+                style={cityListEmpty.text}
+                text={offline ? t('NO_INTERNET') : t('NO_DATA')}
+              />
+            </View>
+          )
         }
       />
       <Popup message={alertMessage} onPress={closePopup} visible={isAlert} />
@@ -344,5 +339,11 @@ const mapDispatchToProps = dispatch => {
     },
   };
 };
+
+const cityListEmpty = StyleSheet.create({
+  wrap: {alignItems: 'center', justifyContent: 'center', paddingTop: 80, paddingHorizontal: 40},
+  icon: {fontSize: 46, marginBottom: 14},
+  text: {fontWeight: 'bold', textAlign: 'center'},
+});
 
 export default connect(mapStateToProps, mapDispatchToProps)(CityList);

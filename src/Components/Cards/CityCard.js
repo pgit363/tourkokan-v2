@@ -13,10 +13,14 @@ import {comnPost} from '../../Services/Api/CommonServices';
 import {useTranslation} from 'react-i18next';
 import {AWS_URL} from '@env';
 import {createLogger} from '../../Services/Logger';
+import {useResponsive} from '../../Services/responsive';
 
 const log = createLogger('CityCard');
 
 const CityCard = ({data, reload, navigation, addComment, onClick}) => {
+  // Live, tablet-capped sizing (replaces module-load bannerWidth styles).
+  const {width: winW, isTablet, ms} = useResponsive();
+  const cardW = Math.min(winW - 40, 420);
   const {t} = useTranslation();
 
   const [isVisible, setIsVisible] = useState(false);
@@ -85,32 +89,44 @@ const CityCard = ({data, reload, navigation, addComment, onClick}) => {
 
   return (
     <TouchableOpacity
-      style={cardType == 'city' ? styles.cityCard : styles.placeCard}
+      style={
+        cardType == 'city'
+          ? [styles.cityCard, {width: cardW, height: cardW + 20}]
+          : [styles.placeCard, {width: cardW, height: cardW / 2 + 100}]
+      }
       onPress={() => onClick()}>
-      <View style={styles.cityOverlay} />
+      <View style={[styles.cityOverlay, {height: cardW / 1.19}]} />
       {data.image ? (
         <ImageBackground
           source={{uri: AWS_URL + data.image}}
-          style={cardType == 'city' ? styles.cityImage : styles.placeImage}
-          imageStyle={styles.cityImageStyle}
+          style={
+            cardType == 'city'
+              ? [styles.cityImage, {width: cardW}]
+              : styles.placeImage
+          }
+          imageStyle={[styles.cityImageStyle, {height: cardW / 1.19}]}
           resizeMode="cover"
         />
       ) : (
         <ImageBackground
           source={require('../../Assets/Images/no-image.png')}
-          style={cardType == 'city' ? styles.cityImage : styles.placeImage}
-          imageStyle={styles.cityImageStyle}
+          style={
+            cardType == 'city'
+              ? [styles.cityImage, {width: cardW}]
+              : styles.placeImage
+          }
+          imageStyle={[styles.cityImageStyle, {height: cardW / 1.19}]}
           resizeMode="cover"
         />
       )}
       <View style={{alignItems: 'flex-end'}}>
         <TouchableOpacity
-          style={styles.cityLikeView}
+          style={[styles.cityLikeView, isTablet && {width: ms(35), height: ms(35)}]}
           onPress={() => onHeartClick()}>
           <Octicons
             name={isFav ? 'heart-fill' : 'heart'}
             color={isFav ? COLOR.red : COLOR.black}
-            size={DIMENSIONS.iconSize}
+            size={isTablet ? ms(DIMENSIONS.iconSize) : DIMENSIONS.iconSize}
           />
         </TouchableOpacity>
         <TouchableOpacity style={styles.cityLikeView}>
@@ -118,7 +134,7 @@ const CityCard = ({data, reload, navigation, addComment, onClick}) => {
           <Octicons
             name="comment"
             color={COLOR.black}
-            size={DIMENSIONS.iconSize}
+            size={isTablet ? ms(DIMENSIONS.iconSize) : DIMENSIONS.iconSize}
           />
         </TouchableOpacity>
         <TouchableOpacity style={styles.cityLikeView}>
@@ -128,7 +144,7 @@ const CityCard = ({data, reload, navigation, addComment, onClick}) => {
           <Octicons
             name="star"
             color={COLOR.yellow}
-            size={DIMENSIONS.iconSize}
+            size={isTablet ? ms(DIMENSIONS.iconSize) : DIMENSIONS.iconSize}
           />
         </TouchableOpacity>
       </View>

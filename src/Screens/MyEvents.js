@@ -19,12 +19,14 @@ import {connect} from 'react-redux';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import {AWS_URL} from '@env';
 import CachedImage from '../Components/Customs/CachedImage';
+import ImagePlaceholder from '../Components/Common/ImagePlaceholder';
 import {comnPost, getFromStorage, isOffline, saveToStorage} from '../Services/Api/CommonServices';
 import {isVendorUser} from '../Components/Common/GuestGateModal';
 import {useConnectivityGate} from '../Components/Common/useConnectivityGate';
 import STRING from '../Services/Constants/STRINGS';
 import {backPage} from '../Services/CommonMethods';
 import {createLogger} from '../Services/Logger';
+import {scaleFontSizes, useResponsive} from '../Services/responsive';
 
 const log = createLogger('MyEvents');
 
@@ -69,6 +71,7 @@ const C = {
 const BLOCKED_STATUSES = ['cancelled', 'completed'];
 
 const EventCard = ({item, onPress, onEdit, onDelete}) => {
+  const {isTablet} = useResponsive();
   const imgUri = item.banner_image_url || (item.banner_image ? `${AWS_URL}${item.banner_image}` : null);
   const sc = STATUS_COLORS[item.status] || STATUS_COLORS.draft;
   const canEdit = !BLOCKED_STATUSES.includes(item.status);
@@ -76,11 +79,13 @@ const EventCard = ({item, onPress, onEdit, onDelete}) => {
   return (
     <TouchableOpacity style={styles.card} onPress={onPress} activeOpacity={0.88}>
       {imgUri ? (
-        <CachedImage source={{uri: imgUri}} style={styles.cardImg} resizeMode="cover" />
+        <CachedImage source={{uri: imgUri}} style={[styles.cardImg, isTablet && {height: 260}]} resizeMode="cover" />
       ) : (
-        <View style={[styles.cardImg, styles.cardImgPlaceholder]}>
-          <Text style={{fontSize: 28}}>🎪</Text>
-        </View>
+        <ImagePlaceholder
+          style={[styles.cardImg, isTablet && {height: 260}]}
+          icon="calendar-outline"
+          iconSize={isTablet ? 48 : 36}
+        />
       )}
       <View style={styles.cardBody}>
         <View style={styles.cardTitleRow}>
@@ -394,7 +399,7 @@ const MyEvents = ({navigation}) => {
 
 // ─── Styles ──────────────────────────────────────────────────────────────────
 
-const styles = StyleSheet.create({
+const styles = StyleSheet.create(scaleFontSizes({
   safe: {flex: 1, backgroundColor: C.bg},
   header: {
     flexDirection: 'row',
@@ -437,7 +442,6 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(0,0,0,0.07)',
   },
   cardImg: {width: '100%', height: 160},
-  cardImgPlaceholder: {backgroundColor: '#E5E7EB', alignItems: 'center', justifyContent: 'center'},
   cardBody: {padding: 12},
   cardTitleRow: {flexDirection: 'row', alignItems: 'flex-start', gap: 8, marginBottom: 8},
   cardTitle: {flex: 1, fontSize: 15, fontWeight: '700', color: C.text},
@@ -499,7 +503,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   modalSecondaryText: {fontSize: 13, color: C.textLight},
-});
+}));
 
 const mapStateToProps = () => ({});
 

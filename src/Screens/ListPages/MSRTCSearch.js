@@ -24,6 +24,7 @@ import Banner from '../../Components/Customs/Banner';
 import {useRoutesOfflineGate} from '../../Components/Common/RoutesOfflineGate';
 import MSRTCSearchPanel from '../../Components/Common/MSRTCSearchPanel';
 import {createLogger} from '../../Services/Logger';
+import {scaleFontSizes, isTabletDevice} from '../../Services/responsive';
 
 const log = createLogger('MSRTCSearch');
 
@@ -32,7 +33,7 @@ const log = createLogger('MSRTCSearch');
 const RECENT_KEY = 'recent_routes';
 const MAX_RECENT = 5;
 // Tab bar height (PILL_H 64 + FAB_SIZE/2 32 + FAB_LIFT 8)
-const TAB_BAR_H = 104;
+const TAB_BAR_H = isTabletDevice() ? 140 : 104;
 
 const C = {
   oceanDeep: '#0D3D4A',
@@ -79,12 +80,12 @@ const SkeletonCard = () => {
   );
 };
 
-const sk = StyleSheet.create({
+const sk = StyleSheet.create(scaleFontSizes({
   card: {backgroundColor: C.white, borderRadius: 20, padding: 20, marginHorizontal: 20, marginTop: -8},
   fieldFull: {height: 52, backgroundColor: '#F3F4F6', borderRadius: 12, marginBottom: 4},
   gap: {height: 32},
   searchBtn: {height: 52, backgroundColor: '#E5E7EB', borderRadius: 50, marginTop: 16},
-});
+}));
 
 // ─── Ad Banner (same style as HomeScreen middle) ──────────────────────────────
 
@@ -285,7 +286,7 @@ const MSRTCSearch = ({navigation, route, ...props}) => {
 
 // ─── Styles ────────────────────────────────────────────────────────────────────
 
-const s = StyleSheet.create({
+const s = StyleSheet.create(scaleFontSizes({
   root: {flex: 1, backgroundColor: C.cream},
 
   // Header
@@ -425,7 +426,7 @@ const s = StyleSheet.create({
   adIcon: {fontSize: 26, marginBottom: 6},
   adText: {fontSize: 13, fontWeight: '500', color: C.textMid, marginBottom: 3, textAlign: 'center'},
   adSize: {fontSize: 11, color: C.textLight, textAlign: 'center'},
-});
+}));
 
 // ─── Redux ─────────────────────────────────────────────────────────────────────
 

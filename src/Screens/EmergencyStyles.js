@@ -1,6 +1,7 @@
 import { StyleSheet } from 'react-native';
+import {scaleFontSizes} from '../Services/responsive';
 
-const styles = StyleSheet.create({
+const styles = StyleSheet.create(scaleFontSizes({
     container: {
       flex: 1,
       backgroundColor: '#DC2626', // red
@@ -245,6 +246,6 @@ const styles = StyleSheet.create({
       fontSize: 14,
       color: '#78716C',
     },
-  });
+  }));
 
   export default styles;

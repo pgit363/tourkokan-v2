@@ -19,6 +19,7 @@ import {setDestination, setSource} from '../Reducers/CommonActions';
 import {checkLogin, goBackHandler} from '../Services/CommonMethods';
 import STRING from '../Services/Constants/STRINGS';
 import {useGuestGate, isGuestUser} from '../Components/Common/GuestGateModal';
+import {scaleFontSizes} from '../Services/responsive';
 
 // ─── Design tokens ─────────────────────────────────────────────────────────────
 
@@ -72,7 +73,7 @@ const SkeletonList = () => {
   );
 };
 
-const sk = StyleSheet.create({
+const sk = StyleSheet.create(scaleFontSizes({
   row: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -86,7 +87,7 @@ const sk = StyleSheet.create({
   lines: {flex: 1, gap: 6},
   lineTitle: {height: 14, width: '55%', backgroundColor: '#E5E7EB', borderRadius: 7},
   lineSub: {height: 11, width: '35%', backgroundColor: '#F3F4F6', borderRadius: 6},
-});
+}));
 
 // ─── Main Component ────────────────────────────────────────────────────────────
 
@@ -304,7 +305,7 @@ const SearchPlace = ({navigation, route, ...props}) => {
 
 // ─── Styles ────────────────────────────────────────────────────────────────────
 
-const s = StyleSheet.create({
+const s = StyleSheet.create(scaleFontSizes({
   root: {flex: 1, backgroundColor: C.white},
 
   // Header
@@ -409,7 +410,7 @@ const s = StyleSheet.create({
   emptyIcon: {fontSize: 48, marginBottom: 16},
   emptyTitle: {fontSize: 17, fontWeight: '700', color: C.textDark, marginBottom: 6},
   emptySub: {fontSize: 14, color: C.textLight},
-});
+}));
 
 // ─── Redux ─────────────────────────────────────────────────────────────────────
 

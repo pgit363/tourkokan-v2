@@ -24,6 +24,7 @@ import Geolocation from '@react-native-community/geolocation';
 import {backPage} from '../Services/CommonMethods';
 import {comnPost, comnPostForm} from '../Services/Api/CommonServices';
 import STRING from '../Services/Constants/STRINGS';
+import {scaleFontSizes} from '../Services/responsive';
 
 
 const C = {
@@ -816,7 +817,7 @@ const SubmitPlaceScreen = ({navigation, route}) => {
 
 // ─── Styles ───────────────────────────────────────────────────────────────────
 
-const s = StyleSheet.create({
+const s = StyleSheet.create(scaleFontSizes({
   root: {flex: 1, backgroundColor: C.cream},
 
   // Header
@@ -1127,6 +1128,6 @@ const s = StyleSheet.create({
     gap: 8,
   },
   submitBtnText: {fontSize: 16, fontWeight: '700', color: C.white},
-});
+}));
 
 export default SubmitPlaceScreen;

@@ -22,6 +22,7 @@ import {useTranslation} from 'react-i18next';
 import STRING from '../Services/Constants/STRINGS';
 import NetInfo from '@react-native-community/netinfo';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
+import {scaleFontSizes} from '../Services/responsive';
 
 // ─── Design tokens ────────────────────────────────────────────────────────────
 
@@ -362,7 +363,7 @@ const ContactUs = ({
 
 // ─── Styles ───────────────────────────────────────────────────────────────────
 
-const styles = StyleSheet.create({
+const styles = StyleSheet.create(scaleFontSizes({
   screen: {
     flex: 1,
     backgroundColor: C.cream,
@@ -520,7 +521,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: C.white,
   },
-});
+}));
 
 // ─── Redux ────────────────────────────────────────────────────────────────────
 

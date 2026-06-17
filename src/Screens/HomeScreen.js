@@ -99,6 +99,8 @@ const RADIUS = 18;
 
 // Taluka card (glassmorphism)
 const TalukaCard = ({item, onPress, cardWidth, imgHeight}) => {
+  // Tablet: moderate bump for the card's fixed-px text and heart.
+  const {isTablet, ms} = useResponsive();
   const fallback = require('../Assets/Images/no-image.png');
   const uri = item.image
     ? `${AWS_URL}${item.image}`
@@ -119,24 +121,29 @@ const TalukaCard = ({item, onPress, cardWidth, imgHeight}) => {
           resizeMode="cover"
         />
         {/* Favourite heart overlay */}
-        <View style={[ts.talukaHeart, item.is_favorite && ts.talukaHeartActive]}>
+        <View
+          style={[
+            ts.talukaHeart,
+            isTablet && {width: ms(26), height: ms(26), borderRadius: ms(13)},
+            item.is_favorite && ts.talukaHeartActive,
+          ]}>
           <Ionicons
             name={item.is_favorite ? 'heart' : 'heart-outline'}
-            size={14}
+            size={isTablet ? ms(14) : 14}
             color={item.is_favorite ? '#eb5757' : C.white}
           />
         </View>
       </View>
       <View style={ts.talukaInfo}>
-        <Text style={ts.talukaName} numberOfLines={1}>{item.name}</Text>
+        <Text style={[ts.talukaName, isTablet && {fontSize: ms(15)}]} numberOfLines={1}>{item.name}</Text>
         {item.description ? (
-          <Text style={ts.talukaDesc} numberOfLines={2}>{item.description}</Text>
+          <Text style={[ts.talukaDesc, isTablet && {fontSize: ms(11), lineHeight: ms(16)}]} numberOfLines={2}>{item.description}</Text>
         ) : item.places_count != null ? (
           <Text style={ts.talukaDesc}>{item.places_count} places to explore</Text>
         ) : null}
         <View style={ts.talukaRating}>
-          <Ionicons name="star" size={12} color={C.sandMid} />
-          <Text style={ts.talukaRatingText}>
+          <Ionicons name="star" size={isTablet ? ms(12) : 12} color={C.sandMid} />
+          <Text style={[ts.talukaRatingText, isTablet && {fontSize: ms(11)}]}>
             {Number(item.rating_avg_rate) > 0
               ? Number(item.rating_avg_rate).toFixed(1)
               : '0.0'}
@@ -539,7 +546,7 @@ const HomeScreen = ({navigation, route, ...props}) => {
       log.flow(`►► HITTING v2/landingpage (call #${callNo}, network hit #${LANDING_HIT_COUNT}) data=`, data);
       const res = await comnPost('v2/landingpage', data, navigation);
       log.flow(`◄◄ v2/landingpage returned (call #${callNo})`);
-
+      log.flow(res)
       if (res?.data?.data) {
         if (i18n.language !== res.data.language) i18n.changeLanguage(res.data.language);
 
@@ -694,7 +701,7 @@ const HomeScreen = ({navigation, route, ...props}) => {
         {bannerObject?.HOME_HERO?.length > 0 ? (
           <Banner
             bannerImages={bannerObject.HOME_HERO}
-            width={DIMENSIONS.screenWidth}
+            width={rWidth}
             style={{height: heroHeight}}
           />
         ) : (
@@ -704,7 +711,7 @@ const HomeScreen = ({navigation, route, ...props}) => {
               {id: 2, image: 'https://c4.wallpaperflare.com/wallpaper/631/683/713/nature-bridge-sky-city-wallpaper-preview.jpg'},
               {id: 3, image: 'https://c4.wallpaperflare.com/wallpaper/977/138/381/tbilisi-georgia-wallpaper-preview.jpg'},
             ]}
-            width={DIMENSIONS.screenWidth}
+            width={rWidth}
             style={{height: heroHeight}}
           />
         )}
@@ -789,12 +796,16 @@ const HomeScreen = ({navigation, route, ...props}) => {
       <Text style={s.sectionTitle}>{t('HOME.EVENTS_SECTION')}</Text>
       <View style={s.section}>
         <TouchableOpacity
-          style={[s.eventsBanner, isTablet && {padding: 28}]}
+          style={[
+            s.eventsBanner,
+            {minHeight: isTablet ? 124 : 94},
+            isTablet && {padding: 28},
+          ]}
           onPress={() => ensureOnline(() => navigation.navigate(STRING.SCREEN.EVENTS_LIST))}
           activeOpacity={0.85}>
-          <Ionicons name="calendar" size={isTablet ? 34 : 28} color="#FFFFFF" />
+          <Ionicons name="calendar" size={isTablet ? 44 : 36} color="#FFFFFF" />
           <View style={{flex: 1}}>
-            <Text style={[s.eventsBannerTitle, isTablet && {fontSize: 21}]}>{t('HOME.EVENTS_TITLE')}</Text>
+            <Text style={[s.eventsBannerTitle, {fontSize: isTablet ? 21 : 17}]}>{t('HOME.EVENTS_TITLE')}</Text>
             <Text style={[s.eventsBannerSub, isTablet && {fontSize: 14}]}>{t('HOME.EVENTS_SUBTITLE')}</Text>
           </View>
           <Ionicons name="arrow-forward-circle" size={isTablet ? 32 : 26} color="rgba(255,255,255,0.8)" />
@@ -805,14 +816,14 @@ const HomeScreen = ({navigation, route, ...props}) => {
   ), [bannerObject, cities, trending, hot_sites, offline, navigation, isTablet, rWidth, heroHeight, cardWidth, cardImgH, ensureOnline]);
 
   const listFooter = useMemo(() => (
-    <View style={[s.sectionPad, {paddingBottom: 100}]}>
+    <View style={[s.sectionPad, {paddingBottom: isTablet ? 150 : 100}]}>
       <AdBanner
         bannerImages={bannerObject?.HOME_FOOTER}
         label={t('HOME.AD_STANDARD_LABEL')}
         size="Standard Ad · Tap to advertise"
       />
     </View>
-  ), [bannerObject, t]);
+  ), [bannerObject, t, isTablet]);
 
   // ── Render ──
   return (
@@ -876,7 +887,6 @@ const HomeScreen = ({navigation, route, ...props}) => {
           extraHeight={DIMENSIONS.halfHeight}
           enableOnAndroid
           style={s.scroll}
-          contentContainerStyle={isTablet ? {width: '100%', maxWidth: contentWidth, alignSelf: 'center'} : undefined}
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
           ListHeaderComponent={listHeader}
           ListFooterComponent={listFooter}
@@ -1179,6 +1189,8 @@ const s = StyleSheet.create({
   },
   modeCard: {
     width: '100%',
+    maxWidth: 480,
+    alignSelf: 'center',
     backgroundColor: C.white,
     borderRadius: 24,
     overflow: 'hidden',

@@ -4,6 +4,7 @@ import {
 } from 'react-native';
 import {useTranslation} from 'react-i18next';
 import PackageCard from '../Cards/PackageCard';
+import {scaleFontSizes} from '../../Services/responsive';
 
 const {width: SW} = Dimensions.get('window');
 
@@ -118,7 +119,7 @@ const PopularSpotsSection = ({navigation, trending, offline, hideTitle}) => {
   );
 };
 
-const sp = StyleSheet.create({
+const sp = StyleSheet.create(scaleFontSizes({
   section: {marginBottom: 24},
   sectionTitle: {
     fontSize: 20, fontWeight: '700', color: C.textDark,
@@ -158,6 +159,6 @@ const sp = StyleSheet.create({
   spotMeta: {flexDirection: 'row', alignItems: 'center', gap: 6},
   spotMetaText: {fontSize: 11, color: C.textMid},
   spotMetaDot: {fontSize: 11, color: C.textLight},
-});
+}));
 
 export default PopularSpotsSection;

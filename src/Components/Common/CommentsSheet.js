@@ -22,6 +22,7 @@ import {setLoader} from '../../Reducers/CommonActions';
 import {isGuestUser} from './GuestGateModal';
 import GuestGateModal from './GuestGateModal';
 import STRING from '../../Services/Constants/STRINGS';
+import {scaleFontSizes} from '../../Services/responsive';
 
 const C = {
   oceanDeep: '#0D3D4A', oceanMid: '#1B6B7B', oceanFoam: '#B8E4EA',
@@ -346,7 +347,7 @@ const CommentsSheet = ({
   );
 };
 
-const cs = StyleSheet.create({
+const cs = StyleSheet.create(scaleFontSizes({
   container: {flex: 1, backgroundColor: C.cream},
 
   header: {
@@ -434,7 +435,7 @@ const cs = StyleSheet.create({
     backgroundColor: C.oceanMid, alignItems: 'center', justifyContent: 'center',
   },
   sendBtnDisabled: {backgroundColor: C.oceanFoam},
-});
+}));
 
 const mapStateToProps = state => ({access_token: state.commonState.access_token});
 const mapDispatchToProps = dispatch => ({setLoader: data => dispatch(setLoader(data))});

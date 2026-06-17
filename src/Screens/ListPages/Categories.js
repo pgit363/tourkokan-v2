@@ -35,6 +35,7 @@ import {
 } from '../../Services/CommonMethods';
 import ModePopup from '../../Components/Common/ModePopup';
 import {createLogger} from '../../Services/Logger';
+import {scaleFontSizes, isTabletDevice} from '../../Services/responsive';
 
 const log = createLogger('Categories');
 
@@ -401,7 +402,10 @@ const Categories = ({route, navigation, ...props}) => {
       <View style={styles.contentWrap}>
         <ScrollView
           style={styles.scrollView}
-          contentContainerStyle={styles.scrollContent}
+          contentContainerStyle={[
+            styles.scrollContent,
+            isTabletDevice() && {paddingBottom: 150},
+          ]}
           showsVerticalScrollIndicator={false}
           refreshControl={
             <RefreshControl
@@ -455,7 +459,7 @@ const Categories = ({route, navigation, ...props}) => {
   );
 };
 
-const styles = StyleSheet.create({
+const styles = StyleSheet.create(scaleFontSizes({
   safeArea: {
     flex: 1,
     backgroundColor: C.oceanDeep,
@@ -629,7 +633,7 @@ const styles = StyleSheet.create({
     color: C.textLight,
     textAlign: 'center',
   },
-});
+}));
 
 const mapStateToProps = state => ({
   access_token: state.commonState.access_token,

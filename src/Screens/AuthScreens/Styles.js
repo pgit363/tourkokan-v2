@@ -1,8 +1,9 @@
 import {StyleSheet} from 'react-native';
 import DIMENSIONS from '../../Services/Constants/DIMENSIONS';
 import COLOR from '../../Services/Constants/COLORS';
+import {scaleFontSizes} from '../../Services/responsive';
 
-const styles = StyleSheet.create({
+const styles = StyleSheet.create(scaleFontSizes({
   appLogo: {
     height: 70,
     marginTop: 30,
@@ -514,6 +515,6 @@ const styles = StyleSheet.create({
     borderTopRightRadius: 100,
     transform: [{scaleX: 1.5}],
   },
-});
+}));
 
 export default styles;

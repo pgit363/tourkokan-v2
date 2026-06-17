@@ -8,6 +8,7 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
+import {scaleFontSizes} from '../../Services/responsive';
 
 const C = {
   oceanDeep: '#0D3D4A',
@@ -139,7 +140,7 @@ export const useAppDialog = () => {
   return {show, hide, dialog};
 };
 
-const s = StyleSheet.create({
+const s = StyleSheet.create(scaleFontSizes({
   backdrop: {
     flex: 1,
     backgroundColor: 'rgba(13,61,74,0.65)',
@@ -239,6 +240,6 @@ const s = StyleSheet.create({
     fontWeight: '700',
     letterSpacing: 0.2,
   },
-});
+}));
 
 export default AppDialog;

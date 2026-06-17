@@ -8,6 +8,7 @@ import {
   StyleSheet,
 } from 'react-native';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
+import {useResponsive} from '../Services/responsive';
 import AppIntroSlider from 'react-native-app-intro-slider';
 import {KeyboardAwareScrollView} from 'react-native-keyboard-aware-scroll-view';
 import {Dropdown} from 'react-native-element-dropdown';
@@ -65,6 +66,10 @@ const languagesList = [
 
 const OnboardingScreen = ({onComplete}) => {
   const insets = useSafeAreaInsets();
+  // One shared control width for every intro slide (dropdown, referral field,
+  // location button, terms card) — live and capped on tablets.
+  const {width: rWidth} = useResponsive();
+  const fieldW = Math.min(rWidth - 40, 520);
   const sliderRef = React.useRef(null);
 
   const [language, setLanguage] = useState('en');
@@ -216,7 +221,7 @@ const OnboardingScreen = ({onComplete}) => {
         <View style={styles.bottomFields}>
           {item.type === 'language' ? (
             <Dropdown
-              style={styles.dropdown}
+              style={[styles.dropdown, {width: fieldW}]}
               selectedTextStyle={styles.selectedTextStyle}
               itemTextStyle={styles.itemTextStyle}
               dropdownTextStyle={styles.dropdownText}
@@ -230,7 +235,7 @@ const OnboardingScreen = ({onComplete}) => {
           ) : item.type === 'referral' ? (
             <TextField
               fieldType={'text'}
-              style={[styles.searchPanelFieldNew, {borderWidth: 1, textAlign: 'center'}]}
+              style={[styles.searchPanelFieldNew, {borderWidth: 1, textAlign: 'center', width: fieldW}]}
               inputContainerStyle={styles.inputContainerStyle}
               placeholder="Enter Referral Code"
               placeholderTextColor="#000"
@@ -247,7 +252,7 @@ const OnboardingScreen = ({onComplete}) => {
                     locationStatus
                   )
                 }
-                buttonView={[styles.locButtonView, {backgroundColor: buttonColor}]}
+                buttonView={[styles.locButtonView, {backgroundColor: buttonColor, width: fieldW}]}
                 isDisabled={isButtonDisabled}
                 raised={true}
                 onPress={enableLocationService}
@@ -259,6 +264,7 @@ const OnboardingScreen = ({onComplete}) => {
                 containerStyle={[
                   styles.termsPolicyCard,
                   {
+                    width: fieldW,
                     height:
                       DIMENSIONS.screenHeight -
                       (insets.top + insets.bottom + 185),
@@ -270,7 +276,7 @@ const OnboardingScreen = ({onComplete}) => {
                 onPress={() => privacyClicked()}
                 checked={isPrivacyChecked}
                 checkedColor={COLOR.themeBlue}
-                containerStyle={styles.termsCheckboxContainer}
+                containerStyle={[styles.termsCheckboxContainer, {width: fieldW}]}
                 textStyle={styles.termsCheckboxText}
               />
             </View>

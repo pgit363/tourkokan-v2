@@ -27,6 +27,7 @@ import STRING from '../Services/Constants/STRINGS';
 import UpdatePopup from '../Components/Common/UpdatePopup';
 import ModePopup from '../Components/Common/ModePopup';
 import {createLogger} from '../Services/Logger';
+import {scaleFontSizes} from '../Services/responsive';
 
 const log = createLogger('Settings');
 
@@ -68,7 +69,7 @@ const ComingSoonPopup = ({visible, onClose, title, message, btnLabel}) => (
   </Modal>
 );
 
-const popStyles = StyleSheet.create({
+const popStyles = StyleSheet.create(scaleFontSizes({
   backdrop: {
     flex: 1,
     backgroundColor: 'rgba(0,0,0,0.55)',
@@ -107,7 +108,7 @@ const popStyles = StyleSheet.create({
     alignItems: 'center',
   },
   btnText: {fontSize: 15, fontWeight: '600', color: C.white},
-});
+}));
 
 // ─── Settings Screen ───────────────────────────────────────────────────────────
 
@@ -406,7 +407,7 @@ const Settings = ({navigation, mode, setMode: reduxSetMode}) => {
 
 // ─── Styles ────────────────────────────────────────────────────────────────────
 
-const styles = StyleSheet.create({
+const styles = StyleSheet.create(scaleFontSizes({
   screen: {flex: 1, backgroundColor: C.cream},
   flex: {flex: 1},
 
@@ -538,7 +539,7 @@ const styles = StyleSheet.create({
     color: C.textLight,
     fontSize: 12,
   },
-});
+}));
 
 // ─── Redux ─────────────────────────────────────────────────────────────────────
 

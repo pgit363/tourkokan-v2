@@ -8,10 +8,17 @@ import Octicons from 'react-native-vector-icons/Octicons';
 import COLOR from '../../Services/Constants/COLORS';
 import DIMENSIONS from '../../Services/Constants/DIMENSIONS';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
+import {useResponsive} from '../../Services/responsive';
 
 const PackageCard = ({data, cardType, onClick, reload}) => {
   const [rating, setRating] = useState(data?.rating_avg_rate || 0);
   const [isFav, setIsFav] = useState(data?.is_favorite);
+
+  // Live, tablet-capped image sizing (replaces module-load halfWidth styles).
+  const {width: winW, isTablet, ms} = useResponsive();
+  const half = winW / 2;
+  const smallImg = {width: Math.min(half - 40, 220), height: Math.min(half - 40, 220)};
+  const longImg = {width: Math.min(half - 60, 200), height: Math.min(half - 70, 190)};
 
   return (
     <TouchableOpacity
@@ -22,8 +29,8 @@ const PackageCard = ({data, cardType, onClick, reload}) => {
       <View
         style={
           cardType === 'small'
-            ? styles.smallPackageImage
-            : styles.smallPackageImageLong
+            ? [styles.smallPackageImage, smallImg]
+            : [styles.smallPackageImageLong, longImg]
         }>
         {data.image || data.gallery?.[0] ? (
           <CachedImageBackground
@@ -32,8 +39,8 @@ const PackageCard = ({data, cardType, onClick, reload}) => {
             }}
             imageStyle={
               cardType === 'small'
-                ? styles.smallPackageImageStyle
-                : styles.smallPackageImageLongStyle
+                ? [styles.smallPackageImageStyle, smallImg]
+                : [styles.smallPackageImageLongStyle, longImg]
             }
             resizeMode="cover"
           />
@@ -43,8 +50,8 @@ const PackageCard = ({data, cardType, onClick, reload}) => {
             // style={cardType == 'small' ? styles.smallPackageImage : styles.placeImage}
             imageStyle={
               cardType == 'small'
-                ? styles.smallPackageImageStyle
-                : styles.smallPackageImageLongStyle
+                ? [styles.smallPackageImageStyle, smallImg]
+                : [styles.smallPackageImageLongStyle, longImg]
             }
             resizeMode="cover"
           />
@@ -60,7 +67,7 @@ const PackageCard = ({data, cardType, onClick, reload}) => {
             <Octicons
               name={isFav ? 'heart-fill' : 'heart'}
               color={isFav ? COLOR.red : COLOR.black}
-              size={DIMENSIONS.iconSize}
+              size={isTablet ? ms(DIMENSIONS.iconSize) : DIMENSIONS.iconSize}
             />
           </TouchableOpacity>
         </View>
@@ -92,7 +99,7 @@ const PackageCard = ({data, cardType, onClick, reload}) => {
               <MaterialIcons
                 name="location-pin"
                 color={COLOR.grey}
-                size={DIMENSIONS.smallIcon}
+                size={isTablet ? ms(DIMENSIONS.smallIcon) : DIMENSIONS.smallIcon}
               />
               <GlobalText text={data?.site?.name} style={styles.greyTextLong} />
             </View>
@@ -106,7 +113,7 @@ const PackageCard = ({data, cardType, onClick, reload}) => {
             <Octicons
               name="star"
               color={COLOR.yellow}
-              size={DIMENSIONS.iconSize}
+              size={isTablet ? ms(DIMENSIONS.iconSize) : DIMENSIONS.iconSize}
             />
             <GlobalText text={rating} style={{marginLeft: 5}} />
           </View>

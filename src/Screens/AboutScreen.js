@@ -16,6 +16,7 @@ import {useNavigation} from '@react-navigation/native';
 import {useTranslation} from 'react-i18next';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import VersionCheck from 'react-native-version-check';
+import {scaleFontSizes} from '../Services/responsive';
 
 // ─── Design tokens ────────────────────────────────────────────────────────────
 
@@ -216,7 +217,7 @@ const AboutScreen = () => {
 
 // ─── Styles ───────────────────────────────────────────────────────────────────
 
-const ab = StyleSheet.create({
+const ab = StyleSheet.create(scaleFontSizes({
   root: {flex: 1, backgroundColor: C.sandMid},
   statusFill: {position: 'absolute', top: 0, left: 0, right: 0},
   scroll: {flex: 1},
@@ -391,6 +392,6 @@ const ab = StyleSheet.create({
     textAlign: 'center',
     marginTop: 4,
   },
-});
+}));
 
 export default AboutScreen;

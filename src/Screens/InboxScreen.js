@@ -17,6 +17,7 @@ import {backPage} from '../Services/CommonMethods';
 import {comnPost, getFromStorage} from '../Services/Api/CommonServices';
 import STRING from '../Services/Constants/STRINGS';
 import {createLogger} from '../Services/Logger';
+import {scaleFontSizes} from '../Services/responsive';
 
 const log = createLogger('InboxScreen');
 
@@ -73,7 +74,7 @@ const SkeletonList = () => {
   );
 };
 
-const sk = StyleSheet.create({
+const sk = StyleSheet.create(scaleFontSizes({
   card: {
     backgroundColor: C.white,
     borderRadius: 14,
@@ -88,7 +89,7 @@ const sk = StyleSheet.create({
   body: {flex: 1, gap: 8},
   line: {height: 14, width: '70%', backgroundColor: '#E5E7EB', borderRadius: 6},
   lineSm: {height: 11, width: '45%', backgroundColor: '#F3F4F6', borderRadius: 6},
-});
+}));
 
 // ─── InboxScreen ──────────────────────────────────────────────────────────────
 
@@ -255,7 +256,7 @@ const InboxScreen = ({navigation}) => {
 
 // ─── Styles ───────────────────────────────────────────────────────────────────
 
-const s = StyleSheet.create({
+const s = StyleSheet.create(scaleFontSizes({
   root: {flex: 1, backgroundColor: C.cream},
 
   // Header
@@ -348,6 +349,6 @@ const s = StyleSheet.create({
   emptyIcon: {fontSize: 52, opacity: 0.4, marginBottom: 4},
   emptyTitle: {fontSize: 16, fontWeight: '700', color: C.textMid},
   emptyText: {fontSize: 13, color: C.textLight},
-});
+}));
 
 export default InboxScreen;

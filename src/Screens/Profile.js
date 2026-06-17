@@ -35,6 +35,7 @@ import CheckNet from '../Components/Common/CheckNet';
 import Popup from '../Components/Common/Popup';
 import ModePopup from '../Components/Common/ModePopup';
 import {createLogger} from '../Services/Logger';
+import {scaleFontSizes, useResponsive} from '../Services/responsive';
 
 const log = createLogger('Profile');
 
@@ -105,6 +106,7 @@ const formatDateToAPI = ({day, month, year}) => {
 const Profile = ({navigation, ...props}) => {
   const {t} = useTranslation();
   const insets = useSafeAreaInsets();
+  const {isTablet} = useResponsive();
 
   // ── Profile data
   const [profile, setProfile] = useState({});
@@ -404,7 +406,11 @@ const Profile = ({navigation, ...props}) => {
 
       <ScrollView
         style={s.flex}
-        contentContainerStyle={[s.scrollContent, {paddingBottom: insets.bottom + 48}]}
+        contentContainerStyle={[
+          s.scrollContent,
+          {paddingBottom: insets.bottom + 48},
+          isTablet && {maxWidth: 640, width: '100%', alignSelf: 'center'},
+        ]}
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled">
 
@@ -711,7 +717,7 @@ const Profile = ({navigation, ...props}) => {
 
 // ─── Styles ────────────────────────────────────────────────────────────────────
 
-const s = StyleSheet.create({
+const s = StyleSheet.create(scaleFontSizes({
   screen: {flex: 1, backgroundColor: C.cream},
   flex: {flex: 1},
 
@@ -1017,7 +1023,7 @@ const s = StyleSheet.create({
   saveBtnTextDisabled: {
     color: C.textLight,
   },
-});
+}));
 
 // ─── Redux ─────────────────────────────────────────────────────────────────────
 

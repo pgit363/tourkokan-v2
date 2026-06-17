@@ -1,6 +1,7 @@
 import React from 'react';
 import {View, Text, StyleSheet, Dimensions} from 'react-native';
 import {useTranslation} from 'react-i18next';
+import {scaleFontSizes} from '../../Services/responsive';
 
 const {width: SW} = Dimensions.get('window');
 
@@ -46,7 +47,7 @@ const NearbyPlacesSection = ({nearby, hideTitle}) => {
   );
 };
 
-const nb = StyleSheet.create({
+const nb = StyleSheet.create(scaleFontSizes({
   section: {marginBottom: 24},
   sectionTitle: {
     fontSize: 20, fontWeight: '700', color: C.textDark,
@@ -80,6 +81,6 @@ const nb = StyleSheet.create({
     textAlign: 'center', marginBottom: 4,
   },
   nearbyDist: {fontSize: 11, color: C.textLight},
-});
+}));
 
 export default NearbyPlacesSection;

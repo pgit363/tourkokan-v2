@@ -1,4 +1,5 @@
 import {StyleSheet} from 'react-native';
+import {scaleFontSizes} from '../../Services/responsive';
 
 export const RADIUS = 18;
 
@@ -14,7 +15,7 @@ export const C = {
   textLight: '#78716C',
 };
 
-export const s = StyleSheet.create({
+export const s = StyleSheet.create(scaleFontSizes({
   root: {flex: 1, backgroundColor: C.cream},
 
   // Header
@@ -118,7 +119,7 @@ export const s = StyleSheet.create({
     borderWidth: 1, borderColor: 'rgba(255,255,255,0.5)',
   },
   resultImageWrap: {
-    width: '100%', height: 140, backgroundColor: C.oceanFoam,
+    width: '100%', height: 170, backgroundColor: C.oceanFoam,
     alignItems: 'center', justifyContent: 'center', overflow: 'hidden',
   },
   resultBadge: {
@@ -274,7 +275,7 @@ export const s = StyleSheet.create({
     borderRadius: RADIUS, overflow: 'hidden', marginBottom: 12,
     borderWidth: 1, borderColor: 'rgba(0,0,0,0.06)',
   },
-  skeletonImage: {width: '100%', height: 140, backgroundColor: '#D1E8EC'},
+  skeletonImage: {width: '100%', height: 170, backgroundColor: '#D1E8EC'},
   skeletonInfo: {padding: 14, gap: 8},
   skeletonTitleLine: {height: 14, borderRadius: 7, backgroundColor: '#D1E8EC', width: '70%'},
   skeletonMetaLine: {height: 11, borderRadius: 6, backgroundColor: '#E4F2F4', width: '50%'},
@@ -299,4 +300,4 @@ export const s = StyleSheet.create({
   },
   skeletonMapIcon: {fontSize: 52},
   skeletonMapText: {fontSize: 14, color: C.oceanDeep, fontWeight: '600'},
-});
+}));

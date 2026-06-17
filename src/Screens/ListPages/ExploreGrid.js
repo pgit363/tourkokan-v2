@@ -37,6 +37,7 @@ import Popup from '../../Components/Common/Popup';
 import {useConnectivityGate} from '../../Components/Common/useConnectivityGate';
 import {useGuestGate, isGuestUser} from '../../Components/Common/GuestGateModal';
 import {createLogger} from '../../Services/Logger';
+import {useResponsive} from '../../Services/responsive';
 
 const log = createLogger('ExploreGrid');
 
@@ -81,12 +82,13 @@ const useShimmer = () => {
 
 // ─── Skeleton grid ────────────────────────────────────────────────────────────
 
-const SkeletonGrid = () => {
+const SkeletonGrid = ({cellSize}) => {
   const opacity = useShimmer();
+  const sizeStyle = cellSize ? {width: cellSize, height: cellSize} : null;
   return (
     <Animated.View style={[sk.grid, {opacity}]}>
       {Array.from({length: 30}).map((_, i) => (
-        <View key={i} style={sk.cell} />
+        <View key={i} style={[sk.cell, sizeStyle]} />
       ))}
     </Animated.View>
   );
@@ -116,6 +118,13 @@ const ExploreGrid = ({route, navigation, ...props}) => {
   const insets = useSafeAreaInsets();
   const {show: showGuestPopup, modal: guestModal} = useGuestGate(navigation);
   const {modal: connectivityModal, ensureOnline} = useConnectivityGate();
+  // Live grid sizing — reacts to rotation/split-screen; more columns on tablets.
+  const {width: rWidth, isTablet} = useResponsive();
+  const numCols = isTablet ? 5 : NUM_COLS;
+  const cellSize = Math.floor(
+    (rWidth - H_PAD * 2 - CELL_GAP * (numCols - 1)) / numCols,
+  );
+  const cellStyle = {width: cellSize, height: cellSize};
   const [gallery, setGallery] = useState([]);
   const [offline, setOffline] = useState(false);
   const [searchValue, setSearchValue] = useState('');
@@ -247,7 +256,7 @@ const ExploreGrid = ({route, navigation, ...props}) => {
       const label = item.galleryable?.name || '';
       return (
         <TouchableOpacity
-          style={s.cell}
+          style={[s.cell, cellStyle]}
           onPress={() => openViewer(index)}
           activeOpacity={0.82}>
           <ProgressImage
@@ -273,14 +282,14 @@ const ExploreGrid = ({route, navigation, ...props}) => {
       );
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [],
+    [cellSize],
   );
 
   const renderFooter = () => {
     if (!hasMore) return null;
     return loading ? (
       <View style={s.footerLoader}>
-        <View style={sk.cell} />
+        <View style={[sk.cell, cellStyle]} />
       </View>
     ) : null;
   };
@@ -349,7 +358,7 @@ const ExploreGrid = ({route, navigation, ...props}) => {
 
       {/* ── Grid ── */}
       {loading && gallery.length === 0 ? (
-        <SkeletonGrid />
+        <SkeletonGrid cellSize={cellSize} />
       ) : gallery.length === 0 ? (
         <View style={s.emptyState}>
           <Text style={s.emptyIcon}>🏞</Text>
@@ -361,10 +370,11 @@ const ExploreGrid = ({route, navigation, ...props}) => {
           data={gallery}
           renderItem={renderItem}
           keyExtractor={item => item.id.toString()}
-          numColumns={NUM_COLS}
+          key={numCols}
+          numColumns={numCols}
           contentContainerStyle={[
             s.gridContent,
-            {paddingBottom: insets.bottom + 110},
+            {paddingBottom: insets.bottom + (isTablet ? 150 : 110)},
           ]}
           columnWrapperStyle={s.gridRow}
           showsVerticalScrollIndicator={false}

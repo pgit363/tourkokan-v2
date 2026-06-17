@@ -36,6 +36,7 @@ import {
 import Banner from '../../Components/Customs/Banner';
 import {useRoutesOfflineGate} from '../../Components/Common/RoutesOfflineGate';
 import {createLogger} from '../../Services/Logger';
+import {scaleFontSizes} from '../../Services/responsive';
 
 const log = createLogger('AllRoutesSearch');
 
@@ -154,7 +155,7 @@ const SkeletonList = () => {
   );
 };
 
-const sk = StyleSheet.create({
+const sk = StyleSheet.create(scaleFontSizes({
   card: {
     backgroundColor: C.white,
     borderRadius: 18,
@@ -174,7 +175,7 @@ const sk = StyleSheet.create({
   divider: {height: 1, backgroundColor: '#F3F4F6', marginBottom: 12},
   statsRow: {flexDirection: 'row', gap: 8},
   statBlock: {flex: 1, height: 40, backgroundColor: '#F3F4F6', borderRadius: 10},
-});
+}));
 
 // ─── Route Card ───────────────────────────────────────────────────────────────
 
@@ -612,7 +613,7 @@ const AllRoutesSearch = ({navigation, route, ...props}) => {
 
 // ─── Styles ────────────────────────────────────────────────────────────────────
 
-const s = StyleSheet.create({
+const s = StyleSheet.create(scaleFontSizes({
   root: {flex: 1, backgroundColor: C.cream},
 
   // Header
@@ -827,7 +828,7 @@ const s = StyleSheet.create({
     borderRadius: 16,
     overflow: 'hidden',
   },
-});
+}));
 
 // ─── Redux ─────────────────────────────────────────────────────────────────────
 

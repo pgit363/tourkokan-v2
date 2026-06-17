@@ -43,6 +43,7 @@ import ContactUs from '../ContactUs';
 import ModePopup from '../../Components/Common/ModePopup';
 import {setMode} from '../../Reducers/CommonActions';
 import {createLogger} from '../../Services/Logger';
+import {scaleFontSizes} from '../../Services/responsive';
 
 const log = createLogger('QueriesList');
 
@@ -781,7 +782,7 @@ const QueriesList = ({navigation, route, ...props}) => {
 
 // ─── Styles ───────────────────────────────────────────────────────────────────
 
-const styles = StyleSheet.create({
+const styles = StyleSheet.create(scaleFontSizes({
   screen: {
     flex: 1,
     backgroundColor: COLORS.cream,
@@ -1202,7 +1203,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     lineHeight: 22,
   },
-});
+}));
 
 // ─── Redux ────────────────────────────────────────────────────────────────────
 
@@ -1217,7 +1218,7 @@ const mapDispatchToProps = dispatch => ({
   setMode: data => dispatch(setMode(data)),
 });
 
-const guestSt = StyleSheet.create({
+const guestSt = StyleSheet.create(scaleFontSizes({
   backdrop: {
     flex: 1,
     backgroundColor: 'rgba(0,0,0,0.55)',
@@ -1285,6 +1286,6 @@ const guestSt = StyleSheet.create({
     fontWeight: '500',
     color: '#78716C',
   },
-});
+}));
 
 export default connect(mapStateToProps, mapDispatchToProps)(QueriesList);

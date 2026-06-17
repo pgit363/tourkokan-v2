@@ -40,6 +40,7 @@ import CommentsSheet from '../../Components/Common/CommentsSheet';
 import HotPlaces from '../../Components/Sections/HotPlaces';
 import DIMENSIONS from '../../Services/Constants/DIMENSIONS';
 import {createLogger} from '../../Services/Logger';
+import {useResponsive} from '../../Services/responsive';
 
 const log = createLogger('SiteDetailPage');
 
@@ -120,10 +121,11 @@ const SkLine = ({w, h = 12, style, opacity}) => (
     ]}
   />
 );
-const SkeletonHero = () => {
+const SkeletonHero = ({height}) => {
   const opacity = useShimmer();
   return (
-    <Animated.View style={[st.heroWrap, {backgroundColor: '#C4D9E0', opacity}]}>
+    <Animated.View
+      style={[st.heroWrap, height && {height}, {backgroundColor: '#C4D9E0', opacity}]}>
       <View style={st.heroPlaceholder}><Text style={{fontSize: 60, opacity: 0.3}}>🛕</Text></View>
     </Animated.View>
   );
@@ -178,6 +180,12 @@ const SkeletonAdBanner = () => {
 const SiteDetailPage = ({navigation, route}) => {
   const {t} = useTranslation();
   const insets = useSafeAreaInsets();
+  const {width: rWidth, isTablet} = useResponsive();
+  // Live hero height — phone keeps 4:3; tablets capped so the hero isn't a
+  // ~600dp wall (same treatment as the HomeScreen hero).
+  const heroH = isTablet
+    ? Math.min(Math.round(rWidth * 0.75), 420)
+    : Math.round(rWidth * 0.75);
   const refRBSheet = useRef();
 
   const [city, setCity] = useState(route.params?.city || {});
@@ -375,7 +383,7 @@ const SiteDetailPage = ({navigation, route}) => {
     const heroUri = getHeroUri();
     const emoji = getCatEmoji(city?.categories?.[0]?.code);
     return (
-      <View style={st.heroWrap}>
+      <View style={[st.heroWrap, {height: heroH}]}>
         {heroUri ? (
           <CachedImage source={{uri: heroUri}} style={st.heroImage} resizeMode="cover" />
         ) : (
@@ -905,7 +913,7 @@ const SiteDetailPage = ({navigation, route}) => {
         }>
 
         {/* 1. Hero */}
-        {(isLoading && !city.name) ? <SkeletonHero /> : renderHero()}
+        {(isLoading && !city.name) ? <SkeletonHero height={heroH} /> : renderHero()}
 
         {/* 2. Gallery strip */}
         {renderGalleryStrip()}
@@ -958,15 +966,19 @@ const SiteDetailPage = ({navigation, route}) => {
             </View>
           </View>
           <TouchableOpacity
-            style={[st.eventsBanner, {marginHorizontal: 20}]}
+            style={[
+              st.eventsBanner,
+              {marginHorizontal: 20, minHeight: isTablet ? 124 : 94},
+              isTablet && {padding: 28},
+            ]}
             onPress={() => navigation.navigate(STRING.SCREEN.EVENTS_LIST, {site_id: city.id})}
             activeOpacity={0.85}>
-            <Ionicons name="calendar" size={24} color="#FFFFFF" />
+            <Ionicons name="calendar" size={isTablet ? 40 : 32} color="#FFFFFF" />
             <View style={{flex: 1}}>
-              <Text style={{fontSize: 14, fontWeight: '700', color: '#FFFFFF', marginBottom: 2}}>Events at {city.name || 'this place'}</Text>
-              <Text style={{fontSize: 12, color: 'rgba(255,255,255,0.8)'}}>Tap to view & join upcoming events</Text>
+              <Text style={{fontSize: isTablet ? 21 : 17, fontWeight: '700', color: '#FFFFFF', marginBottom: 2}}>Events at {city.name || 'this place'}</Text>
+              <Text style={{fontSize: isTablet ? 14 : 12, color: 'rgba(255,255,255,0.8)'}}>Tap to view & join upcoming events</Text>
             </View>
-            <Ionicons name="arrow-forward-circle" size={24} color="rgba(255,255,255,0.8)" />
+            <Ionicons name="arrow-forward-circle" size={isTablet ? 32 : 26} color="rgba(255,255,255,0.8)" />
           </TouchableOpacity>
         </View>
 

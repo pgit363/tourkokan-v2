@@ -26,8 +26,10 @@ import {useTranslation} from 'react-i18next';
 import {backPage} from '../../Services/CommonMethods';
 import {comnPost} from '../../Services/Api/CommonServices';
 import {useConnectivityGate} from '../../Components/Common/useConnectivityGate';
+import ImagePlaceholder from '../../Components/Common/ImagePlaceholder';
 import STRING from '../../Services/Constants/STRINGS';
 import {createLogger} from '../../Services/Logger';
+import {useResponsive} from '../../Services/responsive';
 
 const log = createLogger('EventsList');
 
@@ -185,6 +187,8 @@ const cal = StyleSheet.create({
 // ─── Event Card ───────────────────────────────────────────────────────────────
 
 const EventCard = ({item, onPress}) => {
+  // Tablet: moderate bump for the card's fixed-px text.
+  const {isTablet, ms} = useResponsive();
   const {t} = useTranslation();
   const formatDate = iso => {
     if (!iso) return '';
@@ -198,11 +202,17 @@ const EventCard = ({item, onPress}) => {
   return (
     <TouchableOpacity style={s.card} onPress={onPress} activeOpacity={0.88}>
       {imgUri ? (
-        <CachedImage source={{uri: imgUri}} style={s.cardImage} resizeMode="cover" />
+        <CachedImage
+          source={{uri: imgUri}}
+          style={[s.cardImage, isTablet && {height: 280}]}
+          resizeMode="cover"
+        />
       ) : (
-        <LinearGradient colors={[C.oceanDeep, C.forestDeep]} style={s.cardImageFallback}>
-          <Ionicons name="calendar" size={36} color="rgba(255,255,255,0.5)" />
-        </LinearGradient>
+        <ImagePlaceholder
+          style={[s.cardImage, isTablet && {height: 280}]}
+          icon="calendar-outline"
+          iconSize={isTablet ? 52 : 40}
+        />
       )}
       {item.is_featured && (
         <View style={s.featuredPill}>
@@ -218,25 +228,25 @@ const EventCard = ({item, onPress}) => {
         </Text>
       </View>
       <View style={s.cardBody}>
-        <Text style={s.cardTitle} numberOfLines={2}>{item.title}</Text>
+        <Text style={[s.cardTitle, isTablet && {fontSize: ms(15), lineHeight: ms(21)}]} numberOfLines={2}>{item.title}</Text>
         {item.taluka ? (
           <View style={s.locationRow}>
             <Ionicons name="location-outline" size={13} color={C.textLight} />
-            <Text style={s.locationText} numberOfLines={1}>{item.taluka}</Text>
+            <Text style={[s.locationText, isTablet && {fontSize: ms(12)}]} numberOfLines={1}>{item.taluka}</Text>
           </View>
         ) : null}
         <View style={s.statsRow}>
           <View style={s.stat}>
             <Ionicons name="heart-outline" size={13} color={C.oceanMid} />
-            <Text style={s.statText}>{item.like_count ?? 0}</Text>
+            <Text style={[s.statText, isTablet && {fontSize: ms(11)}]}>{item.like_count ?? 0}</Text>
           </View>
           <View style={s.stat}>
             <Ionicons name="checkmark-circle-outline" size={13} color={C.oceanMid} />
-            <Text style={s.statText}>{item.going_count ?? 0} {t('EVENTS_LIST.GOING')}</Text>
+            <Text style={[s.statText, isTablet && {fontSize: ms(11)}]}>{item.going_count ?? 0} {t('EVENTS_LIST.GOING')}</Text>
           </View>
           <View style={s.stat}>
             <Ionicons name="star-outline" size={13} color={C.oceanMid} />
-            <Text style={s.statText}>{item.interested_count ?? 0} {t('EVENTS_LIST.INTERESTED')}</Text>
+            <Text style={[s.statText, isTablet && {fontSize: ms(11)}]}>{item.interested_count ?? 0} {t('EVENTS_LIST.INTERESTED')}</Text>
           </View>
           {item.is_free && (
             <View style={s.freePill}>
@@ -254,6 +264,7 @@ const EventCard = ({item, onPress}) => {
 const EventsList = ({navigation, route}) => {
   const {t} = useTranslation();
   const insets = useSafeAreaInsets();
+  const {isTablet} = useResponsive();
   const siteId   = route?.params?.site_id ?? null;
   const isTab    = !siteId;
 
@@ -553,7 +564,7 @@ const EventsList = ({navigation, route}) => {
               {loadingMore && (
                 <ActivityIndicator color={C.oceanMid} style={{marginVertical: 16}} />
               )}
-              <View style={{height: insets.bottom + 100}} />
+              <View style={{height: insets.bottom + (isTablet ? 150 : 100)}} />
             </>
           }
         />
@@ -782,7 +793,7 @@ const s = StyleSheet.create({
   // Card
   card: {backgroundColor: C.white, borderRadius: 18, marginBottom: 14, overflow: 'hidden', borderWidth: 1, borderColor: 'rgba(0,0,0,0.07)'},
   cardImage: {width: '100%', height: 170, resizeMode: 'cover'},
-  cardImageFallback: {width: '100%', height: 120, alignItems: 'center', justifyContent: 'center'},
+  cardImageFallback: {width: '100%', height: 170, alignItems: 'center', justifyContent: 'center'},
   datePill: {
     position: 'absolute', top: 10, left: 10,
     flexDirection: 'row', alignItems: 'center', gap: 4,

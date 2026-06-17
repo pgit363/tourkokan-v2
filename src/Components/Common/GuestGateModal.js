@@ -9,6 +9,7 @@ import {
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import STRING from '../../Services/Constants/STRINGS';
 import {createLogger} from '../../Services/Logger';
+import {scaleFontSizes} from '../../Services/responsive';
 
 const log = createLogger('GuestGateModal');
 
@@ -117,7 +118,7 @@ export const useGuestGate = navigation => {
 
 // ─── Styles ───────────────────────────────────────────────────────────────────
 
-const s = StyleSheet.create({
+const s = StyleSheet.create(scaleFontSizes({
   backdrop: {
     flex: 1,
     backgroundColor: 'rgba(0,0,0,0.55)',
@@ -185,6 +186,6 @@ const s = StyleSheet.create({
     fontWeight: '500',
     color: '#78716C',
   },
-});
+}));
 
 export default GuestGateModal;

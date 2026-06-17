@@ -20,6 +20,7 @@ import {
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import {useTranslation} from 'react-i18next';
+import {scaleFontSizes} from '../../Services/responsive';
 
 const C = {
   oceanDeep: '#0D3D4A',
@@ -108,7 +109,7 @@ const UpdatePopup = ({visible, type, onDismiss, onUpdate}) => {
   );
 };
 
-const styles = StyleSheet.create({
+const styles = StyleSheet.create(scaleFontSizes({
   backdrop: {
     flex: 1,
     backgroundColor: 'rgba(0,0,0,0.55)',
@@ -205,6 +206,6 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: C.white,
   },
-});
+}));
 
 export default UpdatePopup;

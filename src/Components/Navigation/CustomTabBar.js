@@ -8,6 +8,7 @@ import {
   Keyboard,
 } from 'react-native';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
+import {useResponsive} from '../../Services/responsive';
 
 const C = {
   oceanDeep: '#0D3D4A',
@@ -18,28 +19,32 @@ const C = {
   textLight: '#78716C',
 };
 
+// Phone baseline sizes (scaled up on tablets via useResponsive).
 const PILL_H = 64;
 const FAB_SIZE = 64;
 // How far FAB floats above the top of the pill
 const FAB_LIFT = 8;
+// Cap the pill width on large screens so the 5 tabs don't spread edge-to-edge.
+const MAX_PILL_W = 560;
 
-// Index 2 = MSRTC (center) — order: Home, Gallery, MSRTC, Categories, Map
+// Index 2 = MSRTC (center) — order: Home, Gallery, MSRTC, Categories, Map.
+// Each icon receives a resolved pixel `size` so the bar scales with the device.
 const TAB_META = [
   {
-    icon: (focused) => (
+    icon: size => (
       <Image
         source={require('../../Assets/Icons/tab/icons8-home-page-100.png')}
-        style={{width: focused ? 30 : 26, height: focused ? 30 : 26}}
+        style={{width: size, height: size}}
         resizeMode="contain"
       />
     ),
     label: 'Home',
   },
   {
-    icon: (focused) => (
+    icon: size => (
       <Image
         source={require('../../Assets/Icons/tab/gallery.png')}
-        style={{width: focused ? 30 : 26, height: focused ? 30 : 26}}
+        style={{width: size, height: size}}
         resizeMode="contain"
       />
     ),
@@ -47,30 +52,30 @@ const TAB_META = [
   },
   {
     isFab: true,
-    icon: () => (
+    icon: size => (
       <Image
         source={require('../../Assets/Images/Bus1_png_high.png')}
-        style={{width: 42, height: 42}}
+        style={{width: size, height: size}}
         resizeMode="contain"
       />
     ),
     label: 'MSRTC',
   },
   {
-    icon: (focused) => (
+    icon: size => (
       <Image
         source={require('../../Assets/Icons/tab/catgory.png')}
-        style={{width: focused ? 30 : 26, height: focused ? 30 : 26}}
+        style={{width: size, height: size}}
         resizeMode="contain"
       />
     ),
     label: 'Category',
   },
   {
-    icon: (focused) => (
+    icon: size => (
       <Image
         source={require('../../Assets/Icons/tab/events.png')}
-        style={{width: focused ? 30 : 26, height: focused ? 30 : 26}}
+        style={{width: size, height: size}}
         resizeMode="contain"
       />
     ),
@@ -80,8 +85,19 @@ const TAB_META = [
 
 const CustomTabBar = ({state, navigation}) => {
   const insets = useSafeAreaInsets();
+  const {isTablet, ms} = useResponsive();
   const bottomPad = Math.max(insets.bottom, 10);
   const [keyboardShown, setKeyboardShown] = useState(false);
+
+  // Responsive dimensions — phone values unchanged, scaled up on tablets.
+  const pillH = isTablet ? ms(PILL_H) : PILL_H;
+  const fabSize = isTablet ? ms(FAB_SIZE) : FAB_SIZE;
+  const iconWrapSize = isTablet ? ms(44) : 44;
+  const labelSize = isTablet ? ms(10) : 10;
+  const fabImg = isTablet ? ms(42) : 42;
+  const iconSize = focused =>
+    isTablet ? (focused ? ms(30) : ms(26)) : focused ? 30 : 26;
+  const ringSize = fabSize + 10;
 
   useEffect(() => {
     const show = Keyboard.addListener('keyboardDidShow', () => setKeyboardShown(true));
@@ -98,12 +114,17 @@ const CustomTabBar = ({state, navigation}) => {
     <View
       style={[
         tb.outerContainer,
-        {paddingBottom: bottomPad, height: PILL_H + FAB_SIZE / 2 + FAB_LIFT + bottomPad},
+        {paddingBottom: bottomPad, height: pillH + fabSize / 2 + FAB_LIFT + bottomPad},
       ]}
       pointerEvents="box-none">
 
       {/* Floating pill */}
-      <View style={tb.pill}>
+      <View
+        style={[
+          tb.pill,
+          {height: pillH, borderRadius: pillH / 2},
+          isTablet && {maxWidth: MAX_PILL_W, alignSelf: 'center'},
+        ]}>
         {state.routes.map((route, index) => {
           const meta = TAB_META[index];
           const isFocused = state.index === index;
@@ -130,10 +151,15 @@ const CustomTabBar = ({state, navigation}) => {
               onPress={onPress}
               activeOpacity={0.75}
               style={tb.tabItem}>
-              <View style={tb.iconWrap}>
-                {meta?.icon(isFocused)}
+              <View style={[tb.iconWrap, {width: iconWrapSize, height: iconWrapSize}]}>
+                {meta?.icon(iconSize(isFocused))}
               </View>
-              <Text style={[tb.tabLabel, isFocused && tb.tabLabelActive]}>
+              <Text
+                style={[
+                  tb.tabLabel,
+                  {fontSize: labelSize},
+                  isFocused && tb.tabLabelActive,
+                ]}>
                 {meta?.label}
               </Text>
             </TouchableOpacity>
@@ -163,11 +189,23 @@ const CustomTabBar = ({state, navigation}) => {
             key={route.key}
             onPress={onPress}
             activeOpacity={0.85}
-            style={[tb.fab, isFocused && tb.fabActive, {bottom: bottomPad + FAB_LIFT}]}>
+            style={[
+              tb.fab,
+              {width: fabSize, height: fabSize, borderRadius: fabSize / 2},
+              isFocused && tb.fabActive,
+              {bottom: bottomPad + FAB_LIFT},
+            ]}>
             {/* Bus icon */}
-            {meta.icon()}
+            {meta.icon(fabImg)}
             {/* Active ring */}
-            {isFocused && <View style={tb.fabActiveRing} />}
+            {isFocused && (
+              <View
+                style={[
+                  tb.fabActiveRing,
+                  {width: ringSize, height: ringSize, borderRadius: ringSize / 2},
+                ]}
+              />
+            )}
           </TouchableOpacity>
         );
       })}
@@ -188,11 +226,9 @@ const tb = StyleSheet.create({
   // Pill
   pill: {
     width: '100%',
-    height: PILL_H,
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: 'rgba(255,255,255,0.97)',
-    borderRadius: PILL_H / 2,
     paddingHorizontal: 6,
     // Glassmorphic border
     borderWidth: 1,
@@ -219,11 +255,8 @@ const tb = StyleSheet.create({
   iconWrap: {
     alignItems: 'center',
     justifyContent: 'center',
-    width: 44,
-    height: 44,
   },
   tabLabel: {
-    fontSize: 10,
     fontWeight: '500',
     color: C.textLight,
     marginTop: 0,
@@ -232,18 +265,12 @@ const tb = StyleSheet.create({
     color: C.oceanMid,
     fontWeight: '700',
   },
-  // Emoji icons
-  emoji: {fontSize: 22, opacity: 1},
-  emojiFocused: {fontSize: 24, opacity: 1},
 
   // Floating FAB (center)
   fab: {
     position: 'absolute',
     // bottom is passed inline (bottomPad + FAB_LIFT) so it tracks safe area insets
     alignSelf: 'center',
-    width: FAB_SIZE,
-    height: FAB_SIZE,
-    borderRadius: FAB_SIZE / 2,
     backgroundColor: C.white,
     alignItems: 'center',
     justifyContent: 'center',
@@ -263,9 +290,6 @@ const tb = StyleSheet.create({
   },
   fabActiveRing: {
     position: 'absolute',
-    width: FAB_SIZE + 10,
-    height: FAB_SIZE + 10,
-    borderRadius: (FAB_SIZE + 10) / 2,
     borderWidth: 1.5,
     borderColor: 'rgba(27,107,123,0.25)',
   },

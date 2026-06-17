@@ -18,6 +18,7 @@ import {comnPost, getFromStorage, saveToStorage} from '../../Services/Api/Common
 import {backPage, checkLogin, goBackHandler, navigateTo} from '../../Services/CommonMethods';
 import {useConnectivityGate} from '../../Components/Common/useConnectivityGate';
 import {createLogger} from '../../Services/Logger';
+import {scaleFontSizes} from '../../Services/responsive';
 
 const log = createLogger('BusRouteList');
 
@@ -274,6 +275,15 @@ const BusRouteList = ({navigation}) => {
         renderItem={renderItem}
         onEndReached={loadMore}
         onEndReachedThreshold={0.3}
+        ListEmptyComponent={
+          !isLoading ? (
+            <View style={s.emptyWrap}>
+              <Text style={s.emptyIcon}>🚌</Text>
+              <Text style={s.emptyTitle}>{t('BUS_ROUTE_SCREEN.NO_ROUTES')}</Text>
+              <Text style={s.emptySub}>{t('BUS_ROUTE_SCREEN.NO_ROUTES_SUB')}</Text>
+            </View>
+          ) : null
+        }
         ListFooterComponent={
           isLoadingMore ? (
             <View style={s.footer}>
@@ -281,7 +291,10 @@ const BusRouteList = ({navigation}) => {
             </View>
           ) : null
         }
-        contentContainerStyle={s.listContent}
+        contentContainerStyle={[
+          s.listContent,
+          list.length === 0 && s.emptyContainer,
+        ]}
         showsVerticalScrollIndicator={false}
       />
       {connectivityModal}
@@ -289,7 +302,7 @@ const BusRouteList = ({navigation}) => {
   );
 };
 
-const s = StyleSheet.create({
+const s = StyleSheet.create(scaleFontSizes({
   root: {flex: 1, backgroundColor: '#FAF7F0'},
   header: {
     paddingHorizontal: 20,
@@ -340,6 +353,12 @@ const s = StyleSheet.create({
   },
   listContent: {paddingHorizontal: 20, paddingVertical: 12},
   list: {flex: 1},
+
+  emptyContainer: {flexGrow: 1, justifyContent: 'center'},
+  emptyWrap: {alignItems: 'center', justifyContent: 'center', paddingVertical: 80},
+  emptyIcon: {fontSize: 48, marginBottom: 16},
+  emptyTitle: {fontSize: 17, fontWeight: '700', color: '#1C1917', marginBottom: 6},
+  emptySub: {fontSize: 13, color: '#78716C', textAlign: 'center', paddingHorizontal: 32},
 
   card: {
     backgroundColor: '#FFFFFF',
@@ -408,6 +427,6 @@ const s = StyleSheet.create({
   },
 
   footer: {paddingVertical: 16, alignItems: 'center'},
-});
+}));
 
 export default BusRouteList;

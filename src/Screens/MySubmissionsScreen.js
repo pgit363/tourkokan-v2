@@ -25,6 +25,7 @@ import {isVendorUser} from '../Components/Common/GuestGateModal';
 import {useConnectivityGate} from '../Components/Common/useConnectivityGate';
 import STRING from '../Services/Constants/STRINGS';
 import {createLogger} from '../Services/Logger';
+import {scaleFontSizes, useResponsive} from '../Services/responsive';
 
 const log = createLogger('MySubmissionsScreen');
 
@@ -91,7 +92,7 @@ const SkeletonList = () => {
   );
 };
 
-const sk = StyleSheet.create({
+const sk = StyleSheet.create(scaleFontSizes({
   card: {
     backgroundColor: C.white,
     borderRadius: 16,
@@ -106,13 +107,14 @@ const sk = StyleSheet.create({
   lineSm: {height: 13, width: '45%', backgroundColor: '#F3F4F6', borderRadius: 6},
   row: {flexDirection: 'row', gap: 8},
   badge: {height: 24, width: 80, backgroundColor: '#F3F4F6', borderRadius: 12},
-});
+}));
 
 // ─── MySubmissionsScreen ──────────────────────────────────────────────────────
 
 const MySubmissionsScreen = ({navigation}) => {
   const insets = useSafeAreaInsets();
   const {t} = useTranslation();
+  const {isTablet} = useResponsive();
   const {show: showDialog, dialog} = useAppDialog();
   const [submissions, setSubmissions] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -217,7 +219,7 @@ const MySubmissionsScreen = ({navigation}) => {
         onPress={() => navigation.navigate(STRING.SCREEN.SITE_DETAIL, {city: item})}>
 
         {/* ── Cover image ── */}
-        <View style={s.imageWrap}>
+        <View style={[s.imageWrap, isTablet && {height: 280}]}>
           {item.image ? (
             <Image
               source={{uri: `${AWS_URL}${item.image}`}}
@@ -225,9 +227,11 @@ const MySubmissionsScreen = ({navigation}) => {
               resizeMode="cover"
             />
           ) : (
-            <View style={s.imageFallback}>
-              <Ionicons name="business-outline" size={44} color="rgba(255,255,255,0.5)" />
-            </View>
+            <Image
+              source={require('../Assets/Images/no-image.png')}
+              style={s.coverImage}
+              resizeMode="cover"
+            />
           )}
 
           {/* Gradient overlay at bottom of image */}
@@ -431,7 +435,7 @@ const MySubmissionsScreen = ({navigation}) => {
 
 // ─── Styles ───────────────────────────────────────────────────────────────────
 
-const s = StyleSheet.create({
+const s = StyleSheet.create(scaleFontSizes({
   root: {flex: 1, backgroundColor: C.cream},
 
   // Header
@@ -681,6 +685,6 @@ const s = StyleSheet.create({
     alignItems: 'center',
   },
   modalSecondaryText: {fontSize: 13, color: C.textLight},
-});
+}));
 
 export default MySubmissionsScreen;

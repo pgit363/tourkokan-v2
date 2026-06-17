@@ -16,6 +16,7 @@ import {useNavigation} from '@react-navigation/native';
 import {useTranslation} from 'react-i18next';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import STRING from '../Services/Constants/STRINGS';
+import {scaleFontSizes, useResponsive} from '../Services/responsive';
 
 // Enable LayoutAnimation on Android
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
@@ -273,6 +274,7 @@ const FaqItem = ({q, a}) => {
 const HelpCenterScreen = () => {
   const navigation = useNavigation();
   const insets = useSafeAreaInsets();
+  const {isTablet} = useResponsive();
   const {t, i18n} = useTranslation();
   const [activeTab, setActiveTab] = useState(0);
 
@@ -313,7 +315,11 @@ const HelpCenterScreen = () => {
 
       <ScrollView
         style={s.scroll}
-        contentContainerStyle={[s.scrollContent, {paddingBottom: insets.bottom + 32}]}
+        contentContainerStyle={[
+          s.scrollContent,
+          {paddingBottom: insets.bottom + 32},
+          isTablet && {maxWidth: 680, width: '100%', alignSelf: 'center'},
+        ]}
         showsVerticalScrollIndicator={false}>
 
         {/* ── Category tab pills ── */}
@@ -380,7 +386,7 @@ const HelpCenterScreen = () => {
 
 // ─── Styles ───────────────────────────────────────────────────────────────────
 
-const s = StyleSheet.create({
+const s = StyleSheet.create(scaleFontSizes({
   root: {
     flex: 1,
     backgroundColor: C.cream,
@@ -579,6 +585,6 @@ const s = StyleSheet.create({
   helpBtnIcon: {
     marginRight: 2,
   },
-});
+}));
 
 export default HelpCenterScreen;

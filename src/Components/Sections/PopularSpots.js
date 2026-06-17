@@ -12,6 +12,7 @@ import LinearGradient from 'react-native-linear-gradient';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import {AWS_URL} from '@env';
 import CachedImage from '../Customs/CachedImage';
+import {useResponsive} from '../../Services/responsive';
 
 const {width: SW} = Dimensions.get('window');
 const RADIUS = 16;
@@ -30,6 +31,8 @@ const C = {
 };
 
 const TrendingCard = ({item, onPress, cardWidth, imgHeight}) => {
+  // Tablet: moderate bump for the card's fixed-px text and icons.
+  const {isTablet, ms} = useResponsive();
   const fallback = require('../../Assets/Images/no-image.png');
   const uri = item.image
     ? `${AWS_URL}${item.image}`
@@ -57,32 +60,37 @@ const TrendingCard = ({item, onPress, cardWidth, imgHeight}) => {
         />
         {category ? (
           <View style={ts.trendCategoryBadge}>
-            <Text style={ts.trendCategoryText}>{category}</Text>
+            <Text style={[ts.trendCategoryText, isTablet && {fontSize: ms(10)}]}>{category}</Text>
           </View>
         ) : null}
-        <View style={[ts.talukaHeart, item.is_favorite && ts.talukaHeartActive]}>
+        <View
+          style={[
+            ts.talukaHeart,
+            isTablet && {width: ms(26), height: ms(26), borderRadius: ms(13)},
+            item.is_favorite && ts.talukaHeartActive,
+          ]}>
           <Ionicons
             name={item.is_favorite ? 'heart' : 'heart-outline'}
-            size={14}
+            size={isTablet ? ms(14) : 14}
             color={item.is_favorite ? '#eb5757' : C.white}
           />
         </View>
       </View>
       <View style={ts.trendInfo}>
-        <Text style={ts.trendName} numberOfLines={1}>{item.name}</Text>
+        <Text style={[ts.trendName, isTablet && {fontSize: ms(14)}]} numberOfLines={1}>{item.name}</Text>
         {item.description ? (
-          <Text style={ts.trendDesc} numberOfLines={2}>{item.description}</Text>
+          <Text style={[ts.trendDesc, isTablet && {fontSize: ms(11), lineHeight: ms(16)}]} numberOfLines={2}>{item.description}</Text>
         ) : null}
         <View style={ts.trendFooter}>
           <View style={ts.talukaRating}>
-            <Ionicons name="star" size={12} color={C.sandMid} />
-            <Text style={ts.talukaRatingText}>
+            <Ionicons name="star" size={isTablet ? ms(12) : 12} color={C.sandMid} />
+            <Text style={[ts.talukaRatingText, isTablet && {fontSize: ms(11)}]}>
               {rating > 0 ? rating.toFixed(1) : 'New'}
             </Text>
           </View>
           <View style={ts.trendViewBtn}>
-            <Text style={ts.trendViewBtnText}>View</Text>
-            <Ionicons name="arrow-forward" size={10} color={C.oceanMid} />
+            <Text style={[ts.trendViewBtnText, isTablet && {fontSize: ms(11)}]}>View</Text>
+            <Ionicons name="arrow-forward" size={isTablet ? ms(10) : 10} color={C.oceanMid} />
           </View>
         </View>
       </View>
