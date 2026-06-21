@@ -705,15 +705,14 @@ const HomeScreen = ({navigation, route, ...props}) => {
             style={{height: heroHeight}}
           />
         ) : (
-          <Banner
-            bannerImages={[
-              {id: 1, image: 'https://c4.wallpaperflare.com/wallpaper/766/970/409/cities-city-building-cityscape-wallpaper-preview.jpg'},
-              {id: 2, image: 'https://c4.wallpaperflare.com/wallpaper/631/683/713/nature-bridge-sky-city-wallpaper-preview.jpg'},
-              {id: 3, image: 'https://c4.wallpaperflare.com/wallpaper/977/138/381/tbilisi-georgia-wallpaper-preview.jpg'},
-            ]}
-            width={rWidth}
-            style={{height: heroHeight}}
-          />
+          <View style={[s.heroPlaceholder, {height: heroHeight}]}>
+            <View style={ts.adLabelBadge}>
+              <Text style={ts.adLabelText}>Premium Ad</Text>
+            </View>
+            <Text style={ts.adIcon}>📢</Text>
+            <Text style={ts.adText}>Ad Space Available</Text>
+            <Text style={ts.adSize}>Tap to advertise here</Text>
+          </View>
         )}
       </View>
 
@@ -1031,6 +1030,15 @@ const s = StyleSheet.create({
   bannerSkeleton: {
     backgroundColor: '#1B4A56',
     width: '100%',
+  },
+  heroPlaceholder: {
+    width: '100%',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: C.sandPale,
+    borderWidth: 2,
+    borderColor: C.sandMid,
+    borderStyle: 'dashed',
   },
 
   // ── Search ──

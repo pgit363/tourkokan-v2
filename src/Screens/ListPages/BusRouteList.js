@@ -1,6 +1,8 @@
 import React, {useEffect, useRef, useState} from 'react';
 import {
   ActivityIndicator,
+  Animated,
+  Easing,
   FlatList,
   Image,
   Platform,
@@ -8,6 +10,7 @@ import {
   StyleSheet,
   Text,
   TouchableOpacity,
+  useWindowDimensions,
   View,
 } from 'react-native';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
@@ -57,6 +60,135 @@ const getBadgeColor = (metaData = '') => {
   } catch {
     return '#1B6B7B';
   }
+};
+
+// Dash geometry for the vertical road centre-line (one repeating cycle = DASH+GAP).
+const DASH_H = 26;
+const DASH_GAP = 22;
+const DASH_CYCLE = DASH_H + DASH_GAP;
+
+// Animated "Coming Soon" empty state — a bus driving forward on a VERTICAL road:
+// the centre-line dashes flow downward to sell the motion while the bus sways
+// gently. Self-contained (no Lottie asset), runs on the native driver, and all
+// sizes scale to the device width so it stays centred on phones and tablets.
+const ComingSoon = () => {
+  const {t} = useTranslation();
+  const {width} = useWindowDimensions();
+
+  // Responsive sizing — clamp so it looks right from small phones to tablets.
+  // Bus is the hero; the road is a compact two-lane strip sized around it.
+  const busW = Math.max(150, Math.min(width * 0.5, 220));
+  const busH = busW * 0.74;
+  const roadW = busW * 1.55; // two-lane road, a touch wider than the bus
+  const stageH = Math.max(220, Math.min(width * 0.7, 320));
+  // Bus rides in the right lane — offset to the right of the centre line.
+  const busOffsetX = roadW * 0.22;
+  // Enough dashes to fill the lane plus one extra cycle for the seamless loop.
+  const dashCount = Math.ceil(stageH / DASH_CYCLE) + 2;
+
+  const sway = useRef(new Animated.Value(0)).current;
+  const bob = useRef(new Animated.Value(0)).current;
+  const road = useRef(new Animated.Value(0)).current;
+  const dots = useRef([0, 1, 2].map(() => new Animated.Value(0))).current;
+
+  useEffect(() => {
+    const swayLoop = Animated.loop(
+      Animated.sequence([
+        Animated.timing(sway, {toValue: 1, duration: 1100, easing: Easing.inOut(Easing.quad), useNativeDriver: true}),
+        Animated.timing(sway, {toValue: -1, duration: 1100, easing: Easing.inOut(Easing.quad), useNativeDriver: true}),
+      ]),
+    );
+    const bobLoop = Animated.loop(
+      Animated.sequence([
+        Animated.timing(bob, {toValue: 1, duration: 600, easing: Easing.inOut(Easing.quad), useNativeDriver: true}),
+        Animated.timing(bob, {toValue: 0, duration: 600, easing: Easing.inOut(Easing.quad), useNativeDriver: true}),
+      ]),
+    );
+    const roadLoop = Animated.loop(
+      Animated.timing(road, {toValue: 1, duration: 700, easing: Easing.linear, useNativeDriver: true}),
+    );
+    // Staggered dots — each lights up in turn like a "loading" sequence.
+    const dotLoops = dots.map((v, i) =>
+      Animated.loop(
+        Animated.sequence([
+          Animated.delay(i * 200),
+          Animated.timing(v, {toValue: 1, duration: 350, easing: Easing.out(Easing.ease), useNativeDriver: true}),
+          Animated.timing(v, {toValue: 0, duration: 350, easing: Easing.in(Easing.ease), useNativeDriver: true}),
+          Animated.delay((dots.length - 1 - i) * 200),
+        ]),
+      ),
+    );
+    swayLoop.start();
+    bobLoop.start();
+    roadLoop.start();
+    dotLoops.forEach(l => l.start());
+    return () => {
+      swayLoop.stop();
+      bobLoop.stop();
+      roadLoop.stop();
+      dotLoops.forEach(l => l.stop());
+    };
+  }, [sway, bob, road, dots]);
+
+  // Dashes slide DOWN by one cycle then reset — bus appears to move forward.
+  const roadShift = road.interpolate({inputRange: [0, 1], outputRange: [0, DASH_CYCLE]});
+  // Subtle steering sway around the right-lane offset — keeps the bus alive.
+  const busSway = sway.interpolate({
+    inputRange: [-1, 1],
+    outputRange: [busOffsetX - 4, busOffsetX + 4],
+  });
+  // Gentle vertical bob — the bus feels like it's rolling over the road.
+  const busBob = bob.interpolate({inputRange: [0, 1], outputRange: [0, -5]});
+
+  return (
+    <View style={s.csWrap}>
+      <View style={[s.csStage, {height: stageH}]}>
+        {/* Vertical road: solid white edge lines + downward-flowing centre line */}
+        <View style={[s.csRoad, {width: roadW}]}>
+          <View style={[s.csEdge, s.csEdgeLeft]} />
+          <View style={[s.csEdge, s.csEdgeRight]} />
+          <Animated.View
+            style={[
+              s.csDashes,
+              {top: -DASH_CYCLE, transform: [{translateY: roadShift}]},
+            ]}>
+            {Array.from({length: dashCount}).map((_, i) => (
+              <View key={i} style={s.csDash} />
+            ))}
+          </Animated.View>
+        </View>
+        {/* Bus sits centred on the lane */}
+        <Animated.View style={[s.csBus, {transform: [{translateX: busSway}, {translateY: busBob}]}]}>
+          <Image
+            source={BUS_IMAGES.default}
+            style={{width: busW, height: busH}}
+            resizeMode="contain"
+          />
+        </Animated.View>
+      </View>
+
+      <View style={s.csBadge}>
+        <Ionicons name="time-outline" size={14} color="#1B6B7B" />
+        <Text style={s.csBadgeText}>{t('BUS_ROUTE_SCREEN.COMING_SOON_TITLE')}</Text>
+        <View style={s.csDots}>
+          {dots.map((v, i) => (
+            <Animated.View
+              key={i}
+              style={[
+                s.csDotPulse,
+                {
+                  opacity: v.interpolate({inputRange: [0, 1], outputRange: [0.3, 1]}),
+                  transform: [{scale: v.interpolate({inputRange: [0, 1], outputRange: [1, 1.55]})}],
+                },
+              ]}
+            />
+          ))}
+        </View>
+      </View>
+
+      <Text style={s.csSub}>{t('BUS_ROUTE_SCREEN.COMING_SOON_SUB')}</Text>
+    </View>
+  );
 };
 
 const BusRouteList = ({navigation}) => {
@@ -275,15 +407,7 @@ const BusRouteList = ({navigation}) => {
         renderItem={renderItem}
         onEndReached={loadMore}
         onEndReachedThreshold={0.3}
-        ListEmptyComponent={
-          !isLoading ? (
-            <View style={s.emptyWrap}>
-              <Text style={s.emptyIcon}>🚌</Text>
-              <Text style={s.emptyTitle}>{t('BUS_ROUTE_SCREEN.NO_ROUTES')}</Text>
-              <Text style={s.emptySub}>{t('BUS_ROUTE_SCREEN.NO_ROUTES_SUB')}</Text>
-            </View>
-          ) : null
-        }
+        ListEmptyComponent={!isLoading ? <ComingSoon /> : null}
         ListFooterComponent={
           isLoadingMore ? (
             <View style={s.footer}>
@@ -355,10 +479,66 @@ const s = StyleSheet.create(scaleFontSizes({
   list: {flex: 1},
 
   emptyContainer: {flexGrow: 1, justifyContent: 'center'},
-  emptyWrap: {alignItems: 'center', justifyContent: 'center', paddingVertical: 80},
-  emptyIcon: {fontSize: 48, marginBottom: 16},
-  emptyTitle: {fontSize: 17, fontWeight: '700', color: '#1C1917', marginBottom: 6},
-  emptySub: {fontSize: 13, color: '#78716C', textAlign: 'center', paddingHorizontal: 32},
+
+  // ── Coming soon (empty state) ──
+  csWrap: {alignItems: 'center', justifyContent: 'center', paddingVertical: 50, paddingHorizontal: 24},
+  csStage: {
+    width: '100%',
+    position: 'relative',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 28,
+  },
+  // Vertical black road lane behind the bus (height fills the stage)
+  csRoad: {
+    height: '100%',
+    borderRadius: 12,
+    backgroundColor: '#262626',
+    overflow: 'hidden',
+    alignItems: 'center',
+  },
+  // Solid white road edge lines
+  csEdge: {
+    position: 'absolute',
+    top: 12,
+    bottom: 12,
+    width: 4,
+    borderRadius: 2,
+    backgroundColor: 'rgba(255,255,255,0.55)',
+  },
+  csEdgeLeft: {left: 14},
+  csEdgeRight: {right: 14},
+  // Column of white centre-line dashes that scroll downward
+  csDashes: {position: 'absolute', alignItems: 'center'},
+  csDash: {
+    width: 6,
+    height: DASH_H,
+    borderRadius: 3,
+    backgroundColor: '#FFFFFF',
+    marginBottom: DASH_GAP,
+  },
+  // Bus overlays the lane, centred horizontally and nudged slightly upward
+  csBus: {
+    ...StyleSheet.absoluteFillObject,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingBottom: 56,
+    zIndex: 2,
+  },
+  csBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 7,
+    backgroundColor: 'rgba(27,107,123,0.10)',
+    paddingHorizontal: 16,
+    paddingVertical: 9,
+    borderRadius: 22,
+    marginBottom: 12,
+  },
+  csBadgeText: {fontSize: 15, fontWeight: '700', color: '#1B6B7B', letterSpacing: 0.3},
+  csDots: {flexDirection: 'row', alignItems: 'center', gap: 4, marginLeft: 2},
+  csDotPulse: {width: 5, height: 5, borderRadius: 3, backgroundColor: '#1B6B7B'},
+  csSub: {fontSize: 13.5, color: '#78716C', textAlign: 'center', lineHeight: 20, paddingHorizontal: 16},
 
   card: {
     backgroundColor: '#FFFFFF',

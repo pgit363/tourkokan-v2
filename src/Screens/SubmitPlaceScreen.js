@@ -113,7 +113,7 @@ const SubmitPlaceScreen = ({navigation, route}) => {
   const [parentDropOpen, setParentDropOpen] = useState(false);
 
   useEffect(() => {
-    comnPost('v2/listcategories', {per_page: 100})
+    comnPost('v2/listcategories', {per_page: 100, include_empty: 1})
       .then(res => setCategories(res?.data?.data?.data || []))
       .catch(() => {});
   }, []);

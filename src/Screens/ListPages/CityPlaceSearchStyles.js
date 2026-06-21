@@ -41,6 +41,11 @@ export const s = StyleSheet.create(scaleFontSizes({
     flex: 1, fontSize: 15, color: C.textDark, fontWeight: '500',
     paddingVertical: 2, includeFontPadding: false,
   },
+  searchGoBtn: {
+    width: 34, height: 34, borderRadius: 17,
+    backgroundColor: C.oceanMid,
+    alignItems: 'center', justifyContent: 'center',
+  },
 
   // Dropdown
   dropdown: {

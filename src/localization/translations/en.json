@@ -701,6 +701,8 @@
     "LOADING_MORE": "Loading more routes...",
     "NO_ROUTES": "No Routes Available",
     "NO_ROUTES_SUB": "We couldn't find any routes at this time.",
+    "COMING_SOON_TITLE": "Coming Soon",
+    "COMING_SOON_SUB": "Bus routes will be added soon. Stay tuned!",
     "OFFLINE_TITLE": "No Internet Connection",
     "OFFLINE_MSG": "Bus routes can't be fetched in offline mode. Please connect to the internet to view all available routes.",
     "CHANGE_MODE": "Go online",

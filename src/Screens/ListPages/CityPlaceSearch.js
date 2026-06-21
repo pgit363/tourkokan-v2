@@ -92,6 +92,29 @@ const CityPlaceSearch = ({navigation, route}) => {
   // Track pagination state in refs to avoid stale closures
   const pageStateRef = useRef({currentPage: 1, hasMore: false, isSearching: false});
 
+  // ── Suggestions auto-hide scheduler ───────────────────────────────────────
+  // Ref-based so scrolling the category list can pause / extend it instead of
+  // the dropdown closing under the user's finger mid-scroll.
+  const hideTimerRef = useRef(null);
+  const cancelHideTimer = useCallback(() => {
+    if (hideTimerRef.current) {
+      clearTimeout(hideTimerRef.current);
+      hideTimerRef.current = null;
+    }
+  }, []);
+  const armHideTimer = useCallback(
+    (delay = 3500) => {
+      if (hideTimerRef.current) clearTimeout(hideTimerRef.current);
+      hideTimerRef.current = setTimeout(() => {
+        setShowDropdown(false);
+        setIsFocused(false);
+        Keyboard.dismiss();
+      }, delay);
+    },
+    [],
+  );
+  useEffect(() => cancelHideTimer, [cancelHideTimer]);
+
   // header height → dropdown top anchor
   const HEADER_H = insets.top + 130;
   const {width: winW, height: winH, isTablet, ms} = useResponsive();
@@ -152,15 +175,10 @@ const CityPlaceSearch = ({navigation, route}) => {
       300,
     );
     // Auto-dismiss suggestions 3.5 s after last keystroke — results already
-    // rendering in background by then
-    const hideTimer = setTimeout(() => {
-      setShowDropdown(false);
-      setIsFocused(false);
-      Keyboard.dismiss();
-    }, 3500);
+    // rendering in background by then. Scrolling the list pauses/extends this.
+    armHideTimer(3500);
     return () => {
       clearTimeout(searchTimer);
-      clearTimeout(hideTimer);
     };
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [query]);
@@ -429,7 +447,12 @@ const CityPlaceSearch = ({navigation, route}) => {
           keyboardShouldPersistTaps="always"
           nestedScrollEnabled
           showsVerticalScrollIndicator={false}
-          bounces={false}>
+          bounces={false}
+          // Pause auto-hide while the user is scrolling the category list,
+          // then give a longer window once they stop.
+          onScrollBeginDrag={cancelHideTimer}
+          onScrollEndDrag={() => armHideTimer(8000)}
+          onMomentumScrollEnd={() => armHideTimer(8000)}>
           {storedCats.map(item => {
             const label =
               query.length > 0
@@ -767,6 +790,15 @@ const CityPlaceSearch = ({navigation, route}) => {
                 size={18}
                 color={C.oceanMid}
               />
+            </TouchableOpacity>
+          )}
+          {query.trim().length > 0 && (
+            <TouchableOpacity
+              style={s.searchGoBtn}
+              onPress={() => performSearch(query, null)}
+              activeOpacity={0.85}
+              hitSlop={{top: 6, bottom: 6, left: 6, right: 6}}>
+              <Ionicons name="arrow-forward" size={18} color={C.white} />
             </TouchableOpacity>
           )}
         </View>

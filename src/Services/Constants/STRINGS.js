@@ -130,6 +130,7 @@ const STRING = {
     API_TOKEN: 'apiToken',
     LANDING_RESPONSE: 'landingResponse',
     PROFILE_RESPONSE: 'profileResponse',
+    PROFILE_PICTURE: 'profilePicture',
     CITIES_RESPONSE: 'citiesResponse',
     PLACES_RESPONSE: 'placesResponse',
     ROUTES_RESPONSE: 'routesResponse',
