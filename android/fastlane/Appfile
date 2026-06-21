@@ -1,0 +1,6 @@
+# Google Play package name (the single Play Console listing).
+package_name("com.tourkokan")
+
+# Path to the Google Play service-account JSON key (git-ignored).
+# Override with the PLAY_STORE_JSON_KEY env var in CI if you prefer.
+json_key_file(ENV["PLAY_STORE_JSON_KEY"] || "fastlane/play-store-key.json")

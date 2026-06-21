@@ -1,0 +1,111 @@
+# ===========================================================================
+# Fastlane — Tourkokan Android Play Store automation
+# ---------------------------------------------------------------------------
+# Prerequisites (one-time):
+#   1. Install fastlane:            bundle install        (from repo root)
+#   2. Create a Google Play service account + JSON key, grant it access in
+#      Play Console, and save the key at:  android/fastlane/play-store-key.json
+#      (git-ignored).  See ../../DEPLOYMENT.md for step-by-step instructions.
+#
+# How it works:
+#   - TESTING tracks (internal/closed/open) get the `test` flavor build
+#     (api-test.tourkokan.com).
+#   - PRODUCTION track gets the `production` flavor build (api.tourkokan.com).
+#   - versionCode is read from android/version.properties — bump it BEFORE a
+#     release with:  npm run version:code
+#   - The SAME artifact can also be promoted across tracks without rebuilding
+#     (see the `promote_*` lanes).
+#
+# Run from the android/ directory, e.g.:  bundle exec fastlane internal
+# Or via npm from repo root:              npm run deploy:internal
+# ===========================================================================
+
+default_platform(:android)
+
+# The QA/test flavor is named "qa" (Android reserves flavor names starting with "test").
+AAB_TEST = "app/build/outputs/bundle/qaRelease/app-qa-release.aab"
+AAB_PROD = "app/build/outputs/bundle/productionRelease/app-production-release.aab"
+
+platform :android do
+  desc "Build the TEST/QA-env release AAB (api-test.tourkokan.com)"
+  lane :build_test do
+    gradle(task: "clean", project_dir: ".")
+    gradle(task: "bundle", flavor: "qa", build_type: "Release", project_dir: ".")
+  end
+
+  desc "Build the PRODUCTION-env release AAB (api.tourkokan.com)"
+  lane :build_prod do
+    gradle(task: "clean", project_dir: ".")
+    gradle(task: "bundle", flavor: "production", build_type: "Release", project_dir: ".")
+  end
+
+  # ---- Upload lanes (build + upload) ---------------------------------------
+
+  desc "Build TEST AAB and upload to the INTERNAL testing track (as draft)"
+  lane :internal do
+    build_test
+    upload_to_play_store(
+      track: "internal",
+      aab: AAB_TEST,
+      release_status: "draft",
+      skip_upload_metadata: true,
+      skip_upload_images: true,
+      skip_upload_screenshots: true
+    )
+  end
+
+  desc "Build TEST AAB and upload to the CLOSED testing track (default name: alpha)"
+  lane :closed do
+    build_test
+    upload_to_play_store(
+      track: "alpha",
+      aab: AAB_TEST,
+      skip_upload_metadata: true,
+      skip_upload_images: true,
+      skip_upload_screenshots: true
+    )
+  end
+
+  desc "Build TEST AAB and upload to the OPEN testing track (default name: beta)"
+  lane :open do
+    build_test
+    upload_to_play_store(
+      track: "beta",
+      aab: AAB_TEST,
+      skip_upload_metadata: true,
+      skip_upload_images: true,
+      skip_upload_screenshots: true
+    )
+  end
+
+  desc "Build PRODUCTION AAB and upload to the PRODUCTION track (staged 10% rollout, draft)"
+  lane :production do
+    build_prod
+    upload_to_play_store(
+      track: "production",
+      aab: AAB_PROD,
+      release_status: "draft",
+      rollout: "0.1",
+      skip_upload_metadata: true,
+      skip_upload_images: true,
+      skip_upload_screenshots: true
+    )
+  end
+
+  # ---- Promotion lanes (no rebuild — reuse an already-uploaded build) -------
+
+  desc "Promote the latest INTERNAL build to CLOSED testing (alpha)"
+  lane :promote_internal_to_closed do
+    upload_to_play_store(track: "internal", track_promote_to: "alpha", skip_upload_aab: true)
+  end
+
+  desc "Promote the latest CLOSED build to OPEN testing (beta)"
+  lane :promote_closed_to_open do
+    upload_to_play_store(track: "alpha", track_promote_to: "beta", skip_upload_aab: true)
+  end
+
+  desc "Promote the latest OPEN build to PRODUCTION (staged 10% rollout)"
+  lane :promote_open_to_production do
+    upload_to_play_store(track: "beta", track_promote_to: "production", rollout: "0.1", skip_upload_aab: true)
+  end
+end

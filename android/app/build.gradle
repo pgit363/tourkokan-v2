@@ -2,6 +2,18 @@ apply plugin: "com.android.application"
 apply plugin: "org.jetbrains.kotlin.android"
 apply plugin: "com.facebook.react"
 apply from: "../../node_modules/react-native-vector-icons/fonts.gradle"
+// react-native-config: pick the .env file automatically from the build flavor.
+//   local       -> .env              (localhost)
+//   test        -> .env.development  (api-test.tourkokan.com)
+//   production  -> .env.production   (api.tourkokan.com)
+project.ext.envConfigFiles = [
+    localdebug: ".env",
+    localrelease: ".env",
+    qadebug: ".env.development",
+    qarelease: ".env.development",
+    productiondebug: ".env.production",
+    productionrelease: ".env.production",
+]
 apply from: "../../node_modules/react-native-config/android/dotenv.gradle"
 
 /**
@@ -23,7 +35,7 @@ react {
     //   The list of variants to that are debuggable. For those we're going to
     //   skip the bundling of the JS bundle and the assets. By default is just 'debug'.
     //   If you add flavors like lite, prod, etc. you'll have to list your debuggableVariants.
-    // debuggableVariants = ["liteDebug", "prodDebug"]
+    debuggableVariants = ["localDebug", "qaDebug", "productionDebug"]
 
     /* Bundling */
     //   A list containing the node command and its flags. Default is just 'node'.
@@ -75,15 +87,15 @@ def enableProguardInReleaseBuilds = false
 def jscFlavor = 'io.github.react-native-community:jsc-android:2026004.+'
 
 
-task setEnv {
-    doFirst {
-        def envMap = project.hasProperty('env') ? project.getProperty('env') : null
-        def envFile = System.getenv("APP_ENV") ?: (envMap instanceof Map ? envMap.get("ENV") : 'development')
-        println "Building with environment: $envFile"
-        project.ext.set('ENV_FILE', envFile)
-    }
+// App version is managed in android/version.properties (single source of truth).
+// Bump it with: npm run version:code   (or: npm run version:name -- <x.y.z>)
+def versionPropsFile = rootProject.file("version.properties")
+def versionProps = new Properties()
+if (versionPropsFile.exists()) {
+    versionProps.load(new FileInputStream(versionPropsFile))
 }
-preBuild.dependsOn setEnv
+def appVersionCode = (versionProps['VERSION_CODE'] ?: '52').toString().trim().toInteger()
+def appVersionName = (versionProps['VERSION_NAME'] ?: '2.0.4').toString().trim()
 
 // Release signing secrets loaded from git-ignored android/keystore.properties
 def keystorePropertiesFile = rootProject.file("keystore.properties")
@@ -102,8 +114,8 @@ android {
         applicationId "com.tourkokan"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 51
-        versionName "2.0.4"
+        versionCode appVersionCode
+        versionName appVersionName
     }
     signingConfigs {
         debug {
@@ -125,13 +137,36 @@ android {
     buildTypes {
         debug {
             signingConfig signingConfigs.debug
-            buildConfigField "String", "ENV_FILE", "\"${project.hasProperty('ENV_FILE') ? project.ENV_FILE : 'development'}\""
         }
         release {
             signingConfig signingConfigs.release
             minifyEnabled enableProguardInReleaseBuilds
             proguardFiles getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro"
-            buildConfigField "String", "ENV_FILE", "\"${project.hasProperty('ENV_FILE') ? project.ENV_FILE : 'development'}\""
+        }
+    }
+
+    // Build flavors map 1:1 to environments. The matching .env file for each is
+    // selected automatically by react-native-config (see envConfigFiles above).
+    flavorDimensions "env"
+    productFlavors {
+        // LOCAL development -> talks to the localhost backend (.env).
+        // Suffixed package so it installs ALONGSIDE the Play Store app on a device.
+        // Uses android/app/src/local/google-services.json (com.tourkokan.local).
+        local {
+            dimension "env"
+            applicationIdSuffix ".local"
+            versionNameSuffix "-local"
+        }
+        // TEST / QA -> api-test.tourkokan.com (.env.development).
+        // Named "qa" because Android Gradle reserves flavor names starting with "test".
+        // Same applicationId as production => SAME Play Console listing, so its
+        // builds feed the internal / closed / open testing tracks.
+        qa {
+            dimension "env"
+        }
+        // PRODUCTION -> api.tourkokan.com (.env.production). Play Store production track.
+        production {
+            dimension "env"
         }
     }
 }

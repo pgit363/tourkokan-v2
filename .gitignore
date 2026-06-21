@@ -56,6 +56,12 @@ yarn-error.log
 **/fastlane/screenshots
 **/fastlane/test_output
 
+# Google Play service-account key used by fastlane supply (NEVER commit)
+android/fastlane/play-store-key.json
+
+# Archived / unused environment values (reference only, not used by builds)
+env-archive.txt
+
 # Bundle artifact
 *.jsbundle
 
