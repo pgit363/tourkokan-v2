@@ -5,6 +5,7 @@ import {
   ActivityIndicator,
   Keyboard,
   TouchableOpacity,
+  TextInput,
   StyleSheet,
 } from 'react-native';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
@@ -15,7 +16,6 @@ import {Dropdown} from 'react-native-element-dropdown';
 import {CheckBox} from '@rneui/themed';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import TextButton from '../Components/Customs/Buttons/TextButton';
-import TextField from '../Components/Customs/TextField';
 import PrivacyPolicy from '../Components/Common/PrivacyPolicy';
 import * as LocationEnabler from 'react-native-android-location-enabler';
 import {saveToStorage} from '../Services/Api/CommonServices';
@@ -233,15 +233,9 @@ const OnboardingScreen = ({onComplete}) => {
               onChange={i => setLanguage(i.value)}
             />
           ) : item.type === 'referral' ? (
-            <TextField
-              fieldType={'text'}
-              style={[styles.searchPanelFieldNew, {borderWidth: 1, textAlign: 'center', width: fieldW}]}
-              inputContainerStyle={styles.inputContainerStyle}
-              placeholder="Enter Referral Code"
-              placeholderTextColor="#000"
-              value={referral}
-              setChild={(v, i) => setReferral(v)}
-            />
+            // Rendered as a screen-level overlay (referralBar) so the same field
+            // can float above the keyboard without duplicating the input.
+            <View style={{height: 52}} />
           ) : item.type === 'location' ? (
             <View>
               <TextButton
@@ -345,23 +339,54 @@ const OnboardingScreen = ({onComplete}) => {
       />
       {currentIndex > 0 && !keyboardOpen && renderNewButton()}
 
-      {/* Floating nav buttons above keyboard */}
-      {keyboardOpen && (
-        <View style={[kb.floatingRow, {bottom: keyboardHeight + Math.max(insets.bottom, 12)}]}>
-          {currentIndex > 0 && (
+      {/* The referral field lives here (not inside the slide) so the very same
+          input can sit in the slide when the keyboard is closed, then become a
+          solid compose bar docked to the keyboard when it's open. Keys keep the
+          field mounted across that switch so focus isn't lost. */}
+      {slides[currentIndex]?.type === 'referral' && (
+        <View
+          style={[
+            keyboardOpen ? kb.composeBar : kb.closedBar,
+            keyboardOpen
+              ? {bottom: keyboardHeight + insets.bottom}
+              : {bottom: Math.max(204 - DIMENSIONS.headerHeight, insets.bottom + 24)},
+          ]}>
+          {keyboardOpen && currentIndex > 0 && (
             <TouchableOpacity
-              style={[kb.circle, {marginRight: 'auto'}]}
+              key="back"
+              style={kb.backGhost}
               onPress={() => { Keyboard.dismiss(); handleBackButton(); }}
-              activeOpacity={0.8}>
-              <Ionicons name="arrow-back" color={COLOR.white} size={26} />
+              activeOpacity={0.6}
+              hitSlop={{top: 8, bottom: 8, left: 8, right: 8}}>
+              <Ionicons name="chevron-back" color={COLOR.themeBlue} size={28} />
             </TouchableOpacity>
           )}
-          <TouchableOpacity
-            style={[kb.circle, {marginLeft: 'auto'}]}
-            onPress={() => { Keyboard.dismiss(); handleNextButton(); }}
-            activeOpacity={0.8}>
-            <Ionicons name="arrow-forward" color={COLOR.white} size={26} />
-          </TouchableOpacity>
+          <View key="input" style={keyboardOpen ? kb.fieldWrapOpen : {width: fieldW}}>
+            <TextInput
+              style={keyboardOpen ? kb.composeInput : kb.closedInput}
+              placeholder="Enter Referral Code"
+              placeholderTextColor="#9A9A9A"
+              value={referral}
+              onChangeText={setReferral}
+              autoCapitalize="characters"
+              autoCorrect={false}
+              returnKeyType="next"
+              onSubmitEditing={() => {
+                Keyboard.dismiss();
+                handleNextButton();
+              }}
+              maxLength={20}
+            />
+          </View>
+          {keyboardOpen && (
+            <TouchableOpacity
+              key="next"
+              style={kb.nextCircle}
+              onPress={() => { Keyboard.dismiss(); handleNextButton(); }}
+              activeOpacity={0.8}>
+              <Ionicons name="arrow-forward" color={COLOR.white} size={24} />
+            </TouchableOpacity>
+          )}
         </View>
       )}
     </View>
@@ -370,21 +395,73 @@ const OnboardingScreen = ({onComplete}) => {
 
 const kb = StyleSheet.create({
   placeholder: {width: 44, height: 44},
-  floatingRow: {
+  // Closed state: plain centered input sitting below the collage.
+  closedBar: {
     position: 'absolute',
     left: 24,
     right: 24,
-    flexDirection: 'row',
     alignItems: 'center',
   },
-  circle: {
-    width: 52,
-    height: 52,
-    borderRadius: 26,
+  // Open state: solid bar docked to the top of the keyboard (inline compose).
+  composeBar: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    backgroundColor: COLOR.white,
+    borderTopWidth: 1,
+    borderTopColor: '#E7E5E4',
+    elevation: 12,
+    shadowColor: '#000',
+    shadowOpacity: 0.08,
+    shadowRadius: 6,
+    shadowOffset: {width: 0, height: -2},
+  },
+  backGhost: {
+    width: 36,
+    height: 44,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  fieldWrapOpen: {
+    flex: 1,
+  },
+  // Open state: full-width rounded compose pill, left-aligned like a chat input.
+  composeInput: {
+    width: '100%',
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: '#F1F1F1',
+    paddingHorizontal: 18,
+    paddingVertical: 0,
+    fontSize: 16,
+    color: COLOR.black,
+  },
+  // Closed state: centered bordered pill sitting below the collage.
+  closedInput: {
+    width: '100%',
+    height: 46,
+    borderRadius: 23,
+    borderWidth: 1,
+    borderColor: COLOR.themeBlue,
+    backgroundColor: COLOR.white,
+    paddingHorizontal: 16,
+    paddingVertical: 0,
+    fontSize: 16,
+    color: COLOR.black,
+    textAlign: 'center',
+  },
+  nextCircle: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
     backgroundColor: COLOR.themeBlue,
     alignItems: 'center',
     justifyContent: 'center',
-    elevation: 4,
   },
 });
 
