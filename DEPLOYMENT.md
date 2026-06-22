@@ -80,10 +80,19 @@ Bump it with the helper script:
 
 ```bash
 npm run version:show              # print current values
-npm run version:code              # versionCode += 1   (do this before EVERY upload)
+npm run version:code              # versionCode += 1
 npm run version:code 60           # set versionCode = 60
 npm run version:name -- 2.1.0     # set versionName = 2.1.0
 ```
+
+> **`versionCode` is bumped automatically** by `build:aab:test`, `build:aab:prod`
+> (and the fastlane lanes) — they run `version:code` before Gradle so the AAB
+> carries the new code. You only need to call `version:code` manually if you want
+> to bump without building. `versionName` is never auto-changed.
+>
+> Note: every `build:aab:*` increments the code even if you don't upload the
+> result (e.g. a failed/abandoned build). Gaps in the sequence are harmless —
+> Play only requires each upload to be strictly higher than the last.
 
 ---
 
@@ -159,23 +168,19 @@ use the fastlane `promote_*` lanes).
 # 1. Make sure you're on the right branch & code is merged
 git checkout test            # (or master for production)
 
-# 2. Bump the version code (every upload needs a new one)
-npm run version:code
-
-# 3a. Manual upload (no fastlane key yet):
+# 2a. Manual upload (no fastlane key yet) — versionCode auto-bumps:
 npm run build:aab:test       # then upload the .aab in Play Console → Internal testing
 #  ...QA validates via the internal opt-in link...
 #  ...promote that release up the tracks in the Console UI...
 
-# 3b. Or automated with fastlane (after key setup, see §8):
-npm run deploy:internal      # build test AAB + upload to internal
+# 2b. Or automated with fastlane (after key setup, see §8):
+npm run deploy:internal      # bump + build test AAB + upload to internal
 ```
 
 ### C. Going to production
 ```bash
 git checkout master && git merge test
-npm run version:code
-npm run build:aab:prod       # upload to Production track, staged rollout 10% → 50% → 100%
+npm run build:aab:prod       # auto-bumps, then build → upload to Production track (10% → 50% → 100%)
 # or: npm run deploy:production
 ```
 

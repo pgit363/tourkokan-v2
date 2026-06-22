@@ -27,14 +27,22 @@ AAB_TEST = "app/build/outputs/bundle/qaRelease/app-qa-release.aab"
 AAB_PROD = "app/build/outputs/bundle/productionRelease/app-production-release.aab"
 
 platform :android do
+  # Bump versionCode in android/version.properties before building, so the AAB
+  # carries a fresh, strictly-increasing code (mirrors `npm run build:aab:*`).
+  private_lane :bump_version do
+    sh("cd ../.. && npm run version:code")
+  end
+
   desc "Build the TEST/QA-env release AAB (api-test.tourkokan.com)"
   lane :build_test do
+    bump_version
     gradle(task: "clean", project_dir: ".")
     gradle(task: "bundle", flavor: "qa", build_type: "Release", project_dir: ".")
   end
 
   desc "Build the PRODUCTION-env release AAB (api.tourkokan.com)"
   lane :build_prod do
+    bump_version
     gradle(task: "clean", project_dir: ".")
     gradle(task: "bundle", flavor: "production", build_type: "Release", project_dir: ".")
   end
