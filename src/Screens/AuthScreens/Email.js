@@ -6,8 +6,8 @@ import {
   TouchableOpacity,
   BackHandler,
   Image,
-  StatusBar,
 } from 'react-native';
+import {SystemBars} from 'react-native-edge-to-edge';
 import TextField from '../../Components/Customs/TextField';
 import {EmailField} from '../../Services/Constants/FIELDS';
 import TextButton from '../../Components/Customs/Buttons/TextButton';
@@ -338,7 +338,7 @@ const Email = ({navigation, route, ...props}) => {
 
   return (
     <View style={{flex: 1, backgroundColor: '#FFFFFF'}}>
-      <StatusBar barStyle="light-content" backgroundColor="transparent" translucent={true} />
+      <SystemBars style="light" />
 
       <Loader />
 

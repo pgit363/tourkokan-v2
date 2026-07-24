@@ -6,13 +6,13 @@ import {
   FlatList,
   Image,
   Platform,
-  StatusBar,
   StyleSheet,
   Text,
   TouchableOpacity,
   useWindowDimensions,
   View,
 } from 'react-native';
+import {SystemBars} from 'react-native-edge-to-edge';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import LinearGradient from 'react-native-linear-gradient';
 import Ionicons from 'react-native-vector-icons/Ionicons';
@@ -360,7 +360,7 @@ const BusRouteList = ({navigation}) => {
   if (isLoading) {
     return (
       <View style={[s.root, {justifyContent: 'center', alignItems: 'center'}]}>
-        <StatusBar backgroundColor="#1B6B7B" barStyle="light-content" />
+        <SystemBars style="light" />
         <ActivityIndicator size="large" color="#1B6B7B" />
       </View>
     );
@@ -368,7 +368,7 @@ const BusRouteList = ({navigation}) => {
 
   return (
     <View style={s.root}>
-      <StatusBar backgroundColor="#1B6B7B" barStyle="light-content" />
+      <SystemBars style="light" />
 
       <LinearGradient
         colors={['#0D3D4A', '#1A3320']}

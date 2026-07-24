@@ -7,9 +7,9 @@ import {
   Animated,
   Image,
   ScrollView,
-  StatusBar,
   useWindowDimensions,
 } from 'react-native';
+import {SystemBars} from 'react-native-edge-to-edge';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import LinearGradient from 'react-native-linear-gradient';
 import {connect} from 'react-redux';
@@ -183,7 +183,7 @@ const MSRTCSearch = ({navigation, route, ...props}) => {
 
   return (
     <View style={s.root}>
-      <StatusBar backgroundColor={C.oceanDeep} barStyle="light-content" />
+      <SystemBars style="light" />
 
       {/* ── Header ── */}
       <LinearGradient

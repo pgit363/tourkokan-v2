@@ -5,12 +5,12 @@ import {
   Image,
   Platform,
   ScrollView,
-  StatusBar,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
 } from 'react-native';
+import {SystemBars} from 'react-native-edge-to-edge';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import LinearGradient from 'react-native-linear-gradient';
 import NetInfo from '@react-native-community/netinfo';
@@ -439,7 +439,7 @@ const RoutesList = ({navigation, route}) => {
 
   return (
     <View style={s.root}>
-      <StatusBar backgroundColor={C.oceanDeep} barStyle="light-content" />
+      <SystemBars style="light" />
 
       {/* ── Header ── */}
       <LinearGradient

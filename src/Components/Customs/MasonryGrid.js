@@ -92,6 +92,7 @@ const MasonryGrid = ({data, loadMore}) => {
         visible={selectedImage !== null}
         transparent
         animationType="slide"
+        statusBarTranslucent
         onRequestClose={closeModal}>
         <TouchableWithoutFeedback onPress={closeModal}>
           <View style={styles.modalContainer}>

@@ -6,7 +6,6 @@ import {
   TouchableOpacity,
   Image,
   StyleSheet,
-  StatusBar,
   ActivityIndicator,
   Share,
   Platform,
@@ -14,6 +13,7 @@ import {
   Linking,
   BackHandler,
 } from 'react-native';
+import {SystemBars} from 'react-native-edge-to-edge';
 import {useAppDialog} from '../../Components/Common/AppDialog';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {useFocusEffect} from '@react-navigation/native';
@@ -264,7 +264,7 @@ const EventDetail = ({navigation, route}) => {
 
   return (
     <View style={s.root}>
-      <StatusBar backgroundColor={C.oceanDeep} barStyle="light-content" />
+      <SystemBars style="light" />
 
       {/* Header */}
       <LinearGradient

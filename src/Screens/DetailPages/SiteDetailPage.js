@@ -5,7 +5,6 @@ import {
   TouchableOpacity,
   ScrollView,
   RefreshControl,
-  StatusBar,
   Animated,
   Dimensions,
   useWindowDimensions,
@@ -16,6 +15,7 @@ import {
   Share,
   Modal,
 } from 'react-native';
+import {SystemBars} from 'react-native-edge-to-edge';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import LinearGradient from 'react-native-linear-gradient';
 import MapView, {Marker, PROVIDER_GOOGLE} from 'react-native-maps';
@@ -895,7 +895,7 @@ const SiteDetailPage = ({navigation, route}) => {
   // ── Root render ───────────────────────────────────────────────────────────────
   return (
     <View style={st.root}>
-      <StatusBar backgroundColor="transparent" barStyle="light-content" translucent />
+      <SystemBars style="light" />
       <Popup message={alertMessage} onPress={() => setIsAlert(false)} visible={isAlert} />
       {connectivityModal}
 

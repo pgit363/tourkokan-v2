@@ -6,7 +6,6 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   StyleSheet,
-  StatusBar,
   Animated,
   RefreshControl,
   ScrollView,
@@ -15,6 +14,7 @@ import {
   Switch,
   BackHandler,
 } from 'react-native';
+import {SystemBars} from 'react-native-edge-to-edge';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {useFocusEffect} from '@react-navigation/native';
 import LinearGradient from 'react-native-linear-gradient';
@@ -467,7 +467,7 @@ const EventsList = ({navigation, route}) => {
 
   return (
     <View style={s.root}>
-      <StatusBar backgroundColor={C.oceanDeep} barStyle="light-content" />
+      <SystemBars style="light" />
 
       {/* Header */}
       <LinearGradient
@@ -575,6 +575,7 @@ const EventsList = ({navigation, route}) => {
         visible={filterVisible}
         transparent
         animationType="slide"
+        statusBarTranslucent
         onRequestClose={closeFilter}>
         <TouchableOpacity style={fs.backdrop} activeOpacity={1} onPress={() => {
           if (sheetMode !== 'filters') { setSheetMode('filters'); }

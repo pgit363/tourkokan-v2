@@ -7,11 +7,11 @@ import {
   TouchableOpacity,
   Image,
   StyleSheet,
-  StatusBar,
   Animated,
   Modal,
   Pressable,
 } from 'react-native';
+import {SystemBars} from 'react-native-edge-to-edge';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import LinearGradient from 'react-native-linear-gradient';
 import {useFocusEffect} from '@react-navigation/native';
@@ -326,7 +326,7 @@ const MySubmissionsScreen = ({navigation}) => {
 
   return (
     <View style={s.root}>
-      <StatusBar backgroundColor={C.oceanDeep} barStyle="light-content" />
+      <SystemBars style="light" />
 
       {/* ── Header ── */}
       <LinearGradient

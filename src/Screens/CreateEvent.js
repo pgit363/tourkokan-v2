@@ -7,11 +7,11 @@ import {
   ScrollView,
   ActivityIndicator,
   StyleSheet,
-  StatusBar,
   Modal,
   Image,
   BackHandler,
 } from 'react-native';
+import {SystemBars} from 'react-native-edge-to-edge';
 import {useAppDialog} from '../Components/Common/AppDialog';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {useFocusEffect} from '@react-navigation/native';
@@ -79,7 +79,7 @@ const CalendarPicker = ({visible, title, value, minValue, onConfirm, onClose}) =
   }, [fDay, totalDays]);
 
   return (
-    <Modal transparent animationType="slide" visible={visible} onRequestClose={onClose}>
+    <Modal transparent animationType="slide" statusBarTranslucent visible={visible} onRequestClose={onClose}>
       <TouchableOpacity style={cp.overlay} activeOpacity={1} onPress={onClose} />
       <View style={cp.sheet}>
         <View style={cp.header}>
@@ -121,7 +121,7 @@ const CalendarPicker = ({visible, title, value, minValue, onConfirm, onClose}) =
 // ─── Taluka dropdown ──────────────────────────────────────────────────────────
 
 const TalukaDropdown = ({visible, onSelect, onClose}) => (
-  <Modal transparent animationType="slide" visible={visible} onRequestClose={onClose}>
+  <Modal transparent animationType="slide" statusBarTranslucent visible={visible} onRequestClose={onClose}>
     <TouchableOpacity style={cp.overlay} activeOpacity={1} onPress={onClose} />
     <View style={cp.sheet}>
       <View style={cp.header}>
@@ -287,7 +287,7 @@ const CreateEvent = ({navigation, route}) => {
 
   return (
     <View style={s.root}>
-      <StatusBar backgroundColor={C.oceanDeep} barStyle="light-content" />
+      <SystemBars style="light" />
 
       <LinearGradient
         colors={[C.oceanDeep, C.forestDeep]}

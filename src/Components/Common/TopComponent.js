@@ -5,9 +5,9 @@ import {
   TouchableOpacity,
   Image,
   StyleSheet,
-  StatusBar,
   Dimensions,
 } from 'react-native';
+import {SystemBars} from 'react-native-edge-to-edge';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import {useTranslation} from 'react-i18next';
@@ -41,7 +41,7 @@ const TopComponent = ({
 
   return (
     <View style={s.container}>
-      <StatusBar backgroundColor={C.oceanDeep} barStyle="light-content" />
+      <SystemBars style="light" />
 
       <View style={s.row}>
         {/* Left: menu + location */}

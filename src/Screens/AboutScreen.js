@@ -9,8 +9,8 @@ import {
   Linking,
   Share,
   BackHandler,
-  StatusBar,
 } from 'react-native';
+import {SystemBars} from 'react-native-edge-to-edge';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {useNavigation} from '@react-navigation/native';
 import {useTranslation} from 'react-i18next';
@@ -98,7 +98,7 @@ const AboutScreen = () => {
   return (
     <View style={ab.root}>
       {/* Status bar follows hero sand theme */}
-      <StatusBar backgroundColor={C.sandMid} barStyle="light-content" />
+      <SystemBars style="light" />
 
       {/* Status bar area fill — matches hero colour */}
       <View style={[ab.statusFill, {height: insets.top, backgroundColor: C.sandMid}]} />

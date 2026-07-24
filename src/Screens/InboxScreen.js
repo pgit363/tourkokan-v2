@@ -6,10 +6,10 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   StyleSheet,
-  StatusBar,
   Animated,
   Dimensions,
 } from 'react-native';
+import {SystemBars} from 'react-native-edge-to-edge';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import LinearGradient from 'react-native-linear-gradient';
 import Ionicons from 'react-native-vector-icons/Ionicons';
@@ -197,7 +197,7 @@ const InboxScreen = ({navigation}) => {
 
   return (
     <View style={s.root}>
-      <StatusBar backgroundColor={C.oceanDeep} barStyle="light-content" />
+      <SystemBars style="light" />
 
       {/* Header */}
       <LinearGradient

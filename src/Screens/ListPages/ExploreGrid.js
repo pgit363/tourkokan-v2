@@ -9,9 +9,9 @@ import {
   Animated,
   TextInput,
   Platform,
-  StatusBar,
   RefreshControl,
 } from 'react-native';
+import {SystemBars} from 'react-native-edge-to-edge';
 import LinearGradient from 'react-native-linear-gradient';
 import NetInfo from '@react-native-community/netinfo';
 import ImageViewing from 'react-native-image-viewing';
@@ -298,7 +298,7 @@ const ExploreGrid = ({route, navigation, ...props}) => {
 
   return (
     <View style={s.root}>
-      <StatusBar backgroundColor={C.oceanDeep} barStyle="light-content" />
+      <SystemBars style="light" />
 
       {/* ── Header ── */}
       <LinearGradient

@@ -1,6 +1,6 @@
 import 'react-native-gesture-handler';
 import {LogBox} from 'react-native';
-import {StatusBar} from 'expo-status-bar';
+import {SystemBars} from 'react-native-edge-to-edge';
 
 LogBox.ignoreLogs(['useInsertionEffect must not schedule updates']);
 import React, {useEffect, useState} from 'react';
@@ -237,7 +237,7 @@ export default function App() {
         <Provider store={store}>
           <UpdateContext.Provider value={{isUpdatePending: updateApp}}>
             <SafeAreaProvider>
-              <StatusBar style="dark" backgroundColor="transparent" translucent={true} />
+              <SystemBars style="dark" />
               <StackNavigator initialRoute={initialRoute} />
               <UpdateOverlay />
               <SecurityOverlay />
@@ -253,7 +253,7 @@ export default function App() {
   return (
     <ErrorBoundary>
       <SafeAreaProvider>
-        <StatusBar style="dark" backgroundColor="transparent" translucent={true} />
+        <SystemBars style="dark" />
         <OnboardingScreen onComplete={() => setIsFirstTime('false')} />
         <UpdateOverlay />
         <SecurityOverlay />

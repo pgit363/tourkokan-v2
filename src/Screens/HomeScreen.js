@@ -13,7 +13,6 @@ import {
   TouchableOpacity,
 
   FlatList,
-  StatusBar,
   StyleSheet,
   Dimensions,
   Image,
@@ -23,6 +22,7 @@ import {
   Modal,
   useWindowDimensions,
 } from 'react-native';
+import {SystemBars} from 'react-native-edge-to-edge';
 import {SafeAreaView, useSafeAreaInsets} from 'react-native-safe-area-context';
 import LinearGradient from 'react-native-linear-gradient';
 import {useFocusEffect} from '@react-navigation/native';
@@ -827,7 +827,7 @@ const HomeScreen = ({navigation, route, ...props}) => {
   // ── Render ──
   return (
     <View style={s.root}>
-      <StatusBar backgroundColor="#0D3D4A" barStyle="light-content" />
+      <SystemBars style="light" />
 
       {/* ── Header (pinned, covers Android status bar area via SafeAreaView) ── */}
       <SafeAreaView edges={['top']} style={s.headerSafe}>

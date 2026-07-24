@@ -7,9 +7,9 @@ import {
   TouchableOpacity,
   StyleSheet,
   Animated,
-  StatusBar,
   ActivityIndicator,
 } from 'react-native';
+import {SystemBars} from 'react-native-edge-to-edge';
 import {SafeAreaView, useSafeAreaInsets} from 'react-native-safe-area-context';
 import {connect} from 'react-redux';
 import {useTranslation} from 'react-i18next';
@@ -217,7 +217,7 @@ const SearchPlace = ({navigation, route, ...props}) => {
 
   return (
     <View style={s.root}>
-      <StatusBar backgroundColor={C.oceanDeep} barStyle="light-content" />
+      <SystemBars style="light" />
 
       {/* ── Header ── */}
       <SafeAreaView edges={['top']} style={s.headerSafe}>

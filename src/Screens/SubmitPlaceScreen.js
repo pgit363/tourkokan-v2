@@ -8,11 +8,11 @@ import {
   ActivityIndicator,
   Image,
   StyleSheet,
-  StatusBar,
   Platform,
   PermissionsAndroid,
   BackHandler,
 } from 'react-native';
+import {SystemBars} from 'react-native-edge-to-edge';
 import {useAppDialog} from '../Components/Common/AppDialog';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {useFocusEffect} from '@react-navigation/native';
@@ -708,7 +708,7 @@ const SubmitPlaceScreen = ({navigation, route}) => {
   if (loadingEdit) {
     return (
       <View style={s.loadingWrap}>
-        <StatusBar backgroundColor={C.oceanDeep} barStyle="light-content" />
+        <SystemBars style="light" />
         <ActivityIndicator size="large" color={C.oceanMid} />
         <Text style={s.loadingText}>Loading submission…</Text>
       </View>
@@ -717,7 +717,7 @@ const SubmitPlaceScreen = ({navigation, route}) => {
 
   return (
     <View style={s.root}>
-      <StatusBar backgroundColor={C.oceanDeep} barStyle="light-content" />
+      <SystemBars style="light" />
 
       {/* Header */}
       <LinearGradient

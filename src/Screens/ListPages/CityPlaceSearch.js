@@ -6,7 +6,6 @@ import {
   TouchableOpacity,
   FlatList,
   ScrollView,
-  StatusBar,
   StyleSheet,
   BackHandler,
   ActivityIndicator,
@@ -17,6 +16,7 @@ import {
   useWindowDimensions,
   Linking,
 } from 'react-native';
+import {SystemBars} from 'react-native-edge-to-edge';
 import {s, C} from './CityPlaceSearchStyles';
 import MapView, {Marker, PROVIDER_GOOGLE} from 'react-native-maps';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
@@ -742,7 +742,7 @@ const CityPlaceSearch = ({navigation, route}) => {
   // ── Root render ───────────────────────────────────────────────────────────
   return (
     <View style={s.root}>
-      <StatusBar backgroundColor={C.oceanDeep} barStyle="light-content" />
+      <SystemBars style="light" />
 
       {/* Header */}
       <LinearGradient
