@@ -36,6 +36,9 @@ platform :android do
   desc "Build the TEST/QA-env release AAB (api-test.tourkokan.com)"
   lane :build_test do
     bump_version
+    # react-native-dotenv (@env) picks .env.<APP_ENV>; without this it defaults
+    # to .env.development. Must match the gradle flavor's intended environment.
+    ENV["APP_ENV"] = "development"
     gradle(task: "clean", project_dir: ".")
     gradle(task: "bundle", flavor: "qa", build_type: "Release", project_dir: ".")
   end
@@ -43,6 +46,9 @@ platform :android do
   desc "Build the PRODUCTION-env release AAB (api.tourkokan.com)"
   lane :build_prod do
     bump_version
+    # CRITICAL: selects .env.production for @env (react-native-dotenv). Without
+    # it the JS bundle bakes in the TEST endpoint even for the production flavor.
+    ENV["APP_ENV"] = "production"
     gradle(task: "clean", project_dir: ".")
     gradle(task: "bundle", flavor: "production", build_type: "Release", project_dir: ".")
   end
