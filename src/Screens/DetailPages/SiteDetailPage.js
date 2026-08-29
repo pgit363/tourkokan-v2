@@ -1,4 +1,5 @@
-import React, {useState, useEffect, useRef, useCallback} from 'react';
+import React, {useState, useEffect, useRef, useCallback, useMemo} from 'react';
+import {useFocusEffect} from '@react-navigation/native';
 import {
   View,
   Text,
@@ -6,7 +7,6 @@ import {
   ScrollView,
   RefreshControl,
   Animated,
-  Dimensions,
   useWindowDimensions,
   Platform,
   BackHandler,
@@ -32,29 +32,38 @@ import CachedImage from '../../Components/Customs/CachedImage';
 import {comnPost, getFromStorage} from '../../Services/Api/CommonServices';
 import {useConnectivityGate} from '../../Components/Common/useConnectivityGate';
 import {navigateTo} from '../../Services/CommonMethods';
+import {
+  themeForCategories, tint, detailPolicy, categoryLabels,
+} from '../../Services/categoryTheme';
+import CategoryArt from '../../Components/Common/CategoryArt';
+import {useDetailMetrics} from '../../Components/Detail/useDetailMetrics';
+import {
+  SectionHead, FactsGrid, QuickStrip, Block, BlockText, MoreToggle,
+  Callout, ListRow, CardRail, TCard, FilterChips, EventRow, BusRow,
+  GalleryGrid, ReviewRow, EmptyState,
+} from '../../Components/Detail/DetailKit';
+import {productsBySite} from '../../Services/Api/MarketplaceServices';
+import {productCoverUri, productPrice, unitSuffix} from '../../Services/marketplace';
 import STRING from '../../Services/Constants/STRINGS';
-import Banner from '../../Components/Customs/Banner';
+import Banner, {footerBannerHeight} from '../../Components/Customs/Banner';
 import Popup from '../../Components/Common/Popup';
 import BottomSheet from '../../Components/Customs/BottomSheet';
 import CommentsSheet from '../../Components/Common/CommentsSheet';
-import HotPlaces from '../../Components/Sections/HotPlaces';
 import DIMENSIONS from '../../Services/Constants/DIMENSIONS';
 import {createLogger} from '../../Services/Logger';
-import {useResponsive} from '../../Services/responsive';
 
 const log = createLogger('SiteDetailPage');
 
-const {width: SW} = Dimensions.get('window');
 
 // ─── Design tokens ────────────────────────────────────────────────────────────
 const C = {
   oceanDeep: '#0D3D4A', oceanMid: '#1B6B7B', oceanFoam: '#B8E4EA',
   sandMid: '#C4972A', sandPale: '#FBF3DC',
-  cream: '#FAF7F0', white: '#FFFFFF',
+  cream: '#FAF7F0', white: '#FFFFFF', wa: '#25D366',
   textDark: '#1C1917', textMid: '#44403C', textLight: '#78716C',
 };
 const RADIUS = 18;
-const HERO_H = Math.round(SW * 0.75);
+const money = n => (n == null ? '' : '₹' + Number(n).toLocaleString('en-IN'));
 
 // ─── Shimmer hook ─────────────────────────────────────────────────────────────
 const useShimmer = () => {
@@ -72,25 +81,11 @@ const useShimmer = () => {
   return anim.interpolate({inputRange: [0, 1], outputRange: [0.35, 0.8]});
 };
 
-// ─── Category emoji helper ────────────────────────────────────────────────────
-const CAT_EMOJI = {
-  beach: '🏖', fort: '🏰', temple: '🛕', waterfall: '💧',
-  food: '🍛', nature: '🌿', city: '🏙️', hotel: '🏨',
-  kokan: '🌊', view: '🔭', accommodation: '🏠', wildlife: '🐾',
-  heritage: '🏛', adventure: '🧗', park: '🌳', lake: '🏞',
-};
-const getCatEmoji = code => {
-  if (!code) return '📍';
-  const lc = (code || '').toLowerCase();
-  const found = Object.entries(CAT_EMOJI).find(([k]) => lc.includes(k));
-  return found ? found[1] : '📍';
-};
-
 // ─── Ad Banner (matches HomeScreen AdBanner component) ────────────────────────
-const AdBanner = ({bannerImages, label}) => {
+const AdBanner = ({bannerImages, label, width, minHeight}) => {
   const {width: winW} = useWindowDimensions();
-  // adSection has paddingHorizontal:16 on each side → inner width = winW - 32
-  const bannerW = winW - 32;
+  // Caller passes the live content width; fall back to the old 16dp gutters.
+  const bannerW = width || winW - 32;
   return (
     <View style={st.adBannerWrap}>
       <View style={st.adLabelBadge}>
@@ -100,6 +95,7 @@ const AdBanner = ({bannerImages, label}) => {
         <Banner
           bannerImages={bannerImages}
           width={bannerW}
+          minHeight={minHeight}
           style={{borderRadius: RADIUS - 2, overflow: 'hidden'}}
         />
       ) : (
@@ -141,27 +137,11 @@ const SkeletonInfo = () => {
     </View>
   );
 };
-const SkeletonRating = () => {
-  const opacity = useShimmer();
-  return (
-    <View style={{paddingHorizontal: 16, paddingBottom: 16}}>
-      <View style={[st.ratingCard, {padding: 16}]}>
-        <View style={{gap: 8, flex: 1}}>
-          <SkLine w={60} h={44} opacity={opacity} style={{borderRadius: 8}} />
-          <SkLine w="60%" h={12} opacity={opacity} />
-        </View>
-        <View style={{flex: 2, gap: 6}}>
-          {[0,1,2,3,4].map(i => <SkLine key={i} h={8} opacity={opacity} />)}
-        </View>
-      </View>
-    </View>
-  );
-};
 const SkeletonContent = () => {
   const opacity = useShimmer();
   return (
     <View style={{padding: 16, gap: 12}}>
-      {[0,1,2,3,4,5].map(i => (
+      {[0, 1, 2, 3, 4, 5].map(i => (
         <SkLine key={i} w={i % 3 === 2 ? '65%' : '100%'} h={13} opacity={opacity} />
       ))}
     </View>
@@ -175,21 +155,28 @@ const SkeletonAdBanner = () => {
     }, {opacity}]} />
   );
 };
-
 // ─── Main component ───────────────────────────────────────────────────────────
 const SiteDetailPage = ({navigation, route}) => {
   const {t} = useTranslation();
   const insets = useSafeAreaInsets();
-  const {width: rWidth, isTablet} = useResponsive();
-  // Live hero height — phone keeps 4:3; tablets capped so the hero isn't a
-  // ~600dp wall (same treatment as the HomeScreen hero).
-  const heroH = isTablet
-    ? Math.min(Math.round(rWidth * 0.75), 420)
-    : Math.round(rWidth * 0.75);
+  // Live responsive metrics: every size below is derived from the CURRENT
+  // window, so rotation, a fold opening and split-screen all re-lay-out.
+  const m = useDetailMetrics();
+  const {heroH, gutter} = m;
   const refRBSheet = useRef();
 
   const [city, setCity] = useState(route.params?.city || {});
   const [isFav, setIsFav] = useState(!!route.params?.city?.is_favorite);
+  // Per-category visual theme (accent/deep/kind) — drives the hero wash,
+  // badges, section dots and CTAs so a Temple reads saffron, a Beach aqua, etc.
+  const theme = useMemo(
+    () => themeForCategories(city?.categories),
+    [city?.categories],
+  );
+  // The kind decides WHICH sections render and in WHAT order (see detailPolicy):
+  // discovery = destination, vendor = business, civic = govt/school.
+  const policy = useMemo(() => detailPolicy(theme.kind), [theme.kind]);
+  const catLabels = useMemo(() => categoryLabels(city?.categories), [city?.categories]);
   const [activeGalleryIdx, setActiveGalleryIdx] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const [offline, setOffline] = useState(false);
@@ -197,19 +184,24 @@ const SiteDetailPage = ({navigation, route}) => {
   const [isAlert, setIsAlert] = useState(false);
   const [alertMessage, setAlertMessage] = useState('');
   const [descExpanded, setDescExpanded] = useState(false);
+  const [trendingGroup, setTrendingGroup] = useState(null);
+  const [offerings, setOfferings] = useState([]);   // vendor: menu / rooms / packages
+  const [events, setEvents] = useState([]);         // upcoming events near this site
   const [userRating, setUserRating] = useState(0);
   const [isGuestPopup, setIsGuestPopup] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const {modal: connectivityModal, ensureOnline} = useConnectivityGate();
 
   // ── Back handler ─────────────────────────────────────────────────────────────
-  useEffect(() => {
-    const handler = BackHandler.addEventListener('hardwareBackPress', () => {
-      navigation.goBack();
-      return true;
-    });
-    return () => handler.remove();
-  }, [navigation]);
+  useFocusEffect(
+    useCallback(() => {
+      const handler = BackHandler.addEventListener('hardwareBackPress', () => {
+        navigation.goBack();
+        return true;
+      });
+      return () => handler.remove();
+    }, [navigation]),
+  );
 
   // ── Init ──────────────────────────────────────────────────────────────────────
   useEffect(() => {
@@ -219,6 +211,41 @@ const SiteDetailPage = ({navigation, route}) => {
     return () => unsub();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // ── Vendor offerings (menu / rooms / packages) — real marketplace products ────
+  // Only businesses have a catalog; discovery + civic listings skip the call.
+  useEffect(() => {
+    let alive = true;
+    if (!policy.offerings || !city?.id) { setOfferings([]); return; }
+    productsBySite(city.id, 1)
+      .then(res => {
+        const rows = res?.data?.data?.data || res?.data?.data || [];
+        if (alive && Array.isArray(rows)) setOfferings(rows.slice(0, 4));
+      })
+      .catch(e => log.warn('[offerings]', e));
+    return () => { alive = false; };
+  }, [policy.offerings, city?.id]);
+
+  // ── Events near this site ────────────────────────────────────────────────────
+  // listEvents has no per-site filter yet, so ask for the taluka's upcoming
+  // events (site_id is sent too, forward-compatible) and prefer this site's own.
+  useEffect(() => {
+    let alive = true;
+    const id = city?.id;
+    const taluka = city?.site?.name || city?.name;
+    if (!id) return;
+    const payload = {upcoming: true, site_id: id};
+    if (taluka) payload.taluka = taluka;
+    comnPost('v2/listEvents', payload)
+      .then(res => {
+        const rows = res?.data?.data?.data || res?.data?.data || [];
+        if (!alive || !Array.isArray(rows)) return;
+        const mine = rows.filter(e => String(e?.site_id) === String(id));
+        setEvents((mine.length ? mine : rows).slice(0, 3));
+      })
+      .catch(e => log.warn('[events]', e));
+    return () => { alive = false; };
+  }, [city?.id, city?.site?.name, city?.name]);
 
   const loadBanners = async () => {
     try {
@@ -344,6 +371,37 @@ const SiteDetailPage = ({navigation, route}) => {
       .catch(() => {});
   };
 
+  // ── Vendor contact (call / whatsapp) — the site's public business number ──────
+  // Civic sites usually carry their number in meta_data (landline/helpline)
+  // rather than the `phone` column — fall back to it so "Call office" works.
+  const metaPhone = useMemo(() => {
+    let md = city?.meta_data;
+    if (typeof md === 'string') {
+      try { md = JSON.parse(md); } catch (e) { md = null; }
+    }
+    if (!md || typeof md !== 'object') return '';
+    const key = Object.keys(md).find(k =>
+      /^(landline|phone|helpline|contact_number|mobile|telephone)$/i.test(k),
+    );
+    const raw = key ? String(md[key]) : '';
+    // keep it dial-able: digits, +, -, spaces only
+    return /\d{5,}/.test(raw.replace(/\D/g, '')) ? raw.replace(/[^\d+\-\s]/g, '').trim() : '';
+  }, [city?.meta_data]);
+  const phoneNum = city?.phone || city?.contact?.phone || metaPhone || '';
+  const waNum = city?.whatsapp || city?.phone || '';
+  const isVendor = theme.kind === 'vendor';
+  const hasContact = isVendor && (!!phoneNum || !!waNum);
+  const onCall = () => {
+    if (phoneNum) Linking.openURL(`tel:${phoneNum}`).catch(() => {});
+  };
+  const onWhatsApp = () => {
+    if (!waNum) return;
+    const text = encodeURIComponent(`Hi, I'm interested in ${city.name} on TourKokan.`);
+    Linking.openURL(`whatsapp://send?phone=${waNum}&text=${text}`).catch(() =>
+      Linking.openURL(`https://wa.me/${waNum}?text=${text}`).catch(() => {}),
+    );
+  };
+
   // ── Helpers ───────────────────────────────────────────────────────────────────
   const getImgUri = useCallback(item => {
     if (!item) return null;
@@ -379,518 +437,562 @@ const SiteDetailPage = ({navigation, route}) => {
     ));
 
   // ── Section: Hero ─────────────────────────────────────────────────────────────
+  // ── Section: Hero — full-bleed photo with the identity overlaid ──────────────
   const renderHero = () => {
     const heroUri = getHeroUri();
-    const emoji = getCatEmoji(city?.categories?.[0]?.code);
+    const rating = getRating();
+    // "🛕 Temple · Kokan View" — leaf category plus its parent group.
+    const badgeText = [catLabels.leaf, catLabels.group].filter(Boolean).join(' · ');
     return (
       <View style={[st.heroWrap, {height: heroH}]}>
         {heroUri ? (
           <CachedImage source={{uri: heroUri}} style={st.heroImage} resizeMode="cover" />
         ) : (
-          <LinearGradient colors={[C.oceanFoam, '#D4EDD9']} style={st.heroPlaceholder}>
-            <Text style={st.heroEmoji}>{emoji}</Text>
-          </LinearGradient>
+          // No site photo → themed category art rather than a stock photo that
+          // would repeat across every listing in the same category.
+          <CategoryArt categories={city?.categories} style={st.heroImage} />
         )}
+        {/* Legibility + category wash: dark→category-deep at the bottom */}
         <LinearGradient
-          colors={['rgba(0,0,0,0.42)', 'transparent', 'transparent']}
+          colors={[tint(theme.deep, 0.92), tint(theme.deep, 0.18), 'rgba(0,0,0,0.10)']}
+          locations={[0, 0.55, 1]}
           style={st.heroOverlay} start={{x: 0, y: 1}} end={{x: 0, y: 0}}
         />
-        <TouchableOpacity
-          style={[st.heroBtn, {top: insets.top + 12, left: 16}]}
-          onPress={() => navigation.goBack()} activeOpacity={0.85}>
-          <Ionicons name="arrow-back" size={20} color={C.textDark} />
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={[st.heroBtn, {top: insets.top + 12, right: 16}]}
-          onPress={onFavPress} activeOpacity={0.85}>
-          <Ionicons
-            name={isFav ? 'heart' : 'heart-outline'} size={20}
-            color={isFav ? '#E53E3E' : C.textDark}
-          />
-        </TouchableOpacity>
+
+        {/* Top controls */}
+        <View style={[st.heroTopRow, {top: insets.top + 12, left: gutter, right: gutter}]}>
+          <TouchableOpacity style={st.heroCircle} onPress={() => navigation.goBack()} activeOpacity={0.85}>
+            <Ionicons name="arrow-back" size={20} color={C.white} />
+          </TouchableOpacity>
+          <View style={st.heroTopRight}>
+            <TouchableOpacity style={st.heroCircle} onPress={onShare} activeOpacity={0.85}>
+              <Ionicons name="share-social-outline" size={18} color={C.white} />
+            </TouchableOpacity>
+            <TouchableOpacity style={st.heroCircle} onPress={onFavPress} activeOpacity={0.85}>
+              <Ionicons name={isFav ? 'heart' : 'heart-outline'} size={19} color={isFav ? '#FF6B6B' : C.white} />
+            </TouchableOpacity>
+          </View>
+        </View>
+
         {offline && (
           <View style={st.offlineBadge}>
             <Ionicons name="cloud-offline-outline" size={12} color={C.white} />
             <Text style={st.offlineBadgeText}>{t('SITE_DETAIL.OFFLINE_DATA')}</Text>
           </View>
         )}
+
+        {/* Overlaid identity — badge · title · tagline · rating */}
+        <View style={[st.heroContent, {left: gutter, right: gutter, bottom: m.ms(28)}]}>
+          <View style={st.heroBadgeRow}>
+            {!!badgeText && (
+              <View style={[st.heroBadge, {backgroundColor: theme.accent}]}>
+                <Text style={[st.heroBadgeTxt, {fontSize: m.ms(11)}]}>{theme.glyph} {badgeText}</Text>
+              </View>
+            )}
+            {city.is_hot_place ? (
+              <View style={[st.heroBadge, {backgroundColor: 'rgba(20,18,16,0.42)'}]}>
+                <Text style={[st.heroBadgeTxt, {fontSize: m.ms(11)}]}>🔥 {t('SITE_DETAIL.HOT_PLACE')}</Text>
+              </View>
+            ) : null}
+          </View>
+          <Text style={[st.heroTitle, {fontSize: m.ms(27)}]} numberOfLines={2}>{city.name}</Text>
+          {!!city.tag_line && (
+            <Text style={[st.heroTag, {fontSize: m.ms(13)}]} numberOfLines={2}>{city.tag_line}</Text>
+          )}
+          {/* Civic listings are utilitarian — no ratings hero (per the design). */}
+          {policy.heroRating && rating > 0 && (
+            <View style={st.heroRateRow}>
+              <Ionicons name="star" size={m.ms(13)} color="#FFC94D" />
+              <Text style={[st.heroRateNum, {fontSize: m.ms(13)}]}>{rating.toFixed(1)}</Text>
+              <Text style={[st.heroRateSub, {fontSize: m.ms(12)}]}>
+                · {t('SITE_DETAIL.REVIEWS_COUNT', {count: city.comment_count || 0})}
+              </Text>
+            </View>
+          )}
+        </View>
       </View>
     );
   };
 
-  // ── Section: Gallery strip (click changes hero) ───────────────────────────────
-  const renderGalleryStrip = () => {
-    const gallery = city?.gallery || [];
-    if (gallery.length === 0) return null;
-    const visible = gallery.slice(0, 6);
-    const extra = gallery.length - visible.length;
+  // ══ Section renderers — keyed by the id used in the kind's policy.order ══════
+
+  // Contact bar (vendors only): Call · Directions · WhatsApp
+  const renderContactBar = () => {
+    if (!hasContact) return null;
     return (
-      <View style={st.galleryStripWrap}>
-        <ScrollView
-          horizontal showsHorizontalScrollIndicator={false}
-          contentContainerStyle={st.galleryStrip}>
-          {visible.map((img, idx) => {
-            const uri = getImgUri(img);
-            const isActive = idx === activeGalleryIdx;
+      <View style={[st.contactBar, {marginHorizontal: gutter}]}>
+        {!!phoneNum && (
+          <TouchableOpacity style={[st.contactBtn, {borderColor: tint(theme.accent, 0.35)}]} onPress={onCall} activeOpacity={0.85}>
+            <Ionicons name="call" size={16} color={theme.accent} />
+            <Text style={[st.contactBtnTxt, {color: theme.accent}]}>{t('SITE_DETAIL.CALL')}</Text>
+          </TouchableOpacity>
+        )}
+        <TouchableOpacity style={[st.contactBtn, {borderColor: tint(theme.accent, 0.35)}]} onPress={onDirections} activeOpacity={0.85}>
+          <Ionicons name="navigate" size={15} color={theme.accent} />
+          <Text style={[st.contactBtnTxt, {color: theme.accent}]}>{t('SITE_DETAIL.DIRECTIONS')}</Text>
+        </TouchableOpacity>
+        {!!waNum && (
+          <TouchableOpacity style={[st.contactBtn, st.contactBtnWa]} onPress={onWhatsApp} activeOpacity={0.85}>
+            <Ionicons name="logo-whatsapp" size={17} color="#fff" />
+            <Text style={[st.contactBtnTxt, {color: '#fff'}]}>{t('SITE_DETAIL.WHATSAPP')}</Text>
+          </TouchableOpacity>
+        )}
+      </View>
+    );
+  };
+
+  // Facts grid straight from meta_data — deity / built / festival / hours…
+  const renderFacts = () => {
+    let md = city?.meta_data;
+    if (typeof md === 'string') {
+      try { md = JSON.parse(md); } catch (e) { md = null; }
+    }
+    if (!md || typeof md !== 'object' || Array.isArray(md)) return null;
+    const prettyKey = k => String(k).replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+    const items = Object.entries(md)
+      .filter(([k, v]) => v != null && v !== '' && typeof v !== 'object' && k !== 'coord' && k !== 'how_to_reach')
+      .slice(0, 6)
+      .map(([k, v]) => ({k: prettyKey(k), v: String(v)}));
+    if (items.length === 0) return null;
+    return <View style={st.gap14}><FactsGrid m={m} theme={theme} items={items} /></View>;
+  };
+
+  // Quick strip — emoji · bold accent value · label, from counts that exist.
+  const renderQuick = () => {
+    const items = [];
+    const villages = city.sites_count || city.sites?.length || 0;
+    if (villages > 0) items.push({emoji: '🏘️', val: String(villages), label: t('SITE_DETAIL.VILLAGES_LABEL')});
+    if (city.is_hot_place) items.push({emoji: '🔥', val: t('SITE_DETAIL.HOT'), label: t('SITE_DETAIL.PLACE_LABEL')});
+    const photos = city.gallery_count || city.gallery?.length || 0;
+    if (photos > 0) items.push({emoji: '📷', val: String(photos), label: t('SITE_DETAIL.PHOTOS_LABEL')});
+    if (city.comment_count > 0) items.push({emoji: '⭐', val: String(city.comment_count), label: t('SITE_DETAIL.REVIEWS_LABEL')});
+    if (items.length === 0) return null;
+    return <View style={st.gap14}><QuickStrip m={m} theme={theme} items={items} /></View>;
+  };
+
+  const renderAbout = () => {
+    if (!city.description) return null;
+    return (
+      <View style={st.gap14}>
+        <Block m={m} label={t('SITE_DETAIL.ABOUT')}>
+          <BlockText m={m} numberOfLines={descExpanded ? undefined : 5}>{city.description}</BlockText>
+          <MoreToggle
+            m={m} theme={theme} expanded={descExpanded}
+            onPress={() => setDescExpanded(v => !v)}
+            labelMore={t('BUTTON.READ_MORE')} labelLess={t('BUTTON.READ_LESS')}
+          />
+        </Block>
+      </View>
+    );
+  };
+
+  const renderSpeciality = () => {
+    const txt = city?.speciality || city?.rules;
+    if (!txt) return null;
+    return (
+      <View style={st.gap14}>
+        <Callout m={m} theme={theme} icon={theme.kind === 'civic' ? '📄' : '✨'}>{txt}</Callout>
+      </View>
+    );
+  };
+
+  // Vendor offerings — the business's real marketplace products.
+  const renderOfferings = () => {
+    if (!policy.offerings || offerings.length === 0) return null;
+    const codes = (city?.categories || []).map(c => String(c?.code || '').toLowerCase());
+    const has = list => codes.some(c => list.includes(c));
+    const title = has(['restaurant', 'cafe', 'bakery', 'fish_market'])
+      ? t('SITE_DETAIL.OFFERINGS_MENU')
+      : has(['hotel', 'hotel_rooms', 'lodge', 'resort', 'farm_house'])
+      ? t('SITE_DETAIL.OFFERINGS_ROOMS')
+      : has(['tour_operator', 'travel_agency', 'boat_operator'])
+      ? t('SITE_DETAIL.OFFERINGS_TRIPS')
+      : t('SITE_DETAIL.OFFERINGS');
+    return (
+      <View>
+        <SectionHead m={m} theme={theme} title={title} />
+        {offerings.map((p, i) => {
+          const uri = productCoverUri(p);
+          const price = productPrice(p);
+          return (
+            <ListRow
+              key={p.id || i} m={m} theme={theme}
+              source={uri ? {uri} : null}
+              fallback={<CategoryArt categories={city?.categories} />}
+              title={p.name}
+              sub={[p.product_category?.name, p.short_description].filter(Boolean).join(' · ')}
+              price={price != null ? `${money(price)} ${unitSuffix(p.unit)}`.trim() : null}
+              onPress={() => navigateTo(navigation, t('SCREEN.PRODUCT_DETAIL'), {id: p.id})}
+            />
+          );
+        })}
+      </View>
+    );
+  };
+
+  // Sponsored slots — CITY_MIDDLE / CITY_FOOTER. Civic listings carry no ads.
+  const renderAd = (slot, label) => {
+    if (!policy.ads) return null;
+    return (
+      <View style={[st.adSection, {paddingHorizontal: gutter}]}>
+        {(isLoading && !bannerObject[slot]) ? (
+          <SkeletonAdBanner />
+        ) : (
+          <AdBanner
+            bannerImages={bannerObject?.[slot]}
+            label={label}
+            width={m.inner}
+            // Footer slots get a taller box so a wide creative isn't a thin strip.
+            minHeight={slot.endsWith('FOOTER') ? footerBannerHeight(m.inner) : undefined}
+          />
+        )}
+      </View>
+    );
+  };
+
+  const renderVillages = () => {
+    const sites = city?.sites || [];
+    if (sites.length === 0) return null;
+    return (
+      <View>
+        <SectionHead
+          m={m} theme={theme} title={t('VILLAGES')} more={t('SITE_DETAIL.SEE_ALL')}
+          onMore={() =>
+            ensureOnline(() =>
+              navigateTo(navigation, t('SCREEN.CITY_PLACE_SEARCH'), {
+                initialParentId: city.id,
+                initialCityName: city.name,
+              }),
+            )
+          }
+        />
+        {sites.slice(0, 5).map(item => {
+          const uri = getImgUri(item);
+          const rate = parseFloat(item.rating_avg_rate) || 0;
+          const sub = item.tag_line || item.description?.substring(0, 55) || '';
+          return (
+            <ListRow
+              key={item.id} m={m} theme={theme}
+              source={uri ? {uri} : null}
+              fallback={<CategoryArt categories={item.categories} />}
+              title={item.name}
+              sub={rate > 0 ? [sub, `⭐ ${rate.toFixed(1)}`].filter(Boolean).join(' · ') : sub}
+              onPress={() => navigation.push(t('SCREEN.SITE_DETAIL'), {city: item})}
+            />
+          );
+        })}
+      </View>
+    );
+  };
+
+  // Trending nearby — city.trending is a dict keyed by category code.
+  const renderTrending = () => {
+    const tr = city?.trending;
+    if (!tr || typeof tr !== 'object' || Array.isArray(tr)) return null;
+    const groups = Object.entries(tr).filter(([, v]) => Array.isArray(v) && v.length > 0);
+    if (groups.length === 0) return null;
+    const activeKey = trendingGroup && tr[trendingGroup]?.length ? trendingGroup : groups[0][0];
+    const items = (tr[activeKey] || []).slice(0, 12);
+    const pretty = k =>
+      String(k).replace(/_/g, ' ').replace(/s$/, '').replace(/\b\w/g, c => c.toUpperCase());
+    return (
+      <View>
+        <SectionHead m={m} theme={theme} title={t('SITE_DETAIL.TRENDING_NEARBY')} />
+        <FilterChips
+          m={m} theme={theme} activeKey={activeKey}
+          items={groups.map(([k]) => ({key: k, label: pretty(k)}))}
+          onSelect={setTrendingGroup}
+        />
+        <CardRail m={m}>
+          {items.map((item, i) => {
+            const uri = getImgUri(item);
+            const rate = parseFloat(item.rating_avg_rate) || 0;
             return (
-              <TouchableOpacity
-                key={idx}
-                style={[st.galleryThumb, isActive && st.galleryThumbActive]}
-                onPress={() => setActiveGalleryIdx(idx)}
-                activeOpacity={0.8}>
-                {uri ? (
-                  <CachedImage source={{uri}} style={st.galleryThumbImg} resizeMode="cover" />
-                ) : (
-                  <Text style={{fontSize: 22}}>📷</Text>
-                )}
-                {isActive && <View style={st.galleryActiveIndicator} />}
-              </TouchableOpacity>
+              <TCard
+                key={item.id || i} m={m}
+                source={uri ? {uri} : null}
+                fallback={<CategoryArt categories={item.categories} />}
+                title={item.name}
+                meta={rate > 0 ? rate.toFixed(1) : null}
+                metaIcon={rate > 0 ? 'star' : null}
+                onPress={() => navigation.push(t('SCREEN.SITE_DETAIL'), {city: item})}
+              />
             );
           })}
-          {extra > 0 && (
-            <View style={[st.galleryThumb, st.galleryThumbExtra]}>
-              <Text style={st.galleryExtraText}>+{extra}</Text>
-            </View>
-          )}
-        </ScrollView>
+        </CardRail>
       </View>
     );
   };
 
-  // ── Section: Title + tagline + description (single card) ─────────────────────
-  const renderTitleSection = () => {
-    const rating = getRating();
+  const renderHotPlaces = () => {
+    const hot = city?.hot_sites || [];
+    if (hot.length === 0) return null;
     return (
-      <View style={st.titleCard}>
-        {/* Top row: category badges + hot badge */}
-        <View style={st.badgeRow}>
-          {city?.categories?.map(cat => (
-            <View key={cat.id} style={st.badge}>
-              <Text style={st.badgeText}>{getCatEmoji(cat.code)} {cat.name}</Text>
-            </View>
-          ))}
-          {city.is_hot_place ? (
-            <View style={[st.badge, st.badgeHot]}>
-              <Text style={[st.badgeText, {color: C.sandMid}]}>🔥 Hot Place</Text>
-            </View>
-          ) : null}
-        </View>
-
-        {/* City name */}
-        <Text style={st.placeTitle}>{city.name}</Text>
-
-        {/* Inline rating row */}
-        {rating > 0 && (
-          <View style={st.inlineRatingRow}>
-            <View style={st.inlineStars}>{renderStars(rating, 13)}</View>
-            <Text style={st.inlineRatingNum}>{rating.toFixed(1)}</Text>
-            <Text style={st.inlineRatingDot}>·</Text>
-            <Text style={st.inlineReviewCount}>{city.comment_count || 0} reviews</Text>
-          </View>
-        )}
-
-        {/* Tag line — styled gradient pill */}
-        {city.tag_line ? (
-          <LinearGradient
-            colors={['rgba(27,107,123,0.10)', 'rgba(184,228,234,0.15)']}
-            start={{x: 0, y: 0}} end={{x: 1, y: 0}}
-            style={st.tagLineGradient}>
-            <Ionicons name="sparkles-outline" size={13} color={C.oceanMid} />
-            <Text style={st.tagLineText}>{city.tag_line}</Text>
-          </LinearGradient>
-        ) : null}
-
-        {/* Location chip */}
-        {getParentName() ? (
-          <View style={st.locationRow}>
-            <View style={st.locationChip}>
-              <Ionicons name="location-outline" size={13} color={C.oceanMid} />
-              <Text style={st.locationChipText}>{getParentName()}</Text>
-            </View>
-          </View>
-        ) : null}
-
-        {/* Description — same card, separated by divider */}
-        {city.description ? (
-          <>
-            <View style={st.titleDivider} />
-            <Text style={st.description} numberOfLines={descExpanded ? undefined : 4}>
-              {city.description}
-            </Text>
-            <TouchableOpacity
-              style={st.readMoreBtn}
-              onPress={() => setDescExpanded(v => !v)} activeOpacity={0.8}>
-              <Text style={st.readMoreText}>
-                {descExpanded ? t('BUTTON.READ_LESS') : t('BUTTON.READ_MORE')}
-              </Text>
-              <Ionicons name={descExpanded ? 'chevron-up' : 'chevron-down'} size={14} color={C.oceanMid} />
-            </TouchableOpacity>
-          </>
-        ) : null}
+      <View>
+        <SectionHead m={m} theme={theme} title={t('SITE_DETAIL.HOT_PLACES')} />
+        <CardRail m={m}>
+          {hot.slice(0, 12).map((item, i) => {
+            const uri = getImgUri(item);
+            return (
+              <TCard
+                key={item.id || i} m={m}
+                source={uri ? {uri} : null}
+                fallback={<CategoryArt categories={item.categories} />}
+                title={item.name}
+                meta={item.categories?.[0]?.name || null}
+                flameLabel={`🔥 ${t('SITE_DETAIL.HOT')}`}
+                onPress={() => navigation.push(t('SCREEN.SITE_DETAIL'), {city: item})}
+              />
+            );
+          })}
+        </CardRail>
       </View>
     );
   };
 
-  // ── Section: Rating card ──────────────────────────────────────────────────────
-  const renderRatingCard = () => {
-    const rating = getRating();
-    const pcts = [88, 8, 2, 1, 1];
-    return (
-      <View style={st.contentBlock}>
-        <View style={st.ratingCard}>
-          <View style={st.ratingLeft}>
-            <Text style={st.ratingBig}>{rating > 0 ? rating.toFixed(1) : '—'}</Text>
-            <View style={{flexDirection: 'row', gap: 2, marginVertical: 5}}>
-              {renderStars(rating)}
-            </View>
-            <Text style={st.ratingCount}>{city.comment_count || 0} {t('SITE_DETAIL.REVIEWS')}</Text>
-          </View>
-          <View style={st.ratingDivider} />
-          <View style={st.ratingRight}>
-            {[5, 4, 3, 2, 1].map((star, idx) => (
-              <View key={star} style={st.starRow}>
-                <Text style={st.starRowLabel}>{star}⭐</Text>
-                <View style={st.starBarBg}>
-                  <View style={[st.starBarFill, {width: `${rating > 0 ? pcts[idx] : 0}%`}]} />
-                </View>
-                <Text style={st.starRowPct}>{rating > 0 ? pcts[idx] : 0}%</Text>
-              </View>
-            ))}
-          </View>
-        </View>
-      </View>
-    );
-  };
-
-  // ── Section: Quick info pills ─────────────────────────────────────────────────
-  const renderQuickInfo = () => {
-    const pills = [];
-    if (city?.categories?.[0]) pills.push({icon: 'pricetag-outline', label: city.categories[0].name});
-    if ((city.gallery_count || city.gallery?.length) > 0)
-      pills.push({icon: 'images-outline', label: `${city.gallery_count || city.gallery?.length} Photos`});
-    if (city.comment_count > 0)
-      pills.push({icon: 'chatbubble-outline', label: `${city.comment_count} Reviews`});
-    if (city.sites_count > 0 || city.sites?.length > 0)
-      pills.push({icon: 'home-outline', label: `${city.sites_count || city.sites?.length} Villages`});
-    if (pills.length === 0) return null;
-    return (
-      <View style={st.contentBlock}>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={st.quickInfoRow}>
-          {pills.map((p, i) => (
-            <View key={i} style={st.infoPill}>
-              <Ionicons name={p.icon} size={13} color={C.oceanMid} />
-              <Text style={st.infoPillText}>{p.label}</Text>
-            </View>
-          ))}
-        </ScrollView>
-      </View>
-    );
-  };
-
-  // ── Section: Location map ─────────────────────────────────────────────────────
-  const renderLocationSection = () => {
-    const lat = parseFloat(city.latitude);
-    const lng = parseFloat(city.longitude);
-    const hasCoords = !isNaN(lat) && !isNaN(lng);
-    if (!hasCoords && !getParentName()) return null;
-
-    return (
-      <View style={st.contentBlock}>
-        {/* Section header */}
-        <View style={[st.sectionHeaderRow, {marginBottom: 14}]}>
-          <View style={st.sectionTitleRow}>
-            <View style={st.sectionTitleDot} />
-            <Text style={st.sectionTitle}>Location</Text>
-          </View>
-          {hasCoords && (
-            <TouchableOpacity style={st.mapOpenBtn} onPress={onDirections} activeOpacity={0.85}>
-              <Ionicons name="navigate-outline" size={13} color={C.oceanMid} />
-              <Text style={st.mapOpenBtnText}>{t('SITE_DETAIL.OPEN_MAPS')}</Text>
-            </TouchableOpacity>
-          )}
-        </View>
-
-        {/* Map with styled border */}
-        {hasCoords && (
-          <View style={st.mapOuterCard}>
-            <View style={st.mapInnerCard}>
-              <MapView
-                style={st.mapView}
-                provider={PROVIDER_GOOGLE}
-                initialRegion={{latitude: lat, longitude: lng, latitudeDelta: 0.05, longitudeDelta: 0.05}}
-                scrollEnabled={false} zoomEnabled={false} rotateEnabled={false} pitchEnabled={false}>
-                <Marker coordinate={{latitude: lat, longitude: lng}} title={city.name} />
-              </MapView>
-            </View>
-          </View>
-        )}
-
-        {/* Address info below map */}
-        {getParentName() ? (
-          <View style={st.addressCard}>
-            <View style={st.addressRow}>
-              <View style={st.addressIconWrap}>
-                <Ionicons name="business-outline" size={15} color={C.oceanMid} />
-              </View>
-              <View style={st.addressTextWrap}>
-                <Text style={st.addressLabel}>Area / Taluka</Text>
-                <Text style={st.addressValue}>{getParentName()}</Text>
-              </View>
-            </View>
-          </View>
-        ) : null}
-      </View>
-    );
-  };
-
-  // ── Section: Photos ───────────────────────────────────────────────────────────
-  const renderPhotosSection = () => (
-    <View style={[st.contentBlock, {paddingHorizontal: 0}]}>
-      <View style={[st.sectionHeaderRow, {paddingHorizontal: 16, marginBottom: 14}]}>
-        <View style={st.sectionTitleRow}>
-          <View style={st.sectionTitleDot} />
-          <Text style={st.sectionTitle}>Photos</Text>
-          {(city?.gallery?.length > 0) && (
-            <View style={st.countPill}>
-              <Text style={st.countPillText}>{city.gallery.length}</Text>
-            </View>
-          )}
-        </View>
-      </View>
-      <View style={{paddingHorizontal: 16}}>
-        {renderPhotosContent()}
-      </View>
-    </View>
-  );
-
-  // ── Section: Reviews ──────────────────────────────────────────────────────────
-  const renderReviewsSection = () => (
-    <View style={[st.contentBlock, {paddingHorizontal: 0}]}>
-      <View style={[st.sectionHeaderRow, {paddingHorizontal: 16, marginBottom: 14}]}>
-        <View style={st.sectionTitleRow}>
-          <View style={st.sectionTitleDot} />
-          <Text style={st.sectionTitle}>Reviews</Text>
-          {(city?.comment_count > 0) && (
-            <View style={st.countPill}>
-              <Text style={st.countPillText}>{city.comment_count}</Text>
-            </View>
-          )}
-        </View>
-      </View>
-      <View style={{paddingHorizontal: 16}}>
-        {renderReviewsContent()}
-      </View>
-    </View>
-  );
-
-  const renderPhotosContent = () => {
-    const gallery = city?.gallery || [];
-    if (gallery.length === 0) {
+  // Events near here — real upcoming rows when they exist, otherwise the
+  // browse-all card so the entry point into EventsList never disappears.
+  const renderEvents = () => {
+    const goList = () => navigation.navigate(STRING.SCREEN.EVENTS_LIST, {site_id: city.id});
+    if (events.length > 0) {
       return (
-        <View style={st.emptySection}>
-          <Text style={st.emptyIcon}>📷</Text>
-          <Text style={st.emptyText}>{t('SITE_DETAIL.NO_PHOTOS')}</Text>
+        <View>
+          <SectionHead
+            m={m} theme={theme} title={t('SITE_DETAIL.EVENTS_NEAR')}
+            more={t('SITE_DETAIL.ALL_EVENTS')} onMore={goList}
+          />
+          {events.map((e, i) => {
+            const d = new Date(e.start_date);
+            const valid = !isNaN(d.getTime());
+            return (
+              <EventRow
+                key={e.id || i} m={m} theme={theme}
+                day={valid ? String(d.getDate()) : '—'}
+                mon={valid ? d.toLocaleString('en-US', {month: 'short'}) : ''}
+                title={e.title}
+                venue={[e.venue_name, e.taluka].filter(Boolean).join(' · ')}
+                onPress={() =>
+                  navigation.navigate(STRING.SCREEN.EVENT_DETAIL, {event: e})
+                }
+              />
+            );
+          })}
         </View>
       );
     }
     return (
-      <View style={st.photoGrid}>
-        {gallery.map((img, idx) => {
-          const uri = getImgUri(img);
-          const isLarge = idx % 5 === 0;
-          return (
-            <TouchableOpacity
-              key={idx}
-              style={[st.photoItem, isLarge && st.photoItemLarge]}
-              onPress={() => setActiveGalleryIdx(idx % (city?.gallery?.length || 1))}
-              activeOpacity={0.9}>
-              {uri ? (
-                <CachedImage source={{uri}} style={st.photoImg} resizeMode="cover" />
-              ) : (
-                <View style={[st.photoImg, st.photoPlaceholder]}>
-                  <Text style={{fontSize: 28}}>📷</Text>
-                </View>
-              )}
-            </TouchableOpacity>
-          );
-        })}
+      <View>
+        <SectionHead m={m} theme={theme} title={t('SITE_DETAIL.EVENTS')} />
+        <TouchableOpacity
+          style={[st.eventsBanner, {marginHorizontal: gutter, minHeight: m.ms(94), backgroundColor: theme.accent}]}
+          onPress={goList}
+          activeOpacity={0.85}>
+          <Ionicons name="calendar" size={m.ms(32)} color="#FFFFFF" />
+          <View style={st.flex1}>
+            <Text style={[st.eventsBannerTitle, {fontSize: m.ms(17)}]}>
+              {t('SITE_DETAIL.EVENTS_AT', {name: city.name || ''})}
+            </Text>
+            <Text style={[st.eventsBannerSub, {fontSize: m.ms(12)}]}>{t('SITE_DETAIL.EVENTS_CTA')}</Text>
+          </View>
+          <Ionicons name="arrow-forward-circle" size={m.ms(26)} color="rgba(255,255,255,0.8)" />
+        </TouchableOpacity>
       </View>
     );
   };
 
-  const renderReviewsContent = () => {
+  // How to reach — renders only when the backend actually has route data for
+  // this site (`routes`/`bus_routes`) or a `meta_data.how_to_reach` note.
+  const renderReach = () => {
+    const rows = Array.isArray(city?.routes)
+      ? city.routes
+      : Array.isArray(city?.bus_routes)
+      ? city.bus_routes
+      : [];
+    let md = city?.meta_data;
+    if (typeof md === 'string') {
+      try { md = JSON.parse(md); } catch (e) { md = null; }
+    }
+    const note = md && typeof md === 'object' ? md.how_to_reach : null;
+    if (rows.length === 0 && !note) return null;
+    return (
+      <View>
+        <SectionHead m={m} theme={theme} title={t('SITE_DETAIL.HOW_TO_REACH')} />
+        {rows.slice(0, 5).map((r, i) => (
+          <BusRow
+            key={r.id || i} m={m} theme={theme}
+            tag={(r.bus_type?.type || r.type || 'BUS').toString().toUpperCase().slice(0, 6)}
+            path={r.name || [r.source_place?.name, r.destination_place?.name].filter(Boolean).join(' → ')}
+            sub={[r.bus_type?.type, r.start_time].filter(Boolean).join(' · ')}
+            time={r.total_time || null}
+            onPress={r.id ? () => navigateTo(navigation, t('SCREEN.ROUTES_LIST'), {item: r}) : undefined}
+          />
+        ))}
+        {!!note && (
+          <View style={st.gap8}>
+            <Callout m={m} theme={theme} icon="🚌">{String(note)}</Callout>
+          </View>
+        )}
+      </View>
+    );
+  };
+
+  // Location — map card with the address chip overlaid, as in the design.
+  const renderLocation = () => {
+    const lat = parseFloat(city.latitude);
+    const lng = parseFloat(city.longitude);
+    const hasCoords = !isNaN(lat) && !isNaN(lng);
+    if (!hasCoords && !getParentName()) return null;
+    return (
+      <View>
+        <SectionHead
+          m={m} theme={theme} title={t('SITE_DETAIL.LOCATION')}
+          more={hasCoords ? t('SITE_DETAIL.DIRECTIONS') : null} onMore={onDirections}
+        />
+        {hasCoords && (
+          <View style={[st.mapOuterCard, {marginHorizontal: gutter, height: m.ms(150)}]}>
+            <MapView
+              style={StyleSheet.absoluteFill}
+              provider={PROVIDER_GOOGLE}
+              initialRegion={{latitude: lat, longitude: lng, latitudeDelta: 0.05, longitudeDelta: 0.05}}
+              scrollEnabled={false} zoomEnabled={false} rotateEnabled={false} pitchEnabled={false}>
+              <Marker coordinate={{latitude: lat, longitude: lng}} title={city.name} />
+            </MapView>
+            <TouchableOpacity style={st.mapAddr} onPress={onDirections} activeOpacity={0.85}>
+              <Text style={st.mapAddrTxt} numberOfLines={1}>
+                {[city.name, getParentName()].filter(Boolean).join(', ')}
+              </Text>
+              <Text style={[st.mapAddrLink, {color: theme.accent}]}>{t('SITE_DETAIL.OPEN_MAP')}</Text>
+            </TouchableOpacity>
+          </View>
+        )}
+        {!hasCoords && !!getParentName() && (
+          <View style={[st.addressCard, {marginHorizontal: gutter}]}>
+            <View style={st.addressRow}>
+              <View style={st.addressIconWrap}>
+                <Ionicons name="business-outline" size={15} color={theme.accent} />
+              </View>
+              <View style={st.addressTextWrap}>
+                <Text style={st.addressLabel}>{t('SITE_DETAIL.AREA_TALUKA')}</Text>
+                <Text style={st.addressValue}>{getParentName()}</Text>
+              </View>
+            </View>
+          </View>
+        )}
+      </View>
+    );
+  };
+
+  const renderGallery = () => {
+    const gallery = city?.gallery || [];
+    return (
+      <View>
+        <SectionHead
+          m={m} theme={theme} title={t('SITE_DETAIL.PHOTOS')}
+          more={gallery.length > 0 ? String(gallery.length) : null}
+        />
+        {gallery.length === 0 ? (
+          <EmptyState m={m} icon="📷" text={t('SITE_DETAIL.NO_PHOTOS')} />
+        ) : (
+          <GalleryGrid
+            m={m}
+            sources={gallery.map(g => {
+              const uri = getImgUri(g);
+              return uri ? {uri} : null;
+            })}
+            fallback={<CategoryArt categories={city?.categories} />}
+            onPressItem={i => setActiveGalleryIdx(i)}
+          />
+        )}
+      </View>
+    );
+  };
+
+  const renderReviews = () => {
     const rating = getRating();
     const comments = city?.comment || [];
-
-    const getUserInitials = user => {
-      if (!user?.name) return '?';
-      return user.name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
-    };
-
+    const initials = user =>
+      !user?.name ? '?' : user.name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
     return (
-      <>
-        {/* Compact rating + rate-this row */}
-        <View style={st.reviewTopRow}>
+      <View>
+        <SectionHead
+          m={m} theme={theme} title={t('SITE_DETAIL.REVIEWS')}
+          more={t('SITE_DETAIL.WRITE')}
+          onMore={async () => {
+            if (await isGuestUser()) { setIsGuestPopup(true); return; }
+            refRBSheet.current?.open();
+          }}
+        />
+
+        <View style={[st.reviewTopRow, {marginHorizontal: gutter}]}>
           <View style={st.reviewScoreSide}>
-            <Text style={st.reviewBigNum}>{rating > 0 ? rating.toFixed(1) : '—'}</Text>
-            <View style={{flexDirection: 'row', gap: 2, marginTop: 4}}>
-              {renderStars(rating, 16)}
-            </View>
-            <Text style={st.reviewSubCount}>{city.comment_count || 0} reviews</Text>
+            <Text style={[st.reviewBigNum, {color: theme.accent}]}>{rating > 0 ? rating.toFixed(1) : '—'}</Text>
+            <View style={st.starsRow}>{renderStars(rating, m.ms(16))}</View>
+            <Text style={st.reviewSubCount}>
+              {t('SITE_DETAIL.REVIEWS_COUNT', {count: city.comment_count || 0})}
+            </Text>
           </View>
           <View style={st.reviewRateSide}>
-            <Text style={st.rateThisLabel}>Rate this place</Text>
+            <Text style={st.rateThisLabel}>{t('SITE_DETAIL.RATE_THIS')}</Text>
             <StarRating
               rating={userRating}
               onChange={onStarRatingPress}
               enableHalfStar={false}
-              starSize={26}
+              starSize={m.ms(26)}
               color="#D97706"
             />
-            <Text style={st.rateHintText}>Tap stars to rate</Text>
+            <Text style={st.rateHintText}>{t('SITE_DETAIL.RATE_HINT')}</Text>
           </View>
         </View>
 
-        {/* Write a review CTA */}
-        <TouchableOpacity
-          style={st.writeReviewBtn}
-          onPress={async () => {
-            if (await isGuestUser()) { setIsGuestPopup(true); return; }
-            refRBSheet.current?.open();
-          }}
-          activeOpacity={0.85}>
-          <Ionicons name="create-outline" size={16} color={C.oceanMid} />
-          <Text style={st.writeReviewBtnText}>Write a Review</Text>
-          <Ionicons name="chevron-forward" size={15} color={C.oceanMid} style={{marginLeft: 'auto'}} />
-        </TouchableOpacity>
-
-        {/* Existing comments */}
         {comments.length > 0 ? (
-          <View style={st.commentsList}>
-            {comments.map(item => {
-              const raw = item.users ?? item.user;
-              const user = Array.isArray(raw) ? raw[0] : raw;
-              const initials = getUserInitials(user);
-              return (
-                <View key={item.id} style={st.commentCard}>
-                  {/* Avatar */}
-                  <View style={st.commentAvatarWrap}>
-                    {user?.profile_picture ? (
-                      <CachedImage
-                        source={{uri: user.profile_picture.startsWith('http') ? user.profile_picture : `${AWS_URL}${user.profile_picture}`}}
-                        style={st.commentAvatar}
-                        resizeMode="cover"
-                      />
-                    ) : (
-                      <View style={st.commentAvatarFallback}>
-                        <Text style={st.commentAvatarInitials}>{initials}</Text>
-                      </View>
-                    )}
+          comments.map(item => {
+            const raw = item.users ?? item.user;
+            const user = Array.isArray(raw) ? raw[0] : raw;
+            const pic = user?.profile_picture;
+            return (
+              <ReviewRow
+                key={item.id} m={m} theme={theme}
+                initials={initials(user)}
+                avatar={pic ? {uri: pic.startsWith('http') ? pic : `${AWS_URL}${pic}`} : null}
+                name={user?.name || t('SITE_DETAIL.TRAVELER')}
+                text={item.comment}
+                badge={
+                  <View style={st.commentVerifiedBadge}>
+                    <Ionicons name="checkmark-circle" size={12} color={theme.accent} />
+                    <Text style={[st.commentVerifiedText, {color: theme.accent}]}>{t('SITE_DETAIL.VERIFIED')}</Text>
                   </View>
-                  {/* Content */}
-                  <View style={st.commentContent}>
-                    <View style={st.commentHeader}>
-                      <Text style={st.commentUserName}>{user?.name || 'Traveler'}</Text>
-                      <View style={st.commentVerifiedBadge}>
-                        <Ionicons name="checkmark-circle" size={12} color={C.oceanMid} />
-                        <Text style={st.commentVerifiedText}>Verified</Text>
-                      </View>
-                    </View>
-                    <Text style={st.commentText}>{item.comment}</Text>
-                  </View>
-                </View>
-              );
-            })}
-          </View>
+                }
+              />
+            );
+          })
         ) : (
-          <View style={st.emptySection}>
-            <Text style={st.emptyIcon}>💬</Text>
-            <Text style={st.emptyText}>No reviews yet. Be the first!</Text>
-          </View>
+          <EmptyState m={m} icon="💬" text={t('SITE_DETAIL.NO_REVIEWS')} />
         )}
-      </>
-    );
-  };
-
-
-  // ── Section: Villages ─────────────────────────────────────────────────────────
-  const renderVillagesSection = () => {
-    const sites = city?.sites || [];
-    if (sites.length === 0) return null;
-    const visible = sites.slice(0, 5);
-
-    return (
-      <View style={st.contentBlock}>
-        <View style={[st.sectionHeaderRow, {marginBottom: 14}]}>
-          <View style={st.sectionTitleRow}>
-            <View style={st.sectionTitleDot} />
-            <Text style={st.sectionTitle}>🏘 Villages</Text>
-          </View>
-          <TouchableOpacity
-            onPress={() =>
-              ensureOnline(() =>
-                navigateTo(navigation, t('SCREEN.CITY_PLACE_SEARCH'), {
-                  initialParentId: city.id,
-                  initialCityName: city.name,
-                }),
-              )
-            }
-            style={st.seeMoreBtn}
-            hitSlop={{top: 8, bottom: 8, left: 8, right: 8}}>
-            <Text style={st.seeMoreBtnText}>{t('BUTTON.SEE_MORE')}</Text>
-            <Ionicons name="chevron-forward" size={13} color={C.oceanMid} />
-          </TouchableOpacity>
-        </View>
-        {visible.map(item => {
-          const uri = getImgUri(item);
-          return (
-            <TouchableOpacity
-              key={item.id}
-              style={st.villageCard}
-              onPress={() => navigation.push(t('SCREEN.SITE_DETAIL'), {city: item})}
-              activeOpacity={0.85}>
-              <View style={st.villageThumb}>
-                {uri ? (
-                  <CachedImage source={{uri}} style={st.villageThumbImg} resizeMode="cover" />
-                ) : (
-                  <View style={st.villageThumbPlaceholder}>
-                    <Text style={{fontSize: 22}}>🏘</Text>
-                  </View>
-                )}
-              </View>
-              <View style={st.villageInfo}>
-                <Text style={st.villageName} numberOfLines={1}>{item.name}</Text>
-                {item.tag_line ? (
-                  <Text style={st.villageSub} numberOfLines={1}>{item.tag_line}</Text>
-                ) : item.description ? (
-                  <Text style={st.villageSub} numberOfLines={1}>{item.description.substring(0, 55)}</Text>
-                ) : null}
-                {parseFloat(item.rating_avg_rate) > 0 ? (
-                  <View style={st.villageRatingRow}>
-                    <Ionicons name="star" size={11} color="#D97706" />
-                    <Text style={st.villageRatingText}>{Number(item.rating_avg_rate).toFixed(1)}</Text>
-                  </View>
-                ) : null}
-              </View>
-              <View style={st.villageChevron}>
-                <Ionicons name="chevron-forward" size={16} color={C.textLight} />
-              </View>
-            </TouchableOpacity>
-          );
-        })}
       </View>
     );
   };
 
-  // ── Section title helper ──────────────────────────────────────────────────────
-  const SectionHeader = ({title}) => (
-    <View style={[st.sectionHeaderRow, {marginBottom: 14}]}>
-      <View style={st.sectionTitleRow}>
-        <View style={st.sectionTitleDot} />
-        <Text style={st.sectionTitle}>{title}</Text>
-      </View>
-    </View>
-  );
+  // The one place that maps a policy section id → its renderer.
+  const SECTIONS = {
+    contact: renderContactBar,
+    facts: renderFacts,
+    quick: renderQuick,
+    about: renderAbout,
+    special: renderSpeciality,
+    offerings: renderOfferings,
+    adMid: () => renderAd('CITY_MIDDLE', t('SITE_DETAIL.SPONSORED')),
+    villages: renderVillages,
+    trending: renderTrending,
+    hot: renderHotPlaces,
+    events: renderEvents,
+    reach: renderReach,
+    location: renderLocation,
+    gallery: renderGallery,
+    adFoot: () => renderAd('CITY_FOOTER', t('SITE_DETAIL.AD')),
+    reviews: renderReviews,
+  };
+
+  const booting = isLoading && !city.name;
 
   // ── Root render ───────────────────────────────────────────────────────────────
   return (
@@ -907,105 +1009,72 @@ const SiteDetailPage = ({navigation, route}) => {
           <RefreshControl
             refreshing={refreshing}
             onRefresh={onRefresh}
-            colors={['#1B6B7B']}
-            tintColor="#1B6B7B"
+            colors={[theme.accent]}
+            tintColor={theme.accent}
           />
         }>
 
-        {/* 1. Hero */}
-        {(isLoading && !city.name) ? <SkeletonHero height={heroH} /> : renderHero()}
+        {booting ? <SkeletonHero height={heroH} /> : renderHero()}
 
-        {/* 2. Gallery strip */}
-        {renderGalleryStrip()}
-
-        {/* 3. Title + tagline + location + description (unified card) */}
-        {(isLoading && !city.name) ? <SkeletonInfo /> : renderTitleSection()}
-
-        {/* 4. Rating card */}
-        {(isLoading && !city.name) ? <SkeletonRating /> : renderRatingCard()}
-
-        {/* 5. Quick info pills */}
-        {renderQuickInfo()}
-
-        {/* 6. Hot Places */}
-        <HotPlaces
-          hot_sites={city?.hot_sites ?? []}
-          onCardPress={item => navigation.push(t('SCREEN.SITE_DETAIL'), {city: item})}
-        />
-
-        {/* 7. Location map */}
-        {renderLocationSection()}
-
-        {/* 8. Mid Ad Banner */}
-        <View style={st.adSection}>
-          {(isLoading && !bannerObject.CITY_MIDDLE) ? (
-            <SkeletonAdBanner />
+        {/* Content sheet — rounded top overlapping the hero. Centred and capped
+            on tablets so the column never stretches to a 1000dp line length. */}
+        <View style={[st.sheet, {width: m.contentW, marginLeft: m.sideInset}]}>
+          {booting ? (
+            <>
+              <SkeletonInfo />
+              <SkeletonContent />
+            </>
           ) : (
-            <AdBanner
-              bannerImages={bannerObject?.CITY_MIDDLE}
-              label="Sponsored"
-            />
+            policy.order.map(key => {
+              const node = SECTIONS[key]?.();
+              return node ? <React.Fragment key={key}>{node}</React.Fragment> : null;
+            })
           )}
         </View>
-
-        {/* 9. Photos */}
-        {(isLoading && !city.name) ? <SkeletonContent /> : renderPhotosSection()}
-
-        {/* 10. Reviews */}
-        {(isLoading && !city.name) ? null : renderReviewsSection()}
-
-        {/* 11. Villages */}
-        {renderVillagesSection()}
-
-        {/* 12. Events */}
-        <View style={st.namedSection}>
-          <View style={[st.sectionHeaderRow, {paddingHorizontal: 20, marginBottom: 14}]}>
-            <View style={st.sectionTitleRow}>
-              <View style={st.sectionTitleDot} />
-              <Text style={st.sectionTitle}>Events</Text>
-            </View>
-          </View>
-          <TouchableOpacity
-            style={[
-              st.eventsBanner,
-              {marginHorizontal: 20, minHeight: isTablet ? 124 : 94},
-              isTablet && {padding: 28},
-            ]}
-            onPress={() => navigation.navigate(STRING.SCREEN.EVENTS_LIST, {site_id: city.id})}
-            activeOpacity={0.85}>
-            <Ionicons name="calendar" size={isTablet ? 40 : 32} color="#FFFFFF" />
-            <View style={{flex: 1}}>
-              <Text style={{fontSize: isTablet ? 21 : 17, fontWeight: '700', color: '#FFFFFF', marginBottom: 2}}>Events at {city.name || 'this place'}</Text>
-              <Text style={{fontSize: isTablet ? 14 : 12, color: 'rgba(255,255,255,0.8)'}}>Tap to view & join upcoming events</Text>
-            </View>
-            <Ionicons name="arrow-forward-circle" size={isTablet ? 32 : 26} color="rgba(255,255,255,0.8)" />
-          </TouchableOpacity>
-        </View>
-
-        {/* 13. Footer Ad Banner */}
-        <View style={[st.adSection, {marginBottom: 8}]}>
-          {(isLoading && !bannerObject.CITY_FOOTER) ? (
-            <SkeletonAdBanner />
-          ) : (
-            <AdBanner
-              bannerImages={bannerObject?.CITY_FOOTER}
-              label="Ad"
-            />
-          )}
-        </View>
-
       </ScrollView>
 
-      {/* Fixed bottom action bar */}
-      <View style={[st.bottomBar, {paddingBottom: Math.max(insets.bottom, 12)}]}>
-        <TouchableOpacity style={st.bottomBtnSecondary} onPress={onShare} activeOpacity={0.85}>
-          <Ionicons name="share-social-outline" size={18} color={C.oceanMid} />
-          <Text style={st.bottomBtnSecondaryText}>{t('SITE_DETAIL.SHARE')}</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={st.bottomBtnPrimary} onPress={onDirections} activeOpacity={0.85}>
-          <Ionicons name="navigate" size={18} color={C.white} />
-          <Text style={st.bottomBtnPrimaryText}>{t('SITE_DETAIL.GET_DIRECTIONS')}</Text>
-        </TouchableOpacity>
+      {/* Fixed bottom action bar — the CTA pair follows the listing's kind. */}
+      <View style={[st.bottomBar, {paddingBottom: Math.max(insets.bottom, 12), paddingHorizontal: gutter}]}>
+        {policy.bottomBar === 'whatsapp' && hasContact ? (
+          <>
+            <TouchableOpacity style={[st.bottomBtnIcon, {borderColor: tint(theme.accent, 0.4)}]} onPress={onShare} activeOpacity={0.85}>
+              <Ionicons name="share-social-outline" size={19} color={theme.accent} />
+            </TouchableOpacity>
+            {!!phoneNum && (
+              <TouchableOpacity style={[st.bottomBtnIcon, {borderColor: tint(theme.accent, 0.4)}]} onPress={onCall} activeOpacity={0.85}>
+                <Ionicons name="call" size={18} color={theme.accent} />
+              </TouchableOpacity>
+            )}
+            <TouchableOpacity style={[st.bottomBtnPrimary, {backgroundColor: C.wa, flex: 1}]} onPress={onWhatsApp} activeOpacity={0.9}>
+              <Ionicons name="logo-whatsapp" size={18} color={C.white} />
+              <Text style={st.bottomBtnPrimaryText}>{t('SITE_DETAIL.ENQUIRE')}</Text>
+            </TouchableOpacity>
+          </>
+        ) : policy.bottomBar === 'civic' ? (
+          <>
+            {!!phoneNum && (
+              <TouchableOpacity style={[st.bottomBtnSecondary, {borderColor: tint(theme.accent, 0.4)}]} onPress={onCall} activeOpacity={0.85}>
+                <Ionicons name="call" size={18} color={theme.accent} />
+                <Text style={[st.bottomBtnSecondaryText, {color: theme.accent}]}>{t('SITE_DETAIL.CALL_OFFICE')}</Text>
+              </TouchableOpacity>
+            )}
+            <TouchableOpacity style={[st.bottomBtnPrimary, {backgroundColor: theme.accent}]} onPress={onDirections} activeOpacity={0.85}>
+              <Ionicons name="navigate" size={18} color={C.white} />
+              <Text style={st.bottomBtnPrimaryText}>{t('SITE_DETAIL.GET_DIRECTIONS')}</Text>
+            </TouchableOpacity>
+          </>
+        ) : (
+          <>
+            <TouchableOpacity style={[st.bottomBtnSecondary, {borderColor: tint(theme.accent, 0.4)}]} onPress={onShare} activeOpacity={0.85}>
+              <Ionicons name="share-social-outline" size={18} color={theme.accent} />
+              <Text style={[st.bottomBtnSecondaryText, {color: theme.accent}]}>{t('SITE_DETAIL.SHARE')}</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={[st.bottomBtnPrimary, {backgroundColor: theme.accent}]} onPress={onDirections} activeOpacity={0.85}>
+              <Ionicons name="navigate" size={18} color={C.white} />
+              <Text style={st.bottomBtnPrimaryText}>{t('SITE_DETAIL.GET_DIRECTIONS')}</Text>
+            </TouchableOpacity>
+          </>
+        )}
       </View>
 
       {/* Comments bottom sheet */}
@@ -1067,21 +1136,59 @@ const SiteDetailPage = ({navigation, route}) => {
 // ─── Styles ───────────────────────────────────────────────────────────────────
 const st = StyleSheet.create({
   root: {flex: 1, backgroundColor: C.cream},
+  flex1: {flex: 1},
+  gap8: {marginTop: 8},
+  gap14: {marginTop: 14},
+  starsRow: {flexDirection: 'row', gap: 2, marginTop: 4},
+  mapAddr: {
+    position: 'absolute', left: 10, right: 10, bottom: 10,
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 10,
+    backgroundColor: 'rgba(255,255,255,0.94)', borderRadius: 10,
+    paddingHorizontal: 10, paddingVertical: 8,
+  },
+  mapAddrTxt: {flex: 1, fontSize: 11.5, color: C.textMid},
+  mapAddrLink: {fontSize: 11.5, fontWeight: '800'},
+  eventsBannerTitle: {fontWeight: '700', color: '#FFFFFF', marginBottom: 2},
+  eventsBannerSub: {color: 'rgba(255,255,255,0.8)'},
   scroll: {flex: 1},
   scrollContent: {paddingBottom: 90},
 
   // Hero
-  heroWrap: {width: '100%', height: HERO_H, overflow: 'hidden'},
-  heroImage: {width: '100%', height: '100%'},
-  heroPlaceholder: {flex: 1, alignItems: 'center', justifyContent: 'center'},
-  heroEmoji: {fontSize: 80},
-  heroOverlay: {...StyleSheet.absoluteFillObject},
-  heroBtn: {
-    position: 'absolute', width: 40, height: 40, borderRadius: 20,
-    backgroundColor: 'rgba(255,255,255,0.92)',
-    alignItems: 'center', justifyContent: 'center',
-    borderWidth: 1, borderColor: 'rgba(0,0,0,0.06)',
+  heroWrap: {width: '100%', overflow: 'hidden'},
+  heroImage: {...StyleSheet.absoluteFillObject, width: '100%', height: '100%'},
+  heroTopRow: {position: 'absolute', left: 14, right: 14, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between'},
+  heroTopRight: {flexDirection: 'row', gap: 10},
+  heroCircle: {
+    width: 38, height: 38, borderRadius: 19,
+    backgroundColor: 'rgba(20,18,16,0.38)', alignItems: 'center', justifyContent: 'center',
+    borderWidth: 1, borderColor: 'rgba(255,255,255,0.14)',
   },
+  heroContent: {position: 'absolute', left: 16, right: 16, bottom: 30},
+  heroBadgeRow: {flexDirection: 'row', flexWrap: 'wrap', gap: 7, marginBottom: 9},
+  heroBadge: {paddingHorizontal: 11, paddingVertical: 5, borderRadius: 999},
+  heroBadgeTxt: {color: '#fff', fontSize: 11, fontWeight: '700', letterSpacing: 0.2},
+  heroTitle: {color: '#fff', fontSize: 27, fontWeight: '800', letterSpacing: -0.4, textShadowColor: 'rgba(0,0,0,0.35)', textShadowRadius: 12},
+  heroTag: {color: 'rgba(255,255,255,0.92)', fontSize: 13, fontWeight: '500', marginTop: 3, textShadowColor: 'rgba(0,0,0,0.4)', textShadowRadius: 8},
+  heroRateRow: {flexDirection: 'row', alignItems: 'center', gap: 5, marginTop: 10},
+  heroRateNum: {color: '#fff', fontSize: 13, fontWeight: '800'},
+  heroRateSub: {color: 'rgba(255,255,255,0.85)', fontSize: 12, fontWeight: '500'},
+  sheet: {
+    backgroundColor: C.cream, borderTopLeftRadius: 24, borderTopRightRadius: 24,
+    marginTop: -22, paddingTop: 8, position: 'relative', zIndex: 2,
+  },
+  contactBar: {flexDirection: 'row', gap: 8, marginHorizontal: 16, marginTop: 14},
+  contactBtn: {
+    flex: 1, height: 44, borderRadius: 13, flexDirection: 'row', alignItems: 'center',
+    justifyContent: 'center', gap: 6, backgroundColor: C.white, borderWidth: 1, borderColor: 'rgba(0,0,0,0.08)',
+  },
+  contactBtnWa: {backgroundColor: C.wa, borderColor: 'transparent', flex: 1.3},
+  contactBtnTxt: {fontSize: 12.5, fontWeight: '800'},
+  bottomBtnIcon: {
+    width: 46, height: 46, borderRadius: 13, alignItems: 'center', justifyContent: 'center',
+    backgroundColor: C.white, borderWidth: 1, borderColor: 'rgba(0,0,0,0.08)',
+  },
+  heroPlaceholder: {flex: 1, alignItems: 'center', justifyContent: 'center'},
+  heroOverlay: {...StyleSheet.absoluteFillObject},
   offlineBadge: {
     position: 'absolute', bottom: 12, left: 16,
     flexDirection: 'row', alignItems: 'center', gap: 5,
@@ -1091,106 +1198,28 @@ const st = StyleSheet.create({
   offlineBadgeText: {fontSize: 11, color: C.white, fontWeight: '600'},
 
   // Gallery strip
-  galleryStripWrap: {marginTop: -42, paddingHorizontal: 16, zIndex: 10, marginBottom: 4},
-  galleryStrip: {gap: 8, paddingBottom: 6},
-  galleryThumb: {
-    width: 66, height: 66, borderRadius: 12,
-    backgroundColor: C.oceanFoam,
-    alignItems: 'center', justifyContent: 'center',
-    overflow: 'hidden', borderWidth: 2.5, borderColor: C.white,
-  },
-  galleryThumbActive: {borderColor: C.oceanMid, borderWidth: 2.5},
-  galleryThumbImg: {width: '100%', height: '100%'},
-  galleryThumbExtra: {backgroundColor: C.oceanMid},
-  galleryExtraText: {fontSize: 14, fontWeight: '700', color: C.white},
-  galleryActiveIndicator: {
-    position: 'absolute', bottom: 0, left: 0, right: 0,
-    height: 3, backgroundColor: C.oceanMid,
-  },
 
   // Content block — standard section padding
-  contentBlock: {paddingHorizontal: 16, paddingTop: 20, paddingBottom: 8},
 
   // Title card inner divider (above description)
-  titleDivider: {height: 1, backgroundColor: 'rgba(0,0,0,0.07)', marginVertical: 14},
 
   // Title card — white bg, elevated appearance
-  titleCard: {
-    marginHorizontal: 16, marginTop: 14, marginBottom: 4,
-    backgroundColor: C.white, borderRadius: RADIUS,
-    padding: 18, borderWidth: 1, borderColor: 'rgba(0,0,0,0.06)',
-  },
 
   // Section card wrapper
-  sectionCard: {
-    backgroundColor: C.white, borderRadius: RADIUS,
-    padding: 16, borderWidth: 1, borderColor: 'rgba(0,0,0,0.06)',
-  },
 
   // Section header
-  sectionHeaderRow: {
-    flexDirection: 'row', alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  sectionTitleRow: {flexDirection: 'row', alignItems: 'center', gap: 8},
-  sectionTitleDot: {
-    width: 4, height: 18, borderRadius: 2, backgroundColor: C.oceanMid,
-  },
-  sectionTitle: {fontSize: 16, fontWeight: '700', color: C.textDark},
 
   // Category badges
-  badgeRow: {flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 10},
-  badge: {
-    backgroundColor: C.oceanFoam, paddingHorizontal: 12, paddingVertical: 5,
-    borderRadius: 50, borderWidth: 1, borderColor: 'rgba(27,107,123,0.15)',
-  },
-  badgeHot: {backgroundColor: 'rgba(196,151,42,0.12)', borderColor: 'rgba(196,151,42,0.3)'},
-  badgeText: {fontSize: 11, fontWeight: '600', color: C.oceanDeep},
 
   // Title
-  placeTitle: {
-    fontSize: SW > 380 ? 26 : 22, fontWeight: '700', color: C.textDark,
-    marginBottom: 6, lineHeight: SW > 380 ? 32 : 28,
-  },
 
   // Inline rating row
-  inlineRatingRow: {
-    flexDirection: 'row', alignItems: 'center', gap: 5, marginBottom: 12,
-  },
-  inlineStars: {flexDirection: 'row', gap: 1},
-  inlineRatingNum: {fontSize: 13, fontWeight: '700', color: '#D97706'},
-  inlineRatingDot: {fontSize: 13, color: C.textLight},
-  inlineReviewCount: {fontSize: 12, color: C.textLight},
 
   // Tag line styled gradient
-  tagLineGradient: {
-    flexDirection: 'row', alignItems: 'flex-start', gap: 8,
-    paddingHorizontal: 14, paddingVertical: 10,
-    borderRadius: 12, marginBottom: 12,
-    borderWidth: 1, borderColor: 'rgba(27,107,123,0.18)',
-  },
-  tagLineText: {
-    flex: 1, fontSize: 13, fontStyle: 'italic',
-    color: C.oceanDeep, lineHeight: 19, fontWeight: '500',
-  },
 
   // Location row
-  locationRow: {flexDirection: 'row', flexWrap: 'wrap', gap: 8},
-  locationChip: {
-    flexDirection: 'row', alignItems: 'center', gap: 5,
-    backgroundColor: 'rgba(27,107,123,0.08)',
-    paddingHorizontal: 10, paddingVertical: 6, borderRadius: 50,
-    borderWidth: 1, borderColor: 'rgba(27,107,123,0.15)',
-  },
-  locationChipText: {fontSize: 12, color: C.oceanMid, fontWeight: '600'},
 
   // Description
-  description: {fontSize: 14, lineHeight: 22, color: C.textMid},
-  readMoreBtn: {
-    flexDirection: 'row', alignItems: 'center', gap: 4,
-    marginTop: 10, alignSelf: 'flex-start',
-  },
-  readMoreText: {fontSize: 13, fontWeight: '600', color: C.oceanMid},
 
   // Rating card
   ratingCard: {
@@ -1198,25 +1227,8 @@ const st = StyleSheet.create({
     backgroundColor: C.white, borderRadius: RADIUS, padding: 16,
     borderWidth: 1, borderColor: 'rgba(0,0,0,0.06)',
   },
-  ratingLeft: {alignItems: 'center', justifyContent: 'center', minWidth: 80},
-  ratingBig: {fontSize: 44, fontWeight: '700', color: C.textDark, lineHeight: 52},
-  ratingCount: {fontSize: 11, color: C.textLight, marginTop: 2, textAlign: 'center'},
-  ratingDivider: {width: 1, backgroundColor: 'rgba(0,0,0,0.07)', marginVertical: 4},
-  ratingRight: {flex: 1, justifyContent: 'center', gap: 5},
-  starRow: {flexDirection: 'row', alignItems: 'center', gap: 6},
-  starRowLabel: {fontSize: 10, color: C.textLight, width: 28},
-  starBarBg: {flex: 1, height: 6, backgroundColor: 'rgba(0,0,0,0.06)', borderRadius: 3, overflow: 'hidden'},
-  starBarFill: {height: '100%', backgroundColor: '#D97706', borderRadius: 3},
-  starRowPct: {fontSize: 10, color: C.textLight, width: 28, textAlign: 'right'},
 
   // Quick info pills
-  quickInfoRow: {gap: 8, paddingBottom: 4},
-  infoPill: {
-    flexDirection: 'row', alignItems: 'center', gap: 6,
-    backgroundColor: C.white, paddingHorizontal: 12, paddingVertical: 8,
-    borderRadius: 50, borderWidth: 1, borderColor: 'rgba(0,0,0,0.07)',
-  },
-  infoPillText: {fontSize: 12, color: C.textMid, fontWeight: '500'},
 
   // Location / Map
   mapOuterCard: {
@@ -1225,15 +1237,6 @@ const st = StyleSheet.create({
     backgroundColor: C.oceanFoam,
     padding: 3, marginBottom: 10, overflow: 'hidden',
   },
-  mapInnerCard: {borderRadius: RADIUS, overflow: 'hidden', height: SW * 0.55},
-  mapView: {flex: 1},
-  mapOpenBtn: {
-    flexDirection: 'row', alignItems: 'center', gap: 5,
-    backgroundColor: 'rgba(27,107,123,0.1)',
-    paddingHorizontal: 12, paddingVertical: 6, borderRadius: 50,
-    borderWidth: 1, borderColor: 'rgba(27,107,123,0.25)',
-  },
-  mapOpenBtnText: {fontSize: 12, fontWeight: '600', color: C.oceanMid},
 
   // Address card
   addressCard: {
@@ -1259,9 +1262,12 @@ const st = StyleSheet.create({
   // Ad banner (HomeScreen style)
   adSection: {paddingHorizontal: 16, marginTop: 20, marginBottom: 8},
   adBannerWrap: {
+    // No minHeight here: Banner auto-sizes to the creative's aspect ratio, and a
+    // floor would leave dead space under a wide/short banner. The empty-slot
+    // placeholder carries its own minHeight instead.
     backgroundColor: C.sandPale, borderRadius: RADIUS,
     borderWidth: 2, borderColor: C.sandMid, borderStyle: 'dashed',
-    overflow: 'hidden', minHeight: 120,
+    overflow: 'hidden',
   },
   adLabelBadge: {
     position: 'absolute', top: 10, right: 10, zIndex: 10,
@@ -1274,18 +1280,8 @@ const st = StyleSheet.create({
   adText: {fontSize: 14, fontWeight: '500', color: C.textMid, textAlign: 'center'},
 
   // Section count pill
-  countPill: {
-    backgroundColor: C.oceanMid,
-    borderRadius: 10, paddingHorizontal: 7, paddingVertical: 2, marginLeft: 6,
-  },
-  countPillText: {fontSize: 11, fontWeight: '700', color: C.white},
 
   // Photos grid
-  photoGrid: {flexDirection: 'row', flexWrap: 'wrap', gap: 8},
-  photoItem: {width: (SW - 48) / 2, height: (SW - 48) / 2 * 0.75, borderRadius: 10, overflow: 'hidden'},
-  photoItemLarge: {width: SW - 32, height: SW * 0.5},
-  photoImg: {width: '100%', height: '100%'},
-  photoPlaceholder: {backgroundColor: C.oceanFoam, alignItems: 'center', justifyContent: 'center'},
 
   // Reviews — top two-column layout
   reviewTopRow: {
@@ -1305,39 +1301,12 @@ const st = StyleSheet.create({
   rateHintText: {fontSize: 10, color: C.textLight},
 
   // Write review button — secondary outline style
-  writeReviewBtn: {
-    flexDirection: 'row', alignItems: 'center', gap: 8,
-    backgroundColor: 'rgba(27,107,123,0.07)',
-    borderRadius: 14, paddingVertical: 13, paddingHorizontal: 16,
-    marginBottom: 16,
-    borderWidth: 1.5, borderColor: 'rgba(27,107,123,0.2)',
-  },
-  writeReviewBtnText: {fontSize: 14, fontWeight: '700', color: C.oceanMid, flex: 1},
 
   // Comments list
-  commentsList: {gap: 10},
-  commentCard: {
-    flexDirection: 'row', gap: 10,
-    backgroundColor: C.white, borderRadius: 14, padding: 14,
-    borderWidth: 1, borderColor: 'rgba(0,0,0,0.06)',
-  },
-  commentAvatarWrap: {flexShrink: 0},
-  commentAvatar: {width: 40, height: 40, borderRadius: 20},
-  commentAvatarFallback: {
-    width: 40, height: 40, borderRadius: 20,
-    backgroundColor: C.oceanMid,
-    alignItems: 'center', justifyContent: 'center',
-  },
-  commentAvatarInitials: {fontSize: 15, fontWeight: '700', color: C.white},
-  commentContent: {flex: 1},
-  commentHeader: {flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 4},
-  commentUserName: {fontSize: 13, fontWeight: '700', color: C.textDark},
   commentVerifiedBadge: {flexDirection: 'row', alignItems: 'center', gap: 3},
   commentVerifiedText: {fontSize: 10, color: C.oceanMid, fontWeight: '600'},
-  commentText: {fontSize: 13, lineHeight: 19, color: C.textMid},
 
   // Named section wrapper (for Popular Spots / Nearby)
-  namedSection: {marginTop: 20},
   eventsBanner: {
     flexDirection: 'row', alignItems: 'center', gap: 14,
     borderRadius: 16, backgroundColor: C.oceanMid,
@@ -1345,43 +1314,8 @@ const st = StyleSheet.create({
   },
 
   // Villages
-  villageCard: {
-    flexDirection: 'row', alignItems: 'center', gap: 12,
-    backgroundColor: C.white, borderRadius: 14, padding: 12, marginBottom: 10,
-    borderWidth: 1, borderColor: 'rgba(0,0,0,0.06)',
-  },
-  villageThumb: {
-    width: 64, height: 64, borderRadius: 12,
-    overflow: 'hidden', flexShrink: 0,
-    borderWidth: 1, borderColor: 'rgba(0,0,0,0.06)',
-  },
-  villageThumbImg: {width: '100%', height: '100%'},
-  villageThumbPlaceholder: {
-    flex: 1, backgroundColor: C.oceanFoam,
-    alignItems: 'center', justifyContent: 'center',
-  },
-  villageInfo: {flex: 1},
-  villageName: {fontSize: 14, fontWeight: '700', color: C.textDark, marginBottom: 3},
-  villageSub: {fontSize: 11, color: C.textLight, marginBottom: 4, lineHeight: 16},
-  villageRatingRow: {flexDirection: 'row', alignItems: 'center', gap: 3},
-  villageRatingText: {fontSize: 11, fontWeight: '600', color: '#D97706'},
-  villageChevron: {
-    width: 28, height: 28, borderRadius: 14,
-    backgroundColor: 'rgba(0,0,0,0.04)',
-    alignItems: 'center', justifyContent: 'center',
-  },
-  seeMoreBtn: {
-    flexDirection: 'row', alignItems: 'center', gap: 3,
-    backgroundColor: 'rgba(27,107,123,0.08)',
-    paddingHorizontal: 12, paddingVertical: 6, borderRadius: 50,
-    borderWidth: 1, borderColor: 'rgba(27,107,123,0.18)',
-  },
-  seeMoreBtnText: {fontSize: 12, fontWeight: '600', color: C.oceanMid},
 
   // Empty state
-  emptySection: {alignItems: 'center', paddingVertical: 32, paddingHorizontal: 20},
-  emptyIcon: {fontSize: 44, marginBottom: 12, opacity: 0.35},
-  emptyText: {fontSize: 13, color: C.textLight, textAlign: 'center'},
 
   // Bottom bar
   bottomBar: {

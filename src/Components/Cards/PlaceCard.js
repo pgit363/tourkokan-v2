@@ -10,6 +10,7 @@ import StarRating from 'react-native-star-rating-widget'; // Updated import
 import {comnPost} from '../../Services/Api/CommonServices';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import GlobalText from '../Customs/Text';
+import CategoryArt from '../Common/CategoryArt';
 import ComingSoon from '../Common/ComingSoon';
 import {useTranslation} from 'react-i18next';
 import {AWS_URL} from '@env';
@@ -77,11 +78,9 @@ const PlaceCard = ({data, reload, navigation, addComment, onClick}) => {
             resizeMode="cover"
           />
         ) : (
-          <ImageBackground
-            source={require('../../Assets/Images/no-image.png')}
-            style={[styles.placeImage, imgSize]}
-            imageStyle={styles.placeImageStyle}
-            resizeMode="cover"
+          <CategoryArt
+            categories={data.categories}
+            style={[styles.placeImage, imgSize, styles.placeImageStyle]}
           />
         )}
       </TouchableOpacity>

@@ -8,6 +8,15 @@
     <uses-permission android:name="android.permission.GET_ACCOUNTS"/>
     <uses-permission android:name="android.permission.USE_CREDENTIALS"/>
     
+    <!--
+      android:enableOnBackInvokedCallback MUST stay false.
+      Predictive back defaults to ON at targetSdk 36 (Android 16), and when it is on
+      Android stops dispatching the legacy KEYCODE_BACK / Activity.onBackPressed().
+      React Native 0.78 has no OnBackInvokedCallback support — ReactActivity routes
+      hardware back only through onBackPressed() — so leaving it on silently kills
+      EVERY JS BackHandler in the app and the device back button just closes the
+      activity from any screen. Revisit only when RN ships predictive-back support.
+    -->
     <application
         android:name=".MainApplication"
         android:label="@string/app_name"
@@ -15,7 +24,8 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:allowBackup="false"
         android:theme="@style/AppTheme"
-        android:supportsRtl="true">
+        android:supportsRtl="true"
+        android:enableOnBackInvokedCallback="false">
 
         <!-- ✅ Place meta-data tag HERE inside application -->
         <meta-data

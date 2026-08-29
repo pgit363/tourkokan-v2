@@ -2,10 +2,27 @@ import UIKit
 import React
 import React_RCTAppDelegate
 import ReactAppDependencyProvider
+import FirebaseCore
+import GoogleMaps
 
 @main
 class AppDelegate: RCTAppDelegate {
   override func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey : Any]? = nil) -> Bool {
+    // Firebase must be configured BEFORE React Native starts, or the first
+    // @react-native-firebase call throws
+    // "No Firebase App '[DEFAULT]' has been created".
+    // Requires ios/tourkokan/GoogleService-Info.plist (downloaded from the
+    // Firebase console for the iOS bundle id) to be added to the Xcode target.
+    FirebaseApp.configure()
+
+    // Google Maps. The app renders with PROVIDER_GOOGLE, which on iOS shows
+    // blank tiles unless a key is supplied here. Read from Info.plist rather
+    // than hardcoded so the key is not committed in source.
+    if let mapsKey = Bundle.main.object(forInfoDictionaryKey: "GMSApiKey") as? String,
+       !mapsKey.isEmpty {
+      GMSServices.provideAPIKey(mapsKey)
+    }
+
     self.moduleName = "tourkokan"
     self.dependencyProvider = RCTAppDependencyProvider()
 

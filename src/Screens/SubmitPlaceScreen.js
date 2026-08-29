@@ -74,6 +74,8 @@ const SubmitPlaceScreen = ({navigation, route}) => {
   // Step 4
   const [website, setWebsite] = useState(editData?.domain_name ?? '');
   const [pinCode, setPinCode] = useState(editData?.pin_code ?? '');
+  const [phone, setPhone] = useState(editData?.phone ?? '');
+  const [whatsapp, setWhatsapp] = useState(editData?.whatsapp ?? '');
 
   const isEdit = !!editData;
 
@@ -111,10 +113,15 @@ const SubmitPlaceScreen = ({navigation, route}) => {
   );
   const [selectedParentId, setSelectedParentId] = useState(null);
   const [parentDropOpen, setParentDropOpen] = useState(false);
+  const [cities, setCities] = useState([]);
+  const [cityId, setCityId] = useState(editData?.parent_id ?? null);
 
   useEffect(() => {
     comnPost('v2/listcategories', {per_page: 100, include_empty: 1})
       .then(res => setCategories(res?.data?.data?.data || []))
+      .catch(() => {});
+    comnPost('v2/sites', {apitype: 'list', category: 'City'})
+      .then(res => setCities(res?.data?.data?.data || []))
       .catch(() => {});
   }, []);
 
@@ -126,6 +133,9 @@ const SubmitPlaceScreen = ({navigation, route}) => {
     setLongitude(site.longitude ? String(site.longitude) : '');
     setWebsite(site.domain_name ?? '');
     setPinCode(site.pin_code ?? '');
+    setPhone(site.phone ?? '');
+    setWhatsapp(site.whatsapp ?? '');
+    setCityId(site.parent_id ?? null);
     const subIds = (site.categories || [])
       .filter(c => c.parent_id != null)
       .map(c => c.id);
@@ -263,6 +273,9 @@ const SubmitPlaceScreen = ({navigation, route}) => {
     setLogo(null);
     setWebsite('');
     setPinCode('');
+    setPhone('');
+    setWhatsapp('');
+    setCityId(null);
   };
 
   const validateStep = () => {
@@ -312,6 +325,9 @@ const SubmitPlaceScreen = ({navigation, route}) => {
     if (tagLine.trim()) form.append('tag_line', tagLine.trim());
     if (website.trim()) form.append('domain_name', website.trim());
     if (pinCode.trim()) form.append('pin_code', pinCode.trim());
+    if (phone.trim()) form.append('phone', phone.trim());
+    if (whatsapp.trim()) form.append('whatsapp', whatsapp.trim());
+    if (cityId) form.append('parent_id', String(cityId));
     selectedCategories.forEach(id => form.append('categories[]', id));
 
     if (image) {
@@ -349,14 +365,25 @@ const SubmitPlaceScreen = ({navigation, route}) => {
     const resData = res?.data ?? res?.response?.data;
     if (resData?.success) {
       if (!isEdit) resetForm();
+      const vendorFlow = route?.params?.vendorFlow;
+      const newSiteId = resData?.data?.site?.id ?? resData?.data?.id;
+      const addProducts = vendorFlow && !isEdit;
       showDialog({
         type: 'success',
         title: isEdit ? 'Resubmitted!' : 'Submitted!',
         message: isEdit
           ? 'Your place has been resubmitted for review.'
-          : 'Your place has been submitted and is under review.',
-        confirmText: 'View My Sites',
-        onConfirm: () => navigation.replace(STRING.SCREEN.MY_SUBMISSIONS),
+          : addProducts
+            ? 'Your business is under review. Add your products now — they go live once approved.'
+            : 'Your place has been submitted and is under review.',
+        confirmText: addProducts ? 'Add products' : 'View My Sites',
+        onConfirm: () =>
+          addProducts
+            ? navigation.replace(
+                STRING.SCREEN.ADD_PRODUCT,
+                newSiteId ? {siteId: newSiteId} : undefined,
+              )
+            : navigation.replace(STRING.SCREEN.MY_SUBMISSIONS),
         onClose: () => navigation.replace(STRING.SCREEN.MY_SUBMISSIONS),
       });
     } else {
@@ -695,6 +722,45 @@ const SubmitPlaceScreen = ({navigation, route}) => {
                 placeholderTextColor={C.textLight}
                 keyboardType="numeric"
                 maxLength={6}
+              />
+            </View>
+            <View style={s.field}>
+              <Text style={s.label}>City</Text>
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{marginTop: 4}} keyboardShouldPersistTaps="handled">
+                {cities.map(c => {
+                  const on = cityId === c.id;
+                  return (
+                    <TouchableOpacity
+                      key={c.id}
+                      onPress={() => setCityId(c.id)}
+                      style={{paddingHorizontal: 14, paddingVertical: 9, borderRadius: 10, borderWidth: 1, marginRight: 8, borderColor: on ? C.oceanMid : 'rgba(0,0,0,0.1)', backgroundColor: on ? 'rgba(27,107,123,0.08)' : '#fff'}}>
+                      <Text style={{fontSize: 12.5, fontWeight: '700', color: on ? C.oceanMid : C.textMid}}>{c.name}</Text>
+                    </TouchableOpacity>
+                  );
+                })}
+                {cities.length === 0 && <Text style={{fontSize: 12, color: C.textLight}}>Loading cities…</Text>}
+              </ScrollView>
+            </View>
+            <View style={s.field}>
+              <Text style={s.label}>Phone (shown to buyers)</Text>
+              <TextInput
+                style={s.input}
+                value={phone}
+                onChangeText={setPhone}
+                placeholder="+91 98765 43210"
+                placeholderTextColor={C.textLight}
+                keyboardType="phone-pad"
+              />
+            </View>
+            <View style={s.field}>
+              <Text style={s.label}>WhatsApp number</Text>
+              <TextInput
+                style={s.input}
+                value={whatsapp}
+                onChangeText={setWhatsapp}
+                placeholder="Same as phone, or a different number"
+                placeholderTextColor={C.textLight}
+                keyboardType="phone-pad"
               />
             </View>
           </>

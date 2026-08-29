@@ -23,7 +23,11 @@
     "deploy:production": "cd android && bundle exec fastlane production",
     "ios": "react-native run-ios",
     "lint": "eslint .",
-    "test": "jest"
+    "test": "jest",
+    "pods": "cd ios && bundle exec pod install",
+    "pods:clean": "cd ios && rm -rf Pods Podfile.lock build && bundle exec pod install --repo-update",
+    "ios:device": "react-native run-ios --device",
+    "ios:release": "react-native run-ios --mode Release"
   },
   "dependencies": {
     "@react-native-async-storage/async-storage": "^2.1.2",

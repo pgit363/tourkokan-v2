@@ -8,6 +8,11 @@ require Pod::Executable.execute_command('node', ['-p',
 platform :ios, min_ios_version_supported
 prepare_react_native_project!
 
+# @react-native-firebase v21 ships as a static framework; without this the
+# Firebase pods and the default static-library linkage disagree and the build
+# fails with duplicate-symbol / missing-module errors.
+$RNFirebaseAsStaticFramework = true
+
 linkage = ENV['USE_FRAMEWORKS']
 if linkage != nil
   Pod::UI.puts "Configuring Pod with #{linkage}ally linked Frameworks".green
@@ -16,6 +21,13 @@ end
 
 target 'tourkokan' do
   config = use_native_modules!
+
+  # react-native-maps ships Google Maps support as a SEPARATE podspec that
+  # autolinking does not pick up. The app renders maps with PROVIDER_GOOGLE
+  # (SiteDetailPage, CityPlaceSearch), which on iOS is a no-op — blank tiles —
+  # unless this pod is present and GMSServices.provideAPIKey() is called in
+  # AppDelegate. Remove both if you ever switch iOS to Apple Maps.
+  pod 'react-native-google-maps', :path => '../node_modules/react-native-maps'
 
   use_react_native!(
     :path => config[:reactNativePath],

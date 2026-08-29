@@ -1,8 +1,10 @@
-import React, {useState, useRef} from 'react';
+import React, {useState, useRef, useEffect} from 'react';
+import {BackHandler} from 'react-native';
 import {NavigationContainer} from '@react-navigation/native';
 import {createNavigationLogger} from '../Services/Logger';
 import {createNativeStackNavigator} from '@react-navigation/native-stack';
 import {useTranslation} from 'react-i18next';
+import {exitApp} from '../Services/CommonMethods';
 
 import DrawerNavigator from './DrawerNavigator';
 
@@ -48,6 +50,19 @@ import CreateEvent from '../Screens/CreateEvent';
 import UpdateEvent from '../Screens/UpdateEvent';
 import MyEvents from '../Screens/MyEvents';
 import HelpCenterScreen from '../Screens/HelpCenterScreen';
+import BrowseScreen from '../Screens/Marketplace/BrowseScreen';
+import ProductDetailScreen from '../Screens/Marketplace/ProductDetailScreen';
+import VendorListScreen from '../Screens/Marketplace/VendorListScreen';
+import VendorProfileScreen from '../Screens/Marketplace/VendorProfileScreen';
+import VendorDashboardScreen from '../Screens/Marketplace/VendorDashboardScreen';
+import MyProductsScreen from '../Screens/Marketplace/MyProductsScreen';
+import AddProductScreen from '../Screens/Marketplace/AddProductScreen';
+import ManageProductScreen from '../Screens/Marketplace/ManageProductScreen';
+import MyLeadsScreen from '../Screens/Marketplace/MyLeadsScreen';
+import ProductAnalyticsScreen from '../Screens/Marketplace/ProductAnalyticsScreen';
+import SubscriptionScreen from '../Screens/Marketplace/SubscriptionScreen';
+import FavouritesScreen from '../Screens/Marketplace/FavouritesScreen';
+import MyEnquiriesScreen from '../Screens/Marketplace/MyEnquiriesScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -72,6 +87,25 @@ const StackNavigator = ({initialRoute}) => {
   if (!navLogger.current) {
     navLogger.current = createNavigationLogger(navigationRef);
   }
+
+  // Global hardware-back safety net. Native-stack does NOT auto-pop here, so a
+  // screen whose own BackHandler is missing/throwing would let the press fall
+  // through to the OS and close the app. Registered once at the container: it
+  // sits at the BOTTOM of the LIFO handler chain, so any screen's own handler
+  // still runs first — this only fires when nothing else consumed the press.
+  useEffect(() => {
+    const onBack = () => {
+      const nav = navigationRef.current;
+      if (nav?.canGoBack?.()) {
+        nav.goBack();
+        return true;
+      }
+      // At the navigator root → double-tap-to-exit (never a silent close).
+      return exitApp();
+    };
+    const sub = BackHandler.addEventListener('hardwareBackPress', onBack);
+    return () => sub.remove();
+  }, []);
 
   return (
     <NavigationContainer
@@ -232,6 +266,21 @@ const StackNavigator = ({initialRoute}) => {
           <Stack.Screen name={t('SCREEN.UPDATE_EVENT')} component={UpdateEvent} />
           <Stack.Screen name={t('SCREEN.MY_EVENTS')} component={MyEvents} />
           <Stack.Screen name={t('SCREEN.HELP_CENTER')} component={HelpCenterScreen} />
+
+          {/* ── Marketplace ── */}
+          <Stack.Screen name={t('SCREEN.MARKETPLACE')} component={BrowseScreen} />
+          <Stack.Screen name={t('SCREEN.PRODUCT_DETAIL')} component={ProductDetailScreen} />
+          <Stack.Screen name={t('SCREEN.VENDORS')} component={VendorListScreen} />
+          <Stack.Screen name={t('SCREEN.VENDOR_PROFILE')} component={VendorProfileScreen} />
+          <Stack.Screen name={t('SCREEN.VENDOR_DASHBOARD')} component={VendorDashboardScreen} />
+          <Stack.Screen name={t('SCREEN.MY_PRODUCTS')} component={MyProductsScreen} />
+          <Stack.Screen name={t('SCREEN.ADD_PRODUCT')} component={AddProductScreen} />
+          <Stack.Screen name={t('SCREEN.MANAGE_PRODUCT')} component={ManageProductScreen} />
+          <Stack.Screen name={t('SCREEN.MY_LEADS')} component={MyLeadsScreen} />
+          <Stack.Screen name={t('SCREEN.PRODUCT_ANALYTICS')} component={ProductAnalyticsScreen} />
+          <Stack.Screen name={t('SCREEN.SUBSCRIPTION')} component={SubscriptionScreen} />
+          <Stack.Screen name={t('SCREEN.MARKET_FAVOURITES')} component={FavouritesScreen} />
+          <Stack.Screen name={t('SCREEN.MY_ENQUIRIES')} component={MyEnquiriesScreen} />
 
         </Stack.Group>
       </Stack.Navigator>

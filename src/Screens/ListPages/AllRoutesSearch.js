@@ -33,7 +33,7 @@ import {
   goBackHandler,
   navigateTo,
 } from '../../Services/CommonMethods';
-import Banner from '../../Components/Customs/Banner';
+import Banner, {footerBannerHeight} from '../../Components/Customs/Banner';
 import {useRoutesOfflineGate} from '../../Components/Common/RoutesOfflineGate';
 import {createLogger} from '../../Services/Logger';
 import {scaleFontSizes} from '../../Services/responsive';
@@ -500,6 +500,7 @@ const AllRoutesSearch = ({navigation, route, ...props}) => {
             <Banner
               bannerImages={bannerObject.ROUTE_LIST_FOOTER}
               width={bannerW}
+              minHeight={footerBannerHeight(bannerW)}
             />
           </View>
         </View>

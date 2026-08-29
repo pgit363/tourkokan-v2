@@ -10,6 +10,7 @@ import {
   Animated,
   Modal,
   Pressable,
+  BackHandler,
 } from 'react-native';
 import {SystemBars} from 'react-native-edge-to-edge';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
@@ -24,6 +25,7 @@ import {comnPost, dataSync, getFromStorage, saveToStorage} from '../Services/Api
 import {isVendorUser} from '../Components/Common/GuestGateModal';
 import {useConnectivityGate} from '../Components/Common/useConnectivityGate';
 import STRING from '../Services/Constants/STRINGS';
+import CategoryArt from '../Components/Common/CategoryArt';
 import {createLogger} from '../Services/Logger';
 import {scaleFontSizes, useResponsive} from '../Services/responsive';
 
@@ -112,6 +114,17 @@ const sk = StyleSheet.create(scaleFontSizes({
 // ─── MySubmissionsScreen ──────────────────────────────────────────────────────
 
 const MySubmissionsScreen = ({navigation}) => {
+  // Hardware back — consume it so the press can never fall through to the OS
+  // (which would close the app instead of returning to the previous screen).
+  useFocusEffect(
+    useCallback(() => {
+      const handler = BackHandler.addEventListener('hardwareBackPress', () => {
+        backPage(navigation);
+        return true;
+      });
+      return () => handler.remove();
+    }, [navigation]),
+  );
   const insets = useSafeAreaInsets();
   const {t} = useTranslation();
   const {isTablet} = useResponsive();
@@ -227,11 +240,7 @@ const MySubmissionsScreen = ({navigation}) => {
               resizeMode="cover"
             />
           ) : (
-            <Image
-              source={require('../Assets/Images/no-image.png')}
-              style={s.coverImage}
-              resizeMode="cover"
-            />
+            <CategoryArt categories={item.categories} style={s.coverImage} />
           )}
 
           {/* Gradient overlay at bottom of image */}

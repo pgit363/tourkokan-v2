@@ -8,7 +8,9 @@ import {
   StyleSheet,
   Animated,
   Dimensions,
+  BackHandler,
 } from 'react-native';
+import {useFocusEffect} from '@react-navigation/native';
 import {SystemBars} from 'react-native-edge-to-edge';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import LinearGradient from 'react-native-linear-gradient';
@@ -94,6 +96,17 @@ const sk = StyleSheet.create(scaleFontSizes({
 // ─── InboxScreen ──────────────────────────────────────────────────────────────
 
 const InboxScreen = ({navigation}) => {
+  // Hardware back — consume it so the press can never fall through to the OS
+  // (which would close the app instead of returning to the previous screen).
+  useFocusEffect(
+    useCallback(() => {
+      const handler = BackHandler.addEventListener('hardwareBackPress', () => {
+        backPage(navigation);
+        return true;
+      });
+      return () => handler.remove();
+    }, [navigation]),
+  );
   const insets = useSafeAreaInsets();
   const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(true);

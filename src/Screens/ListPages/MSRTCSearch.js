@@ -20,7 +20,7 @@ import {useFocusEffect} from '@react-navigation/native';
 import {getFromStorage} from '../../Services/Api/CommonServices';
 import {setLoader, setMode, setSource, setDestination} from '../../Reducers/CommonActions';
 import {backPage, checkLogin, goBackHandler, navigateTo} from '../../Services/CommonMethods';
-import Banner from '../../Components/Customs/Banner';
+import Banner, {footerBannerHeight} from '../../Components/Customs/Banner';
 import {useRoutesOfflineGate} from '../../Components/Common/RoutesOfflineGate';
 import MSRTCSearchPanel from '../../Components/Common/MSRTCSearchPanel';
 import {createLogger} from '../../Services/Logger';
@@ -89,7 +89,7 @@ const sk = StyleSheet.create(scaleFontSizes({
 
 // ─── Ad Banner (same style as HomeScreen middle) ──────────────────────────────
 
-const AdBanner = ({bannerImages}) => {
+const AdBanner = ({bannerImages, footer}) => {
   const {width: winW} = useWindowDimensions();
   // adBannerWrap has marginHorizontal:20 → inner width = winW - 40
   const bannerW = winW - 40;
@@ -102,6 +102,7 @@ const AdBanner = ({bannerImages}) => {
         <Banner
           bannerImages={bannerImages}
           width={bannerW}
+          minHeight={footer ? footerBannerHeight(bannerW) : undefined}
           style={{borderRadius: 16, overflow: 'hidden'}}
         />
       ) : (
@@ -274,7 +275,7 @@ const MSRTCSearch = ({navigation, route, ...props}) => {
 
             {/* ── Footer Banner ── */}
             <View style={s.bannerWrap}>
-              <AdBanner bannerImages={bannerObject?.ROUTE_LIST_FOOTER} />
+              <AdBanner bannerImages={bannerObject?.ROUTE_LIST_FOOTER} footer />
             </View>
           </>
         )}

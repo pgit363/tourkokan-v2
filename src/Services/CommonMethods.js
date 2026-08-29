@@ -15,7 +15,19 @@ export const goBackHandler = navigation => {
 };
 
 export const backPage = navigation => {
-  navigation.goBack();
+  // Always return true so the press is consumed — if this ever returned a
+  // falsy/undefined (e.g. goBack threw on a stale navigation ref), the event
+  // would fall through to the OS and CLOSE THE APP. Guard with canGoBack so a
+  // root screen no-ops instead of erroring.
+  try {
+    if (navigation?.canGoBack?.()) {
+      navigation.goBack();
+    } else if (navigation?.goBack) {
+      navigation.goBack();
+    }
+  } catch (e) {
+    log.warn('[backPage] goBack failed', e);
+  }
   return true;
 };
 

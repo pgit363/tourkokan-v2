@@ -9,7 +9,6 @@
   "COMPANION": "Your Ultimate Travel Companion for Maharashtra's Coastal Gem.",
   "WELCOME": "Welcome to",
   "APP_VERSION": "2.0.0",
-
   "BUTTON": {
     "YES": "Yes",
     "NO": "No",
@@ -122,7 +121,22 @@
     "EVENT_DETAIL": "EventDetail",
     "CREATE_EVENT": "CreateEvent",
     "UPDATE_EVENT": "UpdateEvent",
-    "MY_EVENTS": "MyEvents"
+    "MY_EVENTS": "MyEvents",
+    "MARKETPLACE": "Marketplace",
+    "PRODUCT_DETAIL": "ProductDetail",
+    "VENDORS": "Vendors",
+    "VENDOR_PROFILE": "VendorProfile",
+    "BECOME_VENDOR": "BecomeVendor",
+    "ADD_BUSINESS": "AddBusiness",
+    "VENDOR_DASHBOARD": "VendorDashboard",
+    "MY_PRODUCTS": "MyProducts",
+    "ADD_PRODUCT": "AddProduct",
+    "MANAGE_PRODUCT": "ManageProduct",
+    "MY_LEADS": "MyLeads",
+    "PRODUCT_ANALYTICS": "ProductAnalytics",
+    "SUBSCRIPTION": "Subscription",
+    "MARKET_FAVOURITES": "MarketFavourites",
+    "MY_ENQUIRIES": "MyEnquiries"
   },
   "STORAGE": {
     "ACCESS_TOKEN": "access_token",
@@ -287,7 +301,6 @@
     "EMAIL": "mail",
     "MOBILE_NO": "phone-cal"
   },
-
   "PRESS_BACK": "Press back again to exit",
   "OTP_VERIFICATION": "OTP Verification",
   "WE_HAVE_SENT": "We have sent an OTP to verify your email.",
@@ -357,7 +370,6 @@
   "APP_USAGE": "How would you like to use your app?",
   "NOTE": "Please note: Even in offline mode, a network connection is required initially to complete the login process and load essential data.",
   "REFER_EARN": "Friends don’t let friends travel unprepared—refer them to TourKokan and get rewarded for every new journey started!",
-
   "SETTINGS": {
     "TITLE": "Settings",
     "PREFERENCES": "Preferences",
@@ -379,15 +391,12 @@
     "COMING_SOON_MESSAGE": "This feature is under development and will be available in the next update.",
     "GOT_IT": "Got it"
   },
-
   "PRIVACY_POLICY_SCREEN": {
     "TITLE": "Privacy Policy"
   },
-
   "TERMS_SCREEN": {
     "TITLE": "Terms of Service"
   },
-
   "EMERGENCY_SCREEN": {
     "TITLE": "🚨 Emergency",
     "SUBTITLE": "Quick access to emergency services",
@@ -405,7 +414,6 @@
     "TOURIST_HELPLINE": "Tourist Helpline",
     "DISASTER_MGMT": "Disaster Mgmt"
   },
-
   "CATEGORIES_SCREEN": {
     "TITLE": "Categories",
     "NO_CATEGORIES": "No categories found",
@@ -413,7 +421,6 @@
     "OFFLINE_BANNER": "No internet connection. Showing offline data.",
     "PLACES": "places"
   },
-
   "CONTACT_US_SCREEN": {
     "TITLE": "💬 Contact Us",
     "SEND_MESSAGE": "Send us a message",
@@ -431,7 +438,6 @@
     "ERR_MESSAGE_REQUIRED": "Message is required",
     "ERR_MESSAGE_SHORT": "Message must be at least 10 characters"
   },
-
   "QUERIES_SCREEN": {
     "TITLE": "💬 Contact Queries",
     "SUBTITLE": "Manage all user queries",
@@ -452,7 +458,6 @@
     "SUPPORT": "TourKokan Support",
     "LOADING_MORE": "Loading more..."
   },
-
   "DRAWER": {
     "HOME": "Home",
     "EMERGENCY": "Emergency",
@@ -463,9 +468,10 @@
     "HELP_CENTER": "Help Center",
     "CHECK_UPDATE": "Check for Update",
     "TAGLINE": "Sun, Sand & Serenity",
-    "FOOTER": "Designed and Developed by Probyte Solution LLP."
+    "FOOTER": "Designed and Developed by Probyte Solution LLP.",
+    "MARKETPLACE": "Marketplace",
+    "SELL": "Sell your business"
   },
-
   "HELP_CENTER": {
     "TITLE": "Help Center",
     "SUBTITLE": "Find answers to common questions",
@@ -474,7 +480,6 @@
     "CONTACT_BTN": "Contact Us",
     "EMAIL_BTN": "Email Us"
   },
-
   "UPDATE_POPUP": {
     "UPDATE_TITLE": "Update Available",
     "UPTODATE_TITLE": "You're Up to Date!",
@@ -484,7 +489,6 @@
     "UPDATE_NOW": "Update Now",
     "GOT_IT": "Got it"
   },
-
   "EDIT_PROFILE": {
     "TITLE": "Edit Profile",
     "CHANGE_PHOTO": "Change Photo",
@@ -509,7 +513,6 @@
     "SAVE_CHANGES": "Save Changes",
     "OFFLINE_NOTICE": "You are offline. Switch to online mode to save changes."
   },
-
   "PROFILE_SCREEN": {
     "MEMBER_SINCE": "Member since",
     "YOUR_LOCATION": "Your Location",
@@ -543,9 +546,10 @@
     "MY_SITES_DESC": "Manage your submitted places",
     "MY_EVENTS": "My Events",
     "MY_EVENTS_DESC": "View and manage your events",
-    "EDIT_PROFILE_DESC": "Update your personal info"
+    "EDIT_PROFILE_DESC": "Update your personal info",
+    "MY_ENQUIRIES": "My enquiries",
+    "MY_ENQUIRIES_DESC": "Listings you've contacted"
   },
-
   "EVENTS_LIST": {
     "TITLE": "Events",
     "UPCOMING": "upcoming",
@@ -606,7 +610,6 @@
     "OFFLINE_TITLE": "Offline Mode",
     "OFFLINE_DESC": "Browse cached content offline"
   },
-
   "SEARCH_SCREEN": {
     "PLACEHOLDER": "Search places, beaches, forts...",
     "SEARCH_IN": "Search in Categories",
@@ -638,7 +641,6 @@
     "MAP_STREET_VIEW": "360° Street View",
     "MAP_LOADING": "Loading satellite map..."
   },
-
   "ABOUT_SCREEN": {
     "TAGLINE": "Where the coast tells stories",
     "WELCOME_TITLE": "Welcome to Tourkokan",
@@ -676,7 +678,6 @@
     "EMPOWERING": "Empowering local businesses • Preserving authentic culture",
     "SHARE_MSG": "Explore the beautiful Kokan region with Tourkokan! 🏖️ Download the app and start your journey."
   },
-
   "MSRTC_SCREEN": {
     "TITLE": "MSRTC Bus Routes",
     "SUBTITLE": "Search routes across 8 talukas",
@@ -694,7 +695,6 @@
     "ROUTE_COUNT": "routes found",
     "OFFLINE_MSG": "You are offline. Showing cached data."
   },
-
   "BUS_ROUTE_SCREEN": {
     "TITLE": "Bus Routes",
     "ROUTES_AVAILABLE": "routes available",
@@ -713,7 +713,6 @@
     "COMING_SOON_NOTE": "This feature is coming soon",
     "GOT_IT": "Got It"
   },
-
   "ALL_ROUTES_SCREEN": {
     "ROUTES_AVAILABLE": "routes available",
     "NO_ROUTES": "No routes found",
@@ -724,7 +723,6 @@
     "OFFLINE_MSG": "You are offline. Showing cached data.",
     "LOADING_MORE": "Loading more..."
   },
-
   "ROUTES_LIST_SCREEN": {
     "TITLE": "Route Stops",
     "STOPS_COUNT": "stops",
@@ -735,7 +733,6 @@
     "NO_STOPS_SUB": "This route has no stop data",
     "CONTACT_BTN": "Contact"
   },
-
   "GALLERY_SCREEN": {
     "TITLE": "Photo Gallery",
     "SUBTITLE": "Explore beautiful Konkan moments",
@@ -745,7 +742,6 @@
     "EMPTY_TITLE": "No photos found",
     "EMPTY_SUB": "Try a different search term"
   },
-
   "CREATE_EVENT": {
     "TITLE": "Create Event",
     "TITLE_REQUIRED": "Event title is required.",
@@ -773,7 +769,6 @@
     "EDIT_RESUBMIT": "Edit & Resubmit",
     "EDIT": "Edit"
   },
-
   "UPDATE_EVENT": {
     "TITLE": "Edit Event",
     "SAVE_BTN": "Save Changes",
@@ -813,7 +808,48 @@
     "OFFLINE_DATA": "Showing cached data",
     "SEE_ALL_VILLAGES": "See all villages",
     "AREA": "Area",
-    "LOADING": "Loading..."
+    "LOADING": "Loading...",
+    "ABOUT": "About",
+    "CALL": "Call",
+    "DIRECTIONS": "Directions",
+    "WHATSAPP": "WhatsApp",
+    "ENQUIRE": "Enquire on WhatsApp",
+    "TRENDING_NEARBY": "Trending nearby",
+    "HOT_PLACES": "Hot places",
+    "SPONSORED": "Sponsored",
+    "AD": "Ad",
+    "EVENTS": "Events",
+    "EVENTS_NEAR": "Events near here",
+    "ALL_EVENTS": "All events",
+    "EVENTS_AT": "Events at {{name}}",
+    "EVENTS_CTA": "Tap to view & join upcoming events",
+    "HOW_TO_REACH": "How to reach",
+    "FIND_BUSES": "Find buses",
+    "SEE_ALL": "See all",
+    "WRITE": "Write",
+    "OFFERINGS_MENU": "On the menu",
+    "OFFERINGS_ROOMS": "Rooms",
+    "OFFERINGS_TRIPS": "Packages",
+    "OFFERINGS": "What we offer",
+    "CALL_OFFICE": "Call office",
+    "OPEN_MAP": "Open map",
+    "AREA_TALUKA": "Area / Taluka",
+    "RATE_THIS": "Rate this place",
+    "RATE_HINT": "Tap stars to rate",
+    "WRITE_REVIEW": "Write a review",
+    "NO_REVIEWS": "No reviews yet. Be the first!",
+    "VERIFIED": "Verified",
+    "TRAVELER": "Traveler",
+    "REVIEWS_COUNT": "{{count}} reviews",
+    "HOT": "HOT",
+    "MEMBERS_ONLY": "Members only",
+    "MEMBERS_ONLY_MSG": "Please register or login to like, rate and comment on places.",
+    "LOGIN_REGISTER": "Login / Register",
+    "CONTINUE_GUEST": "Continue as guest",
+    "PHOTOS_LABEL": "photos",
+    "REVIEWS_LABEL": "reviews",
+    "VILLAGES_LABEL": "villages",
+    "PLACE_LABEL": "place"
   },
   "VENDOR": {
     "NOT_VENDOR_TITLE": "Vendor Access Required",
@@ -838,5 +874,168 @@
   "ORIENTATION_NOTICE": {
     "TITLE": "Please Rotate Your Device",
     "MESSAGE": "For the best experience, please use the app in vertical (portrait) mode."
+  },
+  "MARKETPLACE": {
+    "ALL": "All",
+    "GO_BACK": "Go back",
+    "CONTINUE": "Continue",
+    "DONE": "Done",
+    "CANCEL": "Cancel",
+    "DELETE": "Delete",
+    "ADD": "Add",
+    "COVER": "Cover",
+    "YES": "Yes",
+    "NO": "No",
+    "ADD_PRODUCT": "Add product",
+    "EXPLORE_KOKAN": "Explore Kokan",
+    "SEARCH_PH": "Rooms, thali, scuba, mangoes…",
+    "GROUP_STAYS": "Stays",
+    "GROUP_FOOD": "Food",
+    "GROUP_EXPERIENCES": "Experiences",
+    "GROUP_SHOP": "Shop",
+    "GROUP_SERVICES": "Services",
+    "NO_PRODUCTS": "No products found",
+    "LOCAL_BUSINESSES": "Local businesses",
+    "OUTLETS": "Outlets",
+    "LISTINGS": "Listings",
+    "RATING": "Rating",
+    "CATALOG": "Catalog",
+    "OUTLETS_COUNT": "{{count}} outlets",
+    "LISTINGS_COUNT": "{{count}} listings",
+    "KM_AWAY": "{{km}} km",
+    "PIN": "PIN {{code}}",
+    "NO_BUSINESSES": "No businesses yet",
+    "BUSINESS_UNAVAILABLE": "This business is not available.",
+    "YOUR_BUSINESS": "Your business",
+    "ADD_BUSINESS": "Add your business",
+    "ADD_FIRST_BUSINESS": "Add your first business",
+    "MY_SITES": "My sites",
+    "LEADS_30D": "Leads · last 30 days",
+    "ENQUIRIES_SENT": "Enquiries buyers sent you",
+    "VIEWS": "Views",
+    "CONVERSION": "Conversion",
+    "MY_PRODUCTS": "My products",
+    "LEADS": "Leads",
+    "PLAN": "Plan",
+    "RECENT_ENQUIRIES": "Recent enquiries",
+    "NO_ENQUIRIES": "No enquiries yet",
+    "LEAD_CALL": "Call",
+    "LEAD_WHATSAPP": "WhatsApp",
+    "LEAD_DIRECTIONS": "Directions",
+    "LEAD_ENQUIRY": "Enquiry",
+    "ALL_SITES": "All sites",
+    "STATUS_LIVE": "Live",
+    "STATUS_PENDING": "Pending",
+    "STATUS_DRAFT": "Draft",
+    "STATUS_REJECTED": "Rejected",
+    "VIEWS_COUNT": "{{count}} views",
+    "LEADS_COUNT": "{{count}} leads",
+    "NOTHING_HERE": "Nothing here yet",
+    "STEP_BASICS": "Basics",
+    "STEP_DETAILS": "Details",
+    "STEP_PHOTOS": "Photos",
+    "STEP_REVIEW": "Review",
+    "NEW_LISTING": "New listing",
+    "SELLING_FROM": "Selling from",
+    "NO_OUTLETS_ADD": "No outlets yet — add your business first.",
+    "CATEGORY": "Category",
+    "CATS_RETRY": "Couldn't load categories. Tap to retry.",
+    "NO_CATS": "No categories available for this outlet yet.",
+    "PICK_OUTLET": "Pick an outlet first.",
+    "PRODUCT_NAME": "Product name *",
+    "PRODUCT_NAME_PH": "e.g. Deluxe Sea View Room",
+    "DESCRIPTION": "Description",
+    "DESCRIPTION_PH": "At least 20 characters…",
+    "BASE_PRICE": "Base price *",
+    "UNIT_ENTITY": "Unit / entity",
+    "CATEGORY_DETAILS": "{{name}} details",
+    "NO_EXTRA_DETAILS": "This category needs no extra details.",
+    "PHOTOS_HINT": "Photos · first is the cover",
+    "PRICE": "Price",
+    "DETAILS": "Details",
+    "PHOTOS": "Photos",
+    "ATTRS_SET": "{{count}} set",
+    "SUBMIT_NOTE": "Submitting sends it to review. Draft → Pending → Live.",
+    "SUBMIT_REVIEW": "Submit for review",
+    "SAVE_FAIL_TITLE": "Could not save",
+    "TRY_AGAIN": "Please try again.",
+    "SUBMITTED_TITLE": "Submitted",
+    "SUBMITTED_MSG": "Your listing is under review. Add another for this outlet?",
+    "ADD_ANOTHER": "Add another",
+    "UNITS": {
+      "night": "night",
+      "person": "person",
+      "plate": "plate",
+      "kg": "kg",
+      "piece": "piece",
+      "dozen": "dozen",
+      "hour": "hour",
+      "package": "package"
+    },
+    "LISTING_UNAVAILABLE": "This listing is no longer available.",
+    "RATINGS_COUNT": "{{count}} ratings",
+    "ABOUT": "About",
+    "ENQUIRE": "Enquire",
+    "WHATSAPP_MSG": "Hi, I'm interested in \"{{name}}\" on TourKokan.",
+    "ENQUIRIES": "Enquiries",
+    "MANAGE_LISTING": "Manage listing",
+    "LIVE_VISIBLE": "Live & visible",
+    "PAUSED": "Paused",
+    "LIVE_SUB": "Buyers can see and enquire",
+    "PAUSED_SUB": "Hidden from buyers",
+    "PERFORMANCE": "Performance",
+    "EDIT_NOTE": "Editing an approved listing sends it back to review.",
+    "DELETE_LISTING": "Delete listing",
+    "DELETE_TITLE": "Delete listing?",
+    "DELETE_MSG": "This removes it from your catalog.",
+    "ANALYTICS": "Analytics",
+    "CONV": "Conv.",
+    "VIEWS_PER_DAY": "Views per day",
+    "LEADS_BY_CHANNEL": "Leads by channel",
+    "PLAN_LIMITS": "Plan & limits",
+    "YOUR_USAGE": "Your usage",
+    "BUSINESSES": "Businesses",
+    "PRODUCTS": "Products",
+    "UNLIMITED": "Unlimited",
+    "USAGE_OF": "{{used}} of {{limit}}",
+    "PLANS": "Plans",
+    "CURRENT_PLAN": "Current plan",
+    "CONTACT_SWITCH": "Contact us to switch",
+    "PLAN_NOTE": "Plans are activated by the Tourkokan team. Reach out and we'll move you to the plan that fits.",
+    "EDIT_LISTING": "Edit listing",
+    "SAVE_CHANGES": "Save changes",
+    "UPDATED_TITLE": "Updated",
+    "UPDATED_MSG": "Your changes were saved. Edited listings go back to review.",
+    "VIEW_ANALYTICS": "View analytics",
+    "EDIT": "Edit",
+    "EXISTING_PHOTOS": "Current photos",
+    "SAVED": "Saved",
+    "NO_SAVED": "Nothing saved yet",
+    "REMOVE": "Remove",
+    "REVIEWS": "Reviews",
+    "RATE_THIS": "Rate this",
+    "WRITE_REVIEW": "Write a review…",
+    "REVIEW_PENDING": "Thanks! Your review is awaiting approval.",
+    "RATING_THANKS": "Thanks for rating!",
+    "NO_REVIEWS": "No reviews yet — be the first",
+    "LOGIN_TO_REVIEW": "Please log in to review",
+    "REVIEWER": "Traveler",
+    "MY_ENQUIRIES": "My enquiries",
+    "MY_ENQUIRIES_DESC": "Listings you've contacted",
+    "NO_ENQUIRIES_SENT": "You haven't contacted any listings yet",
+    "ENQUIRED_ON": "Sent {{when}}",
+    "VIEW_PLANS": "View plan details on our website",
+    "UPGRADE_ON_WEB": "Upgrade on web",
+    "BT_DATE_RANGE": "Bookable · date range",
+    "BT_SLOT": "Bookable · time slot",
+    "BT_QUANTITY": "By quantity",
+    "BT_NONE": "Enquiry only",
+    "CTA_AVAILABILITY": "Check availability",
+    "CTA_SLOT": "Book a slot",
+    "CTA_ORDER": "Enquire to order",
+    "CTA_ENQUIRE": "Enquire on WhatsApp",
+    "SOLD_BY": "Sold by",
+    "STOCK": "Stock",
+    "MORE_FROM": "More from this business"
   }
 }

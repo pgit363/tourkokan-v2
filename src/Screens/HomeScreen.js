@@ -43,7 +43,8 @@ const log = createLogger('HomeScreen');
 import TopComponent from '../Components/Common/TopComponent';
 import TopComponentSkeleton from '../Components/Common/TopComponentSkeleton';
 import HomeScreenSkeleton from '../Components/Common/HomeScreenSkeleton';
-import Banner from '../Components/Customs/Banner';
+import Banner, {footerBannerHeight} from '../Components/Customs/Banner';
+import CategoryArt from '../Components/Common/CategoryArt';
 import CheckNet from '../Components/Common/CheckNet';
 import Popup from '../Components/Common/Popup';
 import BottomSheet from '../Components/Customs/BottomSheet';
@@ -56,6 +57,10 @@ import {
   getFromStorage,
   saveToStorage,
 } from '../Services/Api/CommonServices';
+import {
+  recordBannerImpression,
+  recordBannerClick,
+} from '../Services/Api/BannerServices';
 import {
   saveAccess_token,
   setDestination,
@@ -91,7 +96,14 @@ const C = {
 };
 
 const {width: SW} = Dimensions.get('window');
-const BANNER_HEIGHT = Math.round(SW / 1.35);
+// Hero creatives are supplied as 2:1 landscape (1200x600) with ~6.7% safe
+// padding on the tightest (left) edge. The container runs slightly taller at
+// 1.8:1 so the band has presence and the image fills it edge-to-edge; `cover`
+// then trims 5% per side, which stays inside that safe area.
+// Do NOT go below ~1.75 here — past that the crop eats into the ad's text.
+// (The original 1.35 ratio cut ~32% off the ad width — 16% per edge.)
+const HERO_RATIO = 1.8;
+const BANNER_HEIGHT = Math.round(SW / HERO_RATIO);
 const RADIUS = 18;
 
 
@@ -101,7 +113,6 @@ const RADIUS = 18;
 const TalukaCard = ({item, onPress, cardWidth, imgHeight}) => {
   // Tablet: moderate bump for the card's fixed-px text and heart.
   const {isTablet, ms} = useResponsive();
-  const fallback = require('../Assets/Images/no-image.png');
   const uri = item.image
     ? `${AWS_URL}${item.image}`
     : item.gallery?.[0]?.path
@@ -115,11 +126,16 @@ const TalukaCard = ({item, onPress, cardWidth, imgHeight}) => {
       onPress={onPress}
       activeOpacity={0.85}>
       <View style={[ts.talukaImgWrap, imgHeight && {height: imgHeight}]}>
-        <CachedImage
-          source={uri ? {uri} : fallback}
-          style={ts.talukaImg}
-          resizeMode="cover"
-        />
+        {uri ? (
+          <CachedImage source={{uri}} style={ts.talukaImg} resizeMode="cover" />
+        ) : (
+          // No photo → themed category art. This section is talukas, so fall
+          // back to the city theme when the row carries no categories.
+          <CategoryArt
+            categories={item.categories?.length ? item.categories : [{code: 'city'}]}
+            style={ts.talukaImg}
+          />
+        )}
         {/* Favourite heart overlay */}
         <View
           style={[
@@ -176,7 +192,7 @@ const SpotCard = ({item}) => (
 );
 
 // Ad banner — always shows dashed outline; dynamic banner inside or static placeholder
-const AdBanner = ({bannerImages, label, size, bannerHeight}) => {
+const AdBanner = ({bannerImages, label, size, bannerHeight, minHeight}) => {
   const {width: winW} = useWindowDimensions();
   // inner width = screen minus sectionPad horizontal padding (20 × 2)
   const adBannerW = winW - 40;
@@ -189,6 +205,7 @@ const AdBanner = ({bannerImages, label, size, bannerHeight}) => {
         <Banner
           bannerImages={bannerImages}
           width={adBannerW}
+          minHeight={minHeight}
           style={{borderRadius: RADIUS - 2, overflow: 'hidden'}}
         />
       ) : (
@@ -243,7 +260,7 @@ const HomeScreen = ({navigation, route, ...props}) => {
   // Hero: keep phone ratio on phones; cap height on tablets so it isn't a
   // ~600dp stretched/cropped band.
   const heroHeight = isTablet
-    ? Math.min(Math.round(rWidth / 2.4), 380)
+    ? Math.min(Math.round(rWidth / HERO_RATIO), 380)
     : BANNER_HEIGHT;
   // Bigger horizontal cards on tablet (keeps the carousel layout), sized
   // proportionally to the usable content width like the ad banner.
@@ -584,9 +601,11 @@ const HomeScreen = ({navigation, route, ...props}) => {
         }
 
         if (res.data.data.banners?.APP_SPLASH?.length > 0 && !splashShownRef.current && !isUpdatePendingRef.current) {
-          setSplashBanner(res.data.data.banners.APP_SPLASH);
+          const splash = res.data.data.banners.APP_SPLASH;
+          setSplashBanner(splash);
           setShowSplash(true);
           splashShownRef.current = true;
+          if (splash[0]?.id) recordBannerImpression(splash[0].id, 'APP_SPLASH');
         }
 
         setRefreshing(false);
@@ -703,6 +722,9 @@ const HomeScreen = ({navigation, route, ...props}) => {
             bannerImages={bannerObject.HOME_HERO}
             width={rWidth}
             style={{height: heroHeight}}
+            // fill the band edge-to-edge; the 1.8:1 container keeps the trim
+            // within the creative's safe area (see HERO_RATIO)
+            resizeMode="cover"
           />
         ) : (
           <View style={[s.heroPlaceholder, {height: heroHeight}]}>
@@ -820,9 +842,10 @@ const HomeScreen = ({navigation, route, ...props}) => {
         bannerImages={bannerObject?.HOME_FOOTER}
         label={t('HOME.AD_STANDARD_LABEL')}
         size="Standard Ad · Tap to advertise"
+        minHeight={footerBannerHeight(rWidth - 40)}
       />
     </View>
-  ), [bannerObject, t, isTablet]);
+  ), [bannerObject, t, isTablet, rWidth]);
 
   // ── Render ──
   return (
@@ -960,6 +983,7 @@ const HomeScreen = ({navigation, route, ...props}) => {
             <TouchableOpacity
               activeOpacity={1}
               onPress={() => {
+                if (splashBanner[0]?.id) recordBannerClick(splashBanner[0].id, 'APP_SPLASH');
                 if (splashBanner[0].redirect_url) {
                   Linking.openURL(splashBanner[0].redirect_url);
                   setShowSplash(false);
@@ -968,9 +992,13 @@ const HomeScreen = ({navigation, route, ...props}) => {
               style={{width: '100%', height: '100%'}}>
               <Image
                 source={{
-                  uri: splashBanner[0].image?.startsWith('http')
-                    ? splashBanner[0].image
-                    : `${AWS_URL}${splashBanner[0].image}`,
+                  // honour the Marathi creative when the advertiser supplied one
+                  uri: (() => {
+                    const img =
+                      (i18n.language === 'mr' && splashBanner[0].mr_image) ||
+                      splashBanner[0].image;
+                    return img?.startsWith('http') ? img : `${AWS_URL}${img}`;
+                  })(),
                 }}
                 style={s.splashImg}
               />

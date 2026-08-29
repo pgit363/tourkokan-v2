@@ -1,4 +1,5 @@
 import React, {useEffect, useState, useRef, useCallback} from 'react';
+import {useFocusEffect} from '@react-navigation/native';
 import {
   View,
   Text,
@@ -32,7 +33,7 @@ import {comnPost} from '../../Services/Api/CommonServices';
 import {navigateTo} from '../../Services/CommonMethods';
 import {useGuestGate, isGuestUser, GUEST_KEYS, incrementGuestCount} from '../../Components/Common/GuestGateModal';
 import {useConnectivityGate} from '../../Components/Common/useConnectivityGate';
-import ImagePlaceholder from '../../Components/Common/ImagePlaceholder';
+import CategoryArt from '../../Components/Common/CategoryArt';
 import {createLogger} from '../../Services/Logger';
 import {useResponsive} from '../../Services/responsive';
 
@@ -124,13 +125,15 @@ const CityPlaceSearch = ({navigation, route}) => {
   const mapCardW = isTablet ? Math.min(winW - 160, 480) : winW - 80;
 
   // ── Back handler ──────────────────────────────────────────────────────────
-  useEffect(() => {
-    const handler = BackHandler.addEventListener('hardwareBackPress', () => {
-      navigation.goBack();
-      return true;
-    });
-    return () => handler.remove();
-  }, [navigation]);
+  useFocusEffect(
+    useCallback(() => {
+      const handler = BackHandler.addEventListener('hardwareBackPress', () => {
+        navigation.goBack();
+        return true;
+      });
+      return () => handler.remove();
+    }, [navigation]),
+  );
 
   // pageStateRef is updated directly at each state-setting site (not via useEffect)
   // to avoid the race where onEndReached fires between render and useEffect execution.
@@ -492,11 +495,9 @@ const CityPlaceSearch = ({navigation, route}) => {
           {uri ? (
             <Image source={{uri}} style={StyleSheet.absoluteFill} resizeMode="cover" />
           ) : (
-            <ImagePlaceholder
-              style={StyleSheet.absoluteFill}
-              icon="image-outline"
-              iconSize={isTablet ? 56 : 44}
-            />
+            // Site results carry categories — show the category's own art
+            // rather than one generic ocean plate for every result.
+            <CategoryArt categories={item.categories} style={StyleSheet.absoluteFill} />
           )}
           <View style={s.resultBadge}>
             <Text style={s.resultBadgeText}>{getCategoryName(item)}</Text>

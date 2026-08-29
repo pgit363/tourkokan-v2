@@ -18,7 +18,7 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import {useTranslation} from 'react-i18next';
 import {backPage, checkLogin, goBackHandler, navigateTo} from '../../Services/CommonMethods';
 import {comnPost, getFromStorage} from '../../Services/Api/CommonServices';
-import Banner from '../../Components/Customs/Banner';
+import Banner, {footerBannerHeight} from '../../Components/Customs/Banner';
 import {useRoutesOfflineGate} from '../../Components/Common/RoutesOfflineGate';
 import {createLogger} from '../../Services/Logger';
 import {scaleFontSizes} from '../../Services/responsive';
@@ -422,6 +422,7 @@ const RoutesList = ({navigation, route}) => {
           <Banner
             bannerImages={bannerObject.ROUTE_DETAIL_FOOTER}
             width={bannerW}
+            minHeight={footerBannerHeight(bannerW)}
           />
         </View>
       )}

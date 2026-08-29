@@ -764,15 +764,19 @@ const ProfileView = ({navigation, ...props}) => {
               </View>
 
               {isVendor ? (
-                <View style={s.vendorApprovedCard}>
+                <TouchableOpacity
+                  style={s.vendorApprovedCard}
+                  activeOpacity={0.85}
+                  onPress={() => navigation.navigate(STRING.SCREEN.VENDOR_DASHBOARD)}>
                   <View style={s.vendorApprovedIconWrap}>
-                    <Ionicons name="checkmark-circle" size={28} color="#059669" />
+                    <Ionicons name="storefront" size={26} color="#059669" />
                   </View>
                   <View style={s.vendorApprovedText}>
                     <Text style={s.vendorApprovedTitle}>{t('VENDOR.ALREADY_VENDOR')}</Text>
                     <Text style={s.vendorApprovedDesc}>{t('VENDOR.ALREADY_VENDOR_DESC')}</Text>
                   </View>
-                </View>
+                  <Ionicons name="chevron-forward" size={18} color="#059669" />
+                </TouchableOpacity>
               ) : vendorRequest?.status === 'pending' ? (
                 <View style={s.vendorPendingCard}>
                   <Ionicons name="time-outline" size={20} color="#D97706" />
@@ -927,20 +931,22 @@ const ProfileView = ({navigation, ...props}) => {
             </TouchableOpacity>
           </View>
 
-          {/* My Sites */}
+          {/* My Sites moved into the vendor dashboard (Account Access → dashboard) */}
+
+          {/* My Enquiries (marketplace — buyer-side lead history) */}
           <TouchableOpacity
             style={s.menuCard}
             onPress={async () => {
               if (await isGuestUser()) { setIsGuestPopup(true); return; }
-              navigation.navigate(STRING.SCREEN.MY_SUBMISSIONS);
+              navigation.navigate(STRING.SCREEN.MY_ENQUIRIES);
             }}
             activeOpacity={0.85}>
-            <View style={[s.menuCardIcon, {backgroundColor: '#E0F4F7'}]}>
-              <Text style={{fontSize: 20}}>🏨</Text>
+            <View style={[s.menuCardIcon, {backgroundColor: '#E9F5F7'}]}>
+              <Text style={{fontSize: 20}}>📨</Text>
             </View>
             <View style={s.menuCardText}>
-              <Text style={s.menuCardTitle}>{t('PROFILE_SCREEN.MY_SITES')}</Text>
-              <Text style={s.menuCardDesc}>{t('PROFILE_SCREEN.MY_SITES_DESC')}</Text>
+              <Text style={s.menuCardTitle}>{t('PROFILE_SCREEN.MY_ENQUIRIES')}</Text>
+              <Text style={s.menuCardDesc}>{t('PROFILE_SCREEN.MY_ENQUIRIES_DESC')}</Text>
             </View>
             <Ionicons name="chevron-forward" size={18} color={C.oceanMid} />
           </TouchableOpacity>

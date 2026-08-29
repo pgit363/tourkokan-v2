@@ -4,6 +4,7 @@ import styles from './Styles';
 import Path from '../../Services/Api/BaseUrl';
 import GlobalText from '../Customs/Text';
 import ComingSoon from '../Common/ComingSoon';
+import CategoryArt from '../Common/CategoryArt';
 import Octicons from 'react-native-vector-icons/Octicons';
 import COLOR from '../../Services/Constants/COLORS';
 import DIMENSIONS from '../../Services/Constants/DIMENSIONS';
@@ -108,15 +109,17 @@ const CityCard = ({data, reload, navigation, addComment, onClick}) => {
           resizeMode="cover"
         />
       ) : (
-        <ImageBackground
-          source={require('../../Assets/Images/no-image.png')}
-          style={
+        // No photo → themed category art instead of the generic
+        // "image not available" plate.
+        <CategoryArt
+          categories={data.categories}
+          style={[
             cardType == 'city'
               ? [styles.cityImage, {width: cardW}]
-              : styles.placeImage
-          }
-          imageStyle={[styles.cityImageStyle, {height: cardW / 1.19}]}
-          resizeMode="cover"
+              : styles.placeImage,
+            styles.cityImageStyle,
+            {height: cardW / 1.19},
+          ]}
         />
       )}
       <View style={{alignItems: 'flex-end'}}>

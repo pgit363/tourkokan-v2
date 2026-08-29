@@ -9,7 +9,6 @@
   "COMPANION": "महाराष्ट्राच्या किनारी रत्नासाठी तुमचा परम सहचर.",
   "WELCOME": "Welcome to",
   "APP_VERSION": "2.0.0",
-
   "BUTTON": {
     "YES": "होय",
     "NO": "नाही",
@@ -122,7 +121,22 @@
     "EVENT_DETAIL": "EventDetail",
     "CREATE_EVENT": "CreateEvent",
     "UPDATE_EVENT": "UpdateEvent",
-    "MY_EVENTS": "MyEvents"
+    "MY_EVENTS": "MyEvents",
+    "MARKETPLACE": "Marketplace",
+    "PRODUCT_DETAIL": "ProductDetail",
+    "VENDORS": "Vendors",
+    "VENDOR_PROFILE": "VendorProfile",
+    "BECOME_VENDOR": "BecomeVendor",
+    "ADD_BUSINESS": "AddBusiness",
+    "VENDOR_DASHBOARD": "VendorDashboard",
+    "MY_PRODUCTS": "MyProducts",
+    "ADD_PRODUCT": "AddProduct",
+    "MANAGE_PRODUCT": "ManageProduct",
+    "MY_LEADS": "MyLeads",
+    "PRODUCT_ANALYTICS": "ProductAnalytics",
+    "SUBSCRIPTION": "Subscription",
+    "MARKET_FAVOURITES": "MarketFavourites",
+    "MY_ENQUIRIES": "MyEnquiries"
   },
   "STORAGE": {
     "ACCESS_TOKEN": "access_token",
@@ -290,7 +304,6 @@
     "EMAIL": "mail",
     "MOBILE_NO": "phone-cal"
   },
-
   "PRESS_BACK": "बाहेर पडण्यासाठी पुन्हा दाबा",
   "OTP_VERIFICATION": "OTP पडताळणी",
   "WE_HAVE_SENT": "तुमच्या ईमेलची पडताळणी करण्यासाठी आम्ही एक OTP पाठवला आहे.",
@@ -360,7 +373,6 @@
   "APP_USAGE": "तुम्हाला तुमचा ॲप कसा वापरायचा आहे?",
   "NOTE": "कृपया लक्षात ठेवा: ऑफलाइन मोडमध्ये देखील, लॉगिन प्रक्रिया पूर्ण करण्यासाठी आणि आवश्यक डेटा लोड करण्यासाठी सुरुवातीला नेटवर्क कनेक्शन आवश्यक आहे.",
   "REFER_EARN": "मित्रांना कधीही प्रवासाची तयारी न करता सोडू नका—त्यांना TourKokan वापरायला सांगा आणि प्रत्येक नवीन प्रवासासाठी बक्षिसे मिळवा!",
-
   "SETTINGS": {
     "TITLE": "सेटिंग्ज",
     "PREFERENCES": "प्राधान्ये",
@@ -382,15 +394,12 @@
     "COMING_SOON_MESSAGE": "हे वैशिष्ट्य विकासाधीन आहे आणि पुढील अपडेटमध्ये उपलब्ध होईल.",
     "GOT_IT": "समजले"
   },
-
   "PRIVACY_POLICY_SCREEN": {
     "TITLE": "गोपनीयता धोरण"
   },
-
   "TERMS_SCREEN": {
     "TITLE": "सेवा अटी"
   },
-
   "EMERGENCY_SCREEN": {
     "TITLE": "🚨 आपत्कालीन",
     "SUBTITLE": "आपत्कालीन सेवांसाठी त्वरित प्रवेश",
@@ -408,7 +417,6 @@
     "TOURIST_HELPLINE": "पर्यटक हेल्पलाइन",
     "DISASTER_MGMT": "आपत्ती व्यवस्थापन"
   },
-
   "CATEGORIES_SCREEN": {
     "TITLE": "श्रेणी",
     "NO_CATEGORIES": "कोणत्याही श्रेणी आढळल्या नाहीत",
@@ -416,7 +424,6 @@
     "OFFLINE_BANNER": "इंटरनेट कनेक्शन नाही. ऑफलाइन डेटा दाखवत आहे.",
     "PLACES": "ठिकाणे"
   },
-
   "CONTACT_US_SCREEN": {
     "TITLE": "💬 आमच्याशी संपर्क करा",
     "SEND_MESSAGE": "आम्हाला संदेश पाठवा",
@@ -434,7 +441,6 @@
     "ERR_MESSAGE_REQUIRED": "संदेश आवश्यक आहे",
     "ERR_MESSAGE_SHORT": "संदेश किमान 10 अक्षरांचा असणे आवश्यक आहे"
   },
-
   "QUERIES_SCREEN": {
     "TITLE": "💬 संपर्क प्रश्न",
     "SUBTITLE": "सर्व वापरकर्त्यांचे प्रश्न व्यवस्थापित करा",
@@ -455,7 +461,6 @@
     "SUPPORT": "टूरकोकण सपोर्ट",
     "LOADING_MORE": "अधिक लोड करत आहे..."
   },
-
   "DRAWER": {
     "HOME": "मुखपृष्ठ",
     "EMERGENCY": "आपत्कालीन",
@@ -466,9 +471,10 @@
     "HELP_CENTER": "मदत केंद्र",
     "CHECK_UPDATE": "अपडेट तपासा",
     "TAGLINE": "सूर्य, वाळू आणि शांती",
-    "FOOTER": "Probyte Solution LLP द्वारे डिझाइन आणि विकसित."
+    "FOOTER": "Probyte Solution LLP द्वारे डिझाइन आणि विकसित.",
+    "MARKETPLACE": "मार्केटप्लेस",
+    "SELL": "तुमचा व्यवसाय विका"
   },
-
   "HELP_CENTER": {
     "TITLE": "मदत केंद्र",
     "SUBTITLE": "सामान्य प्रश्नांची उत्तरे शोधा",
@@ -477,7 +483,6 @@
     "CONTACT_BTN": "संपर्क करा",
     "EMAIL_BTN": "ईमेल करा"
   },
-
   "UPDATE_POPUP": {
     "UPDATE_TITLE": "अपडेट उपलब्ध",
     "UPTODATE_TITLE": "तुम्ही अद्ययावत आहात!",
@@ -487,7 +492,6 @@
     "UPDATE_NOW": "आता अपडेट करा",
     "GOT_IT": "समजले"
   },
-
   "EDIT_PROFILE": {
     "TITLE": "प्रोफाईल संपादित करा",
     "CHANGE_PHOTO": "फोटो बदला",
@@ -512,7 +516,6 @@
     "SAVE_CHANGES": "बदल जतन करा",
     "OFFLINE_NOTICE": "तुम्ही ऑफलाइन आहात. बदल जतन करण्यासाठी ऑनलाइन मोडवर जा."
   },
-
   "PROFILE_SCREEN": {
     "MEMBER_SINCE": "सदस्य झाल्यापासून",
     "YOUR_LOCATION": "तुमचे स्थान",
@@ -546,9 +549,10 @@
     "MY_SITES_DESC": "तुम्ही सादर केलेली ठिकाणे व्यवस्थापित करा",
     "MY_EVENTS": "माझे कार्यक्रम",
     "MY_EVENTS_DESC": "आपले कार्यक्रम पाहा आणि व्यवस्थापित करा",
-    "EDIT_PROFILE_DESC": "आपली वैयक्तिक माहिती अपडेट करा"
+    "EDIT_PROFILE_DESC": "आपली वैयक्तिक माहिती अपडेट करा",
+    "MY_ENQUIRIES": "माझ्या चौकशी",
+    "MY_ENQUIRIES_DESC": "तुम्ही संपर्क साधलेल्या नोंदी"
   },
-
   "EVENTS_LIST": {
     "TITLE": "कार्यक्रम",
     "UPCOMING": "येणारे",
@@ -609,7 +613,6 @@
     "OFFLINE_TITLE": "ऑफलाइन मोड",
     "OFFLINE_DESC": "इंटरनेटशिवाय कॅश केलेली सामग्री पहा"
   },
-
   "SEARCH_SCREEN": {
     "PLACEHOLDER": "ठिकाणे, किनारे, किल्ले शोधा...",
     "SEARCH_IN": "श्रेणींमध्ये शोधा",
@@ -641,7 +644,6 @@
     "MAP_STREET_VIEW": "360° स्ट्रीट व्ह्यू",
     "MAP_LOADING": "उपग्रह नकाशा लोड होत आहे..."
   },
-
   "ABOUT_SCREEN": {
     "TAGLINE": "जिथे किनारा कथा सांगतो",
     "WELCOME_TITLE": "टूरकोकणमध्ये आपले स्वागत आहे",
@@ -679,7 +681,6 @@
     "EMPOWERING": "स्थानिक व्यवसायांना प्रोत्साहन • अस्सल संस्कृती जपणे",
     "SHARE_MSG": "टूरकोकणसह सुंदर कोकण प्रदेश एक्सप्लोर करा! 🏖️ अॅप डाउनलोड करा आणि तुमचा प्रवास सुरू करा."
   },
-
   "MSRTC_SCREEN": {
     "TITLE": "MSRTC बस मार्ग",
     "SUBTITLE": "८ तालुक्यांमध्ये मार्ग शोधा",
@@ -697,7 +698,6 @@
     "ROUTE_COUNT": "मार्ग सापडले",
     "OFFLINE_MSG": "तुम्ही ऑफलाइन आहात. कॅश डेटा दाखवत आहे."
   },
-
   "BUS_ROUTE_SCREEN": {
     "TITLE": "बस मार्ग",
     "ROUTES_AVAILABLE": "मार्ग उपलब्ध",
@@ -716,7 +716,6 @@
     "COMING_SOON_NOTE": "हे फीचर लवकरच येणार आहे",
     "GOT_IT": "समजले"
   },
-
   "ALL_ROUTES_SCREEN": {
     "ROUTES_AVAILABLE": "मार्ग उपलब्ध",
     "NO_ROUTES": "कोणते मार्ग सापडले नाहीत",
@@ -727,7 +726,6 @@
     "OFFLINE_MSG": "तुम्ही ऑफलाइन आहात. कॅश डेटा दाखवत आहे.",
     "LOADING_MORE": "अधिक लोड होत आहे..."
   },
-
   "ROUTES_LIST_SCREEN": {
     "TITLE": "मार्गाचे थांबे",
     "STOPS_COUNT": "थांबे",
@@ -738,7 +736,6 @@
     "NO_STOPS_SUB": "या मार्गाचा कोणताही थांबा डेटा नाही",
     "CONTACT_BTN": "संपर्क"
   },
-
   "GALLERY_SCREEN": {
     "TITLE": "फोटो गॅलरी",
     "SUBTITLE": "सुंदर कोकण क्षण एक्सप्लोर करा",
@@ -748,7 +745,6 @@
     "EMPTY_TITLE": "कोणतेही फोटो सापडले नाहीत",
     "EMPTY_SUB": "वेगळ्या शब्दाने शोधा"
   },
-
   "CREATE_EVENT": {
     "TITLE": "Create Event",
     "TITLE_REQUIRED": "Event title is required.",
@@ -776,7 +772,6 @@
     "EDIT_RESUBMIT": "संपादित करा आणि पुन्हा सबमिट करा",
     "EDIT": "संपादित करा"
   },
-
   "UPDATE_EVENT": {
     "TITLE": "Edit Event",
     "SAVE_BTN": "Save Changes",
@@ -816,7 +811,48 @@
     "OFFLINE_DATA": "कॅश केलेला डेटा दाखवत आहे",
     "SEE_ALL_VILLAGES": "सर्व गावे पाहा",
     "AREA": "परिसर",
-    "LOADING": "लोड होत आहे..."
+    "LOADING": "लोड होत आहे...",
+    "ABOUT": "माहिती",
+    "CALL": "कॉल",
+    "DIRECTIONS": "दिशा",
+    "WHATSAPP": "व्हॉट्सॲप",
+    "ENQUIRE": "व्हॉट्सॲपवर चौकशी करा",
+    "TRENDING_NEARBY": "जवळपास ट्रेंडिंग",
+    "HOT_PLACES": "लोकप्रिय ठिकाणे",
+    "SPONSORED": "प्रायोजित",
+    "AD": "जाहिरात",
+    "EVENTS": "कार्यक्रम",
+    "EVENTS_NEAR": "इथले आगामी कार्यक्रम",
+    "ALL_EVENTS": "सर्व कार्यक्रम",
+    "EVENTS_AT": "{{name}} येथील कार्यक्रम",
+    "EVENTS_CTA": "आगामी कार्यक्रम पाहण्यासाठी टॅप करा",
+    "HOW_TO_REACH": "कसे पोहोचाल",
+    "FIND_BUSES": "बस शोधा",
+    "SEE_ALL": "सर्व पहा",
+    "WRITE": "लिहा",
+    "OFFERINGS_MENU": "मेनूवर",
+    "OFFERINGS_ROOMS": "खोल्या",
+    "OFFERINGS_TRIPS": "पॅकेजेस",
+    "OFFERINGS": "आमच्याकडे उपलब्ध",
+    "CALL_OFFICE": "कार्यालयाला कॉल",
+    "OPEN_MAP": "नकाशा उघडा",
+    "AREA_TALUKA": "परिसर / तालुका",
+    "RATE_THIS": "या ठिकाणाला रेटिंग द्या",
+    "RATE_HINT": "रेटिंगसाठी ताऱ्यांवर टॅप करा",
+    "WRITE_REVIEW": "परीक्षण लिहा",
+    "NO_REVIEWS": "अद्याप परीक्षण नाही. पहिले तुम्ही लिहा!",
+    "VERIFIED": "सत्यापित",
+    "TRAVELER": "प्रवासी",
+    "REVIEWS_COUNT": "{{count}} परीक्षणे",
+    "HOT": "हॉट",
+    "MEMBERS_ONLY": "फक्त सदस्यांसाठी",
+    "MEMBERS_ONLY_MSG": "ठिकाणे आवडती करण्यासाठी, रेटिंग व प्रतिक्रिया देण्यासाठी कृपया नोंदणी किंवा लॉगिन करा.",
+    "LOGIN_REGISTER": "लॉगिन / नोंदणी",
+    "CONTINUE_GUEST": "पाहुणे म्हणून पुढे जा",
+    "PHOTOS_LABEL": "फोटो",
+    "REVIEWS_LABEL": "परीक्षणे",
+    "VILLAGES_LABEL": "गावे",
+    "PLACE_LABEL": "ठिकाण"
   },
   "VENDOR": {
     "NOT_VENDOR_TITLE": "विक्रेता प्रवेश आवश्यक",
@@ -841,5 +877,168 @@
   "ORIENTATION_NOTICE": {
     "TITLE": "कृपया तुमचे डिव्हाइस फिरवा",
     "MESSAGE": "उत्तम अनुभवासाठी कृपया अ‍ॅप उभ्या (पोर्ट्रेट) स्थितीत वापरा."
+  },
+  "MARKETPLACE": {
+    "ALL": "सर्व",
+    "GO_BACK": "मागे जा",
+    "CONTINUE": "पुढे",
+    "DONE": "झाले",
+    "CANCEL": "रद्द करा",
+    "DELETE": "हटवा",
+    "ADD": "जोडा",
+    "COVER": "मुख्य फोटो",
+    "YES": "होय",
+    "NO": "नाही",
+    "ADD_PRODUCT": "उत्पादन जोडा",
+    "EXPLORE_KOKAN": "कोकण एक्सप्लोर करा",
+    "SEARCH_PH": "खोल्या, थाळी, स्कूबा, आंबे…",
+    "GROUP_STAYS": "निवास",
+    "GROUP_FOOD": "जेवण",
+    "GROUP_EXPERIENCES": "अनुभव",
+    "GROUP_SHOP": "खरेदी",
+    "GROUP_SERVICES": "सेवा",
+    "NO_PRODUCTS": "कोणतीही उत्पादने मिळाली नाहीत",
+    "LOCAL_BUSINESSES": "स्थानिक व्यवसाय",
+    "OUTLETS": "आउटलेट्स",
+    "LISTINGS": "नोंदी",
+    "RATING": "रेटिंग",
+    "CATALOG": "कॅटलॉग",
+    "OUTLETS_COUNT": "{{count}} आउटलेट्स",
+    "LISTINGS_COUNT": "{{count}} नोंदी",
+    "KM_AWAY": "{{km}} किमी",
+    "PIN": "पिन {{code}}",
+    "NO_BUSINESSES": "अद्याप कोणतेही व्यवसाय नाहीत",
+    "BUSINESS_UNAVAILABLE": "हा व्यवसाय उपलब्ध नाही.",
+    "YOUR_BUSINESS": "तुमचा व्यवसाय",
+    "ADD_BUSINESS": "तुमचा व्यवसाय जोडा",
+    "ADD_FIRST_BUSINESS": "तुमचा पहिला व्यवसाय जोडा",
+    "MY_SITES": "माझी ठिकाणे",
+    "LEADS_30D": "लीड्स · मागील ३० दिवस",
+    "ENQUIRIES_SENT": "खरेदीदारांनी पाठवलेल्या चौकशी",
+    "VIEWS": "पाहणी",
+    "CONVERSION": "रूपांतरण",
+    "MY_PRODUCTS": "माझी उत्पादने",
+    "LEADS": "लीड्स",
+    "PLAN": "योजना",
+    "RECENT_ENQUIRIES": "अलीकडील चौकशी",
+    "NO_ENQUIRIES": "अद्याप कोणतीही चौकशी नाही",
+    "LEAD_CALL": "कॉल",
+    "LEAD_WHATSAPP": "व्हॉट्सॲप",
+    "LEAD_DIRECTIONS": "दिशा",
+    "LEAD_ENQUIRY": "चौकशी",
+    "ALL_SITES": "सर्व ठिकाणे",
+    "STATUS_LIVE": "लाइव्ह",
+    "STATUS_PENDING": "प्रलंबित",
+    "STATUS_DRAFT": "मसुदा",
+    "STATUS_REJECTED": "नाकारले",
+    "VIEWS_COUNT": "{{count}} पाहणी",
+    "LEADS_COUNT": "{{count}} लीड्स",
+    "NOTHING_HERE": "इथे अद्याप काहीही नाही",
+    "STEP_BASICS": "मूलभूत",
+    "STEP_DETAILS": "तपशील",
+    "STEP_PHOTOS": "फोटो",
+    "STEP_REVIEW": "आढावा",
+    "NEW_LISTING": "नवीन नोंद",
+    "SELLING_FROM": "येथून विक्री",
+    "NO_OUTLETS_ADD": "अद्याप आउटलेट नाही — आधी तुमचा व्यवसाय जोडा.",
+    "CATEGORY": "श्रेणी",
+    "CATS_RETRY": "श्रेणी लोड होऊ शकल्या नाहीत. पुन्हा प्रयत्नासाठी टॅप करा.",
+    "NO_CATS": "या आउटलेटसाठी अद्याप कोणतीही श्रेणी उपलब्ध नाही.",
+    "PICK_OUTLET": "आधी आउटलेट निवडा.",
+    "PRODUCT_NAME": "उत्पादनाचे नाव *",
+    "PRODUCT_NAME_PH": "उदा. डिलक्स सी व्ह्यू रूम",
+    "DESCRIPTION": "वर्णन",
+    "DESCRIPTION_PH": "किमान २० अक्षरे…",
+    "BASE_PRICE": "मूळ किंमत *",
+    "UNIT_ENTITY": "एकक / घटक",
+    "CATEGORY_DETAILS": "{{name}} तपशील",
+    "NO_EXTRA_DETAILS": "या श्रेणीसाठी अतिरिक्त तपशीलांची गरज नाही.",
+    "PHOTOS_HINT": "फोटो · पहिला फोटो मुख्य असेल",
+    "PRICE": "किंमत",
+    "DETAILS": "तपशील",
+    "PHOTOS": "फोटो",
+    "ATTRS_SET": "{{count}} सेट",
+    "SUBMIT_NOTE": "सबमिट केल्यास आढाव्यासाठी पाठवले जाईल. मसुदा → प्रलंबित → लाइव्ह.",
+    "SUBMIT_REVIEW": "आढाव्यासाठी सबमिट करा",
+    "SAVE_FAIL_TITLE": "जतन करता आले नाही",
+    "TRY_AGAIN": "कृपया पुन्हा प्रयत्न करा.",
+    "SUBMITTED_TITLE": "सबमिट झाले",
+    "SUBMITTED_MSG": "तुमची नोंद आढाव्याखाली आहे. या आउटलेटसाठी आणखी एक जोडायचे?",
+    "ADD_ANOTHER": "आणखी जोडा",
+    "UNITS": {
+      "night": "रात्र",
+      "person": "व्यक्ती",
+      "plate": "प्लेट",
+      "kg": "किलो",
+      "piece": "नग",
+      "dozen": "डझन",
+      "hour": "तास",
+      "package": "पॅकेज"
+    },
+    "LISTING_UNAVAILABLE": "ही नोंद आता उपलब्ध नाही.",
+    "RATINGS_COUNT": "{{count}} रेटिंग",
+    "ABOUT": "माहिती",
+    "ENQUIRE": "चौकशी करा",
+    "WHATSAPP_MSG": "नमस्कार, मला TourKokan वरील \"{{name}}\" मध्ये स्वारस्य आहे.",
+    "ENQUIRIES": "चौकशी",
+    "MANAGE_LISTING": "नोंद व्यवस्थापित करा",
+    "LIVE_VISIBLE": "लाइव्ह आणि दृश्यमान",
+    "PAUSED": "थांबवले",
+    "LIVE_SUB": "खरेदीदार पाहू व चौकशी करू शकतात",
+    "PAUSED_SUB": "खरेदीदारांपासून लपवले",
+    "PERFORMANCE": "कामगिरी",
+    "EDIT_NOTE": "मंजूर नोंद संपादित केल्यास ती पुन्हा आढाव्यासाठी जाते.",
+    "DELETE_LISTING": "नोंद हटवा",
+    "DELETE_TITLE": "नोंद हटवायची?",
+    "DELETE_MSG": "हे तुमच्या कॅटलॉगमधून काढून टाकते.",
+    "ANALYTICS": "विश्लेषण",
+    "CONV": "रूपांतरण",
+    "VIEWS_PER_DAY": "दररोज पाहणी",
+    "LEADS_BY_CHANNEL": "माध्यमानुसार लीड्स",
+    "PLAN_LIMITS": "योजना व मर्यादा",
+    "YOUR_USAGE": "तुमचा वापर",
+    "BUSINESSES": "व्यवसाय",
+    "PRODUCTS": "उत्पादने",
+    "UNLIMITED": "अमर्यादित",
+    "USAGE_OF": "{{limit}} पैकी {{used}}",
+    "PLANS": "योजना",
+    "CURRENT_PLAN": "सध्याची योजना",
+    "CONTACT_SWITCH": "बदलण्यासाठी आमच्याशी संपर्क साधा",
+    "PLAN_NOTE": "योजना Tourkokan टीमद्वारे सक्रिय केल्या जातात. संपर्क साधा, आम्ही तुम्हाला योग्य योजनेवर हलवू.",
+    "EDIT_LISTING": "नोंद संपादित करा",
+    "SAVE_CHANGES": "बदल जतन करा",
+    "UPDATED_TITLE": "अद्ययावत झाले",
+    "UPDATED_MSG": "तुमचे बदल जतन झाले. संपादित नोंदी पुन्हा आढाव्यासाठी जातात.",
+    "VIEW_ANALYTICS": "विश्लेषण पहा",
+    "EDIT": "संपादित करा",
+    "EXISTING_PHOTOS": "सध्याचे फोटो",
+    "SAVED": "जतन केलेले",
+    "NO_SAVED": "अद्याप काहीही जतन केलेले नाही",
+    "REMOVE": "काढा",
+    "REVIEWS": "पुनरावलोकने",
+    "RATE_THIS": "रेटिंग द्या",
+    "WRITE_REVIEW": "पुनरावलोकन लिहा…",
+    "REVIEW_PENDING": "धन्यवाद! तुमचे पुनरावलोकन मंजुरीच्या प्रतीक्षेत आहे.",
+    "RATING_THANKS": "रेटिंगबद्दल धन्यवाद!",
+    "NO_REVIEWS": "अद्याप पुनरावलोकने नाहीत — पहिले व्हा",
+    "LOGIN_TO_REVIEW": "पुनरावलोकनासाठी कृपया लॉग इन करा",
+    "REVIEWER": "प्रवासी",
+    "MY_ENQUIRIES": "माझ्या चौकशी",
+    "MY_ENQUIRIES_DESC": "तुम्ही संपर्क साधलेल्या नोंदी",
+    "NO_ENQUIRIES_SENT": "तुम्ही अद्याप कोणत्याही नोंदीशी संपर्क साधलेला नाही",
+    "ENQUIRED_ON": "{{when}} रोजी पाठवले",
+    "VIEW_PLANS": "आमच्या वेबसाइटवर योजनांचे तपशील पहा",
+    "UPGRADE_ON_WEB": "वेबवर अपग्रेड करा",
+    "BT_DATE_RANGE": "बुकिंग · तारीख कालावधी",
+    "BT_SLOT": "बुकिंग · वेळेची स्लॉट",
+    "BT_QUANTITY": "प्रमाणानुसार",
+    "BT_NONE": "फक्त चौकशी",
+    "CTA_AVAILABILITY": "उपलब्धता पहा",
+    "CTA_SLOT": "स्लॉट बुक करा",
+    "CTA_ORDER": "ऑर्डरसाठी चौकशी",
+    "CTA_ENQUIRE": "व्हॉट्सॲपवर चौकशी",
+    "SOLD_BY": "विक्रेता",
+    "STOCK": "स्टॉक",
+    "MORE_FROM": "या व्यवसायाकडून आणखी"
   }
 }

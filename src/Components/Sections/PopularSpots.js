@@ -12,6 +12,7 @@ import LinearGradient from 'react-native-linear-gradient';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import {AWS_URL} from '@env';
 import CachedImage from '../Customs/CachedImage';
+import CategoryArt from '../Common/CategoryArt';
 import {useResponsive} from '../../Services/responsive';
 
 const {width: SW} = Dimensions.get('window');
@@ -33,7 +34,6 @@ const C = {
 const TrendingCard = ({item, onPress, cardWidth, imgHeight}) => {
   // Tablet: moderate bump for the card's fixed-px text and icons.
   const {isTablet, ms} = useResponsive();
-  const fallback = require('../../Assets/Images/no-image.png');
   const uri = item.image
     ? `${AWS_URL}${item.image}`
     : item.gallery?.[0]?.path
@@ -49,11 +49,13 @@ const TrendingCard = ({item, onPress, cardWidth, imgHeight}) => {
       onPress={onPress}
       activeOpacity={0.85}>
       <View style={[ts.trendImgWrap, imgHeight && {height: imgHeight}]}>
-        <CachedImage
-          source={uri ? {uri} : fallback}
-          style={ts.trendImg}
-          resizeMode="cover"
-        />
+        {uri ? (
+          <CachedImage source={{uri}} style={ts.trendImg} resizeMode="cover" />
+        ) : (
+          // No photo → themed category art, so a row of pictureless spots is
+          // still visibly a beach, a fort, a temple…
+          <CategoryArt categories={item.categories} style={ts.trendImg} />
+        )}
         <LinearGradient
           colors={['transparent', 'rgba(0,0,0,0.55)']}
           style={ts.trendImgGradient}

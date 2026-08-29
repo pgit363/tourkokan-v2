@@ -184,7 +184,10 @@ const CityList = ({navigation, route, ...props}) => {
   };
 
   const getCityDetails = useCallback((city) => {
-    navigateTo(navigation, t('SCREEN.CITY_DETAILS'), {city});
+    // Route to the themed, category-aware detail (SiteDetailPage) — the same
+    // screen Home / search / Categories use — so every path shows one consistent
+    // themed page. (Was CITY_DETAILS, an older near-duplicate now superseded.)
+    navigateTo(navigation, t('SCREEN.SITE_DETAIL'), {city});
   }, [navigation, t]);
 
   const onRefresh = async () => {
