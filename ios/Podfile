@@ -5,6 +5,22 @@ require Pod::Executable.execute_command('node', ['-p',
     {paths: [process.argv[1]]},
   )', __dir__]).strip
 
+# ARCHITECTURE PARITY WITH ANDROID.
+# android/gradle.properties sets newArchEnabled=false, but RN 0.78 turns the New
+# Architecture (Fabric) ON by default on iOS — so the two platforms were running
+# DIFFERENT renderers, and only Android's was ever tested.
+#
+# Five of this app's native deps ship no Fabric codegen and therefore render
+# through Fabric's legacy-interop shim on iOS: react-native-fast-image,
+# react-native-maps, react-native-splash-screen, react-native-sqlite-storage and
+# react-native-image-progress. That shim is why FastImage drew empty boxes where
+# Android showed thumbnails.
+#
+# Pinning iOS to the old architecture makes it match the configuration Android
+# already ships. Revisit only when those libraries gain Fabric support (or are
+# replaced), and flip BOTH platforms together.
+ENV['RCT_NEW_ARCH_ENABLED'] = '0'
+
 platform :ios, min_ios_version_supported
 prepare_react_native_project!
 
@@ -21,6 +37,19 @@ end
 
 target 'tourkokan' do
   config = use_native_modules!
+
+  # Firebase v21 as a static framework: these ObjC pods import each other as
+  # Clang modules but don't define module maps on their own. Scope modular
+  # headers to just the Firebase core chain — doing it globally
+  # (use_modular_headers!) instead redefines React Native's own modules
+  # ("Redefinition of module 'ReactCommon'"). Without it the build fails with
+  # "Module 'FirebaseCore' not found" / "cannot be integrated as static libraries".
+  pod 'GoogleUtilities', :modular_headers => true
+  pod 'FirebaseCore', :modular_headers => true
+  pod 'FirebaseCoreInternal', :modular_headers => true
+  pod 'FirebaseInstallations', :modular_headers => true
+  pod 'FirebaseAnalytics', :modular_headers => true
+  pod 'nanopb', :modular_headers => true
 
   # react-native-maps ships Google Maps support as a SEPARATE podspec that
   # autolinking does not pick up. The app renders maps with PROVIDER_GOOGLE
@@ -43,5 +72,23 @@ target 'tourkokan' do
       :mac_catalyst_enabled => false,
       # :ccache_enabled => true
     )
+
+    # fmt 11.0.2 (bundled by RN 0.78) uses consteval format-string checks that
+    # do NOT compile under Xcode 26 / Clang 21: "call to consteval function ...
+    # is not a constant expression". The header redefines FMT_USE_CONSTEVAL
+    # unconditionally, so a -D flag can't override it — patch the header to
+    # force it off. Re-applied here on every `pod install`.
+    fmt_base = File.join(__dir__, 'Pods', 'fmt', 'include', 'fmt', 'base.h')
+    if File.exist?(fmt_base)
+      txt = File.read(fmt_base)
+      unless txt.include?('#define FMT_USE_CONSTEVAL 0  // Xcode 26')
+        txt.sub!(
+          "#if FMT_USE_CONSTEVAL\n#  define FMT_CONSTEVAL consteval",
+          "#undef FMT_USE_CONSTEVAL\n#define FMT_USE_CONSTEVAL 0  // Xcode 26 / Clang 21: consteval format checks break the build.\n#if FMT_USE_CONSTEVAL\n#  define FMT_CONSTEVAL consteval"
+        )
+        File.write(fmt_base, txt)
+        Pod::UI.puts '[fmt] forced FMT_USE_CONSTEVAL=0 for Xcode 26 compatibility'.green
+      end
+    end
   end
 end

@@ -14,6 +14,7 @@ import {AWS_URL} from '@env';
 import CachedImage from '../Customs/CachedImage';
 import CategoryArt from '../Common/CategoryArt';
 import {useResponsive} from '../../Services/responsive';
+import {useFavourite, FAV} from '../../Services/favourites';
 
 const {width: SW} = Dimensions.get('window');
 const RADIUS = 16;
@@ -42,6 +43,9 @@ const TrendingCard = ({item, onPress, cardWidth, imgHeight}) => {
 
   const category = item.categories?.[0]?.name;
   const rating = Number(item.rating_avg_rate);
+  // Central store, not item.is_favorite — the landing payload is cached, so
+  // reading the row directly left this heart stale after a detail-page toggle.
+  const {isFav: spotFav} = useFavourite(FAV.SITE, item.id, item);
 
   return (
     <TouchableOpacity
@@ -69,12 +73,12 @@ const TrendingCard = ({item, onPress, cardWidth, imgHeight}) => {
           style={[
             ts.talukaHeart,
             isTablet && {width: ms(26), height: ms(26), borderRadius: ms(13)},
-            item.is_favorite && ts.talukaHeartActive,
+            spotFav && ts.talukaHeartActive,
           ]}>
           <Ionicons
-            name={item.is_favorite ? 'heart' : 'heart-outline'}
+            name={spotFav ? 'heart' : 'heart-outline'}
             size={isTablet ? ms(14) : 14}
-            color={item.is_favorite ? '#eb5757' : C.white}
+            color={spotFav ? '#eb5757' : C.white}
           />
         </View>
       </View>

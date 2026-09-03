@@ -2,6 +2,7 @@ import {StyleSheet} from 'react-native';
 import DIMENSIONS from '../../Services/Constants/DIMENSIONS';
 import COLOR from '../../Services/Constants/COLORS';
 import {scaleFontSizes} from '../../Services/responsive';
+import {shadow} from '../../Services/shadow';
 
 const styles = StyleSheet.create(scaleFontSizes({
   appLogo: {
@@ -355,7 +356,7 @@ const styles = StyleSheet.create(scaleFontSizes({
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 20,
-    elevation: 5,
+    ...shadow(5),
   },
   logoTextSmall: {
     color: '#B8E4EA', // Ocean Foam

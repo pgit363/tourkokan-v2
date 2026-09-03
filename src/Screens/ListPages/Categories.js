@@ -384,8 +384,13 @@ const Categories = ({route, navigation, ...props}) => {
     setShowOnlineMode(false);
   };
 
+  // Only the TOP inset takes safeArea's oceanDeep — that band sits under the
+  // dark header. Including 'bottom' painted the bottom inset oceanDeep too,
+  // leaving a dark strip below the floating tab bar where the cream contentWrap
+  // should reach the screen edge. contentWrap is flex:1, so dropping 'bottom'
+  // lets it fill that band; CustomTabBar already adds its own insets.bottom.
   return (
-    <SafeAreaView edges={['top', 'bottom']} style={styles.safeArea}>
+    <SafeAreaView edges={['top']} style={styles.safeArea}>
       {/* Header — ocean-deep base with forest-deep overlay for teal-to-green blend */}
       <View style={styles.header}>
         <View style={styles.headerForestOverlay} />

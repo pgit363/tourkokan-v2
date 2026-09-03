@@ -23,6 +23,7 @@ import {productCoverUri, productPrice, localised} from '../../Services/marketpla
 import {myProducts, mySites} from '../../Services/Api/MarketplaceServices';
 import {navigateTo} from '../../Services/CommonMethods';
 import CategoryArt from '../../Components/Common/CategoryArt';
+import {shadow} from '../../Services/shadow';
 
 const money = n => (n == null ? '' : '₹' + Number(n).toLocaleString('en-IN'));
 
@@ -212,7 +213,7 @@ const s = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 7,
-    elevation: 4,
+    ...shadow(4),
   },
   fabTxt: {color: '#fff', fontWeight: '800', fontSize: 13.5},
 });

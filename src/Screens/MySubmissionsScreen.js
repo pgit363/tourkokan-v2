@@ -209,11 +209,20 @@ const MySubmissionsScreen = ({navigation}) => {
       confirmText: t('MY_SUBMISSIONS.DELETE_BTN'),
       cancelText: t('BUTTON.CANCEL'),
       onConfirm: async () => {
-        const res = await comnPost('v2/deleteMySubmission', {id}).catch(() => null);
+        const res = await comnPost('v2/deleteMySubmission', {id}).catch(e => e?.response ?? null);
         if (res?.data?.success) {
           setSubmissions(prev => prev.filter(s => s.id !== id));
         } else {
-          showDialog({type: 'error', title: t('ALERT.FAILED'), message: t('MY_SUBMISSIONS.DELETE_ERROR')});
+          // Prefer the server's own reason (e.g. "cannot be deleted") over a
+          // generic failure, so the user knows WHY it did not work.
+          const serverMsg = res?.data?.message;
+          showDialog({
+            type: 'error',
+            title: t('ALERT.FAILED'),
+            message: typeof serverMsg === 'string' && serverMsg
+              ? serverMsg
+              : t('MY_SUBMISSIONS.DELETE_ERROR'),
+          });
         }
       },
     });
@@ -304,15 +313,20 @@ const MySubmissionsScreen = ({navigation}) => {
               <Text style={s.editBtnText}>{editLabel}</Text>
             </TouchableOpacity>
 
-            <TouchableOpacity
-              style={s.deleteBtn}
-              onPress={e => {
-                e.stopPropagation?.();
-                confirmDelete(item.id);
-              }}
-              activeOpacity={0.85}>
-              <Ionicons name="trash-outline" size={16} color="#DC2626" />
-            </TouchableOpacity>
+            {/* Approved/live listings cannot be deleted — the backend only
+                permits pending or rejected ones, so showing the button there
+                just produced a 404 and an opaque error. */}
+            {!isApproved && (
+              <TouchableOpacity
+                style={s.deleteBtn}
+                onPress={e => {
+                  e.stopPropagation?.();
+                  confirmDelete(item.id);
+                }}
+                activeOpacity={0.85}>
+                <Ionicons name="trash-outline" size={16} color="#DC2626" />
+              </TouchableOpacity>
+            )}
           </View>
         </View>
       </TouchableOpacity>

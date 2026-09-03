@@ -20,6 +20,7 @@ import {C} from '../../Components/Marketplace/theme';
 import {useMarketBack} from '../../Components/Marketplace/useMarketBack';
 import {myUsageStats, myLeads, mySites} from '../../Services/Api/MarketplaceServices';
 import {navigateTo, backPage} from '../../Services/CommonMethods';
+import {shadow} from '../../Services/shadow';
 
 const LEAD_ICON = {
   call: {name: 'call', bg: C.oceanMid},
@@ -243,7 +244,7 @@ const s = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 7,
-    elevation: 4,
+    ...shadow(4),
   },
   fabTxt: {color: '#fff', fontWeight: '800', fontSize: 13.5},
 });

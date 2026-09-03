@@ -18,7 +18,7 @@ import {saveAccess_token, setLoader} from '../../Reducers/CommonActions';
 import Loader from '../../Components/Customs/Loader';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import COLOR from '../../Services/Constants/COLORS';
-import {navigateTo} from '../../Services/CommonMethods';
+import {navigateTo, afterModalDismissed, resetToHome} from '../../Services/CommonMethods';
 import GlobalText from '../../Components/Customs/Text';
 import Popup from '../../Components/Common/Popup';
 import AppLogo from '../../Assets/Images/Logos/tourkokan-logo.png';
@@ -75,12 +75,7 @@ const PasswordLogin = ({navigation, route, ...props}) => {
   const closePopup = () => {
     if (isSuccess) {
       AsyncStorage.setItem(t('STORAGE.IS_FIRST_TIME'), JSON.stringify(true));
-      navigation.dispatch(
-        CommonActions.reset({
-          index: 0,
-          routes: [{name: t('SCREEN.HOME')}],
-        }),
-      );
+      resetToHome(navigation, t('SCREEN.HOME'));
     }
     setIsAlert(false);
   };
@@ -116,12 +111,7 @@ const PasswordLogin = ({navigation, route, ...props}) => {
             t('STORAGE.IS_FIRST_TIME'),
             JSON.stringify(true),
           );
-          navigation.dispatch(
-            CommonActions.reset({
-              index: 0,
-              routes: [{name: t('SCREEN.HOME')}],
-            }),
-          );
+          resetToHome(navigation, t('SCREEN.HOME'));
         } else {
           setIsAlert(true);
           setAlertMessage(

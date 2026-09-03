@@ -1,6 +1,7 @@
 import {StyleSheet} from 'react-native';
 import COLOR from '../../../Services/Constants/COLORS';
 import DIMENSIONS from '../../../Services/Constants/DIMENSIONS';
+import {shadow} from '../../../Services/shadow';
 
 const styles = StyleSheet.create({
   buttonView: {
@@ -11,7 +12,7 @@ const styles = StyleSheet.create({
     width: DIMENSIONS.bannerWidth,
     alignSelf: 'center',
     alignItems: 'center',
-    elevation: 10,
+    ...shadow(1),
   },
   containerStyle: {
     width: DIMENSIONS.bannerWidth,

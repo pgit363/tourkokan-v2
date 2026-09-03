@@ -1,6 +1,7 @@
 import {StyleSheet} from 'react-native';
 import DIMENSIONS from '../Services/Constants/DIMENSIONS';
 import COLOR from '../Services/Constants/COLORS';
+import {shadow} from '../Services/shadow';
 
 const styles = StyleSheet.create({
   container: {
@@ -372,7 +373,7 @@ const styles = StyleSheet.create({
     marginVertical: 10,
     fontSize: DIMENSIONS.subtitleTextSize,
     backgroundColor: COLOR.transparent,
-    elevation: 0,
+    ...shadow(0),
     width: DIMENSIONS.halfWidth,
     justifyContent: 'flex-end',
     alignItems: 'flex-end',
@@ -530,14 +531,14 @@ const styles = StyleSheet.create({
     backgroundColor: COLOR.white,
     borderRadius: DIMENSIONS.borderRadiusXS,
     alignSelf: 'flex-start',
-    elevation: 0,
+    ...shadow(0),
     marginLeft: 10,
   },
   logoutButtonStyle: {
     width: DIMENSIONS.bannerWidth / 2 - 30,
     borderRadius: DIMENSIONS.borderRadiusXS,
     alignSelf: 'flex-start',
-    elevation: 10,
+    ...shadow(1),
     marginLeft: 10,
   },
   attachmentTitleStyle: {
@@ -549,7 +550,7 @@ const styles = StyleSheet.create({
   callButton: {
     width: 30,
     backgroundColor: COLOR.white,
-    elevation: 0,
+    ...shadow(0),
     marginRight: 10,
   },
   mapContainer: {
@@ -638,7 +639,7 @@ const styles = StyleSheet.create({
     marginVertical: 10,
     fontSize: DIMENSIONS.subtitleTextSize,
     backgroundColor: COLOR.themeBlue,
-    elevation: 0,
+    ...shadow(0),
     width: DIMENSIONS.bannerWidth,
     justifyContent: 'center',
     alignItems: 'center',
@@ -694,7 +695,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: '#fff',
     marginHorizontal: 10,
-    elevation: 5,
+    ...shadow(5),
   },
   selectedCard: {
     backgroundColor: '#e3f2fd',

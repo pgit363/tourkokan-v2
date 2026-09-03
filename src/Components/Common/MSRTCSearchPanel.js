@@ -16,6 +16,7 @@ import STRING from '../../Services/Constants/STRINGS';
 import {useGuestGate, isGuestUser, GUEST_KEYS, incrementGuestCount} from './GuestGateModal';
 import {useConnectivityGate} from './useConnectivityGate';
 import {scaleFontSizes} from '../../Services/responsive';
+import {shadow} from '../../Services/shadow';
 
 // ─── Design tokens ────────────────────────────────────────────────────────────
 
@@ -348,7 +349,7 @@ const s = StyleSheet.create(scaleFontSizes({
   searchBtnDisabled: {
     backgroundColor: '#94A3B8',
     shadowOpacity: 0,
-    elevation: 0,
+    ...shadow(0),
   },
   searchBtnIcon: {width: 24, height: 24},
   searchBtnText: {

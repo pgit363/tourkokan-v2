@@ -16,6 +16,8 @@ import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import LinearGradient from 'react-native-linear-gradient';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import {backPage} from '../Services/CommonMethods';
+import store from '../../Store';
+import {unreadDecrement} from '../Reducers/notificationsSlice';
 import {comnPost, getFromStorage} from '../Services/Api/CommonServices';
 import STRING from '../Services/Constants/STRINGS';
 import {createLogger} from '../Services/Logger';
@@ -140,10 +142,16 @@ const InboxScreen = ({navigation}) => {
     if (nowExpanded && !item.is_read) {
       setReadingId(item.id);
       try {
-        await comnPost('v2/readMessage', {id: item.id});
+        const res = await comnPost('v2/readMessage', {id: item.id});
+        // comnPost resolves on failure, so the catch below can never fire —
+        // check the body, or the row would flip to "read" locally while the
+        // server still counts it unread and the badge stays high.
+        if (res?.data?.success === false) return;
         setMessages(prev =>
           prev.map(m => (m.id === item.id ? {...m, is_read: true} : m)),
         );
+        // Keep the header bell honest without another round-trip.
+        store.dispatch(unreadDecrement());
       } catch (e) { log.warn("[caught]", e); }
       setReadingId(null);
     }

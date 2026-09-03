@@ -1,5 +1,6 @@
 import COLOR from '../../Services/Constants/COLORS';
 import DIMENSIONS from '../../Services/Constants/DIMENSIONS';
+import {shadow} from '../../Services/shadow';
 
 const {StyleSheet} = require('react-native');
 
@@ -27,7 +28,7 @@ const styles = StyleSheet.create({
     minHeight: DIMENSIONS.halfWidth - 50,
     backgroundColor: COLOR.white,
     borderRadius: DIMENSIONS.borderRadius,
-    elevation: 10,
+    ...shadow(1),
     marginVertical: 10,
     marginHorizontal: 10,
   },
@@ -117,7 +118,7 @@ const styles = StyleSheet.create({
     height: DIMENSIONS.bannerHeight / 2 + 32,
     width: DIMENSIONS.bannerWidth,
     alignSelf: 'center',
-    elevation: 10,
+    ...shadow(1),
     zIndex: 10,
     borderRadius: DIMENSIONS.borderRadiusXS,
     justifyContent: 'space-between',
@@ -129,7 +130,7 @@ const styles = StyleSheet.create({
     width: DIMENSIONS.bannerWidth,
     backgroundColor: COLOR.white,
     alignSelf: 'center',
-    elevation: 10,
+    ...shadow(1),
     borderRadius: DIMENSIONS.borderRadiusXS,
     justifyContent: 'space-between',
     marginVertical: 10,
@@ -159,7 +160,7 @@ const styles = StyleSheet.create({
     width: DIMENSIONS.bannerWidth,
     height: DIMENSIONS.bannerWidth + 20,
     borderRadius: DIMENSIONS.borderRadius,
-    elevation: 10,
+    ...shadow(1),
     margin: 10,
   },
   placeCardSkeleton: {
@@ -170,14 +171,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 10,
-    elevation: 5,
+    ...shadow(5),
     alignSelf: 'stretch',
     marginHorizontal: 10,
   },
   cityCard: {
     width: DIMENSIONS.bannerWidth,
     height: DIMENSIONS.bannerWidth + 20,
-    elevation: 10,
+    ...shadow(1),
     margin: 10,
     padding: 10,
     backgroundColor: COLOR.white,
@@ -197,7 +198,7 @@ const styles = StyleSheet.create({
   subCatCard1: {
     width: DIMENSIONS.iconCard,
     height: DIMENSIONS.iconCard,
-    elevation: 10,
+    ...shadow(1),
     margin: 10,
     padding: 10,
     backgroundColor: COLOR.white,
@@ -207,7 +208,7 @@ const styles = StyleSheet.create({
   placeCard: {
     width: DIMENSIONS.bannerWidth,
     height: DIMENSIONS.bannerHeight + 100,
-    elevation: 10,
+    ...shadow(1),
     margin: 10,
     marginBottom: 30,
     padding: 10,
@@ -331,7 +332,7 @@ const styles = StyleSheet.create({
   cityCardSmall: {
     width: DIMENSIONS.bannerWidth / 2,
     height: DIMENSIONS.bannerHeight + 90,
-    elevation: 10,
+    ...shadow(1),
     marginVertical: 10,
     marginBottom: 25,
     marginHorizontal: 5,
@@ -395,7 +396,7 @@ const styles = StyleSheet.create({
     width: DIMENSIONS.bannerWidth / 2,
     height: DIMENSIONS.bannerHeight + 90,
     borderRadius: DIMENSIONS.borderRadius,
-    elevation: 10,
+    ...shadow(1),
     margin: 10,
   },
   routeCardIcons: {
@@ -404,7 +405,7 @@ const styles = StyleSheet.create({
   packageCardSmall: {
     marginTop: 15,
     marginLeft: 12,
-    elevation: 10,
+    ...shadow(1),
     backgroundColor: COLOR.white,
     padding: 5,
     borderRadius: DIMENSIONS.borderRadiusSmall,
@@ -417,7 +418,7 @@ const styles = StyleSheet.create({
   packageCardLong: {
     marginVertical: 5,
     marginHorizontal: 10,
-    elevation: 10,
+    ...shadow(1),
     backgroundColor: COLOR.white,
     padding: 5,
     borderRadius: DIMENSIONS.borderRadiusXS,

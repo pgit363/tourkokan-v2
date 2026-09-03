@@ -14,11 +14,13 @@ import {
   Linking,
   Share,
   Modal,
+  ActivityIndicator,
 } from 'react-native';
 import {SystemBars} from 'react-native-edge-to-edge';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import LinearGradient from 'react-native-linear-gradient';
-import MapView, {Marker, PROVIDER_GOOGLE} from 'react-native-maps';
+import MapView, {Marker} from 'react-native-maps';
+import {mapProvider} from '../../Services/mapProvider';
 import {connect} from 'react-redux';
 import {useTranslation} from 'react-i18next';
 import Ionicons from 'react-native-vector-icons/Ionicons';
@@ -32,6 +34,7 @@ import CachedImage from '../../Components/Customs/CachedImage';
 import {comnPost, getFromStorage} from '../../Services/Api/CommonServices';
 import {useConnectivityGate} from '../../Components/Common/useConnectivityGate';
 import {navigateTo} from '../../Services/CommonMethods';
+import {useFavourite, seedFavourites, FAV} from '../../Services/favourites';
 import {
   themeForCategories, tint, detailPolicy, categoryLabels,
 } from '../../Services/categoryTheme';
@@ -166,7 +169,11 @@ const SiteDetailPage = ({navigation, route}) => {
   const refRBSheet = useRef();
 
   const [city, setCity] = useState(route.params?.city || {});
-  const [isFav, setIsFav] = useState(!!route.params?.city?.is_favorite);
+  const {isFav, pending: favPending, toggle: toggleFav} = useFavourite(
+    FAV.SITE,
+    route.params?.city?.id,
+    route.params?.city,
+  );
   // Per-category visual theme (accent/deep/kind) — drives the hero wash,
   // badges, section dots and CTAs so a Temple reads saffron, a Beach aqua, etc.
   const theme = useMemo(
@@ -266,11 +273,14 @@ const SiteDetailPage = ({navigation, route}) => {
       const id = route.params?.city?.id;
       if (!id) return;
       setIsLoading(true);
+      const fetchedAt = Date.now();
       const res = await comnPost('v2/getSite', {id});
       if (res?.data?.data) {
         const fresh = res.data.data;
         setCity(fresh);
-        setIsFav(!!fresh.is_favorite);
+        // Server truth re-seeds the shared store (a local toggle made while this
+        // request was in flight still wins — see seedFavourites).
+        seedFavourites(fresh, FAV.SITE, fetchedAt);
         setUserRating(parseFloat(fresh.rating_avg_rate) || 0);
         await AsyncStorage.setItem(`siteDetail_${id}`, JSON.stringify(fresh));
       }
@@ -309,15 +319,10 @@ const SiteDetailPage = ({navigation, route}) => {
         setIsAlert(true);
         return;
       }
-      const userId = await AsyncStorage.getItem(t('STORAGE.USER_ID'));
-      setIsFav(v => !v);
-      comnPost('v2/addDeleteFavourite', {
-        user_id: userId,
-        favouritable_type: t('TABLE.SITE'),
-        favouritable_id: city.id,
-      }).then(() => {
-        AsyncStorage.setItem('isUpdated', 'true');
-      }).catch(() => {});
+      // Central store: optimistic flip, real success check, rollback on failure —
+      // and every other screen showing this site updates with it, which is why
+      // Home no longer needs to refetch to show the change.
+      await toggleFav();
     } catch (e) { log.warn("[caught]", e); }
   };
 
@@ -469,7 +474,11 @@ const SiteDetailPage = ({navigation, route}) => {
               <Ionicons name="share-social-outline" size={18} color={C.white} />
             </TouchableOpacity>
             <TouchableOpacity style={st.heroCircle} onPress={onFavPress} activeOpacity={0.85}>
-              <Ionicons name={isFav ? 'heart' : 'heart-outline'} size={19} color={isFav ? '#FF6B6B' : C.white} />
+              {favPending ? (
+                <ActivityIndicator size="small" color="#FF6B6B" />
+              ) : (
+                <Ionicons name={isFav ? 'heart' : 'heart-outline'} size={19} color={isFav ? '#FF6B6B' : C.white} />
+              )}
             </TouchableOpacity>
           </View>
         </View>
@@ -852,7 +861,7 @@ const SiteDetailPage = ({navigation, route}) => {
           <View style={[st.mapOuterCard, {marginHorizontal: gutter, height: m.ms(150)}]}>
             <MapView
               style={StyleSheet.absoluteFill}
-              provider={PROVIDER_GOOGLE}
+              provider={mapProvider}
               initialRegion={{latitude: lat, longitude: lng, latitudeDelta: 0.05, longitudeDelta: 0.05}}
               scrollEnabled={false} zoomEnabled={false} rotateEnabled={false} pitchEnabled={false}>
               <Marker coordinate={{latitude: lat, longitude: lng}} title={city.name} />

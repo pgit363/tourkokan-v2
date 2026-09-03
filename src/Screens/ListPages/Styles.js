@@ -1,5 +1,6 @@
 import COLOR from '../../Services/Constants/COLORS';
 import DIMENSIONS from '../../Services/Constants/DIMENSIONS';
+import {shadow} from '../../Services/shadow';
 
 const {StyleSheet} = require('react-native');
 
@@ -117,7 +118,7 @@ const styles = StyleSheet.create({
     margin: 10,
     width: DIMENSIONS.bannerWidth / 2,
     backgroundColor: COLOR.transparent,
-    elevation: 0,
+    ...shadow(0),
     alignSelf: 'flex-end',
     justifyContent: 'flex-end',
   },
@@ -137,7 +138,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 10,
-    elevation: 5,
+    ...shadow(5),
     alignSelf: 'stretch',
     marginHorizontal: 10,
   },
@@ -170,7 +171,7 @@ const styles = StyleSheet.create({
     width: DIMENSIONS.halfWidth - 20,
     height: DIMENSIONS.headerHeight,
     backgroundColor: COLOR.white,
-    elevation: 10,
+    ...shadow(1),
     borderRadius: DIMENSIONS.borderRadius,
     alignItems: 'center',
     justifyContent: 'center',
@@ -237,7 +238,7 @@ const styles = StyleSheet.create({
     width: DIMENSIONS.bannerWidth / 2 - 30,
     borderRadius: DIMENSIONS.borderRadiusXS,
     alignSelf: 'center',
-    elevation: 10,
+    ...shadow(1),
     marginLeft: 10,
   },
   imageTitle: {

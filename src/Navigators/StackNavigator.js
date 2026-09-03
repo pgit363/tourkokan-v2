@@ -1,5 +1,5 @@
 import React, {useState, useRef, useEffect} from 'react';
-import {BackHandler} from 'react-native';
+import {BackHandler, Platform} from 'react-native';
 import {NavigationContainer} from '@react-navigation/native';
 import {createNavigationLogger} from '../Services/Logger';
 import {createNativeStackNavigator} from '@react-navigation/native-stack';
@@ -156,8 +156,18 @@ const StackNavigator = ({initialRoute}) => {
         <Stack.Group
           screenOptions={{
             headerShown: false,
-            presentation: 'modal',
+            // presentation: 'modal' is a NORMAL PUSH on Android, but on iOS
+            // native-stack renders a real sheet: inset from the top, rounded
+            // corners, and swipe-down-to-dismiss. This group holds ~57 screens
+            // INCLUDING Home, so on iOS the whole app rendered as stacked
+            // sheets and Home slid up as a card over the login screen after
+            // sign-in — which read as "login didn't redirect properly".
+            // Android keeps 'modal' so its behaviour is byte-identical.
+            presentation: Platform.OS === 'ios' ? 'card' : 'modal',
+            // native-stack uses contentStyle; cardStyle is a JS-stack option and
+            // is silently ignored here (kept so Android is untouched).
             cardStyle: {backgroundColor: '#fff'},
+            contentStyle: {backgroundColor: '#fff'},
           }}>
           {/* <Stack.Screen
             name={t('SCREEN.LANG_SELECTION')}

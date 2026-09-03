@@ -1,0 +1,12 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.tourkokan",
+      "sha256_cert_fingerprints": [
+        "03:0D:2D:B4:8D:28:80:E8:0D:FC:10:D3:A6:B1:B4:3A:EA:B2:D6:0F:8E:53:EA:5B:05:93:21:61:9B:24:9A:53"
+      ]
+    }
+  }
+]

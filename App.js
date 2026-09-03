@@ -4,9 +4,15 @@ import {SystemBars} from 'react-native-edge-to-edge';
 
 LogBox.ignoreLogs(['useInsertionEffect must not schedule updates']);
 import React, {useEffect, useState} from 'react';
-import {SafeAreaProvider} from 'react-native-safe-area-context';
+import {
+  SafeAreaProvider,
+  initialWindowMetrics,
+} from 'react-native-safe-area-context';
 import {Provider} from 'react-redux';
 import store from './Store';
+import {hydrateFavourites} from './src/Services/favourites';
+import {initDeepLinks} from './src/Services/deepLinks';
+import {refreshUnreadCount} from './src/Services/Api/notifications';
 import {View, Image, BackHandler, Linking, AppState, StyleSheet} from 'react-native';
 import SplashScreen from 'react-native-splash-screen';
 import StackNavigator from './src/Navigators/StackNavigator';
@@ -65,13 +71,26 @@ export default function App() {
   useEffect(() => {
     const subscription = AppState.addEventListener('change', state => {
       setAppInBackground(state !== 'active');
+      // Refresh the bell whenever the app comes back to the foreground. The old
+      // poll lived inside HomeScreen's useFocusEffect, so a user sitting on any
+      // other tab — or returning after hours in the background — kept seeing a
+      // stale badge until they navigated back to Home.
+      if (state === 'active') refreshUnreadCount();
     });
     return () => subscription.remove();
   }, []);
 
+  // Deep links (referral invites). Its own effect so the listener is torn down
+  // properly — bootstrap() is async, so a subscription made inside it cannot be
+  // returned as this effect's cleanup.
+  useEffect(() => initDeepLinks(), []);
+
   useEffect(() => {
     const bootstrap = async () => {
       log.flow('bootstrap: start');
+      // Favourites come back from local storage before the first paint so
+      // hearts are already correct with no network round-trip.
+      hydrateFavourites();
       const [[isFirstTimeValue, token]] = await Promise.all([
         Promise.all([
           getFromStorage(STRING.STORAGE.IS_FIRST_TIME),
@@ -236,7 +255,7 @@ export default function App() {
       <ErrorBoundary>
         <Provider store={store}>
           <UpdateContext.Provider value={{isUpdatePending: updateApp}}>
-            <SafeAreaProvider>
+            <SafeAreaProvider initialMetrics={initialWindowMetrics}>
               <SystemBars style="dark" />
               <StackNavigator initialRoute={initialRoute} />
               <UpdateOverlay />
@@ -252,7 +271,7 @@ export default function App() {
 
   return (
     <ErrorBoundary>
-      <SafeAreaProvider>
+      <SafeAreaProvider initialMetrics={initialWindowMetrics}>
         <SystemBars style="dark" />
         <OnboardingScreen onComplete={() => setIsFirstTime('false')} />
         <UpdateOverlay />

@@ -1,5 +1,6 @@
 import React, {useState, useEffect, useCallback, useRef} from 'react';
 import {
+  Platform,
   View,
   ScrollView,
   BackHandler,
@@ -15,7 +16,7 @@ import {
   Animated,
 } from 'react-native';
 import {useFocusEffect} from '@react-navigation/native';
-import {SafeAreaView} from 'react-native-safe-area-context';
+import {SafeAreaView, useSafeAreaInsets} from 'react-native-safe-area-context';
 import {Image} from '@rneui/themed';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {isGuestUser, isVendorUser} from '../Components/Common/GuestGateModal';
@@ -35,6 +36,7 @@ import {
 } from '../Services/Api/CommonServices';
 import {setLoader, resetStore, setProfilePicture} from '../Reducers/CommonActions';
 import {checkLogin, backPage} from '../Services/CommonMethods';
+import {referralLink} from '../Services/deepLinks';
 import STRING from '../Services/Constants/STRINGS';
 import MapView, {Marker} from 'react-native-maps';
 import Clipboard from '@react-native-clipboard/clipboard';
@@ -410,9 +412,17 @@ const ProfileView = ({navigation, ...props}) => {
   const handleShare = async () => {
     if (await isGuestUser()) { setIsGuestPopup(true); return; }
     try {
-      const deepLink = `awesomeapp://SignUp?code=${profile.uid}`;
+      // https form, not a custom scheme: the recipient of a referral is by
+      // definition likely NOT a user yet, and tourkokan:// does nothing on a
+      // device without the app. This opens the app when installed and the
+      // invite landing page when not.
+      const deepLink = referralLink(profile.uid);
+      const body = t('REFER_EARN') + `\nReferral code: ${profile.uid}`;
+      // RN's Share sends ONLY `message` on Android — `url` is iOS-only. Without
+      // appending the link here the WhatsApp message went out with no link at
+      // all on Android, which is the platform that is actually live.
       const shareMessage =
-        t('REFER_EARN') + `\nReferral code: ${profile.uid}`;
+        Platform.OS === 'android' ? `${body}\n${deepLink}` : body;
       await Share.share({message: shareMessage, url: deepLink});
     } catch (err) {
       log.error('Share error:', err);
@@ -421,6 +431,7 @@ const ProfileView = ({navigation, ...props}) => {
 
   const [isGuestPopup, setIsGuestPopup] = useState(false);
   const {modal: connectivityModal, ensureOnline} = useConnectivityGate();
+  const insets = useSafeAreaInsets();
 
   // ── Vendor role state
   const [isVendor, setIsVendor] = useState(false);
@@ -535,7 +546,12 @@ const ProfileView = ({navigation, ...props}) => {
 
   // ── Render ────────────────────────────────────────────────────────────────────
   return (
-    <SafeAreaView edges={['top', 'bottom']} style={s.safe}>
+    <SafeAreaView edges={['bottom']} style={s.safe}>
+      {/* Paint the status-bar band in the cover colour so the cover reads as
+          running underneath it. Using edges={['top','bottom']} instead would
+          paint BOTH insets the same colour — that is what left a white strip
+          above the teal cover, and white-on-white status bar text. */}
+      <View style={{height: insets.top, backgroundColor: C.oceanDeep}} />
       <ScrollView
         style={s.scroll}
         showsVerticalScrollIndicator={false}
@@ -1135,7 +1151,7 @@ const ProfileView = ({navigation, ...props}) => {
 // ─── Styles ────────────────────────────────────────────────────────────────────
 
 const s = StyleSheet.create(scaleFontSizes({
-  safe: {flex: 1, backgroundColor: C.white},
+  safe: {flex: 1, backgroundColor: C.cream},
   scroll: {flex: 1, backgroundColor: C.cream},
 
   // ── Top section (map + photo + info)

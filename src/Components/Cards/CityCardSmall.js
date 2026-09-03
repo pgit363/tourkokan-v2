@@ -7,6 +7,7 @@ import ComingSoon from '../Common/ComingSoon';
 import CategoryArt from '../Common/CategoryArt';
 import Octicons from 'react-native-vector-icons/Octicons';
 import COLOR from '../../Services/Constants/COLORS';
+import {useFavourite, FAV} from '../../Services/favourites';
 import DIMENSIONS from '../../Services/Constants/DIMENSIONS';
 import StarRating from 'react-native-star-rating-widget'; // Updated import
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -21,7 +22,13 @@ const CityCardSmall = ({data, reload, navigation, addComment, onClick}) => {
   const {t} = useTranslation();
 
   const [isVisible, setIsVisible] = useState(false);
-  const [isFav, setIsFav] = useState(data?.is_favorite);
+  // Favourite state is central now — see src/Services/favourites.js. Every
+  // other screen showing this item updates with it, and nothing re-fetches.
+  const {isFav, pending: favPending, toggle: toggleFav} = useFavourite(
+    FAV.SITE,
+    data?.id,
+    data,
+  );
   const [rating, setRating] = useState(data?.rating_avg_rate || 0);
   const [commentCount, setCommentCount] = useState(data?.comment_count || 0);
   const [rate, setRate] = useState(data?.rate?.rating_avg_rate || 0);
@@ -31,19 +38,9 @@ const CityCardSmall = ({data, reload, navigation, addComment, onClick}) => {
     setRating(data?.rating_avg_rate || 0);
   }, [rate]);
 
-  const onHeartClick = async () => {
-    let placeData = {
-      user_id: await AsyncStorage.getItem(t('STORAGE.USER_ID')),
-      favouritable_type: t('TABLE.SITE'),
-      favouritable_id: data.id,
-    };
-    setIsFav(!isFav);
-    comnPost('v2/addDeleteFavourite', placeData)
-      .then(res => {
-        AsyncStorage.setItem('isUpdated', 'true');
-        reload();
-      })
-      .catch(err => {});
+  const onHeartClick = () => {
+    // The store handles the optimistic flip, the API call and the rollback.
+    toggleFav();
   };
 
   const onShareClick = async () => {

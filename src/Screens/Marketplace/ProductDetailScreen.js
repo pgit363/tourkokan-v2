@@ -25,6 +25,7 @@ import CachedImage from '../../Components/Customs/CachedImage';
 import ReviewsSection from '../../Components/Marketplace/ReviewsSection';
 import {C} from '../../Components/Marketplace/theme';
 import {productTheme, tint, bookingMeta} from '../../Services/categoryTheme';
+import {useFavourite, FAV} from '../../Services/favourites';
 import {useDetailMetrics} from '../../Components/Detail/useDetailMetrics';
 import {
   SectionHead, FactsGrid, Block, BlockText, PriceBar, BookingBox,
@@ -44,7 +45,6 @@ import {
   productDetail,
   recordProductView,
   recordProductLead,
-  toggleProductFavourite,
 } from '../../Services/Api/MarketplaceServices';
 import {backPage, navigateTo} from '../../Services/CommonMethods';
 
@@ -82,7 +82,6 @@ const ProductDetailScreen = ({navigation, route}) => {
 
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [fav, setFav] = useState(false);
   const [active, setActive] = useState(0);
 
   useEffect(() => {
@@ -92,7 +91,6 @@ const ProductDetailScreen = ({navigation, route}) => {
       if (!mounted) return;
       if (res?.data?.success) {
         setProduct(res.data.data);
-        setFav(!!res.data.data?.is_favourite);
       }
       setLoading(false);
       recordProductView(id, navigation); // fire-and-forget
@@ -102,10 +100,14 @@ const ProductDetailScreen = ({navigation, route}) => {
     };
   }, [id, navigation]);
 
-  const onFav = async () => {
-    setFav(v => !v);
-    toggleProductFavourite(id, navigation);
-  };
+  // Central store — same slice the site hearts use, so a product favourited
+  // here is reflected anywhere else that renders it, with no refetch.
+  const {isFav: fav, pending: favPending, toggle: toggleFav} = useFavourite(
+    FAV.PRODUCT,
+    id,
+    product,
+  );
+  const onFav = () => toggleFav(navigation);
 
   const lead = async (type, action) => {
     recordProductLead(id, type, undefined, navigation); // before opening
@@ -239,7 +241,7 @@ const ProductDetailScreen = ({navigation, route}) => {
             <TouchableOpacity style={s.circle} onPress={() => backPage(navigation)}>
               <Ionicons name="chevron-back" size={22} color="#fff" />
             </TouchableOpacity>
-            <TouchableOpacity style={s.circle} onPress={onFav}>
+            <TouchableOpacity style={s.circle} onPress={onFav} disabled={favPending}>
               <Ionicons
                 name={fav ? 'heart' : 'heart-outline'}
                 size={20}

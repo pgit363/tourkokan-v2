@@ -12,6 +12,7 @@ import {
   BackHandler,
 } from 'react-native';
 import {SystemBars} from 'react-native-edge-to-edge';
+import {KeyboardAwareScrollView} from 'react-native-keyboard-aware-scroll-view';
 import {useAppDialog} from '../Components/Common/AppDialog';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {useFocusEffect} from '@react-navigation/native';
@@ -303,11 +304,15 @@ const CreateEvent = ({navigation, route}) => {
         <View style={s.headerCurve} pointerEvents="none" />
       </LinearGradient>
 
-      <ScrollView
+      <KeyboardAwareScrollView
         style={s.scroll}
         contentContainerStyle={[s.scrollContent, {paddingBottom: insets.bottom + 100}]}
         keyboardShouldPersistTaps="handled"
-        showsVerticalScrollIndicator={false}>
+        showsVerticalScrollIndicator={false}
+        enableOnAndroid
+        enableAutomaticScroll
+        extraScrollHeight={24}
+        keyboardOpeningTime={0}>
 
         {/* Banner image picker */}
         <Field label="Banner Image">
@@ -421,7 +426,7 @@ const CreateEvent = ({navigation, route}) => {
           />
         </Field>
 
-      </ScrollView>
+      </KeyboardAwareScrollView>
 
       <View style={[s.footer, {paddingBottom: Math.max(insets.bottom, 16)}]}>
         <TouchableOpacity

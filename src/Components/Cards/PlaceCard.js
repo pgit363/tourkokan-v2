@@ -1,10 +1,11 @@
 import React, {useState} from 'react';
-import {View, ImageBackground, TouchableOpacity} from 'react-native';
+import {View, ImageBackground, TouchableOpacity, ActivityIndicator} from 'react-native';
 import styles from './Styles';
 import Path from '../../Services/Api/BaseUrl';
 import Octicons from 'react-native-vector-icons/Octicons';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import COLOR from '../../Services/Constants/COLORS';
+import {useFavourite, FAV} from '../../Services/favourites';
 import DIMENSIONS from '../../Services/Constants/DIMENSIONS';
 import StarRating from 'react-native-star-rating-widget'; // Updated import
 import {comnPost} from '../../Services/Api/CommonServices';
@@ -23,7 +24,13 @@ const PlaceCard = ({data, reload, navigation, addComment, onClick}) => {
   const imgSize = {width: Math.min(winW / 2 - 60, 210), minHeight: cardH, maxHeight: cardH};
   const {t} = useTranslation();
 
-  const [isFav, setIsFav] = useState(data.is_favorite);
+  // Favourite state is central now — see src/Services/favourites.js. Every
+  // other screen showing this item updates with it, and nothing re-fetches.
+  const {isFav, pending: favPending, toggle: toggleFav} = useFavourite(
+    FAV.SITE,
+    data?.id,
+    data,
+  );
   const [isLiked, setIsLiked] = useState(false);
   const [isVisible, setIsVisible] = useState(false);
   const [rating, setRating] = useState(data?.rating_avg_rate || 0);
@@ -31,19 +38,9 @@ const PlaceCard = ({data, reload, navigation, addComment, onClick}) => {
   const [rate, setRate] = useState(data?.rate?.rate || 0);
   const [cardType, setCardType] = useState(data.category?.code);
 
-  const onHeartClick = async () => {
-    let cityData = {
-      user_id: await AsyncStorage.getItem(t('STORAGE.USER_ID')),
-      favouritable_type: t('TABLE.SITES'),
-      favouritable_id: data.id,
-    };
-    setIsFav(!isFav);
-    comnPost('v2/addDeleteFavourite', cityData)
-      .then(res => {
-        AsyncStorage.setItem('isUpdated', 'true');
-        reload();
-      })
-      .catch(err => {});
+  const onHeartClick = () => {
+    // The store handles the optimistic flip, the API call and the rollback.
+    toggleFav();
   };
 
   const onStarRatingPress = async rate => {
@@ -112,11 +109,15 @@ const PlaceCard = ({data, reload, navigation, addComment, onClick}) => {
               <TouchableOpacity
                 style={styles.likeView}
                 onPress={() => onHeartClick()}>
-                <Octicons
-                  name={isFav ? 'heart-fill' : 'heart'}
-                  color={isFav ? COLOR.red : COLOR.black}
-                  size={isTablet ? ms(DIMENSIONS.iconSize) : DIMENSIONS.iconSize}
-                />
+                {favPending ? (
+                  <ActivityIndicator size="small" color={COLOR.red} />
+                ) : (
+                  <Octicons
+                    name={isFav ? 'heart-fill' : 'heart'}
+                    color={isFav ? COLOR.red : COLOR.black}
+                    size={isTablet ? ms(DIMENSIONS.iconSize) : DIMENSIONS.iconSize}
+                  />
+                )}
               </TouchableOpacity>
             </View>
           </View>

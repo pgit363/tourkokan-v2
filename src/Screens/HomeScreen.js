@@ -26,7 +26,7 @@ import {SystemBars} from 'react-native-edge-to-edge';
 import {SafeAreaView, useSafeAreaInsets} from 'react-native-safe-area-context';
 import LinearGradient from 'react-native-linear-gradient';
 import {useFocusEffect} from '@react-navigation/native';
-import {connect} from 'react-redux';
+import {connect, useSelector} from 'react-redux';
 import {useTranslation} from 'react-i18next';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
@@ -44,7 +44,10 @@ import TopComponent from '../Components/Common/TopComponent';
 import TopComponentSkeleton from '../Components/Common/TopComponentSkeleton';
 import HomeScreenSkeleton from '../Components/Common/HomeScreenSkeleton';
 import Banner, {footerBannerHeight} from '../Components/Customs/Banner';
+import store from '../../Store';
+import {unreadSet} from '../Reducers/notificationsSlice';
 import CategoryArt from '../Components/Common/CategoryArt';
+import {useFavourite, FAV, favKey, seedFavourites} from '../Services/favourites';
 import CheckNet from '../Components/Common/CheckNet';
 import Popup from '../Components/Common/Popup';
 import BottomSheet from '../Components/Customs/BottomSheet';
@@ -113,6 +116,12 @@ const RADIUS = 18;
 const TalukaCard = ({item, onPress, cardWidth, imgHeight}) => {
   // Tablet: moderate bump for the card's fixed-px text and heart.
   const {isTablet, ms} = useResponsive();
+  // Heart comes from the central store, NOT item.is_favorite. The landing
+  // payload is cached, so reading the row directly meant a favourite toggled on
+  // the detail page only appeared after the cache happened to be refetched.
+  // useFavourite still seeds from item.is_favorite the first time this id is
+  // seen, so a cold start with fresh data lights the correct hearts.
+  const {isFav: talukaFav} = useFavourite(FAV.SITE, item.id, item);
   const uri = item.image
     ? `${AWS_URL}${item.image}`
     : item.gallery?.[0]?.path
@@ -141,12 +150,12 @@ const TalukaCard = ({item, onPress, cardWidth, imgHeight}) => {
           style={[
             ts.talukaHeart,
             isTablet && {width: ms(26), height: ms(26), borderRadius: ms(13)},
-            item.is_favorite && ts.talukaHeartActive,
+            talukaFav && ts.talukaHeartActive,
           ]}>
           <Ionicons
-            name={item.is_favorite ? 'heart' : 'heart-outline'}
+            name={talukaFav ? 'heart' : 'heart-outline'}
             size={isTablet ? ms(14) : 14}
-            color={item.is_favorite ? '#eb5757' : C.white}
+            color={talukaFav ? '#eb5757' : C.white}
           />
         </View>
       </View>
@@ -229,6 +238,9 @@ let LANDING_HIT_COUNT = 0;
 const HomeScreen = ({navigation, route, ...props}) => {
   const {t, i18n} = useTranslation();
   const insets = useSafeAreaInsets();
+  // Favourite map from the central store — drives both the hearts and the
+  // favourites-first ordering below.
+  const favByKey = useSelector(st => st.favourites.byKey);
   const refRBSheet = useRef();
   // Header height = status bar (insets.top) + row padding (10+10) + button height (44)
   // pill bottom = insets.top + paddingVertical(10) + BTN(44) = insets.top + 54
@@ -248,13 +260,24 @@ const HomeScreen = ({navigation, route, ...props}) => {
   const [showCityDropdown, setShowCityDropdown] = useState(false);
   const [showSplash, setShowSplash] = useState(false);
   const [splashBanner, setSplashBanner] = useState([]);
+  // iOS can present only ONE <Modal> at a time. On the first load after login
+  // the APP_SPLASH ad overlay and the mode popup both went visible together;
+  // Android stacks them, but on iOS the loser wedges half-presented and
+  // INVISIBLE — and after the mode popup closed, its dead hosting view kept
+  // swallowing every touch, which froze Home (no scroll, no taps). These refs
+  // serialize the two: mode popup first, splash queued until it closes.
+  const pendingSplashRef = useRef(false);
+  const modePopupOpenRef = useRef(false);
+  const showSplashRef = useRef(false);
+  useEffect(() => {
+    showSplashRef.current = showSplash;
+  }, [showSplash]);
   const splashShownRef = useRef(false);
   const isFetchingRef = useRef(false);
   const {isUpdatePending} = useContext(UpdateContext);
   const isUpdatePendingRef = useRef(isUpdatePending);
 
   const [mode, setMode] = useState(true);
-  const [unreadCount, setUnreadCount] = useState(0);
   const {modal: connectivityModal, ensureOnline} = useConnectivityGate();
   const {isTablet, width: rWidth, contentWidth} = useResponsive();
   // Hero: keep phone ratio on phones; cap height on tablets so it isn't a
@@ -289,8 +312,17 @@ const HomeScreen = ({navigation, route, ...props}) => {
   );
 
   const sortedCities = useMemo(
-    () => [...cities].sort((a, b) => (b.is_favorite ? 1 : 0) - (a.is_favorite ? 1 : 0)),
-    [cities],
+    // Sort from the central store, not the cached payload — otherwise a newly
+    // favourited taluka kept its old position until the cache refreshed, even
+    // though its heart had already filled in.
+    () =>
+      [...cities].sort((a, b) => {
+        const fav = c =>
+          favByKey[favKey(FAV.SITE, c.id)]?.value ??
+          (!!c.is_favorite && c.is_favorite !== '0');
+        return (fav(b) ? 1 : 0) - (fav(a) ? 1 : 0);
+      }),
+    [cities, favByKey],
   );
 
 
@@ -323,6 +355,8 @@ const HomeScreen = ({navigation, route, ...props}) => {
     if (isUpdatePending) {
       setShowSplash(false);
       setModePopup(false);
+      modePopupOpenRef.current = false;
+      pendingSplashRef.current = false;
       setIsAlert(false);
     }
   }, [isUpdatePending]);
@@ -367,6 +401,11 @@ const HomeScreen = ({navigation, route, ...props}) => {
               type: 'SET_DATA',
               payload: {cities: res.cities, routes: res.routes, bannerObject: res.banners, trending: res.trending || {}, hot_sites: res.hot_sites || []},
             });
+            // Seed the favourites store from the server payload. Without this the
+            // store only held items toggled or opened during THIS install, so a city
+            // favourited earlier (or on another device) never ordered to the front —
+            // the sort fell back to whatever is_favorite the cache happened to hold.
+            seedFavourites(res.cities, FAV.SITE);
           }
         } catch (e) {
           log.warn('cached landing parse failed:', e);
@@ -439,8 +478,13 @@ const HomeScreen = ({navigation, route, ...props}) => {
                   type: 'SET_DATA',
                   payload: {cities: res.cities, routes: res.routes, bannerObject: res.banners, trending: res.trending || {}, hot_sites: res.hot_sites || []},
                 });
-                if (res.unread_message_count !== undefined) {
-                  setUnreadCount(res.unread_message_count);
+                // Seed the favourites store from the server payload. Without this the
+                // store only held items toggled or opened during THIS install, so a city
+                // favourited earlier (or on another device) never ordered to the front —
+                // the sort fell back to whatever is_favorite the cache happened to hold.
+                seedFavourites(res.cities, FAV.SITE);
+                if (typeof res.unread_message_count === 'number') {
+                  store.dispatch(unreadSet(res.unread_message_count));
                 }
               }
             } else {
@@ -477,6 +521,13 @@ const HomeScreen = ({navigation, route, ...props}) => {
       if (cancelled) return;
       if (firstTime === 'true' || firstTime === true) {
         log.flow('mode popup → SHOW');
+        if (showSplashRef.current) {
+          // The ad got there first — pull it back and requeue it, or iOS ends
+          // up with two presented Modals and freezes (see pendingSplashRef).
+          setShowSplash(false);
+          pendingSplashRef.current = true;
+        }
+        modePopupOpenRef.current = true;
         setModePopup(true);
         AsyncStorage.setItem(t('STORAGE.IS_FIRST_TIME'), JSON.stringify(false));
       }
@@ -512,27 +563,10 @@ const HomeScreen = ({navigation, route, ...props}) => {
     }, [props.mode, isInitialLoad, callLandingPageAPI]),
   );
 
-  // ── Unread message count — poll every 30 s while screen is focused ──
-  useFocusEffect(
-    useCallback(() => {
-      if (!mode || offline) return;
-      const fetchCount = async () => {
-        // Respect offline mode even if local state lags (read storage fresh).
-        const storedMode = JSON.parse((await getFromStorage(STRING.STORAGE.MODE)) ?? 'true');
-        if (!storedMode) return;
-        comnPost('v2/unreadMessageCount')
-          .then(res => {
-            const d = res?.data?.data;
-            const n = d?.unread_message_count ?? d?.count ?? d?.unread_count ?? 0;
-            setUnreadCount(n);
-          })
-          .catch(() => {});
-      };
-      fetchCount();
-      const id = setInterval(fetchCount, 30000);
-      return () => clearInterval(id);
-    }, [mode, offline]),
-  );
+  // Unread count now lives in the notifications slice and is refreshed centrally
+  // (App.js on foreground + InboxScreen after a read). The old poll here ended in
+  // `?? 0`, so any failed request blanked a correct badge, and its `offline` gate
+  // latched off for the whole session. See src/Services/Api/notifications.js.
 
   // ── API ──
   const callLandingPageAPI = useCallback(async site_id => {
@@ -590,9 +624,14 @@ const HomeScreen = ({navigation, route, ...props}) => {
           type: 'SET_DATA',
           payload: {cities: res.data.data.cities, routes: res.data.data.routes, bannerObject: res.data.data.banners, trending: res.data.data.trending || {}, hot_sites: res.data.data.hot_sites || []},
         });
+        // Seed the favourites store from the server payload. Without this the
+        // store only held items toggled or opened during THIS install, so a city
+        // favourited earlier (or on another device) never ordered to the front —
+        // the sort fell back to whatever is_favorite the cache happened to hold.
+        seedFavourites(res.data.data.cities, FAV.SITE);
 
-        if (res.data.data.unread_message_count !== undefined) {
-          setUnreadCount(res.data.data.unread_message_count);
+        if (typeof res.data.data.unread_message_count === 'number') {
+          store.dispatch(unreadSet(res.data.data.unread_message_count));
         }
 
         // Save categories immediately so Categories screen picks up the new language right away
@@ -603,9 +642,15 @@ const HomeScreen = ({navigation, route, ...props}) => {
         if (res.data.data.banners?.APP_SPLASH?.length > 0 && !splashShownRef.current && !isUpdatePendingRef.current) {
           const splash = res.data.data.banners.APP_SPLASH;
           setSplashBanner(splash);
-          setShowSplash(true);
           splashShownRef.current = true;
-          if (splash[0]?.id) recordBannerImpression(splash[0].id, 'APP_SPLASH');
+          if (modePopupOpenRef.current) {
+            // Mode popup owns the iOS presentation slot — show the ad after it
+            // closes (changeMode flushes this).
+            pendingSplashRef.current = true;
+          } else {
+            setShowSplash(true);
+            if (splash[0]?.id) recordBannerImpression(splash[0].id, 'APP_SPLASH');
+          }
         }
 
         setRefreshing(false);
@@ -709,7 +754,20 @@ const HomeScreen = ({navigation, route, ...props}) => {
     await saveToStorage(STRING.STORAGE.MODE, JSON.stringify(val));
     setMode(val);
     props.setMode(val);
+    modePopupOpenRef.current = false;
     setModePopup(false);
+    if (pendingSplashRef.current) {
+      pendingSplashRef.current = false;
+      // Wait out the popup Modal's fade-dismiss (~300ms) before presenting the
+      // next Modal — presenting during dismissal recreates the iOS wedge.
+      setTimeout(() => {
+        setShowSplash(true);
+        setSplashBanner(prev => {
+          if (prev[0]?.id) recordBannerImpression(prev[0].id, 'APP_SPLASH');
+          return prev;
+        });
+      }, 600);
+    }
   };
 
   // ── Memoized list content — won't re-render on dropdown toggle ──
@@ -863,7 +921,6 @@ const HomeScreen = ({navigation, route, ...props}) => {
             gotoProfile={openProfile}
             showCities={showCityDropdown}
             onToggleCities={() => setShowCityDropdown(v => !v)}
-            unreadCount={unreadCount}
           />
         )}
       </SafeAreaView>

@@ -9,6 +9,7 @@ import {
   Platform,
   Text,
 } from 'react-native';
+import {SafeAreaView} from 'react-native-safe-area-context';
 import TextButton from '../../Components/Customs/Buttons/TextButton';
 import styles from './Styles';
 import {comnPost, saveToStorage} from '../../Services/Api/CommonServices';
@@ -29,7 +30,7 @@ import {
   useBlurOnFulfill,
   useClearByFocusCell,
 } from 'react-native-confirmation-code-field';
-import {backPage, navigateTo} from '../../Services/CommonMethods';
+import {backPage, navigateTo, afterModalDismissed, resetToHome} from '../../Services/CommonMethods';
 import GlobalText from '../../Components/Customs/Text';
 import Popup from '../../Components/Common/Popup';
 import {useTranslation} from 'react-i18next';
@@ -98,7 +99,7 @@ const VerifyOTP = ({navigation, route, ...props}) => {
           AsyncStorage.setItem('IS_GUEST', JSON.stringify(!!res?.data?.data?.isGuest));
           saveToStorage(STRING.STORAGE.MODE, JSON.stringify(true));
           props.setMode(true);
-          navigateTo(navigation, t('SCREEN.HOME'));
+          resetToHome(navigation, t('SCREEN.HOME'));
           // navigation.dispatch(
           //   CommonActions.reset({
           //     index: 0,
@@ -194,7 +195,7 @@ const VerifyOTP = ({navigation, route, ...props}) => {
           )}
         </View>
       </View>
-      <KeyboardAvoidingView behavior="height" style={{flex: 1}} />
+      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{flex: 1}} />
       <Popup message={alertMessage} visible={isAlert} onPress={closePopup} />
     </SafeAreaView>
   );

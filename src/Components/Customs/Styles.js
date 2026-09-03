@@ -1,6 +1,7 @@
 import {StyleSheet} from 'react-native';
 import COLOR from '../../Services/Constants/COLORS';
 import DIMENSIONS from '../../Services/Constants/DIMENSIONS';
+import {shadow} from '../../Services/shadow';
 
 const styles = StyleSheet.create({
   container: {
@@ -49,7 +50,7 @@ const styles = StyleSheet.create({
     width: DIMENSIONS.screenWidth / 2 - 30,
     height: DIMENSIONS.headerHeight,
     backgroundColor: COLOR.white,
-    elevation: 10,
+    ...shadow(1),
     margin: 10,
     borderRadius: DIMENSIONS.borderRadiusXXS,
     flexDirection: 'row',

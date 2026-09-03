@@ -47,6 +47,39 @@
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+
+            <!--
+              Android App Link for referral invites. autoVerify makes Android
+              fetch https://tourkokan.com/.well-known/assetlinks.json at install
+              time and, if the SHA-256 there matches this build's signing cert,
+              open these URLs directly in the app with no chooser dialog.
+              If the file is missing or the fingerprint does not match, the link
+              silently falls back to the browser — which is a safe degradation,
+              and why the invite landing page has to exist either way.
+              NOTE: with Play App Signing the fingerprint that must be in that
+              file is Play's app signing key, not the upload key.
+            -->
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data
+                    android:scheme="https"
+                    android:host="tourkokan.com"
+                    android:pathPrefix="/invite" />
+            </intent-filter>
+
+            <!--
+              Custom scheme. Requires no domain verification, so it works for
+              testing before assetlinks.json is hosted. Not for sharing: it does
+              nothing on a device without the app installed.
+            -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="tourkokan" />
+            </intent-filter>
         </activity>
 
     </application>

@@ -1,6 +1,7 @@
 import React, {useEffect} from 'react';
 import {useState} from 'react';
 import {
+  Platform,
   View,
   TouchableOpacity,
   BackHandler,
@@ -25,7 +26,7 @@ import {
 import Loader from '../../Components/Customs/Loader';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import COLOR from '../../Services/Constants/COLORS';
-import {navigateTo} from '../../Services/CommonMethods';
+import {navigateTo, afterModalDismissed, resetToHome} from '../../Services/CommonMethods';
 import GlobalText from '../../Components/Customs/Text';
 // import SQLite from 'react-native-sqlite-storage';
 import Popup from '../../Components/Common/Popup';
@@ -199,12 +200,7 @@ const EmailSignIn = ({navigation, route, ...props}) => {
   const closePopup = () => {
     if (isSuccess) {
       AsyncStorage.setItem(t('STORAGE.IS_FIRST_TIME'), JSON.stringify(true));
-      navigation.dispatch(
-        CommonActions.reset({
-          index: 0,
-          routes: [{name: t('SCREEN.HOME')}],
-        }),
-      );
+      resetToHome(navigation, t('SCREEN.HOME'));
     }
     setIsAlert(false);
   };
@@ -269,7 +265,7 @@ const EmailSignIn = ({navigation, route, ...props}) => {
           saveToStorage(STRING.STORAGE.MODE, JSON.stringify(true));
           props.setMode(true);
           log.flow('login: navigateTo HOME');
-          navigateTo(navigation, t('SCREEN.HOME'));
+          resetToHome(navigation, t('SCREEN.HOME'));
           // navigation.dispatch(
           //   CommonActions.reset({
           //     index: 0,
@@ -377,7 +373,7 @@ const EmailSignIn = ({navigation, route, ...props}) => {
         </View>
       </View>
       <KeyboardAvoidingView
-        behavior="height"
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={{flex: 1}}></KeyboardAvoidingView>
       <Popup message={alertMessage} onPress={closePopup} visible={isAlert} />
     </View>

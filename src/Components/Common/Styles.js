@@ -1,6 +1,7 @@
 import {StyleSheet} from 'react-native';
 import COLOR from '../../Services/Constants/COLORS.js';
 import DIMENSIONS from '../../Services/Constants/DIMENSIONS.js';
+import {shadow} from '../../Services/shadow';
 
 const styles = StyleSheet.create({
   topComponentSkeleton: {
@@ -200,7 +201,7 @@ const styles = StyleSheet.create({
   },
   tabContent: {},
   placeCard: {
-    elevation: 5,
+    ...shadow(5),
     borderColor: COLOR.intentColor,
     borderRadius: DIMENSIONS.borderRadiusLarge,
     marginBottom: 5,
@@ -330,7 +331,7 @@ const styles = StyleSheet.create({
   },
   citiesDropdown: {
     zIndex: 2000,
-    elevation: 2000,
+    ...shadow(2),
     top: 0.5,
     left: 20,
     borderWidth: 2,

@@ -22,6 +22,7 @@ import {
   Alert,
 } from 'react-native';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
+import {KeyboardAwareScrollView} from 'react-native-keyboard-aware-scroll-view';
 import LinearGradient from 'react-native-linear-gradient';
 import {SystemBars} from 'react-native-edge-to-edge';
 import {launchImageLibrary} from 'react-native-image-picker';
@@ -329,7 +330,11 @@ const AddProductScreen = ({navigation, route}) => {
         </View>
       </LinearGradient>
 
-      <ScrollView style={{flex: 1}} contentContainerStyle={s.form} keyboardShouldPersistTaps="handled">
+      <KeyboardAwareScrollView  style={{flex: 1}} contentContainerStyle={s.form} keyboardShouldPersistTaps="handled"
+        enableOnAndroid
+        enableAutomaticScroll
+        extraScrollHeight={24}
+        keyboardOpeningTime={0}>
         {step === 0 && (
           <>
             <Text style={s.fl}>{t('MARKETPLACE.SELLING_FROM')}</Text>
@@ -479,7 +484,7 @@ const AddProductScreen = ({navigation, route}) => {
             </View>
           </>
         )}
-      </ScrollView>
+      </KeyboardAwareScrollView>
 
       <View style={s.footer}>
         {step < 3 ? (

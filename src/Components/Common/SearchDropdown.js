@@ -1,5 +1,5 @@
 import React from 'react';
-import {FlatList, KeyboardAvoidingView, ScrollView, View} from 'react-native';
+import {FlatList, KeyboardAvoidingView, ScrollView, View, Platform} from 'react-native';
 import {ListItem} from '@rneui/themed';
 import styles from './Styles';
 import Ionicons from 'react-native-vector-icons/Ionicons';
@@ -29,7 +29,7 @@ const SearchDropdown = ({
 
   return (
     <ScrollView
-      behavior="height"
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       nestedScrollEnabled
       style={[styles.searchDropView, style]}
     >

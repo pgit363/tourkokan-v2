@@ -6,13 +6,16 @@ import styles from './Styles';
 import GlobalText from '../Customs/Text';
 import Octicons from 'react-native-vector-icons/Octicons';
 import COLOR from '../../Services/Constants/COLORS';
+import {useFavourite, FAV} from '../../Services/favourites';
 import DIMENSIONS from '../../Services/Constants/DIMENSIONS';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import {useResponsive} from '../../Services/responsive';
 
 const PackageCard = ({data, cardType, onClick, reload}) => {
   const [rating, setRating] = useState(data?.rating_avg_rate || 0);
-  const [isFav, setIsFav] = useState(data?.is_favorite);
+  // Read-only heart, but sourced from the central store so it cannot drift
+  // from what the rest of the app shows.
+  const {isFav} = useFavourite(FAV.SITE, data?.id, data);
 
   // Live, tablet-capped image sizing (replaces module-load halfWidth styles).
   const {width: winW, isTablet, ms} = useResponsive();

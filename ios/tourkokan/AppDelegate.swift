@@ -4,6 +4,7 @@ import React_RCTAppDelegate
 import ReactAppDependencyProvider
 import FirebaseCore
 import GoogleMaps
+import GoogleSignIn
 
 @main
 class AppDelegate: RCTAppDelegate {
@@ -31,6 +32,23 @@ class AppDelegate: RCTAppDelegate {
     self.initialProps = [:]
 
     return super.application(application, didFinishLaunchingWithOptions: launchOptions)
+  }
+
+  // Google Sign-In redirects back to the app via the reversed-client-id URL
+  // scheme (CFBundleURLTypes in Info.plist). With the new-architecture
+  // RCTAppDelegate the template's openURL handler is gone, so without this the
+  // OAuth callback is dropped and GoogleSignin reports {type: "cancelled"} even
+  // after a successful sign-in. Forward the URL to GIDSignIn first, then fall
+  // back to RN Linking for any other deep links.
+  override func application(
+    _ app: UIApplication,
+    open url: URL,
+    options: [UIApplication.OpenURLOptionsKey : Any] = [:]
+  ) -> Bool {
+    if GIDSignIn.sharedInstance.handle(url) {
+      return true
+    }
+    return super.application(app, open: url, options: options)
   }
 
   override func sourceURL(for bridge: RCTBridge) -> URL? {

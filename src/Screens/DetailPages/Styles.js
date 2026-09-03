@@ -1,5 +1,6 @@
 import COLOR from '../../Services/Constants/COLORS';
 import DIMENSIONS from '../../Services/Constants/DIMENSIONS';
+import {shadow} from '../../Services/shadow';
 
 const {StyleSheet} = require('react-native');
 
@@ -123,7 +124,7 @@ const styles = StyleSheet.create({
     marginTop: 10,
     backgroundColor: COLOR.white,
     alignSelf: 'flex-start',
-    elevation: 0,
+    ...shadow(0),
   },
   titleStyle: {
     color: COLOR.themeBlue,
@@ -153,7 +154,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 10,
-    elevation: 5,
+    ...shadow(5),
     alignSelf: 'stretch',
     marginHorizontal: 10,
   },
@@ -182,7 +183,7 @@ const styles = StyleSheet.create({
     margin: 10,
     width: DIMENSIONS.bannerWidth / 2,
     backgroundColor: COLOR.transparent,
-    elevation: 0,
+    ...shadow(0),
     alignSelf: 'flex-end',
     justifyContent: 'flex-end',
   },

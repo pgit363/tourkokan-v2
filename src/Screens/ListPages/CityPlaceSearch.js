@@ -19,7 +19,8 @@ import {
 } from 'react-native';
 import {SystemBars} from 'react-native-edge-to-edge';
 import {s, C} from './CityPlaceSearchStyles';
-import MapView, {Marker, PROVIDER_GOOGLE} from 'react-native-maps';
+import MapView, {Marker} from 'react-native-maps';
+import {mapProvider} from '../../Services/mapProvider';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import LinearGradient from 'react-native-linear-gradient';
 import {connect} from 'react-redux';
@@ -565,7 +566,7 @@ const CityPlaceSearch = ({navigation, route}) => {
         <MapView
           ref={mapRef}
           style={s.map}
-          provider={PROVIDER_GOOGLE}
+          provider={mapProvider}
           mapType="hybrid"
           onMapReady={() => fitMap(markers)}
           initialRegion={{

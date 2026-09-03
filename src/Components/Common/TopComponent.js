@@ -206,6 +206,7 @@ const s = StyleSheet.create({
 
 const mapStateToProps = state => ({
   profilePicture: state.commonState.profilePicture,
+  unreadCount: state.notifications.unreadCount,
 });
 
 export default connect(mapStateToProps)(TopComponent);

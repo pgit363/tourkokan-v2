@@ -1,0 +1,15 @@
+{
+  "applinks": {
+    "details": [
+      {
+        "appIDs": ["SC8DQWY9FN.com.tourkokan"],
+        "components": [
+          {
+            "/": "/invite/*",
+            "comment": "Referral invite links"
+          }
+        ]
+      }
+    ]
+  }
+}

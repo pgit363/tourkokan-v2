@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   BackHandler,
   Image,
+  Platform,
 } from 'react-native';
 import {SystemBars} from 'react-native-edge-to-edge';
 import TextField from '../../Components/Customs/TextField';
@@ -26,7 +27,7 @@ import {
 import Loader from '../../Components/Customs/Loader';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import COLOR from '../../Services/Constants/COLORS';
-import {navigateTo} from '../../Services/CommonMethods';
+import {navigateTo, afterModalDismissed, resetToHome} from '../../Services/CommonMethods';
 import GlobalText from '../../Components/Customs/Text';
 import AnimatedTagline from '../../Components/Common/AnimatedTagline';
 // import SQLite from 'react-native-sqlite-storage';
@@ -42,7 +43,7 @@ import {
 } from '@react-native-google-signin/google-signin';
 import AntDesign from 'react-native-vector-icons/AntDesign';
 import DIMENSIONS from '../../Services/Constants/DIMENSIONS';
-import {GOOGLE_WEB_CLIENT_ID} from '@env';
+import {GOOGLE_WEB_CLIENT_ID, GOOGLE_WEB_CLIENT_ID_IOS} from '@env';
 import STRING from '../../Services/Constants/STRINGS';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
@@ -69,22 +70,37 @@ const Email = ({navigation, route, ...props}) => {
 
   GoogleSignin.configure({
     scopes: ['profile', 'email'],
-    webClientId: GOOGLE_WEB_CLIENT_ID,
+    // Android and iOS Google Sign-In live in DIFFERENT Google projects here:
+    // the plist's iOS client is project 941471956439, the Android clients are
+    // in 203571229982. Google requires the audience (this webClientId) and the
+    // signing-in client to be in the SAME project, so sending the Android ID on
+    // iOS fails with:
+    //   invalid_audience: The audience client and the client need to be in the
+    //   same project.
+    webClientId: Platform.select({
+      ios: GOOGLE_WEB_CLIENT_ID_IOS,
+      android: GOOGLE_WEB_CLIENT_ID,
+    }),
   });
 
   const signInWithGoogle = async () => {
     if (googleSigningIn.current) return;
     googleSigningIn.current = true;
     try {
-      props.setLoader(true);
       await GoogleSignin.hasPlayServices({showPlayServicesUpdateDialog: true});
 
       let lat = await getFromStorage(t('STORAGE.CURRENT_LATITUDE'));
       let long = await getFromStorage(t('STORAGE.CURRENT_LONGITUDE'));
       let referral_code = await getFromStorage(t('STORAGE.REFERRAL_CODE'));
 
+      // NO app loader while Google's sheet is up. The shared Loader is a
+      // react-native-loading-spinner-overlay <Modal>, and iOS cannot present
+      // two things from one view controller — showing it here made the account
+      // picker appear and then immediately close. Google shows its own UI, so
+      // there is nothing to cover during this await; the loader goes up only
+      // afterwards, for the backend round-trip.
       const userInfo = await GoogleSignin.signIn();
-      log.debug('ID TOKEN:', userInfo?.data?.idToken ?? userInfo?.idToken);
+      props.setLoader(true);
 
       const idToken = userInfo?.data?.idToken ?? userInfo?.idToken;
       if (!idToken) {
@@ -106,6 +122,13 @@ const Email = ({navigation, route, ...props}) => {
       
       const res = await comnPost('v2/auth/googleAuth', payload);
       const resData = res?.data ?? res?.response?.data;
+      // The backend answers HTTP 200 with success:false on EVERY failure path, so
+      // the status alone says nothing — the body is what matters.
+      log.debug('[google] googleAuth', {
+        status: res?.status ?? res?.response?.status ?? 'none',
+        success: resData?.success,
+        message: resData?.message,
+      });
 
       if (resData?.success) {
         await AsyncStorage.setItem(t('STORAGE.ACCESS_TOKEN'), resData.data.access_token);
@@ -116,15 +139,17 @@ const Email = ({navigation, route, ...props}) => {
         const isGuestValGoogle = !!resData.data.isGuest;
         AsyncStorage.setItem('IS_GUEST', JSON.stringify(isGuestValGoogle));
         saveToStorage(STRING.STORAGE.MODE, JSON.stringify(true));
-        // props.setMode(true);
-        // try {
-        //   const landingRes = await comnPost('v2/landingpage', {});
-        //   if (landingRes?.data?.data) {
-        //     await saveToStorage(t('STORAGE.LANDING_RESPONSE'), JSON.stringify(landingRes.data.data));
-        //   }
-        // } catch (e) { console.warn("[caught]", e); }
+        // Mirror the working guest-login flow: set app mode + prefetch landing
+        // data before navigating, otherwise Home doesn't switch in.
+        props.setMode(true);
+        try {
+          const landingRes = await comnPost('v2/landingpage', {});
+          if (landingRes?.data?.data) {
+            await saveToStorage(t('STORAGE.LANDING_RESPONSE'), JSON.stringify(landingRes.data.data));
+          }
+        } catch (e) { log.warn('[caught]', e); }
         props.setLoader(false);
-        navigateTo(navigation, t('SCREEN.HOME'));
+        resetToHome(navigation, t('SCREEN.HOME'));
       } else {
         setIsAlert(true);
         const raw = resData?.message;
@@ -225,12 +250,7 @@ const Email = ({navigation, route, ...props}) => {
   const closePopup = () => {
     if (isSuccess) {
       AsyncStorage.setItem(t('STORAGE.IS_FIRST_TIME'), JSON.stringify(true));
-      navigation.dispatch(
-        CommonActions.reset({
-          index: 0,
-          routes: [{name: t('SCREEN.HOME')}],
-        }),
-      );
+      resetToHome(navigation, t('SCREEN.HOME'));
     }
     setIsAlert(false);
   };
@@ -250,7 +270,9 @@ const Email = ({navigation, route, ...props}) => {
     ) {
       BackHandler.exitApp();
     } else {
-      navigateTo(navigation, t('SCREEN.HOME'));
+      // Reached the login screen with a valid token — replace rather than push,
+      // so Home never ends up stacked on top of the login page again.
+      resetToHome(navigation, t('SCREEN.HOME'));
     }
   };
 
@@ -323,7 +345,7 @@ const Email = ({navigation, route, ...props}) => {
           }
         } catch (e) { log.warn("[caught]", e); }
         props.setLoader(false);
-        navigateTo(navigation, t('SCREEN.HOME'));
+        resetToHome(navigation, t('SCREEN.HOME'));
       } else {
         props.setLoader(false);
         setIsAlert(true);

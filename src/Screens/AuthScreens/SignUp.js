@@ -22,6 +22,7 @@ import Loader from '../../Components/Customs/Loader';
 import {connect} from 'react-redux';
 import {setLoader, saveAccess_token} from '../../Reducers/CommonActions';
 import {navigateTo, showAlert} from '../../Services/CommonMethods';
+import {GoogleSignin} from '@react-native-google-signin/google-signin';
 import {launchImageLibrary} from 'react-native-image-picker';
 import GlobalText from '../../Components/Customs/Text';
 import COLOR from '../../Services/Constants/COLORS';
@@ -34,8 +35,7 @@ import {useTranslation} from 'react-i18next';
 import {CheckBox} from '@rneui/themed';
 import PrivacyPolicy from '../../Components/Common/PrivacyPolicy';
 import DeviceInfo from 'react-native-device-info';
-import {GoogleSignin} from '@react-native-google-signin/google-signin';
-import {GOOGLE_WEB_CLIENT_ID, API_PATH} from '@env';
+import {GOOGLE_WEB_CLIENT_ID, GOOGLE_WEB_CLIENT_ID_IOS, API_PATH} from '@env';
 import {createLogger} from '../../Services/Logger';
 
 const log = createLogger('SignUp');
@@ -85,12 +85,18 @@ const SignUp = ({navigation, ...props}) => {
   const [showPrivacy, setShowPrivacy] = useState(false);
 
   GoogleSignin.configure({
-    webClientId: GOOGLE_WEB_CLIENT_ID,
+    // Per-platform Web client ID — see Email.js. The iOS client lives in a
+    // different Google project from the Android ones, and Google rejects a
+    // cross-project audience with invalid_audience.
+    webClientId: Platform.select({
+      ios: GOOGLE_WEB_CLIENT_ID_IOS,
+      android: GOOGLE_WEB_CLIENT_ID,
+    }),
   });
 
   const signInWithGoogle = async () => {
     try {
-      await GoogleSignin.hasPlayServices();
+      await GoogleSignin.hasPlayServices({showPlayServicesUpdateDialog: true});
       const userInfo = await GoogleSignin.signIn();
 
       // Send userInfo.idToken to your Laravel backend
@@ -644,7 +650,7 @@ const SignUp = ({navigation, ...props}) => {
       </ScrollView>
 
       <KeyboardAvoidingView
-        behavior="height"
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={{flex: 1}}></KeyboardAvoidingView>
       <Popup
         message={alertMessage}

@@ -44,6 +44,7 @@ import ModePopup from '../../Components/Common/ModePopup';
 import {setMode} from '../../Reducers/CommonActions';
 import {createLogger} from '../../Services/Logger';
 import {scaleFontSizes} from '../../Services/responsive';
+import {shadow} from '../../Services/shadow';
 
 const log = createLogger('QueriesList');
 
@@ -1010,7 +1011,7 @@ const styles = StyleSheet.create(scaleFontSizes({
   queryCardExpanded: {
     shadowOpacity: 0.1,
     shadowRadius: 12,
-    elevation: 0,
+    ...shadow(0),
   },
   queryCardHeader: {
     flexDirection: 'row',

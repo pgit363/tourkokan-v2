@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   TextInput,
   StyleSheet,
+  Platform,
 } from 'react-native';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {useResponsive} from '../Services/responsive';
@@ -153,6 +154,15 @@ const OnboardingScreen = ({onComplete}) => {
     try {
       setIsLoading(true);
       setIsButtonDisabled(true);
+      // react-native-android-location-enabler is Android-only — it has no iOS
+      // native module, so calling it on iOS throws ("Something went wrong").
+      // iOS has no "enable location services" system prompt anyway, so capture
+      // the location directly (same success path Android reaches after the
+      // enable prompt).
+      if (Platform.OS === 'ios') {
+        getOneTimeLocation();
+        return;
+      }
       const isLocationEnabled = await LocationEnabler.isLocationEnabled();
       if (isLocationEnabled) {
         getOneTimeLocation();
