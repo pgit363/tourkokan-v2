@@ -15,12 +15,17 @@
  *                                         Fails silently without the app, so it
  *                                         is a fallback, never the shared link.
  *
+ * parseReferral is deliberately host-agnostic: a production build must still
+ * resolve a test.tourkokan.com link that someone pasted, and vice versa. Only
+ * the manifest decides which hosts the OS routes into the app.
+ *
  * The handler deliberately only PARKS the code in storage. The referral plumbing
  * already exists — OnboardingScreen writes STORAGE.REFERRAL_CODE, Email.js reads
  * it for googleAuth, and SignUp prefills its field from it — so parking is
  * enough, and it avoids driving navigation from outside the navigator.
  */
 import {Linking} from 'react-native';
+import {DEEP_LINK_HOST} from '@env';
 import {saveToStorage} from './Api/CommonServices';
 import STRING from './Constants/STRINGS';
 import {createLogger} from './Logger';
@@ -72,7 +77,18 @@ export const initDeepLinks = () => {
   return () => sub.remove();
 };
 
-/** The link to share. Uses the https form so it works without the app too. */
-export const referralLink = code => `https://tourkokan.com/invite/${encodeURIComponent(code)}`;
+/**
+ * The link to share. https form, so it still works for a recipient without the
+ * app installed.
+ *
+ * The host is per-flavor (test.tourkokan.com for local/qa, tourkokan.com for
+ * production) and comes from the same DEEP_LINK_HOST value that feeds the
+ * manifest's App Link intent filter via manifestPlaceholders — so a QA build can
+ * never share a link its own manifest would not claim.
+ */
+const HOST = String(DEEP_LINK_HOST || 'tourkokan.com').trim();
+
+export const referralLink = code =>
+  `https://${HOST}/invite/${encodeURIComponent(code)}`;
 
 export default initDeepLinks;

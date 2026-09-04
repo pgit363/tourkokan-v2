@@ -1,7 +1,26 @@
 # tourkokan.com — deep link setup
 
-Handoff for whoever manages the **tourkokan.com** web server. Everything here is
+Handoff for whoever manages the tourkokan web servers. Everything here is
 domain-side; nothing in this document touches the mobile app or the API.
+
+## TWO domains, not one
+
+The app picks its deep-link host from the build flavor, so **both domains need
+the same setup**:
+
+| Build | Host | Package |
+|---|---|---|
+| production (Play Store) | `tourkokan.com` | `com.tourkokan` |
+| qa / internal testing | `test.tourkokan.com` | `com.tourkokan` |
+| local dev | `test.tourkokan.com` | `com.tourkokan.local` — **cannot verify**, see below |
+
+`qa` and `production` share an applicationId (`com.tourkokan`), so **the same
+`assetlinks.json` content works on both hosts** — just serve the identical file
+from each domain.
+
+The `local` flavor has applicationId `com.tourkokan.local`, so it can never
+satisfy either file. That is expected; local testing uses the `tourkokan://`
+custom scheme, which needs no verification.
 
 **Scope: Android only.** iOS is not live yet — see the last section for what it
 will add later.
@@ -21,6 +40,8 @@ Checked 2026-09-04:
 | `https://tourkokan.com/` | `200` — site is up |
 | `https://tourkokan.com/.well-known/assetlinks.json` | **`404` — missing** |
 | `https://tourkokan.com/invite/TESTCODE123` | **`404` — missing** |
+| `https://test.tourkokan.com/.well-known/assetlinks.json` | needs the same file |
+| `https://test.tourkokan.com/invite/TESTCODE123` | needs the same page |
 
 Until both exist, every shared referral link lands on a 404.
 
@@ -33,10 +54,11 @@ when the app is installed and checks the certificate fingerprint. If it matches,
 `tourkokan.com/invite/*` links open directly in the app with no "open with…"
 chooser.
 
-Serve at exactly:
+Serve the **same content** at both:
 
 ```
 https://tourkokan.com/.well-known/assetlinks.json
+https://test.tourkokan.com/.well-known/assetlinks.json
 ```
 
 Content:
@@ -105,8 +127,10 @@ Example URLs that must all resolve:
 
 ```
 https://tourkokan.com/invite/ABC123
-https://tourkokan.com/invite/XY_9-z
+https://test.tourkokan.com/invite/XY_9-z
 ```
+
+Both hosts need this route.
 
 ### What the page should do
 
@@ -137,6 +161,7 @@ show the referral context that motivated the tap.
 
 ```bash
 curl -sSI https://tourkokan.com/.well-known/assetlinks.json
+curl -sSI https://test.tourkokan.com/.well-known/assetlinks.json
 ```
 
 Expect `200`, `content-type: application/json`, and **no** `location:` header.
@@ -183,6 +208,38 @@ directly. Then open Sign Up — the referral field should be prefilled.
 
 Both are needed before promoting the referral feature, since today the link 404s
 for everyone.
+
+---
+
+## ⚠️ Build-time trap: `APP_ENV`, not `ENVFILE`
+
+`@env` values in JS (including `DEEP_LINK_HOST` and `API_PATH`) are inlined by
+**react-native-dotenv**, which reads `.env.${APP_ENV}` — see `babel.config.js`.
+`ENVFILE` only feeds the NATIVE side via react-native-config. Setting `ENVFILE`
+alone does nothing for JS.
+
+Worse, Metro caches transforms by file content, so **changing `APP_ENV` does not
+invalidate the cache**. Measured on this repo:
+
+| Command | Host baked in |
+|---|---|
+| `ENVFILE=.env.production … bundle` | `test.tourkokan.com` ❌ |
+| `APP_ENV=production … bundle` (warm cache) | `test.tourkokan.com` ❌ |
+| `APP_ENV=production … bundle --reset-cache` | `tourkokan.com` ✅ |
+
+So a machine that built QA and then built production could ship a production
+binary pointing at the **test** API and the **test** deep-link host.
+
+The `build:aab:*` / `build:apk:*` scripts and the fastlane lanes set `APP_ENV`
+correctly and run `gradlew clean` first. If you ever bundle manually, or after
+switching environments on the same machine, add `--reset-cache`.
+
+**Verify before shipping** — check the artifact, not the command:
+
+```bash
+unzip -p app-production-release.aab base/assets/index.android.bundle \
+  | grep -oE 'https://api[a-z.-]*\.tourkokan\.com/api/' | sort -u
+```
 
 ---
 

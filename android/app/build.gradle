@@ -156,6 +156,10 @@ android {
             dimension "env"
             applicationIdSuffix ".local"
             versionNameSuffix "-local"
+            // NOTE: this flavor's applicationId is com.tourkokan.local, so it can
+            // never satisfy assetlinks.json for either host — App Links will not
+            // verify here. Use the tourkokan:// custom scheme for local testing.
+            manifestPlaceholders = [deepLinkHost: "test.tourkokan.com"]
         }
         // TEST / QA -> api-test.tourkokan.com (.env.development).
         // Named "qa" because Android Gradle reserves flavor names starting with "test".
@@ -163,10 +167,12 @@ android {
         // builds feed the internal / closed / open testing tracks.
         qa {
             dimension "env"
+            manifestPlaceholders = [deepLinkHost: "test.tourkokan.com"]
         }
         // PRODUCTION -> api.tourkokan.com (.env.production). Play Store production track.
         production {
             dimension "env"
+            manifestPlaceholders = [deepLinkHost: "tourkokan.com"]
         }
     }
 }

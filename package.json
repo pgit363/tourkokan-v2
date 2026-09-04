@@ -7,7 +7,7 @@
     "android": "react-native run-android --mode=localDebug",
     "android:local": "cd android && ./gradlew clean && cd .. && react-native run-android --mode=localDebug",
     "android:test": "cd android && ./gradlew clean && cd .. && react-native run-android --mode=qaDebug",
-    "android:prod": "react-native run-android --mode=productionDebug",
+    "android:prod": "APP_ENV=production react-native run-android --mode=productionDebug",
     "android:prod:release": "APP_ENV=production react-native run-android --mode=productionRelease",
     "build:apk:test": "cd android && APP_ENV=development ./gradlew clean assembleQaRelease",
     "build:apk:prod": "cd android && APP_ENV=production ./gradlew clean assembleProductionRelease",
@@ -21,13 +21,13 @@
     "deploy:closed": "cd android && bundle exec fastlane closed",
     "deploy:open": "cd android && bundle exec fastlane open",
     "deploy:production": "cd android && bundle exec fastlane production",
-    "ios": "react-native run-ios",
+    "ios": "APP_ENV=development react-native run-ios",
     "lint": "eslint .",
     "test": "jest",
     "pods": "cd ios && bundle exec pod install",
     "pods:clean": "cd ios && rm -rf Pods Podfile.lock build && bundle exec pod install --repo-update",
-    "ios:device": "react-native run-ios --device",
-    "ios:release": "react-native run-ios --mode Release"
+    "ios:device": "APP_ENV=development react-native run-ios --device",
+    "ios:release": "APP_ENV=production react-native run-ios --mode Release"
   },
   "dependencies": {
     "@react-native-async-storage/async-storage": "^2.1.2",
