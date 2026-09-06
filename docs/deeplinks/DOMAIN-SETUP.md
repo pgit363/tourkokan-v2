@@ -238,8 +238,14 @@ switching environments on the same machine, add `--reset-cache`.
 
 ```bash
 unzip -p app-production-release.aab base/assets/index.android.bundle \
-  | grep -oE 'https://api[a-z.-]*\.tourkokan\.com/api/' | sort -u
+  | grep -aoE 'https://api[a-z.-]*\.tourkokan\.com/api/' | sort -u
 ```
+
+**The `-a` is load-bearing.** The bundle is Hermes bytecode (magic `c61fbc03`), so
+without it grep treats the input as binary and prints nothing at all — which looks
+exactly like "no test host found = pass". A check that cannot fail is worse than no
+check. Confirm you get a non-empty result: a correct production build prints
+`https://api.tourkokan.com/api/` and nothing else.
 
 ---
 

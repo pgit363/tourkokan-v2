@@ -523,11 +523,7 @@ const RoutesList = ({navigation, route}) => {
         )}
       </ScrollView>
       {offlineModal}
-      <DataAccuracyNotice
-        storageKey="routeDetail"
-        onReport={openReport}
-        deferWhile={offlineGateUp}
-      />
+      <DataAccuracyNotice onReport={openReport} deferWhile={offlineGateUp} />
     </View>
   );
 };

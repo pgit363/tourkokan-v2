@@ -20,7 +20,6 @@ import {useTranslation} from 'react-i18next';
 import {comnPost, getFromStorage, saveToStorage} from '../../Services/Api/CommonServices';
 import {backPage, checkLogin, goBackHandler, navigateTo} from '../../Services/CommonMethods';
 import {useConnectivityGate} from '../../Components/Common/useConnectivityGate';
-import DataAccuracyNotice from '../../Components/Common/DataAccuracyNotice';
 import {createLogger} from '../../Services/Logger';
 import {scaleFontSizes} from '../../Services/responsive';
 
@@ -196,11 +195,6 @@ const BusRouteList = ({navigation}) => {
   const {t} = useTranslation();
   const insets = useSafeAreaInsets();
   const {modal: connectivityModal, ensureOnline} = useConnectivityGate();
-
-  // No single route is selected on a list screen, so a correction reported from
-  // here goes in without route context — the user describes it in their message.
-  const openReport = () =>
-    navigateTo(navigation, t('SCREEN.QUERIES_LIST'), {step: 1});
 
   const [list, setList] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -428,7 +422,6 @@ const BusRouteList = ({navigation}) => {
         showsVerticalScrollIndicator={false}
       />
       {connectivityModal}
-      <DataAccuracyNotice storageKey="busRoutes" onReport={openReport} />
     </View>
   );
 };

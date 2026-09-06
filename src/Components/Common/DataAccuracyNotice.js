@@ -1,27 +1,25 @@
 /**
- * DataAccuracyNotice — the "help us make this accurate" popup shown on the
- * MSRTC / bus-route screens.
+ * DataAccuracyNotice — the "help us make this accurate" popup on the bus route
+ * DETAIL page.
  *
  * Much of the route data was added in bulk, so it carries mistakes. Rather than
  * hide that, the app says so and invites the people best placed to fix it.
  *
- * Shown ONCE PER SCREEN PER INSTALL, not on every visit: the users most likely
- * to contribute are the ones who open these screens repeatedly, and they are
- * exactly the people a repeating modal would drive away. Each screen passes its
- * own `storageKey` so a user who only ever opens Route Details still sees it
- * once there.
+ * Deliberately only on the detail page, not the route lists: a correction is
+ * only useful when it names a specific route, and that is the one screen where
+ * the user is looking at one. It also keeps the notice off the browsing path.
+ *
+ * Shown EVERY TIME the screen is opened. Closing it lasts only for that visit;
+ * coming back re-arms it.
  */
 import React, {useCallback, useEffect, useState} from 'react';
-import {View, Text, Modal, TouchableOpacity, ScrollView, StyleSheet} from 'react-native';
+import {View, Text, Modal, Pressable, TouchableOpacity, ScrollView, StyleSheet} from 'react-native';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
+import {useIsFocused} from '@react-navigation/native';
 import LinearGradient from 'react-native-linear-gradient';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import {useTranslation} from 'react-i18next';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import {createLogger} from '../../Services/Logger';
 import {shadow} from '../../Services/shadow';
-
-const log = createLogger('DataAccuracyNotice');
 
 const C = {
   oceanDeep: '#0D3D4A',
@@ -37,8 +35,6 @@ const C = {
   line: 'rgba(0,0,0,0.08)',
 };
 
-const PREFIX = 'dataNotice:v1:';
-
 /** Each point gets its own icon so the three read as distinct ideas, not a wall. */
 const POINTS = [
   {key: 'POINT_1', icon: 'alert-circle-outline', tint: '#C1492E'},
@@ -47,52 +43,36 @@ const POINTS = [
 ];
 
 /**
- * @param storageKey  unique per screen — what "seen once" is remembered against
  * @param onReport    opens the correction form
  * @param deferWhile  hold the notice back while another modal owns the screen.
  *                    Two RN Modals at once stack badly on Android and can fail
- *                    outright on iOS. The notice is NOT marked seen while
- *                    deferred, so it simply appears once the way is clear —
- *                    either as soon as the other modal closes, or next visit.
+ *                    outright on iOS. Being deferred does NOT count as being
+ *                    closed, so the notice appears once the way is clear.
  */
-const DataAccuracyNotice = ({storageKey, onReport, deferWhile = false}) => {
+const DataAccuracyNotice = ({onReport, deferWhile = false}) => {
   const {t} = useTranslation();
   const insets = useSafeAreaInsets();
-  // null = still reading storage, so nothing flashes before we know.
-  const [seen, setSeen] = useState(null);
+  // Serves two purposes. A Modal renders in its own window ABOVE everything and
+  // a screen that has been navigated away from stays mounted — a tab is never
+  // unmounted once visited — so without this the notice would keep covering
+  // whatever the user moved on to and swallow every touch there. It is also how
+  // "opened" is detected at all, since a tab screen mounts only once.
+  const isFocused = useIsFocused();
+  const [closed, setClosed] = useState(false);
 
+  // Re-arm on every arrival. Closing it applies only to the current visit.
   useEffect(() => {
-    let alive = true;
-    (async () => {
-      try {
-        const flag = await AsyncStorage.getItem(PREFIX + storageKey);
-        if (alive) setSeen(!!flag);
-      } catch (e) {
-        // Storage unavailable is not a reason to nag — stay quiet.
-        log.warn('[notice] could not read seen flag', e);
-        if (alive) setSeen(true);
-      }
-    })();
-    return () => {
-      alive = false;
-    };
-  }, [storageKey]);
+    if (isFocused) setClosed(false);
+  }, [isFocused]);
 
-  const dismiss = useCallback(async () => {
-    setSeen(true);
-    try {
-      await AsyncStorage.setItem(PREFIX + storageKey, '1');
-    } catch (e) {
-      log.warn('[notice] could not persist seen flag', e);
-    }
-  }, [storageKey]);
+  const dismiss = useCallback(() => setClosed(true), []);
 
   const report = useCallback(() => {
     dismiss();
     onReport?.();
   }, [dismiss, onReport]);
 
-  if (seen !== false || deferWhile) return null;
+  if (closed || deferWhile || !isFocused) return null;
 
   return (
     <Modal
@@ -101,8 +81,9 @@ const DataAccuracyNotice = ({storageKey, onReport, deferWhile = false}) => {
       animationType="fade"
       statusBarTranslucent
       onRequestClose={dismiss}>
-      <View style={s.backdrop}>
-        <View style={[s.card, {marginBottom: insets.bottom}]}>
+      <Pressable style={s.backdrop} onPress={dismiss}>
+        {/* Swallows taps on the card so they don't reach the backdrop. */}
+        <Pressable style={[s.card, {marginBottom: insets.bottom}]} onPress={() => {}}>
           <LinearGradient
             colors={[C.oceanDeep, C.forest]}
             start={{x: 0, y: 0}}
@@ -146,8 +127,8 @@ const DataAccuracyNotice = ({storageKey, onReport, deferWhile = false}) => {
               <Text style={s.primaryText}>{t('DATA_NOTICE.REPORT_BTN')}</Text>
             </TouchableOpacity>
           </View>
-        </View>
-      </View>
+        </Pressable>
+      </Pressable>
     </Modal>
   );
 };
