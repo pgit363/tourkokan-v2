@@ -23,6 +23,7 @@ import STRING from '../Services/Constants/STRINGS';
 import NetInfo from '@react-native-community/netinfo';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {scaleFontSizes} from '../Services/responsive';
+import {contextRows, appendContextToMessage} from '../Services/reportContext';
 
 // ─── Design tokens ────────────────────────────────────────────────────────────
 
@@ -47,6 +48,7 @@ const ContactUs = ({
   step,
   setStep,
   route_id,
+  reportContext,
   onQuerySubmitted,
   ...props
 }) => {
@@ -58,6 +60,11 @@ const ContactUs = ({
     {icon: '📞', label: t('CONTACT_US_SCREEN.PHONE'), value: '+91 8888095747'},
     {icon: '📍', label: t('CONTACT_US_SCREEN.ADDRESS'), value: 'Sindhudurg, Maharashtra, India'},
   ];
+
+  // Route details attached to a correction report. Shown read-only above the
+  // message box and appended to the message on submit, so the admin reading the
+  // query knows exactly which route it is about.
+  const routeRows = contextRows(reportContext, t);
 
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
@@ -198,7 +205,7 @@ const ContactUs = ({
       name: await AsyncStorage.getItem(t('STORAGE.USER_NAME')),
       email: email.trim(),
       phone: phone.trim(),
-      message: message.trim(),
+      message: appendContextToMessage(message, reportContext),
       route_id,
     };
 
@@ -311,6 +318,22 @@ const ContactUs = ({
               />
               {!!errors.phone && <Text style={styles.errorText}>{errors.phone}</Text>}
             </View>
+
+            {routeRows.length > 0 && (
+              <View style={styles.ctxCard}>
+                <View style={styles.ctxHead}>
+                  <Ionicons name="bus-outline" size={15} color={C.oceanDeep} />
+                  <Text style={styles.ctxTitle}>{t('DATA_NOTICE.CONTEXT_TITLE')}</Text>
+                </View>
+                {routeRows.map(([label, value]) => (
+                  <View key={label} style={styles.ctxRow}>
+                    <Text style={styles.ctxLabel}>{label}</Text>
+                    <Text style={styles.ctxValue} numberOfLines={2}>{value}</Text>
+                  </View>
+                ))}
+                <Text style={styles.ctxHint}>{t('DATA_NOTICE.CONTEXT_HINT')}</Text>
+              </View>
+            )}
 
             <View style={styles.formGroup}>
               <Text style={styles.formLabel}>
@@ -455,6 +478,54 @@ const styles = StyleSheet.create(scaleFontSizes({
     color: C.textDark,
     marginBottom: 18,
   },
+  // Route context attached to a correction report
+  ctxCard: {
+    backgroundColor: 'rgba(13,61,74,0.05)',
+    borderWidth: 1,
+    borderColor: 'rgba(13,61,74,0.14)',
+    borderRadius: 12,
+    padding: 12,
+    marginBottom: 16,
+  },
+  ctxHead: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginBottom: 8,
+  },
+  ctxTitle: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: C.oceanDeep,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+    flex: 1,
+  },
+  ctxRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 10,
+    paddingVertical: 3,
+  },
+  ctxLabel: {
+    fontSize: 12,
+    color: C.textLight,
+    width: 92,
+    flexShrink: 0,
+  },
+  ctxValue: {
+    flex: 1,
+    fontSize: 12.5,
+    fontWeight: '600',
+    color: C.textDark,
+  },
+  ctxHint: {
+    fontSize: 11,
+    color: C.textLight,
+    fontStyle: 'italic',
+    marginTop: 8,
+  },
+
   formGroup: {
     marginBottom: 16,
   },

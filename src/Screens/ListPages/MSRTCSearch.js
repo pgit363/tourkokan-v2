@@ -22,6 +22,7 @@ import {setLoader, setMode, setSource, setDestination} from '../../Reducers/Comm
 import {backPage, checkLogin, goBackHandler, navigateTo} from '../../Services/CommonMethods';
 import Banner, {footerBannerHeight} from '../../Components/Customs/Banner';
 import {useRoutesOfflineGate} from '../../Components/Common/RoutesOfflineGate';
+import DataAccuracyNotice from '../../Components/Common/DataAccuracyNotice';
 import MSRTCSearchPanel from '../../Components/Common/MSRTCSearchPanel';
 import {createLogger} from '../../Services/Logger';
 import {scaleFontSizes, isTabletDevice} from '../../Services/responsive';
@@ -122,10 +123,15 @@ const MSRTCSearch = ({navigation, route, ...props}) => {
   const {t} = useTranslation();
   const insets = useSafeAreaInsets();
   const bottomPad = Math.max(insets.bottom, 10);
-  const {modal: offlineModal} = useRoutesOfflineGate({
+  const {modal: offlineModal, visible: offlineGateUp} = useRoutesOfflineGate({
     mode: props.mode,
     onModeChange: props.setMode,
   });
+
+  // No single route is selected on a list screen, so a correction reported from
+  // here goes in without route context — the user describes it in their message.
+  const openReport = () =>
+    navigateTo(navigation, t('SCREEN.QUERIES_LIST'), {step: 1});
 
   const [recentRoutes, setRecentRoutes] = useState([]);
   const [bannerObject, setBannerObject] = useState({});
@@ -281,6 +287,11 @@ const MSRTCSearch = ({navigation, route, ...props}) => {
         )}
       </ScrollView>
       {offlineModal}
+      <DataAccuracyNotice
+        storageKey="msrtcSearch"
+        onReport={openReport}
+        deferWhile={offlineGateUp}
+      />
     </View>
   );
 };

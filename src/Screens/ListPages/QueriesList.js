@@ -562,6 +562,7 @@ const QueriesList = ({navigation, route, ...props}) => {
         step={step}
         setStep={setStep}
         route_id={route.params?.route_id}
+        reportContext={route.params?.reportContext}
         onQuerySubmitted={handleQuerySubmitted}
       />
     );

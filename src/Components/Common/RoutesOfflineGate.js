@@ -136,7 +136,8 @@ const RoutesOfflineGate = ({
  *                                            If undefined the hook reads from AsyncStorage.
  * @param {function|undefined} options.onModeChange — Redux setMode dispatch (if connected).
  *
- * Returns { modal } — render it once inside the screen's JSX.
+ * Returns { modal, visible } — render `modal` once inside the screen's JSX;
+ * `visible` lets the screen defer any popup of its own while this one is shown.
  */
 export const useRoutesOfflineGate = ({mode: modeProp, onModeChange: onModeChangeProp} = {}) => {
   const [visible, setVisible] = useState(false);
@@ -191,7 +192,10 @@ export const useRoutesOfflineGate = ({mode: modeProp, onModeChange: onModeChange
     />
   );
 
-  return {modal};
+  // `visible` is returned so a screen can hold back its own popups while this
+  // one is up — two RN Modals presented at once stack badly on Android and can
+  // fail outright on iOS, where a view controller can only present one thing.
+  return {modal, visible};
 };
 
 // ─── Styles ───────────────────────────────────────────────────────────────────

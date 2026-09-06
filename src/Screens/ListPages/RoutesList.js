@@ -20,6 +20,8 @@ import {backPage, checkLogin, goBackHandler, navigateTo} from '../../Services/Co
 import {comnPost, getFromStorage} from '../../Services/Api/CommonServices';
 import Banner, {footerBannerHeight} from '../../Components/Customs/Banner';
 import {useRoutesOfflineGate} from '../../Components/Common/RoutesOfflineGate';
+import DataAccuracyNotice from '../../Components/Common/DataAccuracyNotice';
+import {buildRouteContext} from '../../Services/reportContext';
 import {createLogger} from '../../Services/Logger';
 import {scaleFontSizes} from '../../Services/responsive';
 
@@ -343,12 +345,23 @@ const rc = StyleSheet.create(scaleFontSizes({
 const RoutesList = ({navigation, route}) => {
   const {t} = useTranslation();
   const insets = useSafeAreaInsets();
-  const {modal: offlineModal} = useRoutesOfflineGate();
+  const {modal: offlineModal, visible: offlineGateUp} = useRoutesOfflineGate();
   const {width: winW} = useWindowDimensions();
   // bannerWrap has marginHorizontal:16 on each side → inner width = winW - 32
   const bannerW = winW - 32;
 
   const routeItem = route?.params?.item;
+
+  // The route the user is looking at, carried into the correction form so they
+  // never have to describe which route they mean.
+  const reportContext = buildRouteContext(routeItem);
+  const openReport = () =>
+    navigateTo(navigation, t('SCREEN.QUERIES_LIST'), {
+      step: 1,
+      route_id: routeItem?.id,
+      reportContext,
+    });
+
   const [stops, setStops] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isOffline, setIsOffline] = useState(false);
@@ -464,14 +477,11 @@ const RoutesList = ({navigation, route}) => {
 
           <TouchableOpacity
             style={s.contactBtn}
-            onPress={() =>
-              navigateTo(navigation, t('SCREEN.QUERIES_LIST'), {
-                step: 1,
-                route_id: route?.params?.item?.id,
-              })
-            }
-            activeOpacity={0.8}>
-            <Text style={s.contactBtnText}>{t('ROUTES_LIST_SCREEN.CONTACT_BTN')}</Text>
+            onPress={openReport}
+            activeOpacity={0.8}
+            hitSlop={{top: 8, bottom: 8, left: 8, right: 8}}>
+            <Ionicons name="create-outline" size={13} color={C.white} />
+            <Text style={s.contactBtnText}>{t('ROUTES_LIST_SCREEN.REPORT_BTN')}</Text>
           </TouchableOpacity>
         </View>
 
@@ -513,6 +523,11 @@ const RoutesList = ({navigation, route}) => {
         )}
       </ScrollView>
       {offlineModal}
+      <DataAccuracyNotice
+        storageKey="routeDetail"
+        onReport={openReport}
+        deferWhile={offlineGateUp}
+      />
     </View>
   );
 };
@@ -550,7 +565,10 @@ const s = StyleSheet.create(scaleFontSizes({
     letterSpacing: 0.2,
   },
   contactBtn: {
-    paddingHorizontal: 14,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    paddingHorizontal: 12,
     paddingVertical: 7,
     borderRadius: 20,
     backgroundColor: 'rgba(255,255,255,0.18)',

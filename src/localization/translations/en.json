@@ -731,7 +731,8 @@
     "OFFLINE_MSG": "You are offline. Showing cached data.",
     "NO_STOPS": "No stops found",
     "NO_STOPS_SUB": "This route has no stop data",
-    "CONTACT_BTN": "Contact"
+    "CONTACT_BTN": "Contact",
+    "REPORT_BTN": "Report"
   },
   "GALLERY_SCREEN": {
     "TITLE": "Photo Gallery",
@@ -1037,5 +1038,26 @@
     "SOLD_BY": "Sold by",
     "STOCK": "Stock",
     "MORE_FROM": "More from this business"
+  },
+  "REPORT_CONTEXT": {
+    "ROUTE": "Route",
+    "FROM_TO": "From → To",
+    "BUS_TYPE": "Bus type",
+    "TIMING": "Timing",
+    "DURATION": "Duration",
+    "DISTANCE": "Distance",
+    "STOPS": "Stops",
+    "ROUTE_ID": "Route ID"
+  },
+  "DATA_NOTICE": {
+    "TITLE": "Help us get this information more accurate",
+    "INTRO": "Nobody knows Konkan like the people who live here. Much of this bus data was added in bulk, so some place names and routes may be wrong — and you'll spot it faster than we will.",
+    "POINT_1": "Timings and routes change often, and some entries may be wrong. Spotted a mistake? Tell us and we'll fix it.",
+    "POINT_2": "This app is still being built, route by route. A timing you know by heart, a stop we've missed, a village name spelt wrong — all of it counts.",
+    "POINT_3": "Every correction helps a traveller find their way to Konkan — and helps the shops, homestays and drivers here who live off that journey.",
+    "REPORT_BTN": "Report a correction",
+    "GOT_IT": "Got it",
+    "CONTEXT_TITLE": "Reporting about this route",
+    "CONTEXT_HINT": "These details are sent with your message, so you don't need to type them."
   }
 }

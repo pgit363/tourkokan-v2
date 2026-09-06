@@ -35,6 +35,7 @@ import {
 } from '../../Services/CommonMethods';
 import Banner, {footerBannerHeight} from '../../Components/Customs/Banner';
 import {useRoutesOfflineGate} from '../../Components/Common/RoutesOfflineGate';
+import DataAccuracyNotice from '../../Components/Common/DataAccuracyNotice';
 import {createLogger} from '../../Services/Logger';
 import {scaleFontSizes} from '../../Services/responsive';
 
@@ -239,10 +240,15 @@ const RouteCard = ({item, onPress, t}) => {
 
 const AllRoutesSearch = ({navigation, route, ...props}) => {
   const {t} = useTranslation();
-  const {modal: offlineModal} = useRoutesOfflineGate({
+  const {modal: offlineModal, visible: offlineGateUp} = useRoutesOfflineGate({
     mode: props.mode,
     onModeChange: props.setMode,
   });
+
+  // No single route is selected on a list screen, so a correction reported from
+  // here goes in without route context — the user describes it in their message.
+  const openReport = () =>
+    navigateTo(navigation, t('SCREEN.QUERIES_LIST'), {step: 1});
   const {width: winW} = useWindowDimensions();
   // adBannerOuter has marginHorizontal:20 → inner width = winW - 40
   const bannerW = winW - 40;
@@ -608,6 +614,11 @@ const AllRoutesSearch = ({navigation, route, ...props}) => {
       )}
       {guestModal}
       {offlineModal}
+      <DataAccuracyNotice
+        storageKey="routeResults"
+        onReport={openReport}
+        deferWhile={offlineGateUp}
+      />
     </View>
   );
 };
