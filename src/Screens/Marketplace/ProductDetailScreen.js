@@ -20,6 +20,7 @@ import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {SystemBars} from 'react-native-edge-to-edge';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import {useTranslation} from 'react-i18next';
+import KeyboardSafe from '../../Components/Common/KeyboardSafe';
 import LinearGradient from 'react-native-linear-gradient';
 import CachedImage from '../../Components/Customs/CachedImage';
 import ReviewsSection from '../../Components/Marketplace/ReviewsSection';
@@ -203,6 +204,7 @@ const ProductDetailScreen = ({navigation, route}) => {
   return (
     <View style={s.root}>
       <SystemBars style="light" />
+      <KeyboardSafe>
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={s.scrollPad}>
         {/* Hero — swipeable gallery */}
         <View style={[s.hero, {height: m.heroH}]}>
@@ -349,6 +351,7 @@ const ProductDetailScreen = ({navigation, route}) => {
           </View>
         </View>
       </ScrollView>
+      </KeyboardSafe>
 
       {/* Contact bar — the CTA wording follows booking_type, the action stays
           the enquiry channel (v1 is enquiry-only). */}

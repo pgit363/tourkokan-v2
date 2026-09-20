@@ -8,8 +8,6 @@ import {
   ActivityIndicator,
   Image,
   StyleSheet,
-  KeyboardAvoidingView,
-  Platform,
   Animated,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -239,10 +237,11 @@ const CommentsSheet = ({
   const canSend = currentInputText.trim().length > 0 && !submitting;
 
   return (
-    <KeyboardAvoidingView
-      style={cs.container}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      keyboardVerticalOffset={20}>
+    // No keyboard wrapper here on purpose: this sheet is rendered inside
+    // RBSheet's own <Modal> + KeyboardAvoidingView, which BottomSheet.js now
+    // configures correctly. A second one nested inside would pad twice and push
+    // the input off the top of a fixed-height sheet.
+    <View style={cs.container}>
 
       {/* Header */}
       <View style={cs.header}>
@@ -343,7 +342,7 @@ const CommentsSheet = ({
         onClose={() => setGuestModalVisible(false)}
         onLogin={handleGuestLogin}
       />
-    </KeyboardAvoidingView>
+    </View>
   );
 };
 

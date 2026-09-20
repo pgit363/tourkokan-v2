@@ -8,7 +8,6 @@ import {
   TouchableOpacity,
   StyleSheet,
   KeyboardAvoidingView,
-  Platform,
   ActivityIndicator,
 } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
@@ -23,6 +22,7 @@ import STRING from '../Services/Constants/STRINGS';
 import NetInfo from '@react-native-community/netinfo';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {scaleFontSizes} from '../Services/responsive';
+import KeyboardSafe from '../Components/Common/KeyboardSafe';
 import {contextRows, appendContextToMessage} from '../Services/reportContext';
 
 // ─── Design tokens ────────────────────────────────────────────────────────────
@@ -249,9 +249,7 @@ const ContactUs = ({
       <View style={styles.headerCurve} />
 
       {/* ── Body ── */}
-      <KeyboardAvoidingView
-        style={styles.flex}
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+      <KeyboardSafe style={styles.flex}>
         <ScrollView
           style={styles.flex}
           contentContainerStyle={[styles.scrollContent, {paddingBottom: insets.bottom + 24}]}
@@ -372,7 +370,7 @@ const ContactUs = ({
             </TouchableOpacity>
           </View>
         </ScrollView>
-      </KeyboardAvoidingView>
+      </KeyboardSafe>
 
       <ResultPopup
         visible={popupVisible}

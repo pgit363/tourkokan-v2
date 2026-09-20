@@ -17,6 +17,7 @@ import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {Image} from '@rneui/themed';
 import {connect} from 'react-redux';
 import Ionicons from 'react-native-vector-icons/Ionicons';
+import KeyboardSafe from '../Components/Common/KeyboardSafe';
 import {useTranslation} from 'react-i18next';
 import NetInfo from '@react-native-community/netinfo';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -404,6 +405,7 @@ const Profile = ({navigation, ...props}) => {
       </View>
       <View style={s.headerCurve} />
 
+      <KeyboardSafe>
       <ScrollView
         style={s.flex}
         contentContainerStyle={[
@@ -699,6 +701,7 @@ const Profile = ({navigation, ...props}) => {
           )}
         </TouchableOpacity>
       </ScrollView>
+      </KeyboardSafe>
 
       {/* ── Mode popup (offline) ── */}
       <ModePopup

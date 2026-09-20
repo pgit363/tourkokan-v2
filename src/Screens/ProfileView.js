@@ -21,6 +21,7 @@ import {Image} from '@rneui/themed';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {isGuestUser, isVendorUser} from '../Components/Common/GuestGateModal';
 import {useConnectivityGate} from '../Components/Common/useConnectivityGate';
+import KeyboardSafe from '../Components/Common/KeyboardSafe';
 import {connect} from 'react-redux';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import {useTranslation} from 'react-i18next';
@@ -187,6 +188,8 @@ const ProfileView = ({navigation, ...props}) => {
   const [isGuest, setIsGuest] = useState(false);
 
   const didFirstLoad = useRef(false);
+  // Taken synchronously on tap — see handleVendorCtaTap.
+  const vendorTapLock = useRef(false);
   const contentFade = useRef(new Animated.Value(0)).current;
 
   const fadeIn = () => {
@@ -462,29 +465,39 @@ const ProfileView = ({navigation, ...props}) => {
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleVendorCtaTap = async () => {
-    if (await isGuestUser()) { setIsGuestPopup(true); return; }
-    // Offline mode → prompt to go online before hitting vendor APIs.
-    ensureOnline(async () => {
-      setVendorChecking(true);
-      try {
-        const token = await AsyncStorage.getItem(STRING.STORAGE.ACCESS_TOKEN);
-        const res = await comnGet('v2/myRoleRequests', token, null);
-        const list = res?.data?.data?.data || [];
-        const req = list.find(r => r.role?.code === 'vendor');
-        if (req?.status === 'pending') {
-          setVendorRequest(req);
-        } else {
-          setVendorRequest(req || null);
+    // Lock BEFORE the first await. `disabled={vendorChecking}` only became true
+    // after isGuestUser() and ensureOnline() had both resolved, leaving a window
+    // of several hundred ms in which further taps each queued another
+    // myRoleRequests call and another modal open — the "hangs / opens several
+    // times" report. A ref locks synchronously; state cannot.
+    if (vendorTapLock.current) return;
+    vendorTapLock.current = true;
+    setVendorChecking(true);
+    try {
+      if (await isGuestUser()) { setIsGuestPopup(true); return; }
+      // Offline mode → prompt to go online before hitting vendor APIs.
+      await ensureOnline(async () => {
+        try {
+          const token = await AsyncStorage.getItem(STRING.STORAGE.ACCESS_TOKEN);
+          const res = await comnGet('v2/myRoleRequests', token, null);
+          const list = res?.data?.data?.data || [];
+          const req = list.find(r => r.role?.code === 'vendor');
+          if (req?.status === 'pending') {
+            setVendorRequest(req);
+          } else {
+            setVendorRequest(req || null);
+            setVendorSubmitMsg('');
+            setVendorRequestVisible(true);
+          }
+        } catch {
           setVendorSubmitMsg('');
           setVendorRequestVisible(true);
         }
-      } catch {
-        setVendorSubmitMsg('');
-        setVendorRequestVisible(true);
-      } finally {
-        setVendorChecking(false);
-      }
-    });
+      });
+    } finally {
+      vendorTapLock.current = false;
+      setVendorChecking(false);
+    }
   };
 
   const handleVendorSubmit = () => ensureOnline(async () => {
@@ -1035,6 +1048,9 @@ const ProfileView = ({navigation, ...props}) => {
         animationType="slide"
         statusBarTranslucent
         onRequestClose={() => setVendorRequestVisible(false)}>
+        {/* Inside the Modal, not outside: a Modal is its own Android window and
+            never inherits the activity's adjustResize. */}
+        <KeyboardSafe>
         <Pressable style={s.vrBackdrop} onPress={() => setVendorRequestVisible(false)}>
           <Pressable style={s.vrCard} onPress={() => {}}>
             <View style={s.vrHandle} />
@@ -1077,6 +1093,7 @@ const ProfileView = ({navigation, ...props}) => {
             </TouchableOpacity>
           </Pressable>
         </Pressable>
+        </KeyboardSafe>
       </Modal>
 
       {/* ── Logout confirmation modal ── */}
