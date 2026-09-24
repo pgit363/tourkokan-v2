@@ -188,8 +188,6 @@ const ProfileView = ({navigation, ...props}) => {
   const [isGuest, setIsGuest] = useState(false);
 
   const didFirstLoad = useRef(false);
-  // Taken synchronously on tap — see handleVendorCtaTap.
-  const vendorTapLock = useRef(false);
   const contentFade = useRef(new Animated.Value(0)).current;
 
   const fadeIn = () => {
@@ -438,88 +436,11 @@ const ProfileView = ({navigation, ...props}) => {
 
   // ── Vendor role state
   const [isVendor, setIsVendor] = useState(false);
-  const [vendorRequest, setVendorRequest] = useState(null); // {status, admin_note, role}
-  const [vendorRequestVisible, setVendorRequestVisible] = useState(false);
-  const [vendorReason, setVendorReason] = useState('');
-  const [vendorSubmitting, setVendorSubmitting] = useState(false);
-  const [vendorSubmitMsg, setVendorSubmitMsg] = useState('');
-  const [vendorChecking, setVendorChecking] = useState(false);
-
-  const loadVendorInfo = useCallback(async (profileData) => {
+  const loadVendorInfo = useCallback((profileData) => {
     const data = profileData || profile;
     const vendor = Array.isArray(data?.roles) && data.roles.some(r => r.code === 'vendor');
     setIsVendor(vendor);
-    if (vendor) {
-      setVendorRequest(null);
-      return;
-    }
-    try {
-      const token = await AsyncStorage.getItem(STRING.STORAGE.ACCESS_TOKEN);
-      const res = await comnGet('v2/myRoleRequests', token, null);
-      const list = res?.data?.data?.data || [];
-      const req = list.find(r => r.role?.code === 'vendor');
-      setVendorRequest(req || null);
-    } catch {
-      setVendorRequest(null);
-    }
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
-
-  const handleVendorCtaTap = async () => {
-    // Lock BEFORE the first await. `disabled={vendorChecking}` only became true
-    // after isGuestUser() and ensureOnline() had both resolved, leaving a window
-    // of several hundred ms in which further taps each queued another
-    // myRoleRequests call and another modal open — the "hangs / opens several
-    // times" report. A ref locks synchronously; state cannot.
-    if (vendorTapLock.current) return;
-    vendorTapLock.current = true;
-    setVendorChecking(true);
-    try {
-      if (await isGuestUser()) { setIsGuestPopup(true); return; }
-      // Offline mode → prompt to go online before hitting vendor APIs.
-      await ensureOnline(async () => {
-        try {
-          const token = await AsyncStorage.getItem(STRING.STORAGE.ACCESS_TOKEN);
-          const res = await comnGet('v2/myRoleRequests', token, null);
-          const list = res?.data?.data?.data || [];
-          const req = list.find(r => r.role?.code === 'vendor');
-          if (req?.status === 'pending') {
-            setVendorRequest(req);
-          } else {
-            setVendorRequest(req || null);
-            setVendorSubmitMsg('');
-            setVendorRequestVisible(true);
-          }
-        } catch {
-          setVendorSubmitMsg('');
-          setVendorRequestVisible(true);
-        }
-      });
-    } finally {
-      vendorTapLock.current = false;
-      setVendorChecking(false);
-    }
-  };
-
-  const handleVendorSubmit = () => ensureOnline(async () => {
-    setVendorSubmitting(true);
-    setVendorSubmitMsg('');
-    const res = await comnPost('v2/requestRole', {role_code: 'vendor', ...(vendorReason.trim() && {reason: vendorReason.trim()})}, null);
-    const resData = res?.data ?? res?.response?.data;
-    setVendorSubmitting(false);
-    if (resData?.success) {
-      setVendorSubmitMsg(resData.message || t('VENDOR.REQUEST_SUCCESS'));
-      setVendorReason('');
-      setTimeout(async () => {
-        setVendorRequestVisible(false);
-        setVendorSubmitMsg('');
-        await loadVendorInfo(null);
-      }, 2000);
-    } else {
-      const raw = resData?.message;
-      const msg = typeof raw === 'object' ? Object.values(raw).flat().join('\n') : (raw || t('ALERT.FAILED'));
-      setVendorSubmitMsg(msg);
-    }
-  });
 
   const handleGuestLogin = async () => {
     setIsGuestPopup(false);
@@ -784,75 +705,30 @@ const ProfileView = ({navigation, ...props}) => {
             </View>
           )}
 
-          {/* ── Account Access Card ── */}
-          {profile.id && (
+          {/* ── Account Access Card ──
+              Vendors get a shortcut to their dashboard here. Becoming a vendor
+              now lives on the dedicated BecomeVendor screen (reached from the
+              Home "Become a Vendor" banner), so no CTA/request UI here. */}
+          {profile.id && isVendor && (
             <View style={s.accountCard}>
               <View style={s.accountCardHeader}>
                 <Ionicons name="shield-outline" size={15} color={C.oceanMid} />
                 <Text style={s.accountCardTitle}>Account Access</Text>
               </View>
 
-              {isVendor ? (
-                <TouchableOpacity
-                  style={s.vendorApprovedCard}
-                  activeOpacity={0.85}
-                  onPress={() => navigation.navigate(STRING.SCREEN.VENDOR_DASHBOARD)}>
-                  <View style={s.vendorApprovedIconWrap}>
-                    <Ionicons name="storefront" size={26} color="#059669" />
-                  </View>
-                  <View style={s.vendorApprovedText}>
-                    <Text style={s.vendorApprovedTitle}>{t('VENDOR.ALREADY_VENDOR')}</Text>
-                    <Text style={s.vendorApprovedDesc}>{t('VENDOR.ALREADY_VENDOR_DESC')}</Text>
-                  </View>
-                  <Ionicons name="chevron-forward" size={18} color="#059669" />
-                </TouchableOpacity>
-              ) : vendorRequest?.status === 'pending' ? (
-                <View style={s.vendorPendingCard}>
-                  <Ionicons name="time-outline" size={20} color="#D97706" />
-                  <View style={s.vendorPendingText}>
-                    <Text style={s.vendorPendingTitle}>{t('VENDOR.REQUEST_PENDING_TITLE')}</Text>
-                    <Text style={s.vendorPendingDesc}>{t('VENDOR.REQUEST_PENDING_MSG')}</Text>
-                  </View>
+              <TouchableOpacity
+                style={s.vendorApprovedCard}
+                activeOpacity={0.85}
+                onPress={() => navigation.navigate(STRING.SCREEN.VENDOR_DASHBOARD)}>
+                <View style={s.vendorApprovedIconWrap}>
+                  <Ionicons name="storefront" size={26} color="#059669" />
                 </View>
-              ) : vendorRequest?.status === 'rejected' ? (
-                <View style={s.vendorRejectedCard}>
-                  <Ionicons name="close-circle-outline" size={20} color="#DC2626" />
-                  <View style={s.vendorRejectedText}>
-                    <Text style={s.vendorRejectedTitle}>{t('VENDOR.REQUEST_REJECTED_TITLE')}</Text>
-                    {!!vendorRequest.admin_note && (
-                      <Text style={s.vendorRejectedNote}>{vendorRequest.admin_note}</Text>
-                    )}
-                  </View>
-                  <TouchableOpacity
-                    style={s.vendorReapplyBtn}
-                    onPress={handleVendorCtaTap}
-                    disabled={vendorChecking}
-                    activeOpacity={0.8}>
-                    {vendorChecking
-                      ? <ActivityIndicator size="small" color="#fff" />
-                      : <Text style={s.vendorReapplyText}>{t('VENDOR.REAPPLY')}</Text>
-                    }
-                  </TouchableOpacity>
+                <View style={s.vendorApprovedText}>
+                  <Text style={s.vendorApprovedTitle}>{t('VENDOR.ALREADY_VENDOR')}</Text>
+                  <Text style={s.vendorApprovedDesc}>{t('VENDOR.ALREADY_VENDOR_DESC')}</Text>
                 </View>
-              ) : (
-                <TouchableOpacity
-                  style={s.vendorCta}
-                  onPress={handleVendorCtaTap}
-                  disabled={vendorChecking}
-                  activeOpacity={0.85}>
-                  <View style={s.vendorCtaIcon}>
-                    <Text style={{fontSize: 22}}>🏪</Text>
-                  </View>
-                  <View style={s.vendorCtaText}>
-                    <Text style={s.vendorCtaTitle}>{t('VENDOR.BECOME_VENDOR')}</Text>
-                    <Text style={s.vendorCtaDesc}>{t('VENDOR.BECOME_VENDOR_DESC')}</Text>
-                  </View>
-                  {vendorChecking
-                    ? <ActivityIndicator size="small" color={C.oceanMid} />
-                    : <Ionicons name="chevron-forward" size={18} color={C.oceanMid} />
-                  }
-                </TouchableOpacity>
-              )}
+                <Ionicons name="chevron-forward" size={18} color="#059669" />
+              </TouchableOpacity>
             </View>
           )}
 
@@ -1041,60 +917,7 @@ const ProfileView = ({navigation, ...props}) => {
 
       </ScrollView>
 
-      {/* ── Vendor Request Modal ── */}
-      <Modal
-        visible={vendorRequestVisible}
-        transparent
-        animationType="slide"
-        statusBarTranslucent
-        onRequestClose={() => setVendorRequestVisible(false)}>
-        {/* Inside the Modal, not outside: a Modal is its own Android window and
-            never inherits the activity's adjustResize. */}
-        <KeyboardSafe>
-        <Pressable style={s.vrBackdrop} onPress={() => setVendorRequestVisible(false)}>
-          <Pressable style={s.vrCard} onPress={() => {}}>
-            <View style={s.vrHandle} />
-            <Text style={s.vrTitle}>{t('VENDOR.BECOME_VENDOR')}</Text>
-            <Text style={s.vrSubtitle}>{t('VENDOR.REASON_LABEL')}</Text>
-            <TextInput
-              style={s.vrInput}
-              value={vendorReason}
-              onChangeText={setVendorReason}
-              placeholder={t('VENDOR.REASON_PLACEHOLDER')}
-              placeholderTextColor={C.textLight}
-              multiline
-              numberOfLines={3}
-              textAlignVertical="top"
-              maxLength={300}
-            />
-            {!!vendorSubmitMsg && (
-              <Text style={[
-                s.vrMsg,
-                vendorSubmitMsg === (t('VENDOR.REQUEST_SUCCESS')) && s.vrMsgSuccess,
-              ]}>
-                {vendorSubmitMsg}
-              </Text>
-            )}
-            <TouchableOpacity
-              style={[s.vrSubmitBtn, vendorSubmitting && {opacity: 0.6}]}
-              onPress={handleVendorSubmit}
-              disabled={vendorSubmitting}
-              activeOpacity={0.85}>
-              {vendorSubmitting
-                ? <ActivityIndicator size="small" color="#fff" />
-                : <Text style={s.vrSubmitText}>{t('VENDOR.SUBMIT_REQUEST')}</Text>
-              }
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={s.vrCancelBtn}
-              onPress={() => setVendorRequestVisible(false)}
-              activeOpacity={0.7}>
-              <Text style={s.vrCancelText}>{t('VENDOR.MAYBE_LATER')}</Text>
-            </TouchableOpacity>
-          </Pressable>
-        </Pressable>
-        </KeyboardSafe>
-      </Modal>
+      {/* Vendor request moved to the dedicated BecomeVendor screen. */}
 
       {/* ── Logout confirmation modal ── */}
       <Modal

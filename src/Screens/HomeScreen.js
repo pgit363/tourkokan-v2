@@ -77,6 +77,7 @@ import {useConnectivityGate} from '../Components/Common/useConnectivityGate';
 import {useResponsive} from '../Services/responsive';
 import {UpdateContext} from '../Context/UpdateContext';
 import HotPlaces from '../Components/Sections/HotPlaces';
+import VendorCTA from '../Components/Sections/VendorCTA';
 import STRING from '../Services/Constants/STRINGS';
 import DIMENSIONS from '../Services/Constants/DIMENSIONS';
 
@@ -827,6 +828,9 @@ const HomeScreen = ({navigation, route, ...props}) => {
           ItemSeparatorComponent={() => <View style={{width: 12}} />}
         />
       </View>
+
+      {/* ── BECOME A VENDOR CTA (M1) ── */}
+      <VendorCTA navigation={navigation} />
 
       {/* ── BUS TIMETABLE CARD ── */}
       <Text style={s.sectionTitle}>{t('HOME.BUS_SECTION')}</Text>

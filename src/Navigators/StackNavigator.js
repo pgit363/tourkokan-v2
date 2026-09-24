@@ -55,6 +55,7 @@ import ProductDetailScreen from '../Screens/Marketplace/ProductDetailScreen';
 import VendorListScreen from '../Screens/Marketplace/VendorListScreen';
 import VendorProfileScreen from '../Screens/Marketplace/VendorProfileScreen';
 import VendorDashboardScreen from '../Screens/Marketplace/VendorDashboardScreen';
+import BecomeVendorScreen from '../Screens/Marketplace/BecomeVendorScreen';
 import MyProductsScreen from '../Screens/Marketplace/MyProductsScreen';
 import AddProductScreen from '../Screens/Marketplace/AddProductScreen';
 import ManageProductScreen from '../Screens/Marketplace/ManageProductScreen';
@@ -283,6 +284,7 @@ const StackNavigator = ({initialRoute}) => {
           <Stack.Screen name={t('SCREEN.VENDORS')} component={VendorListScreen} />
           <Stack.Screen name={t('SCREEN.VENDOR_PROFILE')} component={VendorProfileScreen} />
           <Stack.Screen name={t('SCREEN.VENDOR_DASHBOARD')} component={VendorDashboardScreen} />
+          <Stack.Screen name={t('SCREEN.BECOME_VENDOR')} component={BecomeVendorScreen} />
           <Stack.Screen name={t('SCREEN.MY_PRODUCTS')} component={MyProductsScreen} />
           <Stack.Screen name={t('SCREEN.ADD_PRODUCT')} component={AddProductScreen} />
           <Stack.Screen name={t('SCREEN.MANAGE_PRODUCT')} component={ManageProductScreen} />
