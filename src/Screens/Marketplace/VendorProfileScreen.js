@@ -98,6 +98,12 @@ const VendorProfileScreen = ({navigation, route}) => {
             </View>
             <View style={{flex: 1}}>
               <Text style={s.vName}>{name}</Text>
+              {data.verified_business && (
+                <View style={s.verifiedRow}>
+                  <Ionicons name="shield-checkmark" size={13} color="#6EE7B7" />
+                  <Text style={s.verifiedTxt}>{t('VENDOR.VERIFIED_BADGE')}</Text>
+                </View>
+              )}
               {!!data.tag_line && <Text style={s.vTag}>{data.tag_line}</Text>}
             </View>
           </View>
@@ -180,6 +186,8 @@ const s = StyleSheet.create({
   },
   bigLogoTxt: {color: '#fff', fontWeight: '800', fontSize: 20},
   vName: {color: '#fff', fontSize: 18, fontWeight: '800', letterSpacing: -0.3},
+  verifiedRow: {flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 2},
+  verifiedTxt: {color: '#6EE7B7', fontSize: 11.5, fontWeight: '800'},
   vTag: {color: 'rgba(255,255,255,0.82)', fontSize: 11.5, marginTop: 2},
   statRow: {flexDirection: 'row', gap: 8, marginTop: 13},
   stat: {

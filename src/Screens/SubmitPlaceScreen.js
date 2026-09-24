@@ -19,6 +19,7 @@ import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {useFocusEffect} from '@react-navigation/native';
 import LinearGradient from 'react-native-linear-gradient';
 import {launchImageLibrary} from 'react-native-image-picker';
+import {useTranslation} from 'react-i18next';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import MapView, {Marker} from 'react-native-maps';
 import Geolocation from '@react-native-community/geolocation';
@@ -40,10 +41,11 @@ const C = {
   textLight: '#78716C',
 };
 
-const STEPS = ['Basic Info', 'Location', 'Photos', 'Details'];
+const STEPS = ['Basic Info', 'Location', 'Photos', 'Details', 'Verify'];
 
 const SubmitPlaceScreen = ({navigation, route}) => {
   const insets = useSafeAreaInsets();
+  const {t} = useTranslation();
   const {show: showDialog, dialog} = useAppDialog();
   const editData = route?.params?.editSubmission ?? null;
 
@@ -71,6 +73,12 @@ const SubmitPlaceScreen = ({navigation, route}) => {
   // Step 3
   const [image, setImage] = useState(null);
   const [logo, setLogo] = useState(null);
+
+  // Step 5 — government verification (M3, optional)
+  const [regType, setRegType] = useState(null);
+  const [regNumber, setRegNumber] = useState('');
+  const [regDoc, setRegDoc] = useState(null);
+  const [consent, setConsent] = useState(false);
 
   // Step 4
   const [website, setWebsite] = useState(editData?.domain_name ?? '');
@@ -251,6 +259,7 @@ const SubmitPlaceScreen = ({navigation, route}) => {
     const result = await launchImageLibrary({mediaType: 'photo', quality: 0.8});
     if (!result.didCancel && result.assets?.[0]) {
       if (field === 'image') setImage(result.assets[0]);
+      else if (field === 'regDoc') setRegDoc(result.assets[0]);
       else setLogo(result.assets[0]);
     }
   };
@@ -277,6 +286,10 @@ const SubmitPlaceScreen = ({navigation, route}) => {
     setPhone('');
     setWhatsapp('');
     setCityId(null);
+    setRegType(null);
+    setRegNumber('');
+    setRegDoc(null);
+    setConsent(false);
   };
 
   const validateStep = () => {
@@ -301,6 +314,17 @@ const SubmitPlaceScreen = ({navigation, route}) => {
     if (step === 1) {
       if (!latitude.trim() || !longitude.trim()) {
         showDialog({type: 'warning', title: 'Required', message: 'Latitude and longitude are required.'});
+        return false;
+      }
+    }
+    if (step === 4 && regType) {
+      // The whole step is optional — but a chosen type commits to a number and consent.
+      if (!regNumber.trim()) {
+        showDialog({type: 'warning', title: 'Required', message: t('VENDOR.VERIF_NUMBER_REQUIRED')});
+        return false;
+      }
+      if (!consent) {
+        showDialog({type: 'warning', title: 'Required', message: t('VENDOR.VERIF_CONSENT_REQUIRED')});
         return false;
       }
     }
@@ -344,6 +368,22 @@ const SubmitPlaceScreen = ({navigation, route}) => {
         type: logo.type || 'image/jpeg',
         name: logo.fileName || 'logo.jpg',
       });
+    }
+
+    // Verification (M3) — sent only when entered in this session. On edit, absent
+    // reg fields leave the stored verification untouched; re-entering them resets
+    // the review to pending on the backend.
+    if (regType && regNumber.trim()) {
+      form.append('reg_type', regType);
+      form.append('reg_number', regNumber.trim());
+      form.append('consent', '1');
+      if (regDoc) {
+        form.append('reg_doc', {
+          uri: regDoc.uri,
+          type: regDoc.type || 'image/jpeg',
+          name: regDoc.fileName || 'certificate.jpg',
+        });
+      }
     }
 
     const endpoint = isEdit ? 'v2/updateMySubmission' : 'v2/addSite';
@@ -767,6 +807,108 @@ const SubmitPlaceScreen = ({navigation, route}) => {
           </>
         );
 
+
+      case 4: {
+        const verifStatus = editData?.verification_status;
+        const regTypes = [
+          {code: 'udyam', label: t('VENDOR.VERIF_TYPE_UDYAM')},
+          {code: 'gstin', label: t('VENDOR.VERIF_TYPE_GSTIN')},
+          {code: 'shop_act', label: t('VENDOR.VERIF_TYPE_SHOP_ACT')},
+        ];
+        return (
+          <>
+            <View style={s.infoCard}>
+              <Ionicons name="shield-checkmark-outline" size={16} color={C.oceanMid} />
+              <Text style={s.infoText}>{t('VENDOR.VERIF_DESC')}</Text>
+            </View>
+
+            {verifStatus === 'verified' && (
+              <View style={[s.verifChip, {backgroundColor: '#D1FAE5'}]}>
+                <Ionicons name="shield-checkmark" size={15} color="#059669" />
+                <Text style={[s.verifChipText, {color: '#059669'}]}>{t('VENDOR.VERIFIED_BADGE')}</Text>
+              </View>
+            )}
+            {verifStatus === 'pending' && (
+              <View style={[s.verifChip, {backgroundColor: '#FEF3C7'}]}>
+                <Ionicons name="time-outline" size={15} color="#D97706" />
+                <Text style={[s.verifChipText, {color: '#D97706'}]}>{t('VENDOR.VERIF_PENDING_CHIP')}</Text>
+              </View>
+            )}
+            {verifStatus === 'rejected' && (
+              <View style={[s.verifChip, {backgroundColor: '#FEE2E2'}]}>
+                <Ionicons name="close-circle-outline" size={15} color="#DC2626" />
+                <Text style={[s.verifChipText, {color: '#DC2626'}]}>{t('VENDOR.VERIF_REJECTED_CHIP')}</Text>
+              </View>
+            )}
+
+            <View style={s.field}>
+              <Text style={s.label}>{t('VENDOR.VERIF_TYPE_LABEL')}</Text>
+              <View style={{flexDirection: 'row', marginTop: 4}}>
+                {regTypes.map(rt => {
+                  const on = regType === rt.code;
+                  return (
+                    <TouchableOpacity
+                      key={rt.code}
+                      onPress={() => setRegType(on ? null : rt.code)}
+                      style={{paddingHorizontal: 14, paddingVertical: 9, borderRadius: 10, borderWidth: 1, marginRight: 8, borderColor: on ? C.oceanMid : 'rgba(0,0,0,0.1)', backgroundColor: on ? 'rgba(27,107,123,0.08)' : '#fff'}}>
+                      <Text style={{fontSize: 12.5, fontWeight: '700', color: on ? C.oceanMid : C.textMid}}>{rt.label}</Text>
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
+            </View>
+
+            {regType && (
+              <>
+                <View style={s.field}>
+                  <Text style={s.label}>{t('VENDOR.VERIF_NUMBER_LABEL')}<Text style={s.required}> *</Text></Text>
+                  <TextInput
+                    style={s.input}
+                    value={regNumber}
+                    onChangeText={v => setRegNumber(v.replace(/[^A-Za-z0-9/-]/g, ''))}
+                    placeholder={t('VENDOR.VERIF_NUMBER_PH')}
+                    placeholderTextColor={C.textLight}
+                    autoCapitalize="characters"
+                    autoCorrect={false}
+                    maxLength={30}
+                  />
+                </View>
+
+                <View style={s.field}>
+                  <Text style={s.label}>{t('VENDOR.VERIF_DOC_LABEL')}</Text>
+                  <TouchableOpacity style={s.photoBtn} onPress={() => pickImage('regDoc')} activeOpacity={0.85}>
+                    {regDoc ? (
+                      <Image source={{uri: regDoc.uri}} style={s.photoThumb} />
+                    ) : (
+                      <View style={s.photoPlaceholder}>
+                        <Ionicons name="document-attach-outline" size={28} color={C.textLight} />
+                        <Text style={s.photoPlaceholderText}>{t('VENDOR.VERIF_DOC_PICK')}</Text>
+                      </View>
+                    )}
+                  </TouchableOpacity>
+                </View>
+
+                <TouchableOpacity
+                  style={s.consentRow}
+                  onPress={() => setConsent(v => !v)}
+                  activeOpacity={0.8}>
+                  <Ionicons
+                    name={consent ? 'checkbox' : 'square-outline'}
+                    size={20}
+                    color={consent ? C.oceanMid : C.textLight}
+                  />
+                  <Text style={s.consentText}>{t('VENDOR.CONSENT_DPDP')}</Text>
+                </TouchableOpacity>
+              </>
+            )}
+
+            {!regType && (
+              <Text style={{fontSize: 12, color: C.textLight, marginTop: 4}}>{t('VENDOR.VERIF_SKIP')}</Text>
+            )}
+          </>
+        );
+      }
+
       default:
         return null;
     }
@@ -1089,6 +1231,10 @@ const s = StyleSheet.create(scaleFontSizes({
     backgroundColor: C.cream,
     gap: 12,
   },
+  verifChip: {flexDirection: 'row', alignItems: 'center', gap: 6, alignSelf: 'flex-start', borderRadius: 10, paddingHorizontal: 10, paddingVertical: 6, marginBottom: 12},
+  verifChipText: {fontSize: 12, fontWeight: '800'},
+  consentRow: {flexDirection: 'row', alignItems: 'flex-start', gap: 9, marginTop: 6, paddingRight: 8},
+  consentText: {flex: 1, fontSize: 11.5, color: C.textMid, lineHeight: 16},
   loadingText: {fontSize: 14, color: C.textLight},
 
   dropdownTrigger: {

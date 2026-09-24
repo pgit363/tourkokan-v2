@@ -39,6 +39,7 @@ import {
   themeForCategories, tint, detailPolicy, categoryLabels,
 } from '../../Services/categoryTheme';
 import CategoryArt from '../../Components/Common/CategoryArt';
+import VendorCTA from '../../Components/Sections/VendorCTA';
 import {useDetailMetrics} from '../../Components/Detail/useDetailMetrics';
 import {
   SectionHead, FactsGrid, QuickStrip, Block, BlockText, MoreToggle,
@@ -505,6 +506,12 @@ const SiteDetailPage = ({navigation, route}) => {
             ) : null}
           </View>
           <Text style={[st.heroTitle, {fontSize: m.ms(27)}]} numberOfLines={2}>{city.name}</Text>
+          {city.verification_status === 'verified' && (
+            <View style={st.verifiedRow}>
+              <Ionicons name="shield-checkmark" size={m.ms(13)} color="#6EE7B7" />
+              <Text style={[st.verifiedTxt, {fontSize: m.ms(12)}]}>{t('VENDOR.VERIFIED_BADGE')}</Text>
+            </View>
+          )}
           {!!city.tag_line && (
             <Text style={[st.heroTag, {fontSize: m.ms(13)}]} numberOfLines={2}>{city.tag_line}</Text>
           )}
@@ -1039,6 +1046,8 @@ const SiteDetailPage = ({navigation, route}) => {
               return node ? <React.Fragment key={key}>{node}</React.Fragment> : null;
             })
           )}
+          {/* M7 — contextual vendor acquisition; hides itself for vendors */}
+          {!booting && <VendorCTA navigation={navigation} compact />}
         </View>
       </ScrollView>
 
@@ -1177,6 +1186,8 @@ const st = StyleSheet.create({
   heroBadge: {paddingHorizontal: 11, paddingVertical: 5, borderRadius: 999},
   heroBadgeTxt: {color: '#fff', fontSize: 11, fontWeight: '700', letterSpacing: 0.2},
   heroTitle: {color: '#fff', fontSize: 27, fontWeight: '800', letterSpacing: -0.4, textShadowColor: 'rgba(0,0,0,0.35)', textShadowRadius: 12},
+  verifiedRow: {flexDirection: 'row', alignItems: 'center', gap: 5, marginTop: 4},
+  verifiedTxt: {color: '#6EE7B7', fontSize: 12, fontWeight: '800', textShadowColor: 'rgba(0,0,0,0.35)', textShadowRadius: 8},
   heroTag: {color: 'rgba(255,255,255,0.92)', fontSize: 13, fontWeight: '500', marginTop: 3, textShadowColor: 'rgba(0,0,0,0.4)', textShadowRadius: 8},
   heroRateRow: {flexDirection: 'row', alignItems: 'center', gap: 5, marginTop: 10},
   heroRateNum: {color: '#fff', fontSize: 13, fontWeight: '800'},
