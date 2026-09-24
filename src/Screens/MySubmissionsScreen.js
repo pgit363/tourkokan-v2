@@ -290,6 +290,18 @@ const MySubmissionsScreen = ({navigation}) => {
                 <Text style={s.metaChipText}>{item.category.name}</Text>
               </View>
             )}
+            {item.verification_status === 'verified' && (
+              <View style={[s.metaChip, {backgroundColor: '#D1FAE5'}]}>
+                <Ionicons name="shield-checkmark" size={12} color="#059669" />
+                <Text style={[s.metaChipText, {color: '#059669', fontWeight: '700'}]}>{t('VENDOR.VERIFIED_BADGE')}</Text>
+              </View>
+            )}
+            {item.verification_status === 'pending' && (
+              <View style={[s.metaChip, {backgroundColor: '#FEF3C7'}]}>
+                <Ionicons name="time-outline" size={12} color="#D97706" />
+                <Text style={[s.metaChipText, {color: '#D97706', fontWeight: '700'}]}>{t('VENDOR.VERIF_PENDING_CHIP')}</Text>
+              </View>
+            )}
           </View>
 
           {/* Rejection reason */}

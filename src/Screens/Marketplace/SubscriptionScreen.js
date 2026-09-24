@@ -61,6 +61,9 @@ const SubscriptionScreen = ({navigation}) => {
 
   const usage = sub?.usage || {};
   const planCode = sub?.plan?.code;
+  const subInfo = sub?.subscription;
+  const daysLeft = subInfo?.days_remaining;
+  const expiringSoon = daysLeft != null && daysLeft <= 14;
 
   return (
     <View style={s.root}>
@@ -71,6 +74,29 @@ const SubscriptionScreen = ({navigation}) => {
         <ActivityIndicator style={{marginTop: 40}} color={C.oceanMid} />
       ) : (
         <ScrollView contentContainerStyle={s.body}>
+          {/* Free-period countdown (M6) */}
+          {subInfo?.ends_at != null && (
+            <View style={[s.periodCard, expiringSoon && s.periodWarn]}>
+              <Ionicons
+                name={expiringSoon ? 'alert-circle' : 'gift-outline'}
+                size={20}
+                color={expiringSoon ? '#D97706' : C.oceanMid}
+              />
+              <View style={{flex: 1}}>
+                <Text style={s.periodTitle}>
+                  {t('VENDOR.PLAN_FREE_LEFT', {count: daysLeft ?? 0})}
+                </Text>
+                {expiringSoon && <Text style={s.periodSub}>{t('VENDOR.PLAN_EXPIRING')}</Text>}
+              </View>
+              {subInfo?.early_adopter && (
+                <View style={s.earlyChip}>
+                  <Ionicons name="star" size={11} color="#B45309" />
+                  <Text style={s.earlyChipTxt}>{t('VENDOR.EARLY_ADOPTER')}</Text>
+                </View>
+              )}
+            </View>
+          )}
+
           <Text style={s.sLabel}>{t('MARKETPLACE.YOUR_USAGE')}</Text>
           {usage.max_sites && <UsageBar label={t('MARKETPLACE.BUSINESSES')} use={usage.max_sites} />}
           {usage.max_products && <UsageBar label={t('MARKETPLACE.PRODUCTS')} use={usage.max_products} />}
@@ -126,6 +152,12 @@ const SubscriptionScreen = ({navigation}) => {
 };
 
 const s = StyleSheet.create({
+  periodCard: {flexDirection: 'row', alignItems: 'center', gap: 10, backgroundColor: '#fff', borderWidth: 1, borderColor: 'rgba(13,61,74,0.10)', borderRadius: 13, padding: 12, marginBottom: 14},
+  periodWarn: {backgroundColor: '#FFFBEB', borderColor: 'rgba(217,119,6,0.35)'},
+  periodTitle: {fontSize: 13, fontWeight: '800', color: '#1C1917'},
+  periodSub: {fontSize: 11, color: '#78716C', marginTop: 2},
+  earlyChip: {flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: '#FEF3C7', borderRadius: 8, paddingHorizontal: 8, paddingVertical: 4},
+  earlyChipTxt: {fontSize: 9.5, fontWeight: '800', color: '#B45309', textTransform: 'uppercase'},
   root: {flex: 1, backgroundColor: C.cream},
   body: {padding: 15},
   sLabel: {fontSize: 10.5, letterSpacing: 1, textTransform: 'uppercase', color: C.sandMid, fontWeight: '800', marginTop: 6, marginBottom: 10},

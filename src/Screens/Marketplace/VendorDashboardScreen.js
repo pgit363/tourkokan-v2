@@ -18,7 +18,8 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import {useTranslation} from 'react-i18next';
 import {C} from '../../Components/Marketplace/theme';
 import {useMarketBack} from '../../Components/Marketplace/useMarketBack';
-import {myUsageStats, myLeads, mySites} from '../../Services/Api/MarketplaceServices';
+import {myUsageStats, myLeads, mySites, mySubscription, myProducts} from '../../Services/Api/MarketplaceServices';
+import {comnPost} from '../../Services/Api/CommonServices';
 import {navigateTo, backPage} from '../../Services/CommonMethods';
 import {shadow} from '../../Services/shadow';
 
@@ -42,12 +43,19 @@ const VendorDashboardScreen = ({navigation}) => {
   const [leads, setLeads] = useState([]);
   const [site, setSite] = useState(null);
   const [loading, setLoading] = useState(true);
+  // M6 — the free-period chip; M8 — rejected listings that need the vendor's attention
+  const [subInfo, setSubInfo] = useState(null);
+  const [rejectedSites, setRejectedSites] = useState(0);
+  const [rejectedProducts, setRejectedProducts] = useState(0);
 
   const load = useCallback(async () => {
-    const [st, ld, ms] = await Promise.all([
+    const [st, ld, ms, sb, sub, rp] = await Promise.all([
       myUsageStats({}, navigation),
       myLeads({page: 1}, navigation),
       mySites(navigation),
+      comnPost('v2/mySubmissions', {}, navigation),
+      mySubscription(navigation),
+      myProducts({status: 'rejected'}, navigation),
     ]);
     if (st?.data?.success) setStats(st.data.data);
     if (ld?.data?.success) setLeads(ld.data.data?.data ?? ld.data.data ?? []);
@@ -55,6 +63,12 @@ const VendorDashboardScreen = ({navigation}) => {
       const rows = ms.data.data?.data ?? ms.data.data ?? [];
       setSite(rows.find(x => x.is_primary) || rows[0] || null);
     }
+    if (sb?.data?.success) {
+      const rows = sb.data.data?.data ?? sb.data.data ?? [];
+      setRejectedSites(rows.filter(x => x.submission_status === 'rejected').length);
+    }
+    if (sub?.data?.success) setSubInfo(sub.data.data?.subscription ?? null);
+    if (rp?.data?.success) setRejectedProducts(rp.data.data?.total ?? (rp.data.data?.data ?? []).length);
     setLoading(false);
   }, [navigation]);
 
@@ -73,6 +87,7 @@ const VendorDashboardScreen = ({navigation}) => {
     conversion != null && Number.isFinite(Number(conversion))
       ? `${Number(conversion).toFixed(1)}%`
       : '—';
+  const rejectedCount = rejectedSites + rejectedProducts;
 
   return (
     <View style={s.root}>
@@ -90,12 +105,45 @@ const VendorDashboardScreen = ({navigation}) => {
             <Text style={s.headTitle}>{t('MARKETPLACE.YOUR_BUSINESS')}</Text>
             <View style={{width: 24}} />
           </View>
+          {/* M6 — free-period countdown chip */}
+          {subInfo?.ends_at != null && (
+            <TouchableOpacity
+              style={s.planChip}
+              activeOpacity={0.85}
+              onPress={() => navigateTo(navigation, t('SCREEN.SUBSCRIPTION'))}>
+              <Ionicons name="gift-outline" size={13} color="#fff" />
+              <Text style={s.planChipTxt}>
+                {t('VENDOR.PLAN_FREE_LEFT', {count: subInfo.days_remaining ?? 0})}
+              </Text>
+              <Ionicons name="chevron-forward" size={12} color="rgba(255,255,255,0.8)" />
+            </TouchableOpacity>
+          )}
         </LinearGradient>
 
         {loading ? (
           <ActivityIndicator style={{marginTop: 40}} color={C.oceanMid} />
         ) : (
           <View style={s.body}>
+            {/* M8 — rejected listings surface here, loudly, with the fix path */}
+            {rejectedCount > 0 && (
+              <TouchableOpacity
+                style={s.attention}
+                activeOpacity={0.9}
+                onPress={() =>
+                  navigateTo(
+                    navigation,
+                    rejectedSites > 0 ? t('SCREEN.MY_SUBMISSIONS') : t('SCREEN.MY_PRODUCTS'),
+                  )
+                }>
+                <Ionicons name="alert-circle" size={22} color="#DC2626" />
+                <View style={{flex: 1}}>
+                  <Text style={s.attTitle}>{t('VENDOR.ATTENTION_REJECTED', {count: rejectedCount})}</Text>
+                  <Text style={s.attSub}>{t('VENDOR.ATTENTION_FIX')}</Text>
+                </View>
+                <Ionicons name="chevron-forward" size={17} color="#DC2626" />
+              </TouchableOpacity>
+            )}
+
             <View style={s.bizRow}>
               <TouchableOpacity
                 style={s.bizAdd}
@@ -195,6 +243,11 @@ const s = StyleSheet.create({
   head: {paddingHorizontal: 15, paddingBottom: 15},
   headTop: {flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between'},
   headTitle: {color: '#fff', fontSize: 17, fontWeight: '800'},
+  planChip: {flexDirection: 'row', alignItems: 'center', gap: 6, alignSelf: 'center', marginTop: 10, backgroundColor: 'rgba(255,255,255,0.14)', borderRadius: 999, paddingHorizontal: 12, paddingVertical: 6},
+  planChipTxt: {color: '#fff', fontSize: 11.5, fontWeight: '700'},
+  attention: {flexDirection: 'row', alignItems: 'center', gap: 10, backgroundColor: '#FEF2F2', borderWidth: 1, borderColor: 'rgba(220,38,38,0.25)', borderRadius: 13, padding: 12, marginBottom: 12},
+  attTitle: {fontSize: 13, fontWeight: '800', color: '#DC2626'},
+  attSub: {fontSize: 11, color: '#B91C1C', marginTop: 1},
   body: {padding: 15},
   bizRow: {flexDirection: 'row', gap: 8, marginBottom: 12},
   bizAdd: {flex: 1.4, height: 46, borderRadius: 12, backgroundColor: C.oceanMid, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 7},
