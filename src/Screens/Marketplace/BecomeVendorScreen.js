@@ -30,6 +30,7 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import {useTranslation} from 'react-i18next';
 import {useFocusEffect} from '@react-navigation/native';
 import {comnPost, comnGet} from '../../Services/Api/CommonServices';
+import {afterModalDismissed} from '../../Services/CommonMethods';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import STRING from '../../Services/Constants/STRINGS';
 import {isGuestUser, isVendorUser} from '../../Components/Common/GuestGateModal';
@@ -131,9 +132,12 @@ const BecomeVendorScreen = ({navigation}) => {
         }, 1800);
       } else if (resData?.data?.missing_profile_fields?.length) {
         // M2 — the contact gate. Ask for exactly the missing fields inline
-        // instead of parroting the backend's error text.
+        // instead of parroting the backend's error text. The request sheet must
+        // fully dismiss first: iOS silently drops a Modal presented while
+        // another is still up (same pitfall afterModalDismissed exists for).
         setContactMissing(resData.data.missing_profile_fields);
-        setContactVisible(true);
+        setSheetVisible(false);
+        afterModalDismissed(() => setContactVisible(true));
       } else {
         const raw = resData?.message;
         setResultMsg(
@@ -290,7 +294,10 @@ const BecomeVendorScreen = ({navigation}) => {
         onClose={() => setContactVisible(false)}
         onSaved={() => {
           setContactVisible(false);
-          submit();
+          afterModalDismissed(() => {
+            setSheetVisible(true);
+            submit();
+          });
         }}
       />
 
