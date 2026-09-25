@@ -17,36 +17,51 @@ Flow mockup: Artifact "Vendor Onboarding Flow".
 |---|--------|-------|--------|---------|
 | M0 | Backend vendor/site/product/approval + reject-with-reason + resubmit | backend | ♻️ Already built | — |
 | M1 | Home CTA banner + dedicated BecomeVendor screen | app | ✅ Done (verified live on iOS sim) | — |
-| M2 | Missing email/mobile → inline fill popup | app | ✅ Code done · 🟡 unrun | — |
-| M3 | Government verification fields (Udyam/GST/Shop-Act) | backend + app | ✅ Backend done+tested · app code done, 🟡 unrun | ⛔ consent copy is a PLACEHOLDER — legal sign-off before release |
-| M4 | Verified badge on site/vendor | app | ✅ Code done · 🟡 unrun | — |
+| M2 | Missing email/mobile → inline fill popup | app | ✅ Done (verified on iOS sim) | — |
+| M3 | Government verification fields (Udyam/GST/Shop-Act) | backend + app | ✅ Done (verified on iOS sim) | ⛔ consent copy is a PLACEHOLDER — legal sign-off before release |
+| M4 | Verified badge on site/vendor | app | ✅ Done (verified on iOS sim) | — |
 | M5 | Web first-time vendor wizard + first-time guard | web + backend | ✅ Done (backend tested, web builds) | Google button needs `NEXT_PUBLIC_GOOGLE_WEB_CLIENT_ID` env |
-| M6 | Free-3-months subscription + `early_adopter` flag | backend + app | ✅ Backend done+tested · app code done, 🟡 unrun | — |
-| M7 | Vendor advertising placement/creative | app + web | ✅ Code done (web builds) · app 🟡 unrun | — |
-| M8 | Rejected-state screen prominence (polish) | app | ✅ Code done · 🟡 unrun | — |
+| M6 | Free-3-months subscription + `early_adopter` flag | backend + app | ✅ Done (verified on iOS sim) | — |
+| M7 | Vendor advertising placement/creative | app + web | ✅ Done (app verified on iOS sim, web builds) | — |
+| M8 | Rejected-state screen prominence (polish) | app | ✅ Done (verified on iOS sim) | — |
 
 > Update the Status column as each module lands. Keep this table the single
 > source of truth for progress.
 
-### What "🟡 unrun" means — read before continuing
-M2–M8 were implemented in one pass (2026-09-24). Verified: **backend** 379 tests
-pass (6 new in `VendorOnboardTest`, M6 promo terms pinned in `PlanLimitTest`);
-**web** `tsc --noEmit` clean, `next build` clean, `/vendor/register` builds.
-**App code is ESLint-clean but has NOT been run on a simulator or device** —
-unlike M1, which was verified live. Nothing in the app layer has been smoke-tested.
+### Verification record (2026-09-25)
 
-Next session should start there. Suggested order:
-1. `npm start` + run iOS/Android; walk the flows below before touching more code.
-2. M2 — sign in as a user with no email/mobile, tap Register my business → the
-   sheet should ask for exactly the missing field(s), save, and the role request
-   should fire automatically without a second tap.
-3. M3 — SubmitPlaceScreen now has a 5th step ("Verify"). Check the step tabs,
-   picker, certificate upload, and that skipping it still submits cleanly.
-4. M4 — needs a site with `verification_status = verified` (set it via
-   `/admin/v2/verifySiteRegistration` or in the DB) to see the badges.
-5. M6/M8 — VendorDashboard header chip + red attention card; the card only shows
-   when the account actually has a rejected site or product.
-6. Nothing is committed in any of the three repos (M1's work included).
+**Backend** — 380 tests / 1137 assertions pass, including `VendorOnboardTest`
+and the M6 promo terms pinned in `PlanLimitTest`.
+**Web** — `tsc --noEmit` clean, `next build` clean, `/vendor/register` builds.
+**App** — ESLint at the pre-existing baseline (8 errors, all inherited from
+`test`; zero added). Walked on the iOS simulator against a local backend:
+
+- **M2** — as a user with neither email nor mobile, *Register my business*
+  returned the 403 and opened the sheet asking for exactly those two fields. A
+  mobile already in use came back as an inline field error with nothing
+  half-saved; a free one saved and the vendor request fired on its own, leaving
+  the screen on *Request Pending* and a `pending` row in `user_role_requests`.
+- **M3** — the submit wizard now ends on *Verify* (step 5 of 5). Udyam/GSTIN/
+  Shop-Act each reveal the number field, certificate upload and consent box;
+  submitting stored `reg_type`, `verification_status = pending`, and the
+  registration number **encrypted at rest**.
+- **M4** — *Verified business* badge shows on the detail page of a site with
+  `verification_status = verified`.
+- **M6 / M8** — the dashboard header reads *90 days left of your free period*,
+  and *1 of your listings need changes* routes to the rejected listing with its
+  reason and an Edit & Resubmit button.
+- **M1/M7 regression** — see the fix below; the CTA's visibility was wrong on a
+  cold cache and is now covered in all four states.
+
+One bug found and fixed while testing: `VendorCTA` decided vendor-or-not from a
+cache written after it mounts (and sometimes belonging to the previous user), so
+existing vendors were shown "become a vendor". Roles now come from the landing
+response as it arrives. Verified for a vendor with a cold cache, a warm cache,
+and a stale cache from another user, plus a non-vendor who must still see it.
+
+**Left deliberately undone:** the admin-panel UI for the verification queue.
+`pendingVerifications` and `verifySiteRegistration` work, but approving a vendor
+currently means calling the API by hand.
 
 ---
 
