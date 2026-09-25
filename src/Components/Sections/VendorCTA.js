@@ -4,9 +4,13 @@
  * Module M1 of the vendor-onboarding plan (docs/vendor-onboarding-plan.md).
  * Purely additive: reuses the existing become-vendor flow in ProfileView.
  *
- * Visibility: hidden for users who are already vendors (read from the cached
- * landing response's user.roles). Shown to everyone else, guests included —
- * tapping opens BecomeVendorScreen, which handles the requestRole call and the
+ * Visibility: hidden for users who are already vendors. Roles come from the
+ * `roles` prop when the parent already holds the landing response; otherwise
+ * they are read from the cached landing response. The prop matters on a cold
+ * start: the cache is written well after this mounts, so a cache-only read
+ * would answer "not a vendor" and pitch the banner at an existing vendor for
+ * the rest of the session. Shown to everyone else, guests included — tapping
+ * opens BecomeVendorScreen, which handles the requestRole call and the
  * missing-contact prompt (M2).
  *
  * `compact` (M7): a slim vendor-acquisition strip for contextual placements —
@@ -27,28 +31,36 @@ const C = {
   sand: '#E4B23E',
 };
 
-const VendorCTA = ({navigation, compact = false}) => {
+const VendorCTA = ({navigation, compact = false, roles}) => {
   const {t} = useTranslation();
   const [show, setShow] = useState(false);
 
   useEffect(() => {
     let alive = true;
+    const hasVendorRole = list =>
+      Array.isArray(list) && list.some(r => r?.code === 'vendor');
+
+    // The parent already knows: decide now, no cache round-trip.
+    if (Array.isArray(roles)) {
+      setShow(!hasVendorRole(roles));
+      return;
+    }
+
     (async () => {
       try {
         const raw = await getFromStorage(STRING.STORAGE.LANDING_RESPONSE);
-        const roles = raw ? JSON.parse(raw)?.user?.roles || [] : [];
-        const isVendor = Array.isArray(roles) && roles.some(r => r?.code === 'vendor');
-        if (alive) setShow(!isVendor);
+        const cached = raw ? JSON.parse(raw)?.user?.roles || [] : [];
+        if (alive) setShow(!hasVendorRole(cached));
       } catch {
-        // On any read/parse failure, still show the CTA — ProfileView guards
-        // the actual state, so a false-positive is harmless.
+        // On any read/parse failure, still show the CTA — BecomeVendorScreen
+        // guards the actual state, so a false-positive is harmless.
         if (alive) setShow(true);
       }
     })();
     return () => {
       alive = false;
     };
-  }, []);
+  }, [roles]);
 
   if (!show) return null;
 

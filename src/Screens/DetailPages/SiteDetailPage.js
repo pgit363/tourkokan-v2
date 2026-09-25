@@ -189,6 +189,7 @@ const SiteDetailPage = ({navigation, route}) => {
   const [isLoading, setIsLoading] = useState(true);
   const [offline, setOffline] = useState(false);
   const [bannerObject, setBannerObject] = useState({});
+  const [landingRoles, setLandingRoles] = useState(null);
   const [isAlert, setIsAlert] = useState(false);
   const [alertMessage, setAlertMessage] = useState('');
   const [descExpanded, setDescExpanded] = useState(false);
@@ -261,6 +262,7 @@ const SiteDetailPage = ({navigation, route}) => {
       if (raw) {
         const parsed = JSON.parse(raw);
         if (parsed?.banners) setBannerObject(parsed.banners);
+        if (parsed?.user) setLandingRoles(parsed.user.roles || []);
       }
     } catch (e) { log.warn("[caught]", e); }
   };
@@ -1047,7 +1049,7 @@ const SiteDetailPage = ({navigation, route}) => {
             })
           )}
           {/* M7 — contextual vendor acquisition; hides itself for vendors */}
-          {!booting && <VendorCTA navigation={navigation} compact />}
+          {!booting && <VendorCTA navigation={navigation} compact roles={landingRoles} />}
         </View>
       </ScrollView>
 

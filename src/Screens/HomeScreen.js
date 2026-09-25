@@ -257,6 +257,9 @@ const HomeScreen = ({navigation, route, ...props}) => {
   const [alertMessage, setAlertMessage] = useState('');
   const [isInitialLoad, setIsInitialLoad] = useState(true);
   const [isLandingDataFetched, setIsLandingDataFetched] = useState(false);
+  // Roles straight off the landing response. VendorCTA needs these before the
+  // offline cache is written (that write is deferred), so it cannot read them itself.
+  const [landingRoles, setLandingRoles] = useState(null);
   const [activeTab, setActiveTab] = useState(null);
   const [showCityDropdown, setShowCityDropdown] = useState(false);
   const [showSplash, setShowSplash] = useState(false);
@@ -655,6 +658,9 @@ const HomeScreen = ({navigation, route, ...props}) => {
         }
 
         setRefreshing(false);
+        // Straight off the wire — the cache write below is deferred, and
+        // dataSync can hand back a previous session's cached user.
+        setLandingRoles(res.data.data.user?.roles || []);
         setTimeout(() => setOfflineData(res.data.data), 2000);
       }
 
@@ -830,7 +836,7 @@ const HomeScreen = ({navigation, route, ...props}) => {
       </View>
 
       {/* ── BECOME A VENDOR CTA (M1) ── */}
-      <VendorCTA navigation={navigation} />
+      <VendorCTA navigation={navigation} roles={landingRoles} />
 
       {/* ── BUS TIMETABLE CARD ── */}
       <Text style={s.sectionTitle}>{t('HOME.BUS_SECTION')}</Text>
