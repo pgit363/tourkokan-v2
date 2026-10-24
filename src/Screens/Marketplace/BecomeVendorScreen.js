@@ -155,9 +155,12 @@ const BecomeVendorScreen = ({navigation}) => {
     navigation.reset({index: 0, routes: [{name: STRING.SCREEN.EMAIL}]});
   };
 
+  // One icon column for every row: a vector glyph renders at a known size and
+  // takes the tint, where a mixed set of text glyphs and emoji did not — the
+  // emoji ignored the colour, overflowed the 18px box and shifted its own line.
   const Perk = ({icon, children}) => (
     <View style={s.perk}>
-      <Text style={s.perkIcon}>{icon}</Text>
+      <Ionicons name={icon} size={15} color={C.ok} style={s.perkIcon} />
       <Text style={s.perkText}>{children}</Text>
     </View>
   );
@@ -188,10 +191,10 @@ const BecomeVendorScreen = ({navigation}) => {
 
         {/* Perks */}
         <View style={s.perks}>
-          <Perk icon="✓">{t('VENDOR.PERK_LISTING')}</Perk>
-          <Perk icon="✓">{t('VENDOR.PERK_ENQUIRIES')}</Perk>
-          <Perk icon="★">{t('VENDOR.PERK_EARLY')}</Perk>
-          <Perk icon="🛡️">{t('VENDOR.PERK_VERIFIED')}</Perk>
+          <Perk icon="checkmark-circle">{t('VENDOR.PERK_LISTING')}</Perk>
+          <Perk icon="chatbubble-ellipses">{t('VENDOR.PERK_ENQUIRIES')}</Perk>
+          <Perk icon="star">{t('VENDOR.PERK_EARLY')}</Perk>
+          <Perk icon="shield-checkmark">{t('VENDOR.PERK_VERIFIED')}</Perk>
         </View>
 
         {/* State-aware action */}
@@ -323,8 +326,10 @@ const s = StyleSheet.create({
 
   perks: {marginTop: 16},
   perk: {flexDirection: 'row', alignItems: 'flex-start', gap: 10, paddingVertical: 7},
-  perkIcon: {fontSize: 14, color: C.ok, fontWeight: '800', width: 18},
-  perkText: {flex: 1, fontSize: 13, color: C.soft},
+  // Fixed column + the text's own line height, so every label starts on the
+  // same x and sits on the same baseline as its icon.
+  perkIcon: {width: 18, textAlign: 'center', lineHeight: 19},
+  perkText: {flex: 1, fontSize: 13, lineHeight: 19, color: C.soft},
 
   primaryBtn: {backgroundColor: C.purple, borderRadius: 13, paddingVertical: 15, alignItems: 'center', marginTop: 18},
   primaryText: {color: C.white, fontSize: 15, fontWeight: '800'},

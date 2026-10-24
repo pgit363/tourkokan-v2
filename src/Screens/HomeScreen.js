@@ -814,6 +814,9 @@ const HomeScreen = ({navigation, route, ...props}) => {
         </TouchableOpacity>
       </View>
 
+      {/* ── BECOME A VENDOR CTA (M1) ── */}
+      <VendorCTA navigation={navigation} roles={landingRoles} />
+
       {/* ── EXPLORE TALUKAS ── */}
       <View style={s.section}>
         <Text style={s.sectionTitle}>{t('HOME.EXPLORE_TALUKAS')}</Text>
@@ -834,9 +837,6 @@ const HomeScreen = ({navigation, route, ...props}) => {
           ItemSeparatorComponent={() => <View style={{width: 12}} />}
         />
       </View>
-
-      {/* ── BECOME A VENDOR CTA (M1) ── */}
-      <VendorCTA navigation={navigation} roles={landingRoles} />
 
       {/* ── BUS TIMETABLE CARD ── */}
       <Text style={s.sectionTitle}>{t('HOME.BUS_SECTION')}</Text>
