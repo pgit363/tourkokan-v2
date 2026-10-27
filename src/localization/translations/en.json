@@ -913,7 +913,7 @@
     "VERIF_DOC_PICK": "Upload certificate",
     "VERIF_DOC_CHANGE": "Change file",
     "VERIF_SKIP": "Skip for now",
-    "CONSENT_DPDP": "[PLACEHOLDER — replace with lawyer-approved DPDP consent text before release] I consent to Tourkokan storing my business registration details for verification.",
+    "CONSENT_DPDP": "I consent to Tourkokan collecting and storing my business registration number and certificate for the purpose of verifying my business and issuing a Verified badge. I can withdraw this consent and request deletion of these details at any time by contacting Tourkokan support.",
     "VERIF_CONSENT_REQUIRED": "Please accept the consent to submit registration details.",
     "VERIF_NUMBER_REQUIRED": "Enter your registration number.",
     "VERIFIED_BADGE": "Verified business",

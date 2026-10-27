@@ -27,6 +27,7 @@ import {backPage} from '../Services/CommonMethods';
 import {comnPost, comnPostForm} from '../Services/Api/CommonServices';
 import STRING from '../Services/Constants/STRINGS';
 import {scaleFontSizes} from '../Services/responsive';
+import {blockScreenshots, allowScreenshots} from '../Services/ScreenGuard';
 
 
 const C = {
@@ -50,6 +51,19 @@ const SubmitPlaceScreen = ({navigation, route}) => {
   const editData = route?.params?.editSubmission ?? null;
 
   const [step, setStep] = useState(0);
+
+  // The Verify step shows the business registration number + certificate. Screenshots are
+  // allowed everywhere else, so re-enable FLAG_SECURE only while that step is on screen and
+  // release it on step change or unmount. Android-only (no-op on iOS).
+  useEffect(() => {
+    if (STEPS[step] === 'Verify') {
+      blockScreenshots();
+    } else {
+      allowScreenshots();
+    }
+    return () => allowScreenshots();
+  }, [step]);
+
   const [submitting, setSubmitting] = useState(false);
   const [categories, setCategories] = useState([]);
 
