@@ -197,6 +197,11 @@ const BecomeVendorScreen = ({navigation}) => {
           <Perk icon="shield-checkmark">{t('VENDOR.PERK_VERIFIED')}</Perk>
         </View>
 
+        {/* Soaks up the leftover height so the action + terms anchor to the
+            bottom and the page fills the screen instead of clustering at top.
+            Collapses to its minHeight when the content is tall enough to scroll. */}
+        <View style={s.spacer} />
+
         {/* State-aware action */}
         {loading ? (
           <ActivityIndicator style={{marginTop: 24}} color={C.purple} />
@@ -317,7 +322,10 @@ const s = StyleSheet.create({
   heroTitle: {fontSize: 22, fontWeight: '800', color: C.white, marginTop: 8, textAlign: 'center'},
   heroSub: {fontSize: 13, color: 'rgba(255,255,255,0.9)', marginTop: 4, textAlign: 'center', maxWidth: '86%'},
 
-  body: {padding: 16, paddingBottom: 40},
+  // flexGrow lets the content container fill the viewport below the hero, so the
+  // spacer can push the action to the bottom; it still scrolls when content is tall.
+  body: {padding: 16, paddingBottom: 40, flexGrow: 1},
+  spacer: {flex: 1, minHeight: 24},
   freeBand: {flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: C.white, borderRadius: 14, padding: 12, marginTop: -14, borderWidth: 1, borderColor: C.line, shadowColor: '#0D3D4A', shadowOpacity: 0.08, shadowRadius: 12, shadowOffset: {width: 0, height: 6}, elevation: 3},
   freeBadge: {backgroundColor: C.okBg, borderRadius: 9, paddingHorizontal: 10, paddingVertical: 6},
   freeBadgeText: {fontSize: 10, fontWeight: '800', color: C.ok, textTransform: 'uppercase', textAlign: 'center'},
