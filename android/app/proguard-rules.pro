@@ -31,3 +31,34 @@
 -dontwarn okio.**
 -keep class okhttp3.** { *; }
 -keep interface okhttp3.** { *; }
+
+# ── R8 enabled (obfuscation/shrinking). Defensive keeps for reflection-heavy libs so
+#    the minified release behaves like debug. Most RN libs ship their own consumer rules;
+#    these cover the ones most likely to break and this app's own (small) native code. ──
+
+# This app's native code: MainActivity/MainApplication + the ScreenGuard native module,
+# referenced by name from the RN bridge. Tiny package, so keeping it costs no meaningful
+# obfuscation while avoiding component/module registration breakage.
+-keep class com.tourkokan.** { *; }
+
+# Software Mansion suite: Reanimated, Gesture Handler, Screens.
+-keep class com.swmansion.** { *; }
+-dontwarn com.swmansion.**
+
+# react-native-maps
+-keep class com.rnmaps.** { *; }
+-keep class com.google.android.gms.maps.** { *; }
+-dontwarn com.google.android.gms.maps.**
+
+# react-native-sqlite-storage (older, reflection-based)
+-keep class org.pgsqlite.** { *; }
+
+# Keep native-module entry points and JS-interface methods across all libraries.
+-keepclassmembers class * { @com.facebook.react.bridge.ReactMethod <methods>; }
+-keepclassmembers class * extends com.facebook.react.bridge.ReactContextBaseJavaModule { <methods>; }
+-keepclassmembers class * { @android.webkit.JavascriptInterface <methods>; }
+
+# Hermes / JSC + annotations.
+-keep class com.facebook.proguard.annotations.DoNotStrip { *; }
+-keepclassmembers class * { @com.facebook.proguard.annotations.DoNotStrip *; }
+-keep,allowobfuscation @interface com.facebook.proguard.annotations.DoNotStrip
