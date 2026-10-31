@@ -6,6 +6,7 @@ import Octicons from 'react-native-vector-icons/Octicons';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import COLOR from '../../Services/Constants/COLORS';
 import {useFavourite, FAV} from '../../Services/favourites';
+import {useInTrip} from '../../Services/trip';
 import DIMENSIONS from '../../Services/Constants/DIMENSIONS';
 import StarRating from 'react-native-star-rating-widget'; // Updated import
 import {comnPost} from '../../Services/Api/CommonServices';
@@ -31,6 +32,14 @@ const PlaceCard = ({data, reload, navigation, addComment, onClick}) => {
     data?.id,
     data,
   );
+  // Trip membership, same arrangement as favourites: the store owns it, so the
+  // tick on this card and the cart badge in the header move together.
+  const {
+    inTrip,
+    pending: tripPending,
+    toggle: toggleTrip,
+  } = useInTrip(data?.id);
+
   const [isLiked, setIsLiked] = useState(false);
   const [isVisible, setIsVisible] = useState(false);
   const [rating, setRating] = useState(data?.rating_avg_rate || 0);
@@ -115,6 +124,26 @@ const PlaceCard = ({data, reload, navigation, addComment, onClick}) => {
                   <Octicons
                     name={isFav ? 'heart-fill' : 'heart'}
                     color={isFav ? COLOR.red : COLOR.black}
+                    size={isTablet ? ms(DIMENSIONS.iconSize) : DIMENSIONS.iconSize}
+                  />
+                )}
+              </TouchableOpacity>
+              {/* Tick to add to the trip. Deliberately beside the heart: a
+                  favourite is "I like this", a tick is "I am going here". */}
+              <TouchableOpacity
+                style={styles.likeView}
+                accessibilityRole="checkbox"
+                accessibilityState={{checked: inTrip, disabled: tripPending}}
+                accessibilityLabel={
+                  inTrip ? t('TRIP.IN_TRIP') : t('TRIP.ADD_TO_TRIP')
+                }
+                onPress={() => toggleTrip(navigation)}>
+                {tripPending ? (
+                  <ActivityIndicator size="small" color={COLOR.themeDarkGreen} />
+                ) : (
+                  <Octicons
+                    name={inTrip ? 'check-circle-fill' : 'plus-circle'}
+                    color={inTrip ? COLOR.themeDarkGreen : COLOR.black}
                     size={isTablet ? ms(DIMENSIONS.iconSize) : DIMENSIONS.iconSize}
                   />
                 )}

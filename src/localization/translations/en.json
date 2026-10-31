@@ -136,7 +136,8 @@
     "PRODUCT_ANALYTICS": "ProductAnalytics",
     "SUBSCRIPTION": "Subscription",
     "MARKET_FAVOURITES": "MarketFavourites",
-    "MY_ENQUIRIES": "MyEnquiries"
+    "MY_ENQUIRIES": "MyEnquiries",
+    "TRIP_CART": "My trip"
   },
   "STORAGE": {
     "ACCESS_TOKEN": "access_token",
@@ -1115,5 +1116,28 @@
     "GOT_IT": "Got it",
     "CONTEXT_TITLE": "Reporting about this route",
     "CONTEXT_HINT": "These details are sent with your message, so you don't need to type them."
+  },
+  "TRIP": {
+    "ADD_TO_TRIP": "Add to my trip",
+    "IN_TRIP": "In your trip",
+    "MY_TRIP": "My trip",
+    "PLAN_MY_TRIP": "Plan my trip",
+    "VIEW_CART": "View my cart",
+    "PLACES_ADDED": "{{count}} places added",
+    "ONE_PLACE_ADDED": "1 place added",
+    "NEED_MORE": "Add at least {{count}} to plan a trip",
+    "ONE_MORE": "1 more to go",
+    "N_MORE": "{{count}} more to go",
+    "EMPTY_TITLE": "No places yet",
+    "EMPTY_BODY": "Tick the places you want to visit while you browse. When you have three or more, we will put them in a sensible order.",
+    "START_EXPLORING": "Start exploring",
+    "ADD_MORE": "Add more places",
+    "HOW_MANY_DAYS": "How many days?",
+    "FREE_FOREVER": "Free · no payment, ever",
+    "REMOVE": "Remove from trip",
+    "PLACES_YOU_PICKED": "Places you picked",
+    "NOT_A_DESTINATION": "That place cannot be added to a trip.",
+    "COULD_NOT_UPDATE": "We could not update your trip. Please try again.",
+    "BACK": "Back"
   }
 }

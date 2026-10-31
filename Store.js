@@ -6,6 +6,7 @@ import {configureStore} from '@reduxjs/toolkit';
 import commonReducer from './src/Reducers/CommonReducer';
 import favouritesReducer from './src/Reducers/favouritesSlice';
 import notificationsReducer from './src/Reducers/notificationsSlice';
+import tripReducer from './src/Reducers/tripSlice';
 import {reduxLoggerMiddleware} from './src/Services/Logger';
 
 const store = configureStore({
@@ -13,6 +14,7 @@ const store = configureStore({
     commonState: commonReducer,
     favourites: favouritesReducer,
     notifications: notificationsReducer,
+    trip: tripReducer,
     //   filters: filtersReducer
   },
   // Event-based action logging — every dispatch flows through the Logger

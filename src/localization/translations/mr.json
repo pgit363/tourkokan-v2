@@ -136,7 +136,8 @@
     "PRODUCT_ANALYTICS": "ProductAnalytics",
     "SUBSCRIPTION": "Subscription",
     "MARKET_FAVOURITES": "MarketFavourites",
-    "MY_ENQUIRIES": "MyEnquiries"
+    "MY_ENQUIRIES": "MyEnquiries",
+    "TRIP_CART": "माझी सहल"
   },
   "STORAGE": {
     "ACCESS_TOKEN": "access_token",
@@ -1118,5 +1119,28 @@
     "GOT_IT": "समजलं",
     "CONTEXT_TITLE": "या मार्गाबद्दल तक्रार",
     "CONTEXT_HINT": "ही माहिती तुमच्या संदेशासोबत पाठवली जाईल, ती पुन्हा लिहायची गरज नाही."
+  },
+  "TRIP": {
+    "ADD_TO_TRIP": "माझ्या सहलीत जोडा",
+    "IN_TRIP": "सहलीत आहे",
+    "MY_TRIP": "माझी सहल",
+    "PLAN_MY_TRIP": "माझी सहल ठरवा",
+    "VIEW_CART": "माझी यादी पहा",
+    "PLACES_ADDED": "{{count}} ठिकाणे जोडली",
+    "ONE_PLACE_ADDED": "1 ठिकाण जोडले",
+    "NEED_MORE": "सहल ठरवण्यासाठी किमान {{count}} जोडा",
+    "ONE_MORE": "अजून 1 बाकी",
+    "N_MORE": "अजून {{count}} बाकी",
+    "EMPTY_TITLE": "अजून ठिकाणे नाहीत",
+    "EMPTY_BODY": "ब्राउझ करताना आवडलेली ठिकाणे निवडा. तीन किंवा अधिक झाल्यावर आम्ही त्यांचा योग्य क्रम लावू.",
+    "START_EXPLORING": "शोधायला सुरुवात करा",
+    "ADD_MORE": "आणखी ठिकाणे जोडा",
+    "HOW_MANY_DAYS": "किती दिवस?",
+    "FREE_FOREVER": "मोफत · कधीही पैसे नाहीत",
+    "REMOVE": "सहलीतून काढा",
+    "PLACES_YOU_PICKED": "तुम्ही निवडलेली ठिकाणे",
+    "NOT_A_DESTINATION": "हे ठिकाण सहलीत जोडता येणार नाही.",
+    "COULD_NOT_UPDATE": "सहल अपडेट करता आली नाही. पुन्हा प्रयत्न करा.",
+    "BACK": "मागे"
   }
 }
