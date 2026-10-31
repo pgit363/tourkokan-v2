@@ -6,8 +6,9 @@
  * count compared here, because the minimum lives in `ai_configs` and an admin
  * can change it without an app release.
  *
- * Generation does not exist yet, so Plan is disabled with an explanation
- * rather than hidden — the shape of the screen is the one it keeps.
+ * Plan hands the trip id to the itinerary screen, which does the generating.
+ * Below the minimum it stays disabled with an explanation rather than hidden,
+ * so the shape of the screen never changes under the traveller.
  */
 import React, {useCallback} from 'react';
 import {
@@ -23,6 +24,7 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import {useTranslation} from 'react-i18next';
 import GlobalText from '../Components/Customs/Text';
 import {C} from '../Components/Marketplace/theme';
+import {navigateTo} from '../Services/CommonMethods';
 import {useTripCart, useInTrip} from '../Services/trip';
 
 const Row = ({place, navigation}) => {
@@ -187,7 +189,11 @@ const TripCartScreen = ({navigation}) => {
             accessibilityRole="button"
             accessibilityState={{disabled: !cart.canPlan}}
             disabled={!cart.canPlan}
-            onPress={() => {}}>
+            onPress={() =>
+              navigateTo(navigation, t('SCREEN.ITINERARY'), {
+                tripId: cart.tripId,
+              })
+            }>
             <GlobalText text={t('TRIP.PLAN_MY_TRIP')} style={s.primaryTxt} />
           </TouchableOpacity>
 

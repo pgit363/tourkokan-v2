@@ -30,6 +30,17 @@ const initialState = {
   /** siteId -> true while an add or remove is in flight. */
   pending: {},
   loading: false,
+
+  // ── Generation ────────────────────────────────────────────────────────────
+  /** The finished plan, or null. Kept separate from the cart it came from. */
+  itinerary: null,
+  /** Which trip the plan above belongs to, so a different trip re-generates. */
+  itineraryTripId: null,
+  generating: false,
+  /** A refusal reason from the server, which the screen maps to copy. */
+  error: null,
+  /** Free plans left, as the server last reported them. */
+  credits: null,
 };
 
 const trip = createSlice({
@@ -78,6 +89,34 @@ const trip = createSlice({
     cartCleared() {
       return {...initialState};
     },
+
+    generateStarted(state) {
+      state.generating = true;
+      state.error = null;
+    },
+
+    generateSucceeded(state, action) {
+      state.generating = false;
+      state.error = null;
+      state.itinerary = action.payload?.itinerary ?? null;
+      state.itineraryTripId = action.payload?.trip_id ?? null;
+      state.credits = action.payload?.credits ?? state.credits;
+      // The cart has become a trip; the cart screen should reflect that
+      // rather than still offering to plan it.
+      state.status = 'generated';
+    },
+
+    /**
+     * Payload is the server's `reason`, not a sentence. Copy is chosen in the
+     * screen so the same reason can read differently in different places.
+     */
+    generateFailed(state, action) {
+      state.generating = false;
+      state.error = action.payload?.reason ?? 'generation_failed';
+      if (action.payload?.credits != null) {
+        state.credits = action.payload.credits;
+      }
+    },
   },
 });
 
@@ -87,6 +126,9 @@ export const {
   cartReceived,
   cartOpFailed,
   cartCleared,
+  generateStarted,
+  generateSucceeded,
+  generateFailed,
 } = trip.actions;
 
 // ── Selectors ───────────────────────────────────────────────────────────────
@@ -100,5 +142,9 @@ export const selectInCart = siteId => state =>
   state.trip.places.some(p => p.id === siteId);
 
 export const selectCartPending = siteId => state => !!state.trip.pending[siteId];
+
+export const selectItinerary = state => state.trip.itinerary;
+export const selectGenerating = state => state.trip.generating;
+export const selectGenerateError = state => state.trip.error;
 
 export default trip.reducer;

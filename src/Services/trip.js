@@ -16,6 +16,7 @@ import {createLogger} from './Logger';
 import {
   addToCart,
   getCart,
+  planFromCart,
   removeFromCart,
   reorderCart,
   updateCart,
@@ -26,6 +27,9 @@ import {
   cartOpFailed,
   cartOpStarted,
   cartReceived,
+  generateFailed,
+  generateStarted,
+  generateSucceeded,
   selectCart,
   selectCartPending,
   selectInCart,
@@ -164,4 +168,59 @@ export const useInTrip = siteId => {
   );
 
   return {inTrip, pending, toggle};
+};
+
+/**
+ * Generating a plan from the cart.
+ *
+ * Separate from `useTripCart` because the itinerary screen cares about a
+ * different question — is it ready, did it fail, and why — and nothing else
+ * in the app needs to trigger a generation.
+ */
+export const useTripPlanner = () => {
+  const dispatch = useDispatch();
+  const {itinerary, itineraryTripId, generating, error, credits, tripId, places} =
+    useSelector(selectCart);
+
+  const generate = useCallback(
+    async (id, navigation) => {
+      const target = id ?? tripId;
+
+      if (!target || generating) {
+        return false;
+      }
+
+      dispatch(generateStarted());
+
+      try {
+        const res = await planFromCart(target, navigation);
+
+        if (ok(res)) {
+          dispatch(generateSucceeded(res.data.data));
+          return true;
+        }
+
+        // A refusal, not a crash: the server names the reason and the screen
+        // decides what to say about it.
+        dispatch(generateFailed(res?.data?.data || {}));
+      } catch (e) {
+        log.error('generation failed', {tripId: target, message: e?.message});
+        dispatch(generateFailed({reason: 'network'}));
+      }
+
+      return false;
+    },
+    [dispatch, generating, tripId],
+  );
+
+  return {
+    itinerary,
+    itineraryTripId,
+    generating,
+    error,
+    credits,
+    /** The places the traveller picked themselves, to badge in the plan. */
+    picked: places,
+    generate,
+  };
 };

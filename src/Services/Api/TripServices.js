@@ -42,3 +42,17 @@ export const reorderCart = (trip_id, site_ids, navigation) =>
 /** Days, base town and title — the rest of the cart screen. */
 export const updateCart = (trip_id, changes, navigation) =>
   comnPost('v2/trip/updateCart', {trip_id, ...changes}, navigation);
+
+// ── Generation ──────────────────────────────────────────────────────────────
+
+/**
+ * Turn a cart into an itinerary. Free, but it spends one of the traveller's
+ * plans — and re-planning the same trip does not, because the server keys the
+ * spend by trip rather than by request.
+ *
+ * On refusal the envelope carries `data.reason`, which the screen maps to copy:
+ *   verification_required · insufficient_credits
+ *   cart_too_small        · generation_failed
+ */
+export const planFromCart = (trip_id, navigation) =>
+  comnPost('v2/trip/planFromCart', {trip_id}, navigation);

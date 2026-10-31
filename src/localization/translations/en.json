@@ -137,7 +137,8 @@
     "SUBSCRIPTION": "Subscription",
     "MARKET_FAVOURITES": "MarketFavourites",
     "MY_ENQUIRIES": "MyEnquiries",
-    "TRIP_CART": "My trip"
+    "TRIP_CART": "My trip",
+    "ITINERARY": "Your itinerary"
   },
   "STORAGE": {
     "ACCESS_TOKEN": "access_token",
@@ -1138,6 +1139,33 @@
     "PLACES_YOU_PICKED": "Places you picked",
     "NOT_A_DESTINATION": "That place cannot be added to a trip.",
     "COULD_NOT_UPDATE": "We could not update your trip. Please try again.",
-    "BACK": "Back"
+    "BACK": "Back",
+    "GENERATING_TITLE": "Planning your trip",
+    "GENERATING_BODY": "Putting your places in order and checking the bus times between them.",
+    "STEP_PLACES": "Gathered nearby places",
+    "STEP_BUSES": "Found ST bus connections",
+    "STEP_DAYS": "Arranging your days",
+    "STEP_CONTACTS": "Adding contacts",
+    "NOTHING_CHARGED": "Nothing is charged. If this fails, your free plan is not used up.",
+    "DAY_N": "Day {{n}}",
+    "STOPS_COUNT": "{{count}} stops",
+    "YOURS": "YOURS",
+    "BY_ROAD": "{{km}} km by road",
+    "BUS_LEG": "ST bus {{depart}} · {{route}}",
+    "SAVE_TRIP": "Save trip",
+    "CONTACTS": "Contacts",
+    "FAILED_TITLE": "That did not come out right",
+    "FAILED_BODY": "We could not build a full plan from these places. Nothing was charged, so please try again.",
+    "FAILED_HELP": "Adding one or two more places usually helps.",
+    "TRY_AGAIN": "Try again",
+    "EDIT_PLACES": "Edit my places",
+    "QUOTA_TITLE": "You have used all your free plans",
+    "QUOTA_BODY": "Your saved trips are all still here. Invite a friend and you both get more.",
+    "VERIFY_TITLE": "Save your trip first",
+    "VERIFY_BODY": "You have been browsing as a guest. Add an account and this trip stays yours — nothing you picked is lost.",
+    "VERIFY_CTA": "Save my trip",
+    "NETWORK_TITLE": "No connection",
+    "NETWORK_BODY": "Planning needs the internet. Your places are saved on this phone.",
+    "PLANS_LEFT": "{{count}} free plans left"
   }
 }
