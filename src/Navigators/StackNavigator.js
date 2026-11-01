@@ -64,6 +64,9 @@ import ProductAnalyticsScreen from '../Screens/Marketplace/ProductAnalyticsScree
 import SubscriptionScreen from '../Screens/Marketplace/SubscriptionScreen';
 import FavouritesScreen from '../Screens/Marketplace/FavouritesScreen';
 import MyEnquiriesScreen from '../Screens/Marketplace/MyEnquiriesScreen';
+import TripCartScreen from '../Screens/TripCartScreen';
+import ItineraryScreen from '../Screens/ItineraryScreen';
+import PlanTripScreen from '../Screens/PlanTripScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -293,6 +296,15 @@ const StackNavigator = ({initialRoute}) => {
           <Stack.Screen name={t('SCREEN.SUBSCRIPTION')} component={SubscriptionScreen} />
           <Stack.Screen name={t('SCREEN.MARKET_FAVOURITES')} component={FavouritesScreen} />
           <Stack.Screen name={t('SCREEN.MY_ENQUIRIES')} component={MyEnquiriesScreen} />
+          <Stack.Screen name={t('SCREEN.TRIP_CART')} component={TripCartScreen} />
+          <Stack.Screen
+            name={t('SCREEN.PLAN_TRIP')}
+            component={PlanTripScreen}
+          />
+          <Stack.Screen
+            name={t('SCREEN.ITINERARY')}
+            component={ItineraryScreen}
+          />
 
         </Stack.Group>
       </Stack.Navigator>
