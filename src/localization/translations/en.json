@@ -1197,6 +1197,18 @@
     "CTA_DESC": "Beaches, forts, waterfalls — we build the route, the timings and the bus connections.",
     "CTA_DESC_MORE": "{{count}} places picked. Add {{needed}} more and we can plan it.",
     "CTA_DESC_READY": "{{count}} places picked. Ready to turn into a day-by-day plan.",
-    "CTA_ACTION": "Plan a trip"
+    "CTA_ACTION": "Plan a trip",
+    "ARRIVAL_LABEL": "How are you getting here",
+    "ARRIVAL_HINT": "Your first day depends on when you actually arrive",
+    "ARRIVAL_NO_POINTS": "We do not have an arrival point for that yet.",
+    "ARRIVAL_AT": "Arriving at",
+    "ARRIVAL_ONWARD": "ST bus {{route}} at {{depart}} — your first day can start around {{start}}",
+    "ARRIVAL_NO_BUS": "No direct bus runs from there to the towns you picked. You will need your own transport for the first leg.",
+    "BUDGET_LABEL": "Budget",
+    "BUDGET_SOON": "Plan to a budget",
+    "BUDGET_SOON_WHY": "Stay, food and activity prices — once enough businesses have listed theirs",
+    "SOON": "Soon",
+    "ARRIVE_AT_PLACE": "You arrive at {{place}}, {{at}}",
+    "ARRIVE_BY_ROAD": "You arrive by road"
   }
 }

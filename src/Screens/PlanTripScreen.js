@@ -17,6 +17,7 @@ import {
   ActivityIndicator,
   ScrollView,
   StyleSheet,
+  TextInput,
   TouchableOpacity,
   View,
 } from 'react-native';
@@ -97,6 +98,11 @@ const PlanTripScreen = ({navigation}) => {
   const [interests, setInterests] = useState([]);
   const [days, setDays] = useState(2);
   const [stay, setStay] = useState('suggest');
+  // How they get here. Null until they say — the whole feature is optional,
+  // and a plan without it is the plan we were already making.
+  const [arrivalMode, setArrivalMode] = useState(null);
+  const [arrivalPoint, setArrivalPoint] = useState(null);
+  const [arrivalAt, setArrivalAt] = useState('');
 
   useEffect(() => {
     load(navigation);
@@ -106,16 +112,48 @@ const PlanTripScreen = ({navigation}) => {
   const maxDays = options?.days?.max ?? 7;
   const maxTowns = options?.max_towns ?? 3;
 
-  const filters = useMemo(
-    () => ({
+  /** Entry points that serve the chosen mode — a station is no use to a flight. */
+  const pointsForMode = useMemo(
+    () =>
+      (options?.arrival?.points || []).filter(p =>
+        (p.modes || []).includes(arrivalMode),
+      ),
+    [options?.arrival?.points, arrivalMode],
+  );
+
+  const filters = useMemo(() => {
+    const base = {
       town_site_ids: towns,
       category_codes: interests,
       days,
       stay,
       radius_km: options?.radius_km ?? 40,
-    }),
-    [towns, interests, days, stay, options?.radius_km],
-  );
+    };
+
+    // Omitted entirely rather than sent half-filled: the server requires a
+    // point for everything except driving, and an incomplete answer would be
+    // a validation error on every keystroke.
+    if (arrivalMode === 'own_vehicle') {
+      base.arrival = {mode: arrivalMode, at: arrivalAt || null};
+    } else if (arrivalMode && arrivalPoint) {
+      base.arrival = {
+        mode: arrivalMode,
+        site_id: arrivalPoint,
+        at: arrivalAt || null,
+      };
+    }
+
+    return base;
+  }, [
+    towns,
+    interests,
+    days,
+    stay,
+    options?.radius_km,
+    arrivalMode,
+    arrivalPoint,
+    arrivalAt,
+  ]);
 
   /**
    * Ask again shortly after the traveller stops tapping. A quote per tap would
@@ -312,6 +350,112 @@ const PlanTripScreen = ({navigation}) => {
             </View>
           )}
         </Section>
+
+        <Section
+          label={t('TRIP.ARRIVAL_LABEL')}
+          hint={t('TRIP.ARRIVAL_HINT')}>
+          <View style={s.chips}>
+            {(options?.arrival?.modes || []).map(mode => (
+              <Chip
+                key={mode.code}
+                label={mode.label}
+                on={arrivalMode === mode.code}
+                onPress={() => {
+                  // Changing mode invalidates the point: a railway station is
+                  // not somewhere a flight lands.
+                  setArrivalMode(current =>
+                    current === mode.code ? null : mode.code,
+                  );
+                  setArrivalPoint(null);
+                }}
+              />
+            ))}
+          </View>
+
+          {arrivalMode && arrivalMode !== 'own_vehicle' ? (
+            pointsForMode.length === 0 ? (
+              <GlobalText
+                text={t('TRIP.ARRIVAL_NO_POINTS')}
+                style={s.sectionHint}
+              />
+            ) : (
+              <View style={[s.chips, s.chipsSpaced]}>
+                {pointsForMode.map(point => (
+                  <Chip
+                    key={point.site_id}
+                    label={point.name}
+                    on={arrivalPoint === point.site_id}
+                    onPress={() =>
+                      setArrivalPoint(current =>
+                        current === point.site_id ? null : point.site_id,
+                      )
+                    }
+                  />
+                ))}
+              </View>
+            )
+          ) : null}
+
+          {arrivalMode ? (
+            <View style={s.timeRow}>
+              <GlobalText text={t('TRIP.ARRIVAL_AT')} style={s.timeLabel} />
+              <TextInput
+                style={s.timeInput}
+                value={arrivalAt}
+                onChangeText={setArrivalAt}
+                placeholder="13:40"
+                placeholderTextColor={C.textLight}
+                keyboardType="numbers-and-punctuation"
+                maxLength={5}
+              />
+            </View>
+          ) : null}
+
+          {/* The payoff, straight from the duty sheets. */}
+          {quote?.arrival?.onward ? (
+            <View style={s.connection}>
+              <Ionicons name="bus" size={17} color={C.ocean} />
+              <GlobalText
+                style={s.connectionTxt}
+                text={t('TRIP.ARRIVAL_ONWARD', {
+                  depart: quote.arrival.onward.depart,
+                  route: quote.arrival.onward.route_no,
+                  start: quote.arrival.earliest_start,
+                })}
+              />
+            </View>
+          ) : null}
+
+          {quote?.arrival && !quote.arrival.onward && arrivalPoint ? (
+            <View style={s.note}>
+              <Ionicons
+                name="information-circle-outline"
+                size={17}
+                color="#8A6A12"
+              />
+              <GlobalText
+                text={t('TRIP.ARRIVAL_NO_BUS')}
+                style={s.noteTxt}
+              />
+            </View>
+          ) : null}
+        </Section>
+
+        {/* Asked for, not ready: there are prices for one business in the
+            whole district, so a budget filter would match nothing while
+            looking like it worked. Said plainly rather than hidden. */}
+        <Section label={t('TRIP.BUDGET_LABEL')}>
+          <View style={s.soon}>
+            <Ionicons name="pricetag-outline" size={19} color={C.textLight} />
+            <View style={s.soonBody}>
+              <GlobalText text={t('TRIP.BUDGET_SOON')} style={s.soonTitle} />
+              <GlobalText text={t('TRIP.BUDGET_SOON_WHY')} style={s.soonDesc} />
+            </View>
+            <View style={s.soonTag}>
+              <GlobalText text={t('TRIP.SOON')} style={s.soonTagTxt} />
+            </View>
+          </View>
+        </Section>
       </ScrollView>
 
       <View style={s.footer}>
@@ -372,6 +516,54 @@ const s = StyleSheet.create({
   sectionHint: {fontSize: 12.5, color: C.textLight, marginBottom: 11},
 
   chips: {flexDirection: 'row', flexWrap: 'wrap', gap: 8},
+  chipsSpaced: {marginTop: 10},
+
+  timeRow: {flexDirection: 'row', alignItems: 'center', gap: 10, marginTop: 12},
+  timeLabel: {fontSize: 13, color: C.textMid},
+  timeInput: {
+    width: 92,
+    height: 42,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: C.line,
+    backgroundColor: C.white,
+    paddingHorizontal: 12,
+    fontSize: 15,
+    fontWeight: '700',
+    color: C.textDark,
+  },
+
+  connection: {
+    flexDirection: 'row',
+    gap: 10,
+    alignItems: 'flex-start',
+    backgroundColor: 'rgba(27,107,123,0.08)',
+    borderRadius: 14,
+    padding: 13,
+    marginTop: 12,
+  },
+  connectionTxt: {flex: 1, fontSize: 12.5, color: C.oceanDeep, lineHeight: 18},
+
+  soon: {
+    flexDirection: 'row',
+    gap: 11,
+    alignItems: 'center',
+    backgroundColor: C.white,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: C.line,
+    padding: 13,
+  },
+  soonBody: {flex: 1},
+  soonTitle: {fontSize: 14, fontWeight: '700', color: C.textMid},
+  soonDesc: {fontSize: 11.5, color: C.textLight, marginTop: 2, lineHeight: 16},
+  soonTag: {
+    backgroundColor: C.sandPale,
+    borderRadius: 999,
+    paddingHorizontal: 9,
+    paddingVertical: 3,
+  },
+  soonTagTxt: {fontSize: 10, fontWeight: '800', color: '#6B5614'},
   chip: {
     flexDirection: 'row',
     alignItems: 'center',

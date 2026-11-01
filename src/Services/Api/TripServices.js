@@ -61,13 +61,15 @@ export const planFromCart = (trip_id, navigation) =>
 
 /**
  * The form's own options, served rather than shipped: towns that can be
- * searched around, interests that have places behind them, and the live
- * limits. Do not hardcode a category list in the app — an interest nothing
+ * searched around, interests that have places behind them, how a traveller
+ * can arrive, and the live limits. Do not hardcode a category list in the app — an interest nothing
  * carries would be offered until the next release.
  *
  *   { towns: [{site_id, name, mr_name, lat, lng}],
  *     interests: [{code, name, mr_name, icon, places}],
- *     days: {min, max, default}, max_towns, radius_km, credits }
+ *     days: {min, max, default}, max_towns, radius_km, credits,
+ *     arrival: {modes: [{code, label}], points: [{site_id, name, modes}]},
+ *     budget: {available} }
  */
 export const tripQuestionSet = navigation =>
   comnPost('v2/trip/questionSet', {}, navigation);
@@ -76,7 +78,11 @@ export const tripQuestionSet = navigation =>
  * What a filter set would give, before anything is spent. Free, and no model
  * call — safe to run as the traveller changes their mind.
  *
- *   { can_plan, reason, candidates, needed, days, towns, cost, credits }
+ *   { can_plan, reason, candidates, needed, days, towns, cost, credits,
+ *     arrival: null | {from, at, earliest_start, reaches, onward} }
+ *
+ * `arrival.onward` is the real answer to "can I get there from the station":
+ * the first bus AFTER they land, or null when nothing direct runs.
  */
 export const quoteTrip = (filters, navigation) =>
   comnPost('v2/trip/quote', filters, navigation);

@@ -29,6 +29,41 @@ import {useTripPlanner} from '../Services/trip';
 
 // ── Pieces ──────────────────────────────────────────────────────────────────
 
+/**
+ * How the traveller got here, as the first row of day one.
+ *
+ * The bus is named only when one actually runs after they land — the server
+ * resolves that from the duty sheets and sends null otherwise, and saying
+ * nothing is better than implying a connection they would wait hours for.
+ */
+const Arrival = ({arrival}) => {
+  const {t} = useTranslation();
+  const bus = arrival.onward;
+
+  return (
+    <View style={s.arrival}>
+      <Ionicons name="enter-outline" size={18} color={C.oceanMid} />
+      <View style={s.arrivalBody}>
+        <GlobalText
+          style={s.arrivalTitle}
+          text={
+            arrival.from
+              ? t('TRIP.ARRIVE_AT_PLACE', {place: arrival.from, at: arrival.at || ''})
+              : t('TRIP.ARRIVE_BY_ROAD')
+          }
+        />
+        {bus ? (
+          <GlobalText
+            style={s.arrivalBus}
+            text={t('TRIP.BUS_LEG', {depart: bus.depart, route: bus.route_no})}
+          />
+        ) : null}
+      </View>
+    </View>
+  );
+};
+
+
 const Stop = ({stop, picked}) => {
   const {t} = useTranslation();
   const site = stop.site || {};
@@ -360,6 +395,10 @@ const ItineraryScreen = ({navigation, route}) => {
           />
         </View>
 
+        {day === 0 && itinerary.arrival ? (
+          <Arrival arrival={itinerary.arrival} />
+        ) : null}
+
         {(current.stops || []).map((stop, i) => (
           <View key={`${stop.site?.id}-${i}`}>
             <Stop stop={stop} picked={pickedIds.has(stop.site?.id)} />
@@ -435,6 +474,19 @@ const s = StyleSheet.create({
   },
   theme: {flex: 1, fontSize: 13, fontWeight: '700', color: C.oceanMid},
   dayCount: {fontSize: 12, color: C.textLight},
+
+  arrival: {
+    flexDirection: 'row',
+    gap: 11,
+    alignItems: 'flex-start',
+    backgroundColor: 'rgba(27,107,123,0.08)',
+    borderRadius: 14,
+    padding: 13,
+    marginBottom: 10,
+  },
+  arrivalBody: {flex: 1},
+  arrivalTitle: {fontSize: 13.5, fontWeight: '700', color: C.oceanDeep},
+  arrivalBus: {fontSize: 12, color: C.oceanMid, marginTop: 2},
 
   stop: {
     flexDirection: 'row',
