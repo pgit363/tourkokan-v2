@@ -137,8 +137,9 @@
     "SUBSCRIPTION": "Subscription",
     "MARKET_FAVOURITES": "MarketFavourites",
     "MY_ENQUIRIES": "MyEnquiries",
-    "TRIP_CART": "My trip",
-    "ITINERARY": "Your itinerary"
+    "TRIP_CART": "TripCart",
+    "ITINERARY": "Itinerary",
+    "PLAN_TRIP": "PlanTrip"
   },
   "STORAGE": {
     "ACCESS_TOKEN": "access_token",
@@ -472,7 +473,9 @@
     "TAGLINE": "Sun, Sand & Serenity",
     "FOOTER": "Designed and Developed by Probyte Solution LLP.",
     "MARKETPLACE": "Marketplace",
-    "SELL": "Sell your business"
+    "SELL": "Sell your business",
+    "PLAN_TRIP": "Plan a trip",
+    "MY_TRIP": "My trip"
   },
   "HELP_CENTER": {
     "TITLE": "Help Center",
@@ -1166,6 +1169,26 @@
     "VERIFY_CTA": "Save my trip",
     "NETWORK_TITLE": "No connection",
     "NETWORK_BODY": "Planning needs the internet. Your places are saved on this phone.",
-    "PLANS_LEFT": "{{count}} free plans left"
+    "PLANS_LEFT": "{{count}} free plans left",
+    "PLAN_A_TRIP": "Plan a trip",
+    "WHERE_LABEL": "Where will you be",
+    "WHERE_HINT": "Pick up to {{count}} towns to base your trip in",
+    "NO_TOWNS": "No towns are available yet.",
+    "INTERESTS_LABEL": "What do you like",
+    "INTERESTS_HINT": "The number is how many places we have",
+    "HOW_LONG_LABEL": "How long",
+    "DAYS_WORD": "days",
+    "ONE_DAY": "day",
+    "STAY_LABEL": "Where are you sleeping",
+    "STAY_SUGGEST": "Suggest a stay",
+    "STAY_SUGGEST_HINT": "We will include places to stay in your plan",
+    "STAY_BOOKED": "Already booked",
+    "STAY_BOOKED_HINT": "We will plan around where you are staying",
+    "STAY_PICK_LATER": "Add your stay from its page — tap the trip button on the place you booked, then plan from your trip.",
+    "PICK_A_TOWN": "Choose a town to begin",
+    "CHECKING": "Checking what we have…",
+    "PLACES_FOUND": "{{count}} places match — ready to plan",
+    "THIN_FOR_DAYS": "Only {{count}} places, and {{needed}} are needed. Add an interest or shorten the trip.",
+    "CANNOT_PLAN": "We cannot plan this yet."
   }
 }

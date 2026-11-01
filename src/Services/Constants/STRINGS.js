@@ -93,7 +93,6 @@ const STRING = {
     SEARCH_LIST: 'SearchList',
     ALL_ROUTES_SEARCH: 'AllRoutesSearch',
     BUS_ROUTE_LIST: 'BusRouteList',
-    ROUTES_LIST: 'RoutesList',
     CITY_LIST: 'CityList',
     PROJECT_LIST: 'ProjectList',
     QUERIES_LIST: 'QueriesList',
@@ -135,6 +134,10 @@ const STRING = {
     SUBSCRIPTION: 'Subscription',
     MARKET_FAVOURITES: 'MarketFavourites',
     MY_ENQUIRIES: 'MyEnquiries',
+
+    TRIP_CART: 'TripCart',
+    PLAN_TRIP: 'PlanTrip',
+    ITINERARY: 'Itinerary',
   },
   STORAGE: {
     ACCESS_TOKEN: 'access_token',

@@ -230,30 +230,46 @@ const ItineraryScreen = ({navigation, route}) => {
   } = useTripPlanner();
 
   const tripId = route?.params?.tripId;
+  // The form's filters, when the traveller came that way instead of the cart.
+  const filters = route?.params?.filters;
   const [day, setDay] = useState(0);
 
-  /** Ids the traveller ticked themselves, to badge inside the plan. */
+  /**
+   * Ids the traveller ticked themselves, to badge inside the plan. Only the
+   * cart path has any: badging from the cart on a form-planned trip would mark
+   * places as "yours" that the traveller never chose for this trip.
+   */
   const pickedIds = useMemo(
-    () => new Set((picked || []).map(p => p.id)),
-    [picked],
+    () => new Set(tripId ? (picked || []).map(p => p.id) : []),
+    [picked, tripId],
   );
 
-  /** The plan in state belongs to this trip, not an earlier one. */
-  const mine = !!itinerary && (!tripId || itineraryTripId === tripId);
+  /** True once this screen has asked for a plan of its own. */
+  const [asked, setAsked] = useState(false);
+
+  /**
+   * Does the plan sitting in state answer *this* screen's request?
+   *
+   * The cart path can tell by the trip id. The form path has no id until the
+   * plan comes back, so it has to have asked — otherwise a traveller who
+   * planned a cart earlier would arrive from the form and be shown that older
+   * trip instead of the one they just described.
+   */
+  const mine = !!itinerary && (filters ? asked : !tripId || itineraryTripId === tripId);
+
+  const run = useCallback(() => {
+    setAsked(true);
+    generate({tripId, filters}, navigation);
+  }, [generate, tripId, filters, navigation]);
 
   useEffect(() => {
     // Only on arrival, and only when there is nothing to show for this trip.
     // Re-planning is the explicit Try again action, never a re-render.
     if (!mine && !generating && !error) {
-      generate(tripId, navigation);
+      run();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-
-  const retry = useCallback(
-    () => generate(tripId, navigation),
-    [generate, tripId, navigation],
-  );
   const edit = useCallback(() => navigation.goBack(), [navigation]);
 
   if (generating) {
@@ -271,7 +287,7 @@ const ItineraryScreen = ({navigation, route}) => {
         <SystemBars style="dark" />
         <Problem
           reason={error}
-          onRetry={retry}
+          onRetry={run}
           onEdit={edit}
           navigation={navigation}
         />

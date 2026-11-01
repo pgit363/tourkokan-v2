@@ -137,8 +137,9 @@
     "SUBSCRIPTION": "Subscription",
     "MARKET_FAVOURITES": "MarketFavourites",
     "MY_ENQUIRIES": "MyEnquiries",
-    "TRIP_CART": "माझी सहल",
-    "ITINERARY": "तुमची सहल"
+    "TRIP_CART": "TripCart",
+    "ITINERARY": "Itinerary",
+    "PLAN_TRIP": "PlanTrip"
   },
   "STORAGE": {
     "ACCESS_TOKEN": "access_token",
@@ -475,7 +476,9 @@
     "TAGLINE": "सूर्य, वाळू आणि शांती",
     "FOOTER": "Probyte Solution LLP द्वारे डिझाइन आणि विकसित.",
     "MARKETPLACE": "मार्केटप्लेस",
-    "SELL": "तुमचा व्यवसाय विका"
+    "SELL": "तुमचा व्यवसाय विका",
+    "PLAN_TRIP": "सहलीची आखणी करा",
+    "MY_TRIP": "माझी सहल"
   },
   "HELP_CENTER": {
     "TITLE": "मदत केंद्र",
@@ -1169,6 +1172,26 @@
     "VERIFY_CTA": "माझी सहल सेव्ह करा",
     "NETWORK_TITLE": "कनेक्शन नाही",
     "NETWORK_BODY": "सहल ठरवण्यासाठी इंटरनेट लागते. तुमची ठिकाणे फोनवर सेव्ह आहेत.",
-    "PLANS_LEFT": "{{count}} मोफत संधी शिल्लक"
+    "PLANS_LEFT": "{{count}} मोफत संधी शिल्लक",
+    "PLAN_A_TRIP": "सहलीची आखणी करा",
+    "WHERE_LABEL": "तुम्ही कुठे असणार",
+    "WHERE_HINT": "सहलीसाठी {{count}} पर्यंत गावे निवडा",
+    "NO_TOWNS": "सध्या कोणतीही गावे उपलब्ध नाहीत.",
+    "INTERESTS_LABEL": "तुम्हाला काय आवडते",
+    "INTERESTS_HINT": "आकडा म्हणजे आमच्याकडे असलेली ठिकाणे",
+    "HOW_LONG_LABEL": "किती दिवस",
+    "DAYS_WORD": "दिवस",
+    "ONE_DAY": "दिवस",
+    "STAY_LABEL": "तुम्ही कुठे राहणार",
+    "STAY_SUGGEST": "राहण्याची जागा सुचवा",
+    "STAY_SUGGEST_HINT": "आम्ही तुमच्या आखणीत राहण्याची ठिकाणे समाविष्ट करू",
+    "STAY_BOOKED": "आधीच ठरले आहे",
+    "STAY_BOOKED_HINT": "तुम्ही राहणार असलेल्या जागेनुसार आखणी करू",
+    "STAY_PICK_LATER": "तुमची राहण्याची जागा त्या ठिकाणाच्या पानावरून जोडा — तेथील सहल बटण दाबा, नंतर तुमच्या सहलीतून आखणी करा.",
+    "PICK_A_TOWN": "सुरुवात करण्यासाठी गाव निवडा",
+    "CHECKING": "आमच्याकडे काय आहे ते पाहत आहोत…",
+    "PLACES_FOUND": "{{count}} ठिकाणे जुळली — आखणी करण्यास तयार",
+    "THIN_FOR_DAYS": "फक्त {{count}} ठिकाणे, आणि {{needed}} आवश्यक आहेत. एक आवड जोडा किंवा सहल कमी करा.",
+    "CANNOT_PLAN": "आम्ही अजून याची आखणी करू शकत नाही."
   }
 }

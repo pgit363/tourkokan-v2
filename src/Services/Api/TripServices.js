@@ -56,3 +56,37 @@ export const updateCart = (trip_id, changes, navigation) =>
  */
 export const planFromCart = (trip_id, navigation) =>
   comnPost('v2/trip/planFromCart', {trip_id}, navigation);
+
+// ── The plan form ───────────────────────────────────────────────────────────
+
+/**
+ * The form's own options, served rather than shipped: towns that can be
+ * searched around, interests that have places behind them, and the live
+ * limits. Do not hardcode a category list in the app — an interest nothing
+ * carries would be offered until the next release.
+ *
+ *   { towns: [{site_id, name, mr_name, lat, lng}],
+ *     interests: [{code, name, mr_name, icon, places}],
+ *     days: {min, max, default}, max_towns, radius_km, credits }
+ */
+export const tripQuestionSet = navigation =>
+  comnPost('v2/trip/questionSet', {}, navigation);
+
+/**
+ * What a filter set would give, before anything is spent. Free, and no model
+ * call — safe to run as the traveller changes their mind.
+ *
+ *   { can_plan, reason, candidates, needed, days, towns, cost, credits }
+ */
+export const quoteTrip = (filters, navigation) =>
+  comnPost('v2/trip/quote', filters, navigation);
+
+/**
+ * Generate from the form. Spends one plan, and returns the same payload as
+ * planFromCart, so the itinerary screen serves both entry points.
+ *
+ * Refusal reasons add two to the cart path's list:
+ *   town_not_found · not_enough_places
+ */
+export const planTrip = (filters, navigation) =>
+  comnPost('v2/trip/plan', filters, navigation);

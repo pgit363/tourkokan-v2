@@ -17,8 +17,11 @@ import {
   addToCart,
   getCart,
   planFromCart,
+  planTrip,
+  quoteTrip,
   removeFromCart,
   reorderCart,
+  tripQuestionSet,
   updateCart,
 } from './Api/TripServices';
 import {
@@ -30,6 +33,10 @@ import {
   generateFailed,
   generateStarted,
   generateSucceeded,
+  optionsReceived,
+  optionsStarted,
+  quoteReceived,
+  quoteStarted,
   selectCart,
   selectCartPending,
   selectInCart,
@@ -182,18 +189,30 @@ export const useTripPlanner = () => {
   const {itinerary, itineraryTripId, generating, error, credits, tripId, places} =
     useSelector(selectCart);
 
+  /**
+   * Generate, from a cart or from the form's filters.
+   *
+   * Both entry points land here and both come back in the same shape, so the
+   * itinerary screen never needs to know which one it was.
+   */
   const generate = useCallback(
-    async (id, navigation) => {
-      const target = id ?? tripId;
+    async ({tripId: id, filters} = {}, navigation) => {
+      const target = id ?? (filters ? null : tripId);
 
-      if (!target || generating) {
+      if (!target && !filters) {
+        return false;
+      }
+
+      if (generating) {
         return false;
       }
 
       dispatch(generateStarted());
 
       try {
-        const res = await planFromCart(target, navigation);
+        const res = filters
+          ? await planTrip(filters, navigation)
+          : await planFromCart(target, navigation);
 
         if (ok(res)) {
           dispatch(generateSucceeded(res.data.data));
@@ -207,6 +226,7 @@ export const useTripPlanner = () => {
         log.error('generation failed', {tripId: target, message: e?.message});
         dispatch(generateFailed({reason: 'network'}));
       }
+
 
       return false;
     },
@@ -223,4 +243,62 @@ export const useTripPlanner = () => {
     picked: places,
     generate,
   };
+};
+
+/**
+ * The plan form: what it may offer, and what the current filters would give.
+ *
+ * Both halves come from the server. The options do because an interest with
+ * nothing behind it must not be offered, and only the database knows which
+ * those are. The quote does because the floor — days × stops per day — lives
+ * in `ai_configs`, so an app that worked it out locally would eventually
+ * promise a plan the server then refuses.
+ */
+export const useTripForm = () => {
+  const dispatch = useDispatch();
+  const {options, optionsLoading, quote, quoting} = useSelector(selectCart);
+
+  /** Load the options once per visit to the form. */
+  const load = useCallback(
+    async navigation => {
+      dispatch(optionsStarted());
+      try {
+        const res = await tripQuestionSet(navigation);
+        if (ok(res)) {
+          dispatch(optionsReceived(res.data.data));
+          return true;
+        }
+      } catch (e) {
+        log.error('question set failed', {message: e?.message});
+      }
+      dispatch(optionsReceived(null));
+      return false;
+    },
+    [dispatch],
+  );
+
+  /**
+   * Ask what the filters would give. Called as the traveller changes their
+   * mind, so it clears the previous answer first — a stale "37 places" beside
+   * a filter set that no longer produces them is worse than a blank.
+   */
+  const ask = useCallback(
+    async (filters, navigation) => {
+      dispatch(quoteStarted());
+      try {
+        const res = await quoteTrip(filters, navigation);
+        // A refusal is still an answer here: `can_plan: false` with a reason
+        // is exactly what the form needs in order to explain itself.
+        dispatch(quoteReceived(res?.data?.data ?? null));
+        return res?.data?.data?.can_plan === true;
+      } catch (e) {
+        log.error('quote failed', {message: e?.message});
+        dispatch(quoteReceived(null));
+      }
+      return false;
+    },
+    [dispatch],
+  );
+
+  return {options, loading: optionsLoading, quote, quoting, load, ask};
 };

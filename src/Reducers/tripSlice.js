@@ -41,6 +41,18 @@ const initialState = {
   error: null,
   /** Free plans left, as the server last reported them. */
   credits: null,
+
+  // ── The plan form ─────────────────────────────────────────────────────────
+  /**
+   * The form's options as the server serves them: towns, interests and the
+   * live limits. Never shipped in the app — an interest nothing carries would
+   * go on being offered until the next release.
+   */
+  options: null,
+  optionsLoading: false,
+  /** The last answer to "what would this filter set give me". Free to ask. */
+  quote: null,
+  quoting: false,
 };
 
 const trip = createSlice({
@@ -117,6 +129,32 @@ const trip = createSlice({
         state.credits = action.payload.credits;
       }
     },
+
+    optionsStarted(state) {
+      state.optionsLoading = true;
+    },
+
+    optionsReceived(state, action) {
+      state.optionsLoading = false;
+      state.options = action.payload ?? null;
+      state.credits = action.payload?.credits ?? state.credits;
+    },
+
+    quoteStarted(state) {
+      state.quoting = true;
+    },
+
+    /**
+     * Null clears it — the filters changed and the old answer is about a set
+     * the traveller is no longer asking for.
+     */
+    quoteReceived(state, action) {
+      state.quoting = false;
+      state.quote = action.payload ?? null;
+      if (action.payload?.credits != null) {
+        state.credits = action.payload.credits;
+      }
+    },
   },
 });
 
@@ -129,6 +167,10 @@ export const {
   generateStarted,
   generateSucceeded,
   generateFailed,
+  optionsStarted,
+  optionsReceived,
+  quoteStarted,
+  quoteReceived,
 } = trip.actions;
 
 // ── Selectors ───────────────────────────────────────────────────────────────
