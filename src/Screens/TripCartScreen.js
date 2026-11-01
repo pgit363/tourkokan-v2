@@ -19,6 +19,7 @@ import {
   View,
 } from 'react-native';
 import {SystemBars} from 'react-native-edge-to-edge';
+import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {useFocusEffect} from '@react-navigation/native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import {useTranslation} from 'react-i18next';
@@ -68,6 +69,7 @@ const Row = ({place, navigation}) => {
 
 const TripCartScreen = ({navigation}) => {
   const {t} = useTranslation();
+  const insets = useSafeAreaInsets();
   const {cart, refresh, update} = useTripCart();
 
   useFocusEffect(
@@ -107,7 +109,7 @@ const TripCartScreen = ({navigation}) => {
     <View style={s.screen}>
       <SystemBars style="dark" />
 
-      <View style={s.header}>
+      <View style={[s.header, {paddingTop: insets.top + 8}]}>
         <TouchableOpacity
           style={s.back}
           accessibilityRole="button"

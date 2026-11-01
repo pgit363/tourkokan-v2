@@ -20,6 +20,7 @@ import {
   View,
 } from 'react-native';
 import {SystemBars} from 'react-native-edge-to-edge';
+import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import {useTranslation} from 'react-i18next';
 import GlobalText from '../Components/Customs/Text';
@@ -219,6 +220,7 @@ const Problem = ({reason, onRetry, onEdit, navigation}) => {
 
 const ItineraryScreen = ({navigation, route}) => {
   const {t} = useTranslation();
+  const insets = useSafeAreaInsets();
   const {
     itinerary,
     itineraryTripId,
@@ -263,9 +265,13 @@ const ItineraryScreen = ({navigation, route}) => {
   }, [generate, tripId, filters, navigation]);
 
   useEffect(() => {
-    // Only on arrival, and only when there is nothing to show for this trip.
-    // Re-planning is the explicit Try again action, never a re-render.
-    if (!mine && !generating && !error) {
+    // Arriving here IS the request, so a refusal left in state by a previous
+    // visit must not stand in for this one. Checking `error` here meant a
+    // traveller who fixed the problem — verified their email, freed up a
+    // place — came back and was shown the old refusal without anything being
+    // asked. `generate` clears the error and ignores a call while one is
+    // already in flight, so running unconditionally is safe.
+    if (!mine) {
       run();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -303,7 +309,7 @@ const ItineraryScreen = ({navigation, route}) => {
     <View style={s.screen}>
       <SystemBars style="light" />
 
-      <View style={s.header}>
+      <View style={[s.header, {paddingTop: insets.top + 8}]}>
         <View style={s.headerTop}>
           <TouchableOpacity
             style={s.back}

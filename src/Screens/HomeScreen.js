@@ -78,6 +78,7 @@ import {useResponsive} from '../Services/responsive';
 import {UpdateContext} from '../Context/UpdateContext';
 import HotPlaces from '../Components/Sections/HotPlaces';
 import VendorCTA from '../Components/Sections/VendorCTA';
+import TripCTA from '../Components/Sections/TripCTA';
 import STRING from '../Services/Constants/STRINGS';
 import DIMENSIONS from '../Services/Constants/DIMENSIONS';
 
@@ -813,6 +814,10 @@ const HomeScreen = ({navigation, route, ...props}) => {
           <Text style={s.searchPlaceholder}>{t('HOME.SEARCH_PLACEHOLDER')}</Text>
         </TouchableOpacity>
       </View>
+
+      {/* ── PLAN A TRIP ── the reason most people opened the app, so it sits
+           above the vendor banner rather than in the drawer. */}
+      <TripCTA navigation={navigation} />
 
       {/* ── BECOME A VENDOR CTA (M1) ── */}
       <VendorCTA navigation={navigation} roles={landingRoles} />

@@ -1189,6 +1189,14 @@
     "CHECKING": "Checking what we have…",
     "PLACES_FOUND": "{{count}} places match — ready to plan",
     "THIN_FOR_DAYS": "Only {{count}} places, and {{needed}} are needed. Add an interest or shorten the trip.",
-    "CANNOT_PLAN": "We cannot plan this yet."
+    "CANNOT_PLAN": "We cannot plan this yet.",
+    "CTA_TAG": "Free",
+    "CTA_KICKER": "Plan your Konkan trip",
+    "CTA_TITLE": "Tell us what you like, get a day-by-day plan",
+    "CTA_TITLE_CART": "Your trip is taking shape",
+    "CTA_DESC": "Beaches, forts, waterfalls — we build the route, the timings and the bus connections.",
+    "CTA_DESC_MORE": "{{count}} places picked. Add {{needed}} more and we can plan it.",
+    "CTA_DESC_READY": "{{count}} places picked. Ready to turn into a day-by-day plan.",
+    "CTA_ACTION": "Plan a trip"
   }
 }

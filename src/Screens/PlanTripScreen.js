@@ -21,6 +21,7 @@ import {
   View,
 } from 'react-native';
 import {SystemBars} from 'react-native-edge-to-edge';
+import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import {useTranslation} from 'react-i18next';
 import GlobalText from '../Components/Customs/Text';
@@ -89,6 +90,7 @@ const Choice = ({options, value, onChange}) => (
 
 const PlanTripScreen = ({navigation}) => {
   const {t} = useTranslation();
+  const insets = useSafeAreaInsets();
   const {options, loading, quote, quoting, load, ask} = useTripForm();
 
   const [towns, setTowns] = useState([]);
@@ -198,7 +200,7 @@ const PlanTripScreen = ({navigation}) => {
     <View style={s.screen}>
       <SystemBars style="light" />
 
-      <View style={s.header}>
+      <View style={[s.header, {paddingTop: insets.top + 8}]}>
         <TouchableOpacity
           style={s.back}
           accessibilityRole="button"
