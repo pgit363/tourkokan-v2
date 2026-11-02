@@ -525,6 +525,47 @@ and Save trip lands on My trips with the new trip at the top.
 `PlanTripScreen` is now unreachable — nothing navigates to it. Left in place
 rather than deleted, as that is a call to make deliberately.
 
+## "Add from link" reaches the plan now (2026-11-02)
+
+`addCustomStop` wrote to `saved_trips.custom_stops` and nothing ever read it.
+The planner and assembler never looked at the column, so the app confirmed
+"added to your trip" and the plan carried on as if the place did not exist.
+
+Pasted places are picks, so they join `picked` and the model orders and times
+them like anything else. They are carried as **Site models that were never
+saved, with negative ids** — an unverified pin must not become a row in
+`sites` (no owner, no approval, and it would leak into everyone's search
+results), but the planner speaks in site ids, and negative is an id space the
+table can never produce. "Ours or theirs" is a sign test, not a lookup that
+could one day collide.
+
+Three places learned about them: the assembler merges them into its keyed
+collection instead of looking them up and flags them `custom`; `persist()`
+writes no `TripPlacement` row for a negative id, since no business sits
+behind one and no row exists for the foreign key; and the app badges them
+YOURS, because the picked-id set comes from the cart and a pasted pin never
+enters it.
+
+`syncOriginal()` is needed on those models — `project()` reads names through
+`getRawOriginal()`, which is empty on a model that was never loaded, so the
+name would otherwise reach the prompt as null.
+
+**Verified in the app against api-test and the real model:** pasted a Maps
+link → "INSIDE SINDHUDURG, found near Malvan" → named it → "Added to your
+trip" → planned. It came back as **"Nivti Rocks viewpoint", badged YOURS, at
+13:00 on day 2**, between Nivti Fort and Bhogwe Beach, legs resolved 4.2 km
+in and 5.4 km out by road (correctly road — no ST bus serves an arbitrary
+point). The model wrote prose for a place it knew only as a name and a
+coordinate — "looks over the rocky coast. Visit before the afternoon heat
+builds" — and titled the trip "Malvan and Nivti coast, two days".
+
+### ⚠️ It is nearly unreachable
+
+The only route in is **Map → "View my trip" → "Add your own place"**. Taking
+the cart out of the drawer left this three taps deep behind a screen most
+travellers will never open. The feature works and almost nobody will find it.
+Step 2 of the stepper is the obvious place for a door.
+
 ---
 
 ## B1 · `POST v2/trip/places`
