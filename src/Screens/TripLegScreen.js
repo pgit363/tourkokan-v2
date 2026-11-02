@@ -219,7 +219,13 @@ const s = StyleSheet.create({
   },
   cardBest: {borderColor: 'rgba(27,107,123,0.45)', borderWidth: 1.5},
   cardHead: {flexDirection: 'row', alignItems: 'center', gap: 8},
-  route: {flex: 1, fontSize: 14.5, fontWeight: '700', color: C.textDark},
+  route: {
+    flex: 1,
+    fontSize: 14.5,
+    fontWeight: '700',
+    color: C.textDark,
+    textAlign: 'left',
+  },
   bestChip: {
     paddingHorizontal: 8,
     paddingVertical: 2,
@@ -242,7 +248,7 @@ const s = StyleSheet.create({
   dash: {flex: 1, height: 1.5, backgroundColor: 'rgba(27,107,123,0.3)'},
   dur: {fontSize: 11, color: C.oceanMid, fontWeight: '600'},
 
-  runs: {fontSize: 11.5, color: C.textLight, marginTop: 10},
+  runs: {fontSize: 11.5, color: C.textLight, marginTop: 10, textAlign: 'left'},
 
   noBusTitle: {fontSize: 15, fontWeight: '700', color: C.textDark},
   noBusBody: {fontSize: 13, color: C.textMid, marginTop: 5, lineHeight: 19},

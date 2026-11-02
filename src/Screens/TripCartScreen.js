@@ -212,6 +212,7 @@ const TripCartScreen = ({navigation}) => {
             onPress={() =>
               navigateTo(navigation, t('SCREEN.ITINERARY'), {
                 tripId: cart.tripId,
+                fresh: true,
               })
             }>
             <GlobalText text={t('TRIP.PLAN_MY_TRIP')} style={s.primaryTxt} />

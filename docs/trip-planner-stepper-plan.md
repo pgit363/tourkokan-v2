@@ -30,9 +30,11 @@ Design artboards: Artifact `7h8Rp1Tm6gBQb6CUGWgYmo`.
 | M5 | Step chrome (progress, back/next, state, entry points) | app | ✅ Done (completed by M4's wiring) | — |
 | M6 | i18n en + mr sweep + device verification | app | ✅ Done, verified on device in both languages | — |
 
-**Total remaining: none on this plan.** Not yet done, and outside it: iOS
-verification, and one happy-path run of the stepper by a verified user with
-credits (see "What landed with M4").
+**Total remaining on this plan: none — but the feature does not work with the
+AI switched on.** The happy path verified on api-test ran on the fake driver.
+With `ai_driver = claude` the generation fails (`day_too_thin`); see "The AI
+driver, switched on". Outside this plan: iOS verification and the guest-trip
+bug.
 
 > Keep this table the single source of truth for progress.
 
@@ -248,6 +250,171 @@ The stepper walked end to end in **Marathi** (कुठे आणि काय �
 क्रम लावा → सहलीचा आढावा, with "किती दिवस? / 2 दिवस" and "माझी आखणी करा"),
 then switched back to **English** and walked again. Both read correctly, place
 and category names included.
+
+## Full-feature run against the pushed backend (2026-11-02)
+
+Walked on the emulator against api-test, signed in, with the stepper's own
+backend live (`questionSet`, `trip/places`, `addToCart`, `reorderCart`,
+`updateCart`, `planFromCart` all 200).
+
+**The plan generates.** Three picks (Kharepatan Fort, Vaibhavwadi, Tarkarli
+Beach) became "2 days in Konkan", 5 stops a day. Each pick carries a **YOURS**
+badge and the planner filled the gaps around them. Credits went 99999 → 99998,
+so the ledger spends exactly once.
+
+Verified with it: day tabs; road legs with distances; **Contacts** (every stop
+listed, "Public place · no contact needed", privacy line); **Stop details**
+("why it is here", Open in Maps); **Leg** ("No ST bus on this leg — nothing in
+the duty sheets runs between these two stops", with the taxi fallback);
+**My trips** (the new trip listed, "Made today", offline badge, stop names
+middot-joined). Marathi and English both read correctly throughout.
+
+One thing to know about step 3's promise: the arranged order is **regrouped by
+geography**, not followed literally. Picks 1 and 3 landed on day 1 and pick 2
+opened day 2, because it sits 63 km away. That is sensible planning, but
+"We plan around this order" is a softer promise than it sounds.
+
+### Two bugs this run found
+
+**1 · Step 1's CTA failed silently (fixed).** `next` awaited `update()` and
+only navigated `if (ok)`. When the save failed the screen simply did not move
+and said nothing — the dead button this codebase argues against elsewhere. It
+now reports `TRIP.SAVE_FAILED` in the footer.
+
+**2 · Signing in abandons the guest's trip (NOT fixed).** The guest gate says
+*"Add an account and this trip stays yours — nothing you picked is lost."*
+Nothing implements that. There is no claim or merge of a guest trip anywhere
+in the backend. After signing in, the app still held the guest's `trip_id`,
+`updateCart` returned **404** (`resolve()` scopes by `user_id`), and the three
+places the guest had picked were gone — the account showed its own cart
+instead. Needs a decision: claim the guest trip on login, or change the copy.
+
+### Also fixed while testing
+
+`GlobalText` carries `textAlign: 'center'` in its base style, so every screen
+must opt out. Four screens had body text centred inside a stretched column:
+SampleTrip (stop name/note/time), TripContacts (name/sub), MyTrips
+(card title/meta) and TripLeg (route/runs). M3 had hit the same thing on its
+own two screens.
+
+## The AI driver, switched on (2026-11-02) — ⛔ generation fails
+
+Everything verified before this ran on `ai_driver = fake`. The itinerary text
+"Planned stop at X." is a literal in `Ai/FakeClient.php:61` — no model had
+ever been called. Switched the local `ai_configs.ai_driver` to `claude` and
+walked it again.
+
+**The client works.** A real call went out: `claude-haiku-5-5`, 5197 in / 431
+out, 5.7 s, ₹0.0647, logged to `ai_logs`. The prose is what the product wants
+— *"Swim in the shallow clear water and ask at the beach for snorkelling or
+diving trips if you want to go out to the reefs."* That is the register the
+bundled sample trip promises, and the fake client never produced it.
+
+**The plan was then rejected.** `failure_reason: day_too_thin`,
+`valid_sites_used: 0`, `days_generated: 0`.
+
+Not the model's fault in the way it looks. It returned exactly the three cart
+site ids, all real. What it got wrong was the shape: **day 1 two stops, day 2
+one stop**, against `min_stops_per_day = 2`. `ItineraryAssembler` rejects any
+thin day outright, so one short day discards the whole plan.
+
+It also used **none** of the 25 suggested fill-ins that `nearby()` had found
+and the prompt had offered (Padmagad Fort, Sindhudurg Fort, Sarjekot Fort,
+Kolamb Beach…). With three picks over two days it had to invent a second day
+from suggestions, and did not.
+
+### Why, precisely
+
+`ItineraryPrompt` states the rule in prose — *"Between 2 and 5 stops per
+day."* — but **`ItinerarySchema` puts no `minItems`/`maxItems` on `stops`**.
+The structured-output schema is the only part of the request a model is
+actually bound by; prose is advisory. The call also runs at
+`'effort' => 'low'` (`ClaudeClient`), which is the right default for
+arranging pre-validated rows but leaves little room for a constraint the
+schema does not carry.
+
+So: the one rule whose violation hard-fails the whole plan is the one rule not
+encoded in the schema.
+
+**That fix is not available.** Putting the bound in the schema was tried and
+the API refuses it outright:
+
+> `output_config.format.schema: For 'array' type, 'minItems' values other
+> than 0 or 1 are not supported (got: [2, 5])`
+
+Anthropic's structured-output schema subset does not express "at least two".
+The attempt made things strictly worse — every call failed with
+`model_error` before reaching the model, 0 tokens — and has been reverted.
+`ItinerarySchema` is back to its original form.
+
+So the per-day minimum **cannot be enforced in the contract**, and the options
+are all elsewhere:
+
+| Option | Cost | Note |
+|---|---|---|
+| Retry once on `day_too_thin`, feeding back which day was short | one extra call | Most likely to work; the model gets a concrete correction |
+| Pad a thin day server-side from the suggestions the assembler already holds | free | Deterministic, but the padded stop has no model-written note |
+| Raise `effort` above `'low'` in `ClaudeClient` | higher per call | May improve rule-following; unmeasured |
+| Spell out the arithmetic in `ItineraryPrompt` ("N stops across D days; draw the rest from the M suggestions") | free | The model was never told it had to reach a total |
+| Lower `min_stops_per_day` to 1 | free | Changes the product, not the bug |
+
+**The prompt option was tried and it works.** Two lines were missing from
+`ItineraryPrompt`:
+
+- **What `suggested` is for.** Its only other mention in the system prompt is
+  the rule forbidding the *summary* from naming it. Given 25 unexplained
+  entries and a rule that every picked place must appear, the model read the
+  picks as the plan. It now says the picks are usually too few, that
+  `suggested` exists to make up the rest, and states the arithmetic —
+  "at least {min × days} stops in total across {days} day(s). Count them
+  before you answer."
+- **The time format.** `arrive`/`depart` are typed as plain strings, so the
+  model answered "Morning" and "Late afternoon" — good English that
+  `ItineraryAssembler::time()` discards, leaving every stop with no time at
+  all (the UI showed "—"). The prompt now requires strict HH:MM.
+
+Result, same trip: **success**, `claude-haiku-5-5`, 5322 in / 806 out,
+₹0.0823, 3 days × 3 stops, times rendering as 09:00 / 11:30 / 14:00, each pick
+badged YOURS with Sindhudurg Fort drawn from the suggestions, and two genuine
+warnings surfaced ("Ferry and boat schedules … change with season and
+weather"). The prose is the register the sample trip promises.
+
+### Three things this run left open
+
+- **Changing an input did not invalidate the shown plan — fixed.** Days was
+  changed 2 → 3 on the review screen (`updateCart` 200, `saved_trips.days` =
+  3) and "Make my plan" returned the stored 2-day itinerary without calling
+  the model at all; no `planFromCart` request was even sent.
+
+  `ItineraryScreen`'s `mine` test asked only whether the plan in state was for
+  *this trip id*, which cannot tell that the trip's inputs changed underneath
+  it. The two screens whose button means "make it now" — review and the cart
+  — now pass `fresh: true`, and `mine` requires having asked, exactly as the
+  form path already did. Re-planning is free (the ledger keys the spend by
+  trip), so an explicit ask can always ask. Opening a saved trip from My Trips
+  still renders what was stored and never regenerates.
+
+  Verified: same trip, days 2 → 3, re-plan sent a fresh call and returned
+  "Malvan Coast Three-Day Plan" with three days.
+- **The YOURS badges are absent when a trip is opened from My Trips**, though
+  they appear on a freshly generated one. The saved payload appears not to
+  carry which stops were the traveller's own.
+- **`ItineraryScreen`'s stop notes are centred** — the same `GlobalText`
+  default that was fixed on four other screens.
+
+⚠️ The local backend is **still on `ai_driver = claude`**. api-test is
+untouched and remains on `fake`, so none of this is live there yet.
+
+### What did behave correctly
+
+The failure path is sound: the credit was spent and **refunded** (balance 1
+before, 1 after), and the screen says *"That did not come out right — We could
+not build a full plan from these places. Nothing was charged, so please try
+again"*, with *"Adding one or two more places usually helps."* — which, given
+the real cause, happens to be true advice.
+
+⚠️ The local backend is **still on `ai_driver = claude`**. api-test is
+untouched and remains on `fake`.
 
 ---
 

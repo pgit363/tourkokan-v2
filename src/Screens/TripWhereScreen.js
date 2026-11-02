@@ -35,6 +35,7 @@ const TripWhereScreen = ({navigation}) => {
   const [towns, setTowns] = useState([]);
   const [interests, setInterests] = useState([]);
   const [saving, setSaving] = useState(false);
+  const [saveFailed, setSaveFailed] = useState(false);
   // Only true once the cart has been read, so the prefill below runs on real
   // answers and not on the empty cart the hook starts with.
   const [restored, setRestored] = useState(false);
@@ -119,6 +120,7 @@ const TripWhereScreen = ({navigation}) => {
 
   const next = useCallback(async () => {
     setSaving(true);
+    setSaveFailed(false);
     // Saved before moving on, so step 2 reads the towns off the trip rather
     // than being handed them and having to pass them on again.
     const ok = await update({filters}, navigation);
@@ -126,11 +128,20 @@ const TripWhereScreen = ({navigation}) => {
 
     if (ok) {
       navigation.navigate(STRING.SCREEN.TRIP_PICK);
+      return;
     }
+
+    // Said out loud. Without this the save fails, the screen does not move
+    // and nothing explains why — the traveller taps a button that looks
+    // alive and gets silence, which is the one thing a footer must never do.
+    setSaveFailed(true);
   }, [update, filters, navigation]);
 
   /** What the footer says about the current answers. */
   const verdict = () => {
+    if (saveFailed) {
+      return t('TRIP.SAVE_FAILED');
+    }
     if (towns.length === 0) {
       return t('TRIP.PICK_A_TOWN');
     }

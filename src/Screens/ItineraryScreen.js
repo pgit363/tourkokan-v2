@@ -310,6 +310,15 @@ const ItineraryScreen = ({navigation, route}) => {
    * would spend a second credit to recreate something we already have.
    */
   const saved = route?.params?.saved;
+  /**
+   * Set by the two screens whose button means "make it now" — review and the
+   * cart. Without it, a trip that already had a plan was never re-planned:
+   * `mine` saw a matching trip id and showed the stored itinerary, so a
+   * traveller who changed the days from two to three got their old two-day
+   * plan back and no request was sent at all. Re-planning is free — the
+   * ledger keys the spend by trip — so an explicit ask should always ask.
+   */
+  const fresh = route?.params?.fresh;
   const [day, setDay] = useState(0);
 
   /**
@@ -335,7 +344,8 @@ const ItineraryScreen = ({navigation, route}) => {
    */
   const mine =
     !!saved ||
-    (!!itinerary && (filters ? asked : !tripId || itineraryTripId === tripId));
+    (!!itinerary &&
+      (filters || fresh ? asked : !tripId || itineraryTripId === tripId));
 
   /** What this screen draws: a reopened trip wins over whatever is in state. */
   const shown = saved?.itinerary || itinerary;

@@ -250,7 +250,10 @@ const TripReviewScreen = ({navigation}) => {
         verdict={verdict()}
         ready={ready}
         onPress={() =>
-          navigation.navigate(STRING.SCREEN.ITINERARY, {tripId: cart.tripId})
+          navigation.navigate(STRING.SCREEN.ITINERARY, {
+            tripId: cart.tripId,
+            fresh: true,
+          })
         }
       />
     </View>

@@ -304,7 +304,13 @@ const s = StyleSheet.create({
   },
   cardTop: {flexDirection: 'row', alignItems: 'flex-start', gap: 10},
   cardTitleWrap: {flex: 1},
-  cardTitle: {fontSize: 16, fontWeight: '700', color: C.textDark, lineHeight: 21},
+  cardTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: C.textDark,
+    lineHeight: 21,
+    textAlign: 'left',
+  },
   offlineChip: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -316,7 +322,7 @@ const s = StyleSheet.create({
     flexShrink: 0,
   },
   offlineChipText: {fontSize: 10, fontWeight: '700', color: C.forestMid},
-  cardMeta: {fontSize: 12.5, color: C.textMid, marginTop: 7},
+  cardMeta: {fontSize: 12.5, color: C.textMid, marginTop: 7, textAlign: 'left'},
   cardFoot: {
     flexDirection: 'row',
     alignItems: 'center',

@@ -190,8 +190,8 @@ const s = StyleSheet.create({
 
   row: {flexDirection: 'row', alignItems: 'center', gap: 9, paddingVertical: 12},
   rowText: {flex: 1},
-  name: {fontSize: 14.5, fontWeight: '700', color: C.textDark},
-  sub: {fontSize: 12, color: C.textLight, marginTop: 2},
+  name: {fontSize: 14.5, fontWeight: '700', color: C.textDark, textAlign: 'left'},
+  sub: {fontSize: 12, color: C.textLight, marginTop: 2, textAlign: 'left'},
   iconBtn: {
     width: 38,
     height: 38,

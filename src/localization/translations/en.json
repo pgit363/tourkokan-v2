@@ -1322,6 +1322,7 @@
     "STEP1_NEXT": "Pick places",
     "STEP1_FOUND": "{{count}} places to choose from",
     "STEP1_NOTHING": "Nothing matches here. Try another town or interest.",
+    "SAVE_FAILED": "We could not save that. Check your connection and try again.",
     "CTA_EXPRESS": "Let the AI choose",
     "STEP2_TITLE": "Pick places",
     "STEP2_IN": "In {{towns}}",

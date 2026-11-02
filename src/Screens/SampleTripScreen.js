@@ -226,11 +226,17 @@ const s = StyleSheet.create({
 
   stop: {flexDirection: 'row', alignItems: 'flex-start', gap: 10},
   timeCol: {width: 62, paddingTop: 1},
-  time: {fontSize: 12.5, fontWeight: '700', color: C.oceanMid},
+  time: {fontSize: 12.5, fontWeight: '700', color: C.oceanMid, textAlign: 'left'},
   rule: {width: 2, alignSelf: 'stretch', backgroundColor: C.line, borderRadius: 1},
   stopBody: {flex: 1, paddingBottom: 16},
-  stopName: {fontSize: 15, fontWeight: '700', color: C.textDark},
-  stopNote: {fontSize: 12.5, color: C.textMid, marginTop: 3, lineHeight: 18},
+  stopName: {fontSize: 15, fontWeight: '700', color: C.textDark, textAlign: 'left'},
+  stopNote: {
+    fontSize: 12.5,
+    color: C.textMid,
+    marginTop: 3,
+    lineHeight: 18,
+    textAlign: 'left',
+  },
 
   leg: {flexDirection: 'row', alignItems: 'center', gap: 7, paddingLeft: 72, paddingBottom: 10},
   legTxt: {fontSize: 11.5, color: C.textLight},
