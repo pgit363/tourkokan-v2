@@ -411,7 +411,31 @@ and the stale-plan fix holds: days 2 → 3 on review sent a fresh
 `planFromCart` and the title changed from "2 days in Konkan" to "3 days in
 Konkan" with three day tabs.
 
-But **api-test is still generating with `FakeClient`** — the itinerary reads
+**Update — the real model now runs on api-test and the feature works end to
+end there.** "Malvan Coast: Forts, Beaches and Sea Views", 3 days x 3 stops
+from 3 picked places, 12 s, times rendering as 09:00 / 11:00 / 14:00, the
+picks badged YOURS and the other six drawn from suggestions. Day 3 is
+entirely suggestion-filled ("North to Achra and Tondavali beaches"). Both
+prompt fixes are confirmed against deployed code.
+
+Getting there took three separate environment problems, none of them code:
+
+1. `ai_driver` lives in the `ai_configs` **table**, so deploying the backend
+   did not switch it on. Flipped with `AiConfig::set('ai_driver', 'claude')`.
+2. `anthropic-ai/sdk` was in `require` and in `composer.lock` but had never
+   been installed on that host — `Class "Anthropic\Client" not found`,
+   recorded in `ai_logs.error_message`.
+3. After `composer install`, php-fpm still served the **old autoloader** from
+   opcache, so the same error persisted until the workers were reloaded.
+
+Worth keeping: `ai_logs` answered all three. Each failure recorded its reason
+and exception, refunded the credit, and showed the traveller an honest
+message. Timing alone was misleading — the third failure took 12 s of
+candidate and leg precompute before throwing instantly on the missing class,
+which read like a model call that had failed.
+
+What follows below was written when **api-test was still generating with
+`FakeClient`** — the itinerary reads
 "Planned stop at Tarkarli Beach." and the call returns in ~600 ms, against
 5–8 s for a real one. `ai_driver` lives in the **`ai_configs` table**, not in
 code, so deploying the prompt fix does not switch it on. To make the AI live
