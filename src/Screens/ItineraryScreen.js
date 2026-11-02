@@ -25,6 +25,7 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import {useTranslation} from 'react-i18next';
 import GlobalText from '../Components/Customs/Text';
 import {C} from '../Components/Marketplace/theme';
+import {navigateTo} from '../Services/CommonMethods';
 import {useTripPlanner} from '../Services/trip';
 
 // ── Pieces ──────────────────────────────────────────────────────────────────
@@ -64,12 +65,17 @@ const Arrival = ({arrival}) => {
 };
 
 
-const Stop = ({stop, picked}) => {
+const Stop = ({stop, picked, onOpen}) => {
   const {t} = useTranslation();
   const site = stop.site || {};
 
   return (
-    <View style={s.stop}>
+    <TouchableOpacity
+      style={s.stop}
+      onPress={onOpen}
+      activeOpacity={0.75}
+      accessibilityRole="button"
+      accessibilityLabel={site.name}>
       <View style={s.time}>
         <GlobalText text={stop.arrive || '—'} style={s.timeTxt} />
       </View>
@@ -100,7 +106,7 @@ const Stop = ({stop, picked}) => {
           <Ionicons name="call-outline" size={17} color={C.oceanMid} />
         </TouchableOpacity>
       )}
-    </View>
+    </TouchableOpacity>
   );
 };
 
@@ -109,12 +115,17 @@ const Stop = ({stop, picked}) => {
  * real service in route_stops — otherwise it says road, rather than implying a
  * connection that does not run.
  */
-const Leg = ({leg}) => {
+const Leg = ({leg, onOpen}) => {
   const {t} = useTranslation();
   const bus = leg.bus && leg.bus.length ? leg.bus[0] : null;
 
   return (
-    <View style={s.leg}>
+    <TouchableOpacity
+      style={s.leg}
+      onPress={onOpen}
+      activeOpacity={0.75}
+      accessibilityRole="button"
+      accessibilityLabel={t('TRIP.TRAVEL_OPTIONS')}>
       <Ionicons
         name={bus ? 'bus-outline' : 'car-outline'}
         size={16}
@@ -128,7 +139,8 @@ const Leg = ({leg}) => {
             : t('TRIP.BY_ROAD', {km: leg.distance_km})
         }
       />
-    </View>
+      <Ionicons name="chevron-forward" size={13} color={C.textLight} />
+    </TouchableOpacity>
   );
 };
 
@@ -179,10 +191,31 @@ const Generating = () => {
 };
 
 /** One refusal, one action that fixes it. */
-const Problem = ({reason, onRetry, onEdit, navigation}) => {
+const Problem = ({reason, retryAfter, onRetry, onEdit, navigation}) => {
   const {t} = useTranslation();
 
+  /**
+   * Retry-After in whole minutes, rounded up — "1 minute" is honest for 40
+   * seconds in a way "0 minutes" is not. Null when the server sent no header,
+   * and then the screen simply omits the countdown rather than inventing one.
+   */
+  const waitMins =
+    retryAfter != null && retryAfter > 0 ? Math.ceil(retryAfter / 60) : null;
+
   const copy = {
+    // 429 from Laravel's throttle, which answers before the controller runs.
+    // The reassurance is the point: a traveller who has just been refused
+    // assumes it cost them something, and it did not.
+    rate_limited: {
+      icon: 'time-outline',
+      title: t('TRIP.RATE_TITLE'),
+      body:
+        t('TRIP.RATE_BODY') +
+        (waitMins ? `\n\n${t('TRIP.BUS_DURATION', {mins: waitMins})}` : ''),
+      cta: t('TRIP.RATE_CTA'),
+      action: () => navigation.navigate(t('SCREEN.MY_TRIPS')),
+      hint: t('TRIP.RATE_NOTE'),
+    },
     // Logged in but unverified. SCREEN.EMAIL takes the address and sends the
     // code; it is registered inside the logged-in group, which is where a
     // traveller seeing this already is.
@@ -261,6 +294,7 @@ const ItineraryScreen = ({navigation, route}) => {
     itineraryTripId,
     generating,
     error,
+    retryAfter,
     credits,
     picked,
     generate,
@@ -269,6 +303,13 @@ const ItineraryScreen = ({navigation, route}) => {
   const tripId = route?.params?.tripId;
   // The form's filters, when the traveller came that way instead of the cart.
   const filters = route?.params?.filters;
+  /**
+   * A trip reopened from the saved list: `{trip_id, itinerary, credits}`,
+   * already generated and already paid for. It arrives whole, so this screen
+   * renders it instead of asking the server for a plan — generating again
+   * would spend a second credit to recreate something we already have.
+   */
+  const saved = route?.params?.saved;
   const [day, setDay] = useState(0);
 
   /**
@@ -292,7 +333,12 @@ const ItineraryScreen = ({navigation, route}) => {
    * planned a cart earlier would arrive from the form and be shown that older
    * trip instead of the one they just described.
    */
-  const mine = !!itinerary && (filters ? asked : !tripId || itineraryTripId === tripId);
+  const mine =
+    !!saved ||
+    (!!itinerary && (filters ? asked : !tripId || itineraryTripId === tripId));
+
+  /** What this screen draws: a reopened trip wins over whatever is in state. */
+  const shown = saved?.itinerary || itinerary;
 
   const run = useCallback(() => {
     setAsked(true);
@@ -313,7 +359,9 @@ const ItineraryScreen = ({navigation, route}) => {
   }, []);
   const edit = useCallback(() => navigation.goBack(), [navigation]);
 
-  if (generating) {
+  // A reopened trip is already whole; a generation still in flight from an
+  // earlier screen must not replace it with a spinner.
+  if (generating && !saved) {
     return (
       <View style={[s.screen, s.screenDark]}>
         <SystemBars style="light" />
@@ -328,6 +376,7 @@ const ItineraryScreen = ({navigation, route}) => {
         <SystemBars style="dark" />
         <Problem
           reason={error}
+          retryAfter={retryAfter}
           onRetry={run}
           onEdit={edit}
           navigation={navigation}
@@ -336,7 +385,7 @@ const ItineraryScreen = ({navigation, route}) => {
     );
   }
 
-  const days = itinerary.days || [];
+  const days = shown.days || [];
   const current = days[day] || days[0] || {stops: [], legs: []};
   const legs = current.legs || [];
 
@@ -355,7 +404,7 @@ const ItineraryScreen = ({navigation, route}) => {
           </TouchableOpacity>
           <View style={s.headerText}>
             <GlobalText
-              text={itinerary.trip?.title || t('TRIP.MY_TRIP')}
+              text={shown.trip?.title || t('TRIP.MY_TRIP')}
               style={s.headerTitle}
             />
             {credits != null && (
@@ -365,6 +414,20 @@ const ItineraryScreen = ({navigation, route}) => {
               />
             )}
           </View>
+          {/* Every number on the trip in one place — what you want on the
+              road, rather than scrolling a day to find the one stop that
+              takes bookings. */}
+          <TouchableOpacity
+            style={s.headerAction}
+            accessibilityRole="button"
+            accessibilityLabel={t('TRIP.CONTACTS_TITLE')}
+            onPress={() =>
+              navigateTo(navigation, t('SCREEN.TRIP_CONTACTS'), {days})
+            }
+            activeOpacity={0.8}
+            hitSlop={{top: 8, bottom: 8, left: 8, right: 8}}>
+            <Ionicons name="call-outline" size={18} color={C.white} />
+          </TouchableOpacity>
         </View>
 
         <View style={s.tabs}>
@@ -395,18 +458,39 @@ const ItineraryScreen = ({navigation, route}) => {
           />
         </View>
 
-        {day === 0 && itinerary.arrival ? (
-          <Arrival arrival={itinerary.arrival} />
+        {day === 0 && shown.arrival ? (
+          <Arrival arrival={shown.arrival} />
         ) : null}
 
         {(current.stops || []).map((stop, i) => (
           <View key={`${stop.site?.id}-${i}`}>
-            <Stop stop={stop} picked={pickedIds.has(stop.site?.id)} />
-            {!!legs[i] && <Leg leg={legs[i]} />}
+            <Stop
+              stop={stop}
+              picked={pickedIds.has(stop.site?.id)}
+              onOpen={() =>
+                navigateTo(navigation, t('SCREEN.STOP_DETAIL_TRIP'), {
+                  stop,
+                  day: current.day,
+                })
+              }
+            />
+            {!!legs[i] && (
+              <Leg
+                leg={legs[i]}
+                onOpen={() =>
+                  navigateTo(navigation, t('SCREEN.TRIP_LEG'), {
+                    leg: legs[i],
+                    day: current.day,
+                    fromName: stop.site?.name,
+                    toName: current.stops?.[i + 1]?.site?.name,
+                  })
+                }
+              />
+            )}
           </View>
         ))}
 
-        {(itinerary.warnings || []).map(w => (
+        {(shown.warnings || []).map(w => (
           <View key={w} style={s.warning}>
             <Ionicons
               name="information-circle-outline"
@@ -431,6 +515,15 @@ const ItineraryScreen = ({navigation, route}) => {
 };
 
 const s = StyleSheet.create({
+  headerAction: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: 'rgba(255,255,255,0.18)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexShrink: 0,
+  },
   screen: {flex: 1, backgroundColor: C.cream},
   screenDark: {backgroundColor: C.oceanDeep},
 

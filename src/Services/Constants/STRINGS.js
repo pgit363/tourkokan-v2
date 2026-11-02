@@ -136,8 +136,20 @@ const STRING = {
     MY_ENQUIRIES: 'MyEnquiries',
 
     TRIP_CART: 'TripCart',
+    MY_TRIPS: 'MyTrips',
+    STOP_DETAIL_TRIP: 'TripStopDetail',
+    TRIP_CONTACTS: 'TripContacts',
+    TRIP_LEG: 'TripLeg',
+    SAMPLE_TRIP: 'SampleTrip',
+    ADD_FROM_LINK: 'AddFromLink',
     PLAN_TRIP: 'PlanTrip',
     ITINERARY: 'Itinerary',
+
+    // The stepper: where & what -> pick -> arrange -> review.
+    TRIP_WHERE: 'TripWhere',
+    TRIP_PICK: 'TripPick',
+    TRIP_ARRANGE: 'TripArrange',
+    TRIP_REVIEW: 'TripReview',
   },
   STORAGE: {
     ACCESS_TOKEN: 'access_token',

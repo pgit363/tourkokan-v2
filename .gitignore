@@ -59,6 +59,10 @@ yarn-error.log
 # Google Play service-account key used by fastlane supply (NEVER commit)
 android/fastlane/play-store-key.json
 
+# Local env overrides (NEVER commit — these carry API hosts and keys)
+.env.local
+.env.*.local
+
 # Archived / unused environment values (reference only, not used by builds)
 env-archive.txt
 

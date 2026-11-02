@@ -96,3 +96,58 @@ export const quoteTrip = (filters, navigation) =>
  */
 export const planTrip = (filters, navigation) =>
   comnPost('v2/trip/plan', filters, navigation);
+
+/**
+ * The traveller's saved trips, newest first.
+ *
+ * Free and read-only — a saved trip was paid for when it was generated, so
+ * reopening one spends nothing and is not behind the verified-email gate.
+ * Rows carry a prebuilt summary (stop count and the first few stop names)
+ * because the alternative is downloading every full itinerary to render a list.
+ */
+export const myTrips = navigation =>
+  comnPost('v2/trip/myTrips', {}, navigation);
+
+/**
+ * One saved itinerary, in the same shape generation returns, so the itinerary
+ * screen renders a reopened trip through the identical path as a fresh one.
+ */
+export const getSavedTrip = (trip_id, navigation) =>
+  comnPost('v2/trip/getTrip', {trip_id}, navigation);
+
+/**
+ * Resolve a Google Maps link the traveller pasted.
+ *
+ * Server-side because a maps.app.goo.gl link carries no coordinates — only a
+ * redirect does — and because "is this inside the area we cover" can only be
+ * answered against the sites table, which the app does not have.
+ */
+export const resolveMapLink = (url, navigation) =>
+  comnPost('v2/trip/resolveMapLink', {url}, navigation);
+
+/**
+ * Keep a place the traveller found themselves. Stored on the trip's
+ * custom_stops, never as a site — it has no owner and no verification, and
+ * writing it to `sites` would put an unchecked point into everyone's search.
+ */
+export const addCustomStop = (stop, navigation) =>
+  comnPost('v2/trip/addCustomStop', stop, navigation);
+
+// ── The stepper ─────────────────────────────────────────────────────────────
+
+/**
+ * The places step 2 offers, for the towns and interests chosen in step 1.
+ *
+ * Runs the planner's own candidate query server-side, so the list can never
+ * offer a place the planner then refuses to build around. Free, like the
+ * quote — browsing spends nothing.
+ *
+ *   { towns: [name], radius_km, count, truncated, minimum,
+ *     places: [{ id, name, mr_name, image, logo, latitude, longitude,
+ *                verified, categories: [{code, name}] }] }
+ *
+ * The place shape is identical to the cart's, so a browse row and a cart row
+ * are the same object to the app.
+ */
+export const browsePlaces = (filters, navigation) =>
+  comnPost('v2/trip/places', filters, navigation);

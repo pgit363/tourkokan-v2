@@ -838,6 +838,25 @@ const ProfileView = ({navigation, ...props}) => {
 
           {/* My Sites moved into the vendor dashboard (Account Access → dashboard) */}
 
+          {/* My Trips — saved itineraries. Guest-gated like the others: a trip
+              belongs to an account, and a guest has none to list. */}
+          <TouchableOpacity
+            style={s.menuCard}
+            onPress={async () => {
+              if (await isGuestUser()) { setIsGuestPopup(true); return; }
+              navigation.navigate(STRING.SCREEN.MY_TRIPS);
+            }}
+            activeOpacity={0.85}>
+            <View style={[s.menuCardIcon, {backgroundColor: '#E9F5F7'}]}>
+              <Text style={{fontSize: 20}}>🗺️</Text>
+            </View>
+            <View style={s.menuCardText}>
+              <Text style={s.menuCardTitle}>{t('TRIP.MY_TRIPS')}</Text>
+              <Text style={s.menuCardDesc}>{t('TRIP.MY_TRIPS_SUB')}</Text>
+            </View>
+            <Ionicons name="chevron-forward" size={18} color={C.oceanMid} />
+          </TouchableOpacity>
+
           {/* My Enquiries (marketplace — buyer-side lead history) */}
           <TouchableOpacity
             style={s.menuCard}

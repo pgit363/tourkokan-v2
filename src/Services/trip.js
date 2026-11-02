@@ -12,9 +12,11 @@
  */
 import {useCallback} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
+import i18n from '../localization/i18n';
 import {createLogger} from './Logger';
 import {
   addToCart,
+  browsePlaces,
   getCart,
   planFromCart,
   planTrip,
@@ -29,6 +31,8 @@ import {
   cartLoading,
   cartOpFailed,
   cartOpStarted,
+  browseReceived,
+  browseStarted,
   cartReceived,
   generateFailed,
   generateStarted,
@@ -186,8 +190,16 @@ export const useInTrip = siteId => {
  */
 export const useTripPlanner = () => {
   const dispatch = useDispatch();
-  const {itinerary, itineraryTripId, generating, error, credits, tripId, places} =
-    useSelector(selectCart);
+  const {
+    itinerary,
+    itineraryTripId,
+    generating,
+    error,
+    retryAfter,
+    credits,
+    tripId,
+    places,
+  } = useSelector(selectCart);
 
   /**
    * Generate, from a cart or from the form's filters.
@@ -219,6 +231,20 @@ export const useTripPlanner = () => {
           return true;
         }
 
+        // Throttling is the one refusal the server cannot phrase in our own
+        // envelope: Laravel's rate limiter answers 429 with its own body
+        // before the controller runs, so there is no `reason` to read. Map it
+        // here, carrying Retry-After so the screen can count down honestly.
+        if (res?.status === 429) {
+          dispatch(
+            generateFailed({
+              reason: 'rate_limited',
+              retry_after: res?.retryAfter || null,
+            }),
+          );
+          return false;
+        }
+
         // A refusal, not a crash: the server names the reason and the screen
         // decides what to say about it.
         dispatch(generateFailed(res?.data?.data || {}));
@@ -238,6 +264,8 @@ export const useTripPlanner = () => {
     itineraryTripId,
     generating,
     error,
+    /** Seconds until a throttled traveller may plan again; null otherwise. */
+    retryAfter,
     credits,
     /** The places the traveller picked themselves, to badge in the plan. */
     picked: places,
@@ -302,3 +330,75 @@ export const useTripForm = () => {
 
   return {options, loading: optionsLoading, quote, quoting, load, ask};
 };
+
+/**
+ * Step 2's list of places to pick from.
+ *
+ * Kept in the store rather than in the screen because the cart badge, the map
+ * view and the list all read the same set, and because walking back from step
+ * 3 should not refetch what has not changed.
+ */
+export const useTripPlaces = () => {
+  const dispatch = useDispatch();
+  const {browse, browseTowns, browseLoading, browseTruncated, minimum} =
+    useSelector(selectCart);
+
+  /**
+   * Fetch for a filter set. Returns false on refusal so the screen can say
+   * what happened rather than showing an empty list as if nothing matched.
+   */
+  const fetch = useCallback(
+    async (filters, navigation) => {
+      if (!filters?.town_site_ids?.length) {
+        return false;
+      }
+
+      dispatch(browseStarted());
+
+      try {
+        const res = await browsePlaces(filters, navigation);
+
+        if (ok(res)) {
+          dispatch(browseReceived(res.data.data));
+          return true;
+        }
+
+        log.warn('browse refused', {reason: res?.data?.data?.reason});
+      } catch (e) {
+        log.error('browse failed', {message: e?.message});
+      }
+
+      dispatch(browseReceived(null));
+      return false;
+    },
+    [dispatch],
+  );
+
+  return {
+    places: browse,
+    towns: browseTowns,
+    loading: browseLoading,
+    truncated: browseTruncated,
+    minimum,
+    fetch,
+  };
+};
+
+/**
+ * A place's category names, in the reader's language.
+ *
+ * The payload carries `name` and `mr_name` for each category, exactly as it
+ * does for the place itself. Reading `c.name` straight is how a Marathi
+ * screen came to print "Beach" underneath a Marathi place name — on the same
+ * screen whose interest chips said "समुद्रकिनारा". One helper so that rule
+ * lives in a single place rather than in each of the six screens that show
+ * these rows.
+ *
+ * The language is read from the i18next instance rather than passed in: every
+ * screen rendering these rows subscribes to it through `useTranslation`, so a
+ * change re-renders the parent and these children along with it.
+ */
+export const categoryNames = place =>
+  (place?.categories || [])
+    .map(c => (i18n.language === 'mr' && c.mr_name ? c.mr_name : c.name))
+    .filter(Boolean);

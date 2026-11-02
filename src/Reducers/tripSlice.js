@@ -27,6 +27,17 @@ const initialState = {
   minimum: 3,
   canPlan: false,
   places: [],
+  /** Step-1 answers as the server has them: towns, interests, radius. */
+  filters: {},
+
+  // ── Step 2: the places on offer ───────────────────────────────────────────
+  /** What `trip/places` last returned for the current step-1 answers. */
+  browse: [],
+  /** The town NAMES the browse response reported, for step 2's caption. */
+  browseTowns: [],
+  browseLoading: false,
+  /** True when the server capped the list rather than returning all of it. */
+  browseTruncated: false,
   /** siteId -> true while an add or remove is in flight. */
   pending: {},
   loading: false,
@@ -84,6 +95,9 @@ const trip = createSlice({
       state.minimum = d.minimum ?? 3;
       state.canPlan = !!d.can_plan;
       state.places = Array.isArray(d.places) ? d.places : [];
+      // The stepper's step-1 answers, kept so walking back into step 1 finds
+      // the towns and interests still ticked.
+      state.filters = d.filters || {};
       state.pending = {};
       state.loading = false;
     },
@@ -125,8 +139,29 @@ const trip = createSlice({
     generateFailed(state, action) {
       state.generating = false;
       state.error = action.payload?.reason ?? 'generation_failed';
+      // Seconds until the throttle lifts. Only a 429 carries one; every other
+      // refusal clears it so a stale countdown cannot outlive its cause.
+      state.retryAfter = action.payload?.retry_after ?? null;
       if (action.payload?.credits != null) {
         state.credits = action.payload.credits;
+      }
+    },
+
+    browseStarted(state) {
+      state.browseLoading = true;
+    },
+
+    browseReceived(state, action) {
+      const d = action.payload || {};
+
+      state.browseLoading = false;
+      state.browse = Array.isArray(d.places) ? d.places : [];
+      state.browseTowns = Array.isArray(d.towns) ? d.towns : [];
+      state.browseTruncated = !!d.truncated;
+      // The server owns the minimum, so a browse response refreshes it too —
+      // the step-2 counter and the cart footer then cannot disagree.
+      if (d.minimum != null) {
+        state.minimum = d.minimum;
       }
     },
 
@@ -167,6 +202,8 @@ export const {
   generateStarted,
   generateSucceeded,
   generateFailed,
+  browseStarted,
+  browseReceived,
   optionsStarted,
   optionsReceived,
   quoteStarted,

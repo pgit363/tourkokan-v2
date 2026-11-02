@@ -464,6 +464,19 @@ const styles = StyleSheet.create(scaleFontSizes({
     fontWeight: '600',
     marginLeft: 12,
   },
+  sampleLink: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    paddingVertical: 12,
+  },
+  sampleLinkText: {
+    fontSize: 13.5,
+    fontWeight: '600',
+    color: COLOR.themeBlue,
+    textDecorationLine: 'underline',
+  },
   featuresContainer: {
     flexDirection: 'row',
     justifyContent: 'center',

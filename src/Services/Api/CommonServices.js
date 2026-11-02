@@ -74,6 +74,10 @@ const buildErrorResponse = err => {
         ? {...serverData, success: false}
         : {success: false, message: err?.message || 'Network error', data: null},
     status: err?.response?.status,
+    // Laravel's throttle sends Retry-After in seconds. Kept here so a screen
+    // can say how long the wait actually is instead of guessing "a few
+    // minutes" — it is the only place the number exists.
+    retryAfter: Number(err?.response?.headers?.['retry-after']) || null,
     error: err,
   };
 };

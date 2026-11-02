@@ -67,6 +67,16 @@ import MyEnquiriesScreen from '../Screens/Marketplace/MyEnquiriesScreen';
 import TripCartScreen from '../Screens/TripCartScreen';
 import ItineraryScreen from '../Screens/ItineraryScreen';
 import PlanTripScreen from '../Screens/PlanTripScreen';
+import TripWhereScreen from '../Screens/TripWhereScreen';
+import TripPickScreen from '../Screens/TripPickScreen';
+import TripArrangeScreen from '../Screens/TripArrangeScreen';
+import TripReviewScreen from '../Screens/TripReviewScreen';
+import MyTripsScreen from '../Screens/MyTripsScreen';
+import TripStopDetailScreen from '../Screens/TripStopDetailScreen';
+import TripContactsScreen from '../Screens/TripContactsScreen';
+import TripLegScreen from '../Screens/TripLegScreen';
+import SampleTripScreen from '../Screens/SampleTripScreen';
+import AddFromLinkScreen from '../Screens/AddFromLinkScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -297,6 +307,29 @@ const StackNavigator = ({initialRoute}) => {
           <Stack.Screen name={t('SCREEN.MARKET_FAVOURITES')} component={FavouritesScreen} />
           <Stack.Screen name={t('SCREEN.MY_ENQUIRIES')} component={MyEnquiriesScreen} />
           <Stack.Screen name={t('SCREEN.TRIP_CART')} component={TripCartScreen} />
+          <Stack.Screen name={t('SCREEN.MY_TRIPS')} component={MyTripsScreen} />
+          <Stack.Screen name={t('SCREEN.STOP_DETAIL_TRIP')} component={TripStopDetailScreen} />
+          <Stack.Screen name={t('SCREEN.TRIP_CONTACTS')} component={TripContactsScreen} />
+          <Stack.Screen name={t('SCREEN.TRIP_LEG')} component={TripLegScreen} />
+          <Stack.Screen name={t('SCREEN.SAMPLE_TRIP')} component={SampleTripScreen} />
+          <Stack.Screen name={t('SCREEN.ADD_FROM_LINK')} component={AddFromLinkScreen} />
+          {/* The stepper: where & what -> pick -> arrange -> review. */}
+          <Stack.Screen
+            name={t('SCREEN.TRIP_WHERE')}
+            component={TripWhereScreen}
+          />
+          <Stack.Screen
+            name={t('SCREEN.TRIP_PICK')}
+            component={TripPickScreen}
+          />
+          <Stack.Screen
+            name={t('SCREEN.TRIP_ARRANGE')}
+            component={TripArrangeScreen}
+          />
+          <Stack.Screen
+            name={t('SCREEN.TRIP_REVIEW')}
+            component={TripReviewScreen}
+          />
           <Stack.Screen
             name={t('SCREEN.PLAN_TRIP')}
             component={PlanTripScreen}

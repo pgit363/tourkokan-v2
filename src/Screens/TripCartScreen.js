@@ -26,7 +26,7 @@ import {useTranslation} from 'react-i18next';
 import GlobalText from '../Components/Customs/Text';
 import {C} from '../Components/Marketplace/theme';
 import {navigateTo} from '../Services/CommonMethods';
-import {useTripCart, useInTrip} from '../Services/trip';
+import {useTripCart, useInTrip, categoryNames} from '../Services/trip';
 
 const Row = ({place, navigation}) => {
   const {t} = useTranslation();
@@ -45,7 +45,7 @@ const Row = ({place, navigation}) => {
       <View style={s.rowBody}>
         <GlobalText text={place.name} style={s.rowTitle} numberOfLines={1} />
         <GlobalText
-          text={place.categories?.map(c => c.name).join(' · ') || ''}
+          text={categoryNames(place).join(' · ')}
           style={s.rowMeta}
           numberOfLines={1}
         />
@@ -151,13 +151,31 @@ const TripCartScreen = ({navigation}) => {
           ListEmptyComponent={empty}
           ListFooterComponent={
             cart.count > 0 ? (
-              <TouchableOpacity
-                style={s.addMore}
-                accessibilityRole="button"
-                onPress={() => navigation.goBack()}>
-                <Ionicons name="add" size={17} color={C.oceanMid} />
-                <GlobalText text={t('TRIP.ADD_MORE')} style={s.addMoreTxt} />
-              </TouchableOpacity>
+              <>
+                <TouchableOpacity
+                  style={s.addMore}
+                  accessibilityRole="button"
+                  onPress={() => navigation.goBack()}>
+                  <Ionicons name="add" size={17} color={C.oceanMid} />
+                  <GlobalText text={t('TRIP.ADD_MORE')} style={s.addMoreTxt} />
+                </TouchableOpacity>
+                {/* A place we do not list yet. Sits beside "add more" because
+                    that is the moment someone realises their spot is missing. */}
+                <TouchableOpacity
+                  style={s.addMore}
+                  accessibilityRole="button"
+                  onPress={() =>
+                    navigateTo(navigation, t('SCREEN.ADD_FROM_LINK'), {
+                      tripId: cart.tripId,
+                    })
+                  }>
+                  <Ionicons name="link-outline" size={17} color={C.oceanMid} />
+                  <GlobalText
+                    text={t('TRIP.ADD_OWN_TITLE')}
+                    style={s.addMoreTxt}
+                  />
+                </TouchableOpacity>
+              </>
             ) : null
           }
         />

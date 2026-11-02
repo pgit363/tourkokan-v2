@@ -443,6 +443,21 @@ const Email = ({navigation, route, ...props}) => {
             />
           </TouchableOpacity>
 
+          {/* The sample trip lives here because this is where someone is
+              deciding whether any of this is worth an account. It needs no
+              login, no credits and no signal — it is bundled. */}
+          <TouchableOpacity
+            style={styles.sampleLink}
+            accessibilityRole="button"
+            onPress={() => navigateTo(navigation, t('SCREEN.SAMPLE_TRIP'))}
+            activeOpacity={0.8}>
+            <Ionicons name="sparkles-outline" size={14} color={COLOR.themeBlue} />
+            <GlobalText
+              text={t('TRIP.SAMPLE_TITLE')}
+              style={styles.sampleLinkText}
+            />
+          </TouchableOpacity>
+
           {/* Features */}
           <View style={styles.featuresContainer}>
             <View style={styles.featureBadge}>

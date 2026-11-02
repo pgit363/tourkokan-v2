@@ -28,64 +28,11 @@ import {useTranslation} from 'react-i18next';
 import GlobalText from '../Components/Customs/Text';
 import {C} from '../Components/Marketplace/theme';
 import {navigateTo} from '../Services/CommonMethods';
+import {Chip, Choice, Section} from '../Components/Trip/StepChrome';
 import {useTripForm} from '../Services/trip';
 
 /** How long to wait after a tap before asking the server what it would give. */
 const QUOTE_DELAY = 450;
-
-// ── Pieces ──────────────────────────────────────────────────────────────────
-
-const Section = ({label, hint, children}) => (
-  <View style={s.section}>
-    <GlobalText text={label.toUpperCase()} style={s.sectionLabel} />
-    {!!hint && <GlobalText text={hint} style={s.sectionHint} />}
-    {children}
-  </View>
-);
-
-const Chip = ({label, meta, on, onPress}) => (
-  <TouchableOpacity
-    style={[s.chip, on && s.chipOn]}
-    accessibilityRole="button"
-    accessibilityState={{selected: on}}
-    onPress={onPress}>
-    <GlobalText text={label} style={[s.chipTxt, on && s.chipTxtOn]} />
-    {!!meta && (
-      <GlobalText text={meta} style={[s.chipMeta, on && s.chipMetaOn]} />
-    )}
-  </TouchableOpacity>
-);
-
-/** Two mutually exclusive answers, side by side. */
-const Choice = ({options, value, onChange}) => (
-  <View style={s.choice}>
-    {options.map(option => {
-      const on = option.value === value;
-
-      return (
-        <TouchableOpacity
-          key={option.value}
-          style={[s.choiceBtn, on && s.choiceBtnOn]}
-          accessibilityRole="radio"
-          accessibilityState={{selected: on}}
-          onPress={() => onChange(option.value)}>
-          <Ionicons
-            name={option.icon}
-            size={19}
-            color={on ? C.oceanMid : C.textLight}
-          />
-          <GlobalText
-            text={option.label}
-            style={[s.choiceTxt, on && s.choiceTxtOn]}
-          />
-          {!!option.hint && (
-            <GlobalText text={option.hint} style={s.choiceHint} />
-          )}
-        </TouchableOpacity>
-      );
-    })}
-  </View>
-);
 
 // ── Screen ──────────────────────────────────────────────────────────────────
 
@@ -204,8 +151,49 @@ const PlanTripScreen = ({navigation}) => {
 
   const ready = towns.length > 0 && quote?.can_plan === true;
 
+  /**
+   * Validation shown only after the traveller has tried to continue.
+   *
+   * Scolding an empty form the moment it opens is noise — nobody has done
+   * anything wrong yet. These appear on the first blocked tap and then track
+   * the form live, so a fixed problem disappears as it is fixed.
+   */
+  const [attempted, setAttempted] = useState(false);
+
+  /**
+   * A missing town is a hard error: the server requires `town_site_ids` and
+   * cannot measure distances without one.
+   *
+   * A missing interest is NOT. `category_codes` is nullable server-side, so
+   * demanding one here would block a request the API accepts — no interests
+   * simply means "anything". It is surfaced as a suggestion, and only when
+   * the quote comes back thin, which is the one moment adding one helps.
+   */
+  const problems = [];
+  if (towns.length === 0) {
+    problems.push({field: 'town', text: t('TRIP.ERR_NEED_TOWN')});
+  }
+  if (
+    towns.length > 0 &&
+    quote &&
+    !quote.can_plan &&
+    quote.reason === 'not_enough_places' &&
+    interests.length === 0
+  ) {
+    problems.push({field: 'interest', text: t('TRIP.ERR_NEED_INTEREST')});
+  }
+  const problemFor = field =>
+    attempted ? problems.find(p => p.field === field)?.text : null;
+
   /** What the bar under the button says about the current filters. */
   const verdict = () => {
+    // Once they have tried, lead with the count — it tells them how much is
+    // left to do, which a single field message cannot.
+    if (attempted && problems.length > 0) {
+      return problems.length === 1
+        ? t('TRIP.FIX_ONE')
+        : t('TRIP.FIX_COUNT', {count: problems.length});
+    }
     if (towns.length === 0) {
       return t('TRIP.PICK_A_TOWN');
     }
@@ -274,6 +262,9 @@ const PlanTripScreen = ({navigation}) => {
           {(options?.towns || []).length === 0 && (
             <GlobalText text={t('TRIP.NO_TOWNS')} style={s.sectionHint} />
           )}
+          {!!problemFor('town') && (
+            <GlobalText text={problemFor('town')} style={s.fieldError} />
+          )}
         </Section>
 
         <Section
@@ -290,6 +281,9 @@ const PlanTripScreen = ({navigation}) => {
               />
             ))}
           </View>
+          {!!problemFor('interest') && (
+            <GlobalText text={problemFor('interest')} style={s.fieldError} />
+          )}
         </Section>
 
         <Section label={t('TRIP.HOW_LONG_LABEL')}>
@@ -462,11 +456,23 @@ const PlanTripScreen = ({navigation}) => {
         <TouchableOpacity
           style={[s.primaryBtn, !ready && s.primaryBtnOff]}
           accessibilityRole="button"
-          accessibilityState={{disabled: !ready}}
-          disabled={!ready}
-          onPress={() =>
-            navigateTo(navigation, t('SCREEN.ITINERARY'), {filters})
-          }>
+          // NOT accessibilityState={{disabled: !ready}}. React Native maps
+          // that to the native view's enabled flag, and a disabled Android
+          // view receives no touch at all — which silently swallowed the tap
+          // that is supposed to reveal what is missing. The button really is
+          // actionable; the hint says what tapping it will tell you.
+          accessibilityHint={ready ? undefined : verdict()}
+          onPress={() => {
+            // Deliberately NOT disabled. A dead button tells a traveller
+            // nothing about why it is dead; tapping it is how they ask, and
+            // this is what answers — it reveals the field errors instead of
+            // silently doing nothing.
+            if (!ready) {
+              setAttempted(true);
+              return;
+            }
+            navigateTo(navigation, t('SCREEN.ITINERARY'), {filters});
+          }}>
           <GlobalText text={t('TRIP.PLAN_MY_TRIP')} style={s.primaryTxt} />
         </TouchableOpacity>
         <View style={s.verdict}>
@@ -479,6 +485,47 @@ const PlanTripScreen = ({navigation}) => {
 };
 
 const s = StyleSheet.create({
+  stepper: {flexDirection: 'row', alignItems: 'center', gap: 16},
+  stepBtn: {
+    width: 46,
+    height: 46,
+    borderRadius: 999,
+    borderWidth: 1,
+    borderColor: C.line,
+    backgroundColor: C.white,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  stepTxt: {fontSize: 22, fontWeight: '700', color: C.oceanMid},
+  stepValueBox: {alignItems: 'center', minWidth: 64},
+  stepValue: {fontSize: 26, fontWeight: '800', color: C.textDark},
+  stepUnit: {fontSize: 12, color: C.textLight},
+
+  note: {
+    flexDirection: 'row',
+    gap: 10,
+    alignItems: 'flex-start',
+    backgroundColor: C.sandPale,
+    borderRadius: 14,
+    padding: 13,
+    marginTop: 12,
+  },
+  noteTxt: {flex: 1, fontSize: 12.5, color: '#6B5614', lineHeight: 18},
+
+  footer: {
+    padding: 16,
+    paddingBottom: 20,
+    backgroundColor: C.white,
+    borderTopWidth: 1,
+    borderTopColor: C.line,
+  },
+
+  fieldError: {
+    fontSize: 12.5,
+    color: '#B23A2E',
+    marginTop: 8,
+    lineHeight: 18,
+  },
   screen: {flex: 1, backgroundColor: C.cream},
   centered: {alignItems: 'center', justifyContent: 'center'},
 
@@ -505,14 +552,6 @@ const s = StyleSheet.create({
 
   body: {padding: 16, paddingBottom: 8},
 
-  section: {marginBottom: 26},
-  sectionLabel: {
-    fontSize: 11,
-    fontWeight: '800',
-    letterSpacing: 0.8,
-    color: C.textLight,
-    marginBottom: 4,
-  },
   sectionHint: {fontSize: 12.5, color: C.textLight, marginBottom: 11},
 
   chips: {flexDirection: 'row', flexWrap: 'wrap', gap: 8},
@@ -564,75 +603,6 @@ const s = StyleSheet.create({
     paddingVertical: 3,
   },
   soonTagTxt: {fontSize: 10, fontWeight: '800', color: '#6B5614'},
-  chip: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    paddingVertical: 10,
-    paddingHorizontal: 14,
-    borderRadius: 999,
-    borderWidth: 1,
-    borderColor: C.line,
-    backgroundColor: C.white,
-  },
-  chipOn: {borderColor: C.oceanMid, backgroundColor: 'rgba(27,107,123,0.08)'},
-  chipTxt: {fontSize: 14, fontWeight: '600', color: C.textDark},
-  chipTxtOn: {color: C.oceanMid, fontWeight: '700'},
-  chipMeta: {fontSize: 11, color: C.textLight},
-  chipMetaOn: {color: C.oceanMid},
-
-  stepper: {flexDirection: 'row', alignItems: 'center', gap: 16},
-  stepBtn: {
-    width: 46,
-    height: 46,
-    borderRadius: 999,
-    borderWidth: 1,
-    borderColor: C.line,
-    backgroundColor: C.white,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  stepTxt: {fontSize: 22, fontWeight: '700', color: C.oceanMid},
-  stepValueBox: {alignItems: 'center', minWidth: 64},
-  stepValue: {fontSize: 26, fontWeight: '800', color: C.textDark},
-  stepUnit: {fontSize: 12, color: C.textLight},
-
-  choice: {flexDirection: 'row', gap: 10},
-  choiceBtn: {
-    flex: 1,
-    gap: 5,
-    padding: 14,
-    borderRadius: 14,
-    borderWidth: 1,
-    borderColor: C.line,
-    backgroundColor: C.white,
-  },
-  choiceBtnOn: {
-    borderColor: C.oceanMid,
-    backgroundColor: 'rgba(27,107,123,0.06)',
-  },
-  choiceTxt: {fontSize: 14.5, fontWeight: '700', color: C.textDark},
-  choiceTxtOn: {color: C.oceanMid},
-  choiceHint: {fontSize: 11.5, color: C.textLight, lineHeight: 16},
-
-  note: {
-    flexDirection: 'row',
-    gap: 10,
-    alignItems: 'flex-start',
-    backgroundColor: C.sandPale,
-    borderRadius: 14,
-    padding: 13,
-    marginTop: 12,
-  },
-  noteTxt: {flex: 1, fontSize: 12.5, color: '#6B5614', lineHeight: 18},
-
-  footer: {
-    padding: 16,
-    paddingBottom: 20,
-    backgroundColor: C.white,
-    borderTopWidth: 1,
-    borderTopColor: C.line,
-  },
   primaryBtn: {
     height: 52,
     borderRadius: 999,

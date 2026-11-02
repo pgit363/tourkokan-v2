@@ -54,7 +54,7 @@ const TripCTA = ({navigation}) => {
         activeOpacity={0.9}
         onPress={() =>
           navigation.navigate(
-            hasCart ? STRING.SCREEN.TRIP_CART : STRING.SCREEN.PLAN_TRIP,
+            hasCart ? STRING.SCREEN.TRIP_CART : STRING.SCREEN.TRIP_WHERE,
           )
         }>
         <LinearGradient
@@ -90,15 +90,21 @@ const TripCTA = ({navigation}) => {
               </Text>
             </View>
 
-            {/* With a cart going, starting over is the secondary path. */}
-            {hasCart ? (
-              <TouchableOpacity
-                style={s.ghost}
-                activeOpacity={0.8}
-                onPress={() => navigation.navigate(STRING.SCREEN.PLAN_TRIP)}>
-                <Text style={s.ghostText}>{t('TRIP.CTA_ACTION')}</Text>
-              </TouchableOpacity>
-            ) : null}
+            {/* Both paths stay: picking your own places is the primary one,
+                and letting the model choose everything is the quick way out
+                for someone who does not want to browse. */}
+            <TouchableOpacity
+              style={s.ghost}
+              activeOpacity={0.8}
+              onPress={() =>
+                navigation.navigate(
+                  hasCart ? STRING.SCREEN.TRIP_WHERE : STRING.SCREEN.PLAN_TRIP,
+                )
+              }>
+              <Text style={s.ghostText}>
+                {hasCart ? t('TRIP.CTA_ACTION') : t('TRIP.CTA_EXPRESS')}
+              </Text>
+            </TouchableOpacity>
           </View>
         </LinearGradient>
       </TouchableOpacity>
