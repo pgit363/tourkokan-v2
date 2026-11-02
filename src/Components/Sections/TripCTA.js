@@ -52,11 +52,7 @@ const TripCTA = ({navigation}) => {
     <View style={s.wrap}>
       <TouchableOpacity
         activeOpacity={0.9}
-        onPress={() =>
-          navigation.navigate(
-            hasCart ? STRING.SCREEN.TRIP_CART : STRING.SCREEN.TRIP_WHERE,
-          )
-        }>
+        onPress={() => navigation.navigate(STRING.SCREEN.TRIP_WHERE)}>
         <LinearGradient
           colors={[C.ocean, C.oceanDeep]}
           start={{x: 0, y: 0}}
@@ -78,6 +74,12 @@ const TripCTA = ({navigation}) => {
               : t('TRIP.CTA_DESC')}
           </Text>
 
+          {/*
+            One button. There were two, and they led to two forms that asked
+            almost the same questions — the difference between them is now a
+            question inside the one form, where it can be seen and changed
+            rather than being a fork you commit to from the home screen.
+          */}
           <View style={s.row}>
             <View style={s.action}>
               <Ionicons
@@ -86,25 +88,9 @@ const TripCTA = ({navigation}) => {
                 color={C.ocean}
               />
               <Text style={s.actionText}>
-                {hasCart ? t('TRIP.VIEW_CART') : t('TRIP.CTA_ACTION')}
+                {hasCart ? t('TRIP.CTA_CONTINUE') : t('TRIP.CTA_ACTION')}
               </Text>
             </View>
-
-            {/* Both paths stay: picking your own places is the primary one,
-                and letting the model choose everything is the quick way out
-                for someone who does not want to browse. */}
-            <TouchableOpacity
-              style={s.ghost}
-              activeOpacity={0.8}
-              onPress={() =>
-                navigation.navigate(
-                  hasCart ? STRING.SCREEN.TRIP_WHERE : STRING.SCREEN.PLAN_TRIP,
-                )
-              }>
-              <Text style={s.ghostText}>
-                {hasCart ? t('TRIP.CTA_ACTION') : t('TRIP.CTA_EXPRESS')}
-              </Text>
-            </TouchableOpacity>
           </View>
         </LinearGradient>
       </TouchableOpacity>

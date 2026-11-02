@@ -26,7 +26,12 @@ import {useTranslation} from 'react-i18next';
 import PropTypes from 'prop-types';
 import GlobalText from '../Components/Customs/Text';
 import {C} from '../Components/Marketplace/theme';
-import {StepFooter, StepHeader} from '../Components/Trip/StepChrome';
+import {
+  EXPRESS_STEPS,
+  StepFooter,
+  StepHeader,
+  TOTAL_STEPS,
+} from '../Components/Trip/StepChrome';
 import STRING from '../Services/Constants/STRINGS';
 import {useTripCart, useTripForm, categoryNames} from '../Services/trip';
 
@@ -85,7 +90,13 @@ PlaceRow.propTypes = {
 
 // ── Screen ──────────────────────────────────────────────────────────────────
 
-const TripReviewScreen = ({navigation}) => {
+const TripReviewScreen = ({navigation, route}) => {
+  /**
+   * True when step 1 handed the choosing to the model. There are no picked
+   * places to show, the flow was two steps rather than four, and the plan is
+   * made from the saved filters instead of the cart.
+   */
+  const express = !!route?.params?.express;
   const {t} = useTranslation();
   const {cart, refresh, update} = useTripCart();
   const {options, load} = useTripForm();
@@ -134,8 +145,10 @@ const TripReviewScreen = ({navigation}) => {
   };
 
   const minimum = cart.minimum || 3;
-  const needed = Math.max(0, minimum - places.length);
-  const ready = cart.canPlan && needed === 0;
+  const needed = express ? 0 : Math.max(0, minimum - places.length);
+  const ready = express
+    ? (filters.town_site_ids || []).length > 0
+    : cart.canPlan && needed === 0;
 
   /** The footer line: a reason to wait, or the reassurance that it is free. */
   const verdict = () => {
@@ -154,7 +167,8 @@ const TripReviewScreen = ({navigation}) => {
       <SystemBars style="light" />
 
       <StepHeader
-        step={4}
+        step={express ? EXPRESS_STEPS : TOTAL_STEPS}
+        total={express ? EXPRESS_STEPS : TOTAL_STEPS}
         title={t('TRIP.STEP4_TITLE')}
         caption={t('TRIP.STEP4_CAPTION')}
         backLabel={t('TRIP.BACK')}
@@ -225,13 +239,19 @@ const TripReviewScreen = ({navigation}) => {
           </View>
         </Block>
 
-        <Block
-          label={t('TRIP.STEP4_PLACES')}
-          onChange={() => navigation.navigate(STRING.SCREEN.TRIP_ARRANGE)}>
-          {places.map((p, i) => (
-            <PlaceRow key={String(p.id)} place={p} index={i} />
-          ))}
-        </Block>
+        {express ? (
+          <Block label={t('TRIP.STEP4_PLACES_AI')}>
+            <GlobalText text={t('TRIP.STEP4_AI_PLACES')} style={s.muted} />
+          </Block>
+        ) : (
+          <Block
+            label={t('TRIP.STEP4_PLACES')}
+            onChange={() => navigation.navigate(STRING.SCREEN.TRIP_ARRANGE)}>
+            {places.map((p, i) => (
+              <PlaceRow key={String(p.id)} place={p} index={i} />
+            ))}
+          </Block>
+        )}
 
         {/* The "price" of the checkout — which is that there is none. */}
         <View style={s.free}>
@@ -250,10 +270,12 @@ const TripReviewScreen = ({navigation}) => {
         verdict={verdict()}
         ready={ready}
         onPress={() =>
-          navigation.navigate(STRING.SCREEN.ITINERARY, {
-            tripId: cart.tripId,
-            fresh: true,
-          })
+          navigation.navigate(
+            STRING.SCREEN.ITINERARY,
+            express
+              ? {filters, fresh: true}
+              : {tripId: cart.tripId, fresh: true},
+          )
         }
       />
     </View>
@@ -262,6 +284,7 @@ const TripReviewScreen = ({navigation}) => {
 
 TripReviewScreen.propTypes = {
   navigation: PropTypes.object.isRequired,
+  route: PropTypes.object,
 };
 
 const s = StyleSheet.create({

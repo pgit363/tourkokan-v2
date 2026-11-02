@@ -455,6 +455,54 @@ the real cause, happens to be true advice.
 ⚠️ The local backend is **still on `ai_driver = claude`**. api-test is
 untouched and remains on `fake`.
 
+## One door, not two (2026-11-02)
+
+The home card had two buttons into two forms that asked almost the same
+questions and differed only in what happened afterwards. Whichever you picked,
+you could not see what the other one did.
+
+They are one form now, and the fork is a question **on** it — "How should we
+choose the places?", with both answers and what they do on screen:
+
+```
+Home → "Plan a trip" → step 1, the whole brief + the choice
+                        ├ I'll pick them myself → pick → arrange → review → plan   (4 steps)
+                        └ Choose for me         → review                   → plan   (2 steps)
+```
+
+- Step 1 absorbed the express form's questions: **how long**, **where are you
+  sleeping**, **how are you getting here**, with the onward-bus note.
+- The dot progress and the CTA follow the choice live — "Step 1 of 4" and
+  "Pick places", or "Step 1 of 2" and "Review" — so the length of the flow is
+  visible before committing to it.
+- **Both paths review before generating**, because generating is what spends
+  a credit. The express review swaps the picked-places list for "We will
+  choose these from your towns and interests", under a label that does not
+  claim they picked anything.
+- The express path plans from the saved filters (`planTrip`); the long path
+  plans from the cart (`planFromCart`). Step 1 persists `days` as its own
+  field as well as inside the filters, because the planner reads the column
+  and the prompt reads the filters.
+
+### Also moved
+
+- **Drawer:** "Plan a trip" and "My trip" removed. Planning lives on the home
+  card, saved trips live in the profile — each in one place instead of two.
+- **"Save trip" went nowhere.** The plan is already persisted server-side, and
+  the button called `goBack()`, dropping the traveller onto the review screen
+  they had just come through. It now ends the flow on **My trips**, via
+  `popToTop()` rather than a named `reset` — the drawer is mounted as
+  `SCREEN.MAIN` for a guest and `SCREEN.HOME` once signed in, so naming
+  either breaks the other. A first attempt with `reset` was rejected at
+  runtime for exactly that reason. Back from My trips now goes home, not back
+  into the stepper.
+
+Verified on api-test with the real model: both paths end in a generated plan,
+and Save trip lands on My trips with the new trip at the top.
+
+`PlanTripScreen` is now unreachable — nothing navigates to it. Left in place
+rather than deleted, as that is a call to make deliberately.
+
 ---
 
 ## B1 · `POST v2/trip/places`

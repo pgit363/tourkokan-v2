@@ -1,26 +1,44 @@
 /**
- * Step 1 of 4 — where will you be, and what do you like.
+ * Step 1 — the whole brief, and how the places get chosen.
  *
- * The same two questions the one-page form opens with, which is why this is a
- * split rather than a rewrite: the chips, the live counts and the free quote
- * all behave as they already did. What changes is what happens next — instead
- * of handing every choice to the model, the answers are saved onto the trip
- * and the traveller goes on to pick their own places.
+ * There used to be two forms behind two buttons on the home card, asking
+ * almost the same questions and differing only in what happened next. Two
+ * doors to one room: whichever you picked, you could not see what the other
+ * one did. They are one form now, and the difference between them is a
+ * question on it — pick the places yourself, or let the model do it.
  *
- * Saved to the server rather than carried in route params or Redux, because
- * `planFromCart` reads them off the trip. That also makes the flow resumable:
- * come back to this step tomorrow and the towns are still ticked.
+ * That choice decides the length of the flow, not its shape. Picking your own
+ * runs four steps (here, pick, arrange, review); letting the model choose
+ * runs two (here, review). Both review before anything is generated, because
+ * generating is what spends a credit.
  *
- * The one-page form stays as the express route for anyone who would rather
- * the model chose everything.
+ * The answers are saved onto the trip rather than carried in route params or
+ * Redux, because `planFromCart` reads them off the trip. That also makes the
+ * flow resumable: come back tomorrow and the towns are still ticked.
  */
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
-import {ActivityIndicator, ScrollView, StyleSheet, View} from 'react-native';
+import {
+  ActivityIndicator,
+  ScrollView,
+  StyleSheet,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from 'react-native';
+import Ionicons from 'react-native-vector-icons/Ionicons';
 import {SystemBars} from 'react-native-edge-to-edge';
 import {useTranslation} from 'react-i18next';
 import GlobalText from '../Components/Customs/Text';
 import {C} from '../Components/Marketplace/theme';
-import {Chip, Section, StepFooter, StepHeader} from '../Components/Trip/StepChrome';
+import {
+  Chip,
+  Choice,
+  EXPRESS_STEPS,
+  Section,
+  StepFooter,
+  StepHeader,
+  TOTAL_STEPS,
+} from '../Components/Trip/StepChrome';
 import STRING from '../Services/Constants/STRINGS';
 import {useTripCart, useTripForm} from '../Services/trip';
 
@@ -34,6 +52,19 @@ const TripWhereScreen = ({navigation}) => {
 
   const [towns, setTowns] = useState([]);
   const [interests, setInterests] = useState([]);
+  const [days, setDays] = useState(2);
+  const [stay, setStay] = useState('suggest');
+  // Null until they say. The whole question is optional, and a trip planned
+  // without it is the trip we were already planning.
+  const [arrivalMode, setArrivalMode] = useState(null);
+  const [arrivalPoint, setArrivalPoint] = useState(null);
+  const [arrivalAt, setArrivalAt] = useState('');
+  /**
+   * 'pick' walks the map and the list; 'ai' hands the choosing over. Defaults
+   * to picking, because that is the thing the extra screens exist for — the
+   * express route is the shortcut, not the main road.
+   */
+  const [mode, setMode] = useState('pick');
   const [saving, setSaving] = useState(false);
   const [saveFailed, setSaveFailed] = useState(false);
   // Only true once the cart has been read, so the prefill below runs on real
@@ -59,20 +90,61 @@ const TripWhereScreen = ({navigation}) => {
     setInterests(current =>
       current.length ? current : saved.category_codes || [],
     );
+    setDays(cart.days || saved.days || 2);
+    if (saved.stay) {
+      setStay(saved.stay);
+    }
+    if (saved.arrival?.mode) {
+      setArrivalMode(saved.arrival.mode);
+      setArrivalPoint(saved.arrival.site_id || null);
+      setArrivalAt(saved.arrival.at || '');
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [restored]);
 
   const maxTowns = options?.max_towns ?? 3;
 
-  const filters = useMemo(
-    () => ({
+  const pointsForMode = useMemo(
+    () =>
+      (options?.arrival?.points || []).filter(p =>
+        (p.modes || []).includes(arrivalMode),
+      ),
+    [options?.arrival?.points, arrivalMode],
+  );
+
+  const filters = useMemo(() => {
+    const base = {
       town_site_ids: towns,
       category_codes: interests,
-      days: cart.days || 2,
+      days,
+      stay,
       radius_km: options?.radius_km ?? 40,
-    }),
-    [towns, interests, cart.days, options?.radius_km],
-  );
+    };
+
+    // Omitted entirely rather than sent half-filled: the server wants a point
+    // for everything except driving, so an incomplete answer would be a
+    // validation error on every keystroke.
+    if (arrivalMode === 'own_vehicle') {
+      base.arrival = {mode: arrivalMode, at: arrivalAt || null};
+    } else if (arrivalMode && arrivalPoint) {
+      base.arrival = {
+        mode: arrivalMode,
+        site_id: arrivalPoint,
+        at: arrivalAt || null,
+      };
+    }
+
+    return base;
+  }, [
+    towns,
+    interests,
+    days,
+    stay,
+    arrivalMode,
+    arrivalPoint,
+    arrivalAt,
+    options?.radius_km,
+  ]);
 
   /**
    * Ask what the filters would give, shortly after they stop tapping. The
@@ -117,17 +189,22 @@ const TripWhereScreen = ({navigation}) => {
   );
 
   const ready = towns.length > 0;
+  const total = mode === 'ai' ? EXPRESS_STEPS : TOTAL_STEPS;
 
   const next = useCallback(async () => {
     setSaving(true);
     setSaveFailed(false);
-    // Saved before moving on, so step 2 reads the towns off the trip rather
-    // than being handed them and having to pass them on again.
-    const ok = await update({filters}, navigation);
+    // `days` goes as its own field as well as inside the filters: the
+    // planner reads the column, the prompt reads the filters, and they must
+    // not drift apart.
+    const ok = await update({days, filters}, navigation);
     setSaving(false);
 
     if (ok) {
-      navigation.navigate(STRING.SCREEN.TRIP_PICK);
+      navigation.navigate(
+        mode === 'ai' ? STRING.SCREEN.TRIP_REVIEW : STRING.SCREEN.TRIP_PICK,
+        mode === 'ai' ? {express: true} : undefined,
+      );
       return;
     }
 
@@ -135,7 +212,7 @@ const TripWhereScreen = ({navigation}) => {
     // and nothing explains why — the traveller taps a button that looks
     // alive and gets silence, which is the one thing a footer must never do.
     setSaveFailed(true);
-  }, [update, filters, navigation]);
+  }, [update, days, filters, mode, navigation]);
 
   /** What the footer says about the current answers. */
   const verdict = () => {
@@ -170,8 +247,9 @@ const TripWhereScreen = ({navigation}) => {
 
       <StepHeader
         step={1}
+        total={total}
         title={t('TRIP.STEP1_TITLE')}
-        caption={t('TRIP.STEP_OF', {step: 1, total: 4})}
+        caption={t('TRIP.STEP_OF', {step: 1, total})}
         backLabel={t('TRIP.BACK')}
         onBack={() => navigation.goBack()}
       />
@@ -210,10 +288,152 @@ const TripWhereScreen = ({navigation}) => {
             ))}
           </View>
         </Section>
+
+        <Section label={t('TRIP.HOW_LONG_LABEL')}>
+          <View style={s.daysRow}>
+            <GlobalText
+              style={s.daysValue}
+              text={`${days} ${days === 1 ? t('TRIP.ONE_DAY') : t('TRIP.DAYS_WORD')}`}
+            />
+            <View style={s.stepper}>
+              <TouchableOpacity
+                style={s.stepBtn}
+                accessibilityRole="button"
+                accessibilityLabel="−"
+                disabled={days <= 1}
+                onPress={() => setDays(d => Math.max(1, d - 1))}>
+                <GlobalText text="−" style={s.stepTxt} />
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={s.stepBtn}
+                accessibilityRole="button"
+                accessibilityLabel="+"
+                onPress={() => setDays(d => Math.min(14, d + 1))}>
+                <GlobalText text="+" style={s.stepTxt} />
+              </TouchableOpacity>
+            </View>
+          </View>
+        </Section>
+
+        <Section label={t('TRIP.STAY_LABEL')}>
+          <Choice
+            value={stay}
+            onChange={setStay}
+            options={[
+              {
+                value: 'suggest',
+                icon: 'bed-outline',
+                label: t('TRIP.STAY_SUGGEST'),
+                hint: t('TRIP.STAY_SUGGEST_HINT'),
+              },
+              {
+                value: 'booked',
+                icon: 'checkmark-circle-outline',
+                label: t('TRIP.STAY_BOOKED'),
+                hint: t('TRIP.STAY_BOOKED_HINT'),
+              },
+            ]}
+          />
+        </Section>
+
+        <Section label={t('TRIP.ARRIVAL_LABEL')} hint={t('TRIP.ARRIVAL_HINT')}>
+          <View style={s.chips}>
+            {(options?.arrival?.modes || []).map(m => (
+              <Chip
+                key={m.code}
+                label={m.label}
+                on={arrivalMode === m.code}
+                onPress={() => {
+                  // Changing mode invalidates the point: a railway station is
+                  // not somewhere a flight lands.
+                  setArrivalMode(cur => (cur === m.code ? null : m.code));
+                  setArrivalPoint(null);
+                }}
+              />
+            ))}
+          </View>
+
+          {arrivalMode && arrivalMode !== 'own_vehicle' ? (
+            pointsForMode.length === 0 ? (
+              <GlobalText text={t('TRIP.ARRIVAL_NO_POINTS')} style={s.hint} />
+            ) : (
+              <View style={[s.chips, s.chipsSpaced]}>
+                {pointsForMode.map(point => (
+                  <Chip
+                    key={point.site_id}
+                    label={point.name}
+                    on={arrivalPoint === point.site_id}
+                    onPress={() =>
+                      setArrivalPoint(cur =>
+                        cur === point.site_id ? null : point.site_id,
+                      )
+                    }
+                  />
+                ))}
+              </View>
+            )
+          ) : null}
+
+          {arrivalMode ? (
+            <View style={s.timeRow}>
+              <GlobalText text={t('TRIP.ARRIVAL_AT')} style={s.timeLabel} />
+              <TextInput
+                style={s.timeInput}
+                value={arrivalAt}
+                onChangeText={setArrivalAt}
+                placeholder="13:40"
+                placeholderTextColor={C.textLight}
+                keyboardType="numbers-and-punctuation"
+                maxLength={5}
+              />
+            </View>
+          ) : null}
+
+          {quote?.arrival?.onward ? (
+            <View style={s.connection}>
+              <Ionicons name="bus" size={17} color={C.oceanMid} />
+              <GlobalText
+                style={s.connectionTxt}
+                text={t('TRIP.ARRIVAL_ONWARD', {
+                  depart: quote.arrival.onward.depart,
+                  route: quote.arrival.onward.route_no,
+                  start: quote.arrival.earliest_start,
+                })}
+              />
+            </View>
+          ) : null}
+        </Section>
+
+        {/*
+          The question that used to be two buttons on the home card. Both
+          answers are on screen with what they do, so the extra screens are
+          something a traveller can see and choose rather than a door they
+          had to know about.
+        */}
+        <Section label={t('TRIP.MODE_LABEL')}>
+          <Choice
+            value={mode}
+            onChange={setMode}
+            options={[
+              {
+                value: 'pick',
+                icon: 'map-outline',
+                label: t('TRIP.MODE_PICK'),
+                hint: t('TRIP.MODE_PICK_HINT'),
+              },
+              {
+                value: 'ai',
+                icon: 'sparkles-outline',
+                label: t('TRIP.MODE_AI'),
+                hint: t('TRIP.MODE_AI_HINT'),
+              },
+            ]}
+          />
+        </Section>
       </ScrollView>
 
       <StepFooter
-        label={t('TRIP.STEP1_NEXT')}
+        label={mode === 'ai' ? t('TRIP.STEP1_NEXT_AI') : t('TRIP.STEP1_NEXT')}
         verdict={verdict()}
         ready={ready}
         busy={saving}
@@ -224,6 +444,50 @@ const TripWhereScreen = ({navigation}) => {
 };
 
 const s = StyleSheet.create({
+  daysRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  daysValue: {fontSize: 15, fontWeight: '700', color: C.textDark},
+  stepper: {flexDirection: 'row', gap: 10},
+  stepBtn: {
+    width: 40,
+    height: 40,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: C.line,
+    backgroundColor: C.white,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  stepTxt: {fontSize: 19, fontWeight: '700', color: C.oceanMid},
+
+  chipsSpaced: {marginTop: 10},
+  timeRow: {flexDirection: 'row', alignItems: 'center', gap: 10, marginTop: 12},
+  timeLabel: {fontSize: 13, color: C.textMid, textAlign: 'left'},
+  timeInput: {
+    minWidth: 86,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: C.line,
+    backgroundColor: C.white,
+    color: C.textDark,
+    fontSize: 14,
+  },
+  connection: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginTop: 12,
+    padding: 10,
+    borderRadius: 10,
+    backgroundColor: 'rgba(27,107,123,0.08)',
+  },
+  connectionTxt: {flex: 1, fontSize: 12.5, color: C.textMid, textAlign: 'left'},
+
   screen: {flex: 1, backgroundColor: C.cream},
   centered: {alignItems: 'center', justifyContent: 'center'},
   body: {padding: 16, paddingBottom: 8},

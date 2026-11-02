@@ -513,10 +513,24 @@ const ItineraryScreen = ({navigation, route}) => {
       </ScrollView>
 
       <View style={s.footer}>
+        {/*
+          The plan is already saved — the server persisted it when it was
+          generated. This button ends the flow, and it used to call goBack(),
+          which dropped the traveller back onto the review screen they had
+          just come through. It now lands them where the trip actually lives,
+          with Home underneath so Back does not re-enter the stepper.
+        */}
         <TouchableOpacity
           style={s.footerBtn}
           accessibilityRole="button"
-          onPress={() => navigation.goBack()}>
+          onPress={() => {
+            // popToTop rather than reset with named routes: the drawer is
+            // mounted as SCREEN.MAIN for a guest and SCREEN.HOME once signed
+            // in, so naming either one breaks the other. This drops the
+            // whole stepper and leaves home underneath My trips.
+            navigation.popToTop();
+            navigation.navigate(t('SCREEN.MY_TRIPS'));
+          }}>
           <GlobalText text={t('TRIP.SAVE_TRIP')} style={s.footerTxt} />
         </TouchableOpacity>
       </View>

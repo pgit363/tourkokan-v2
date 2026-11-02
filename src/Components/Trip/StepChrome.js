@@ -18,8 +18,14 @@ import PropTypes from 'prop-types';
 import GlobalText from '../Customs/Text';
 import {C} from '../Marketplace/theme';
 
-/** How many steps the flow has. Shown as "Step 2 of 4". */
+/**
+ * Steps in the long flow — where & what, pick, arrange, review.
+ *
+ * Letting the model choose the places skips the middle two, so a screen
+ * passes its own `total` and the dots follow. Shown as "Step 2 of 4".
+ */
 export const TOTAL_STEPS = 4;
+export const EXPRESS_STEPS = 2;
 
 // ── Shared form pieces ──────────────────────────────────────────────────────
 
@@ -103,7 +109,8 @@ Choice.propTypes = {
  * pick places before saying which towns — so offering them as navigation
  * would promise a jump the flow cannot honour.
  */
-export const StepHeader = ({step, title, caption, onBack, backLabel}) => {
+export const StepHeader = ({step, total, title, caption, onBack, backLabel}) => {
+  const steps = total || TOTAL_STEPS;
   const insets = useSafeAreaInsets();
 
   return (
@@ -125,8 +132,8 @@ export const StepHeader = ({step, title, caption, onBack, backLabel}) => {
       <View
         style={s.dots}
         accessibilityRole="progressbar"
-        accessibilityValue={{min: 1, max: TOTAL_STEPS, now: step}}>
-        {Array.from({length: TOTAL_STEPS}, (_, i) => (
+        accessibilityValue={{min: 1, max: steps, now: step}}>
+        {Array.from({length: steps}, (_, i) => (
           <View
             key={i}
             style={[
@@ -143,6 +150,7 @@ export const StepHeader = ({step, title, caption, onBack, backLabel}) => {
 
 StepHeader.propTypes = {
   step: PropTypes.number.isRequired,
+  total: PropTypes.number,
   title: PropTypes.string.isRequired,
   caption: PropTypes.string,
   onBack: PropTypes.func.isRequired,
