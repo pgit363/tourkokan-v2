@@ -47,6 +47,7 @@ import {GOOGLE_WEB_CLIENT_ID, GOOGLE_WEB_CLIENT_ID_IOS} from '@env';
 import STRING from '../../Services/Constants/STRINGS';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
+import {claimGuestTrip} from '../../Services/Api/TripServices';
 import {createLogger} from '../../Services/Logger';
 
 const log = createLogger('Email');
@@ -131,7 +132,24 @@ const Email = ({navigation, route, ...props}) => {
       });
 
       if (resData?.success) {
+        // Read before it is overwritten: this is the token the trip they
+        // built while browsing belongs to, and the only proof that cart was
+        // theirs. The guest gate told them nothing they picked would be lost.
+        const guestToken = await AsyncStorage.getItem(t('STORAGE.ACCESS_TOKEN'));
+
         await AsyncStorage.setItem(t('STORAGE.ACCESS_TOKEN'), resData.data.access_token);
+
+        // After the new token is stored, so the claim authenticates as the
+        // account they just signed into. Never allowed to block the login:
+        // arriving with no trip is a disappointment, arriving nowhere is a
+        // broken app.
+        if (guestToken) {
+          try {
+            await claimGuestTrip(guestToken, navigation);
+          } catch (claimErr) {
+            log.warn('could not carry the guest trip over', claimErr?.message);
+          }
+        }
         AsyncStorage.setItem(t('STORAGE.USER_ID'), JSON.stringify(resData.data.user.id));
         AsyncStorage.setItem(t('STORAGE.USER_EMAIL'), resData.data.user.email || '');
         AsyncStorage.setItem(t('STORAGE.USER_NAME'), resData.data.user.name || '');

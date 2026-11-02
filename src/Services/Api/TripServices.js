@@ -32,6 +32,17 @@ export const addToCart = (site_id, trip_id, navigation) =>
     navigation,
   );
 
+/**
+ * Carry a trip built while browsing onto the account that just signed in.
+ *
+ * Sends the token the traveller was browsing under, not the trip id: ids are
+ * sequential, so an id alone would let anyone claim anyone else's cart. Call
+ * this AFTER the new token is stored — the request authenticates as the new
+ * account and the guest token travels in the body as proof of who they were.
+ */
+export const claimGuestTrip = (guest_token, navigation) =>
+  comnPost('v2/trip/claim', {guest_token}, navigation);
+
 export const removeFromCart = (site_id, trip_id, navigation) =>
   comnPost('v2/trip/removeFromCart', {site_id, trip_id}, navigation);
 
