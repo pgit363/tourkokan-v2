@@ -281,13 +281,35 @@ only navigated `if (ok)`. When the save failed the screen simply did not move
 and said nothing — the dead button this codebase argues against elsewhere. It
 now reports `TRIP.SAVE_FAILED` in the footer.
 
-**2 · Signing in abandons the guest's trip (NOT fixed).** The guest gate says
+**2 · Signing in abandoned the guest's trip — FIXED and verified.**
+`POST v2/trip/claim` now carries it across, taking the token the traveller was
+browsing under as proof rather than a trip id (ids are sequential, so an id
+alone would let anyone claim anyone's cart). The source must still be
+unverified, and only drafts move — a generated trip was paid for from the
+guest's own credits. The favourites rows move with it, since they carry their
+own `user_id`.
+
+Verified on api-test by walking the promise itself: browse as guest, pick
+Tarkarli Beach / Rajkot Fort / Chivla Beach, hit "Save your trip first", sign
+in with Google. `trip/claim` fired automatically after `googleAuth` (200,
+435 ms) and Home came back with "3 places picked" — the same three, still
+ticked, with the towns and interests intact.
+
+One bug found building it: `$request->string()` returns a Stringable, which
+`setToken()` accepted without complaint and then read as the wrong subject —
+a silent refusal rather than an exception. Now an explicit cast.
+
+<details><summary>The original description</summary>
+
+**Signing in abandons the guest's trip (NOT fixed).** The guest gate says
 *"Add an account and this trip stays yours — nothing you picked is lost."*
 Nothing implements that. There is no claim or merge of a guest trip anywhere
 in the backend. After signing in, the app still held the guest's `trip_id`,
 `updateCart` returned **404** (`resolve()` scopes by `user_id`), and the three
 places the guest had picked were gone — the account showed its own cart
 instead. Needs a decision: claim the guest trip on login, or change the copy.
+
+</details>
 
 ### Also fixed while testing
 
