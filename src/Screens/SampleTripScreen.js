@@ -170,7 +170,7 @@ const SampleTripScreen = ({navigation}) => {
       <View style={[s.ctaWrap, {paddingBottom: insets.bottom + 14}]}>
         <TouchableOpacity
           style={s.cta}
-          onPress={() => navigateTo(navigation, t('SCREEN.PLAN_TRIP'))}
+          onPress={() => navigateTo(navigation, t('SCREEN.TRIP_WHERE'))}
           activeOpacity={0.9}>
           <Ionicons name="sparkles-outline" size={16} color={C.white} />
           <GlobalText text={t('TRIP.SAMPLE_CTA')} style={s.ctaText} />
