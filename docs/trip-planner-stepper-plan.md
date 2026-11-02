@@ -402,8 +402,23 @@ weather"). The prose is the register the sample trip promises.
 - **`ItineraryScreen`'s stop notes are centred** — the same `GlobalText`
   default that was fixed on four other screens.
 
-⚠️ The local backend is **still on `ai_driver = claude`**. api-test is
-untouched and remains on `fake`, so none of this is live there yet.
+⚠️ The local backend is **still on `ai_driver = claude`**.
+
+### api-test after the push (2026-11-02)
+
+Re-walked on api-test with the backend deployed. The stepper works end to end,
+and the stale-plan fix holds: days 2 → 3 on review sent a fresh
+`planFromCart` and the title changed from "2 days in Konkan" to "3 days in
+Konkan" with three day tabs.
+
+But **api-test is still generating with `FakeClient`** — the itinerary reads
+"Planned stop at Tarkarli Beach." and the call returns in ~600 ms, against
+5–8 s for a real one. `ai_driver` lives in the **`ai_configs` table**, not in
+code, so deploying the prompt fix does not switch it on. To make the AI live
+there: set `ai_driver` to `claude` (the admin AI dashboard accepts it, no
+deploy needed) and make sure `ANTHROPIC_API_KEY` is in api-test's
+environment. Until then the prompt fix is deployed but dormant, and the
+itineraries api-test produces are templates.
 
 ### What did behave correctly
 
