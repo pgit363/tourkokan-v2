@@ -31,6 +31,7 @@ import GlobalText from '../Components/Customs/Text';
 import {C} from '../Components/Marketplace/theme';
 import {StepFooter, StepHeader} from '../Components/Trip/StepChrome';
 import STRING from '../Services/Constants/STRINGS';
+import {navigateTo} from '../Services/CommonMethods';
 import {useInTrip, useTripCart, categoryNames} from '../Services/trip';
 
 // ── Pieces ──────────────────────────────────────────────────────────────────
@@ -206,6 +207,23 @@ const TripArrangeScreen = ({navigation}) => {
         ListEmptyComponent={
           <GlobalText style={s.empty} text={t('TRIP.STEP3_EMPTY')} />
         }
+        // Arranging the order is exactly when someone notices the one place
+        // they care about is missing from the list. The door was only on the
+        // cart, three taps behind the map, so almost nobody found it.
+        ListFooterComponent={
+          <TouchableOpacity
+            style={s.addOwn}
+            accessibilityRole="button"
+            disabled={saving}
+            onPress={() =>
+              navigateTo(navigation, t('SCREEN.ADD_FROM_LINK'), {
+                tripId: cart.tripId,
+              })
+            }>
+            <Ionicons name="link-outline" size={17} color={C.oceanMid} />
+            <GlobalText text={t('TRIP.ADD_OWN_TITLE')} style={s.addOwnTxt} />
+          </TouchableOpacity>
+        }
       />
 
       <StepFooter
@@ -221,6 +239,20 @@ const TripArrangeScreen = ({navigation}) => {
 const s = StyleSheet.create({
   screen: {flex: 1, backgroundColor: C.cream},
   list: {padding: 16, gap: 8},
+
+  addOwn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    marginTop: 4,
+    paddingVertical: 14,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderStyle: 'dashed',
+    borderColor: C.oceanMid,
+  },
+  addOwnTxt: {fontSize: 15, fontWeight: '600', color: C.oceanMid},
 
   row: {
     flexDirection: 'row',
