@@ -476,7 +476,10 @@ const ItineraryScreen = ({navigation, route}) => {
           <View key={`${stop.site?.id}-${i}`}>
             <Stop
               stop={stop}
-              picked={pickedIds.has(stop.site?.id)}
+              // A place the traveller pasted a map link for is theirs as
+              // surely as one they ticked — it just never entered the cart,
+              // so the id set cannot know about it. The server says so.
+              picked={pickedIds.has(stop.site?.id) || !!stop.site?.custom}
               onOpen={() =>
                 navigateTo(navigation, t('SCREEN.STOP_DETAIL_TRIP'), {
                   stop,
