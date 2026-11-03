@@ -700,14 +700,57 @@ They are hermetic: `Http::preventStrayRequests()` is on, because the first
 draft of the short-link test passed by quietly fetching google.com. Two fixes
 were mutation-checked by reverting them and confirming the test fails.
 
+### Verified on device (2026-11-03)
+
+**Against the local backend**, walking the whole stepper: section labels
+left-aligned; **the days clamp stops at 7**, the `max_days` from `ai_configs`
+rather than the old hardcoded 14; the ported "already booked" note appears;
+**the step-2 door is there** and leads to a working add-from-link; the counter
+moved to **"1 of 3 minimum"** after a pasted place, which is the headline fix
+(it stayed at 0 before); two real beaches took it to "3 places — ready to
+arrange", so the gate counts the pin; step 3 showed the pin badged YOURS with
+"Your own place" and greyed arrows; **the X removed it**, which that button
+could not do before; the plan badged picked places and not suggestions; and
+reopening from My Trips kept the badges.
+
+The free-plan count was verified with a discriminating test rather than a
+screenshot: a fresh user with a wallet balance of `0` read **"3 free plans
+left"** (so `available()` is live), and after granting +5 behind the app's
+back a revisit read **"8"** — a number only the cart payload could supply,
+since the cached step-1 options value still said 3.
+
+**Against api-test with the real model**, after the deploy: the plan came back
+as *"Malvan Coast Beaches: Two Days"* and **day 2 was built around the pasted
+pin** ("Rocks, white sand and the Devbag sangam"), with prose the model wrote
+from a name and a coordinate. Rather than trust the screen, the stored payload
+was read back from the server:
+
+```
+Day 1  Chivla Beach          picked=True   custom=False  cats=Beach/समुद्रकिनारा
+       Tarkarli Beach        picked=True   custom=False  cats=Beach/समुद्रकिनारा
+       Kolamb Beach          picked=False  custom=False  cats=Beach/समुद्रकिनारा
+Day 2  Nivti rocks viewpoint picked=True   custom=True   cats=(none)
+       Bhogwe Beach          picked=False  custom=False  cats=Beach/समुद्रकिनारा
+       Devbag Beach (Sangam) picked=False  custom=False  cats=Beach/समुद्रकिनारा
+```
+
+`picked` discriminates rather than being always-on, the pin carries both
+flags, and every real site stores both category names. A guest session also
+confirmed, on the deployed code, that `removeCustomStop` works by uuid and is
+idempotent, that the cap refuses the eleventh pin, that the cart payload
+carries `credits`, and that a `%20` in a pasted link resolves.
+
+---
+
 ### Still open
 
 - **iOS is unverified** for the whole stepper. Out of scope while Android
   ships, recorded so it is not mistaken for done.
-- **Nothing is verified on a device.** The emulator would not boot — the Mac
-  had 760 MB of 26 GB swap free — so everything above is proven by the test
-  suite, by live calls against the local API on `:8002`, and by lint. The
-  stepper has not been walked by hand since these changes.
+- ~~**Nothing is verified on a device.**~~ Done twice. The emulator only
+  boots on this Mac **headless with `-memory 2048`** — the window and the
+  default RAM are what it cannot afford, and the symptom of trying is qemu at
+  0% CPU with no adb device. The installed build is `DEBUGGABLE`, so Metro
+  serves current JS and no gradle rebuild is needed for JS-only changes.
 - **~35 possibly-orphaned `TRIP.*` translation keys.** Deliberately left: an
   orphan scan flags 50, and at least fifteen are false positives, because
   `KIND_*` and `SAMPLE_*` are reached through a variable. Any cleanup has to
