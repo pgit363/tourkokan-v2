@@ -101,6 +101,13 @@ const trip = createSlice({
       // The stepper's step-1 answers, kept so walking back into step 1 finds
       // the towns and interests still ticked.
       state.filters = d.filters || {};
+      // Every cart endpoint reports it, so the review screen's "N free plans
+      // left" is this request's number rather than whatever the last
+      // unrelated call left behind. Guarded so an older backend that does not
+      // send it leaves the existing value alone instead of blanking it.
+      if (d.credits != null) {
+        state.credits = d.credits;
+      }
       state.pending = {};
       state.loading = false;
     },
