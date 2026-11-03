@@ -22,7 +22,7 @@ Design artboards: Artifact `7h8Rp1Tm6gBQb6CUGWgYmo`.
 | B0 | Cart CRUD (add / remove / **reorder**) + `planFromCart` + credits | backend | ♻️ Already built | — |
 | B1 | `POST v2/trip/places` — browse by towns[] + categories[] | backend | ✅ Done | — |
 | B2 | `updateCart` persists `filters` + `planFromCart` honours them | backend | ✅ Done | — |
-| M0 | Map screen place-picking (add / in-trip / cart badge) | app | ✅ Done, verified on device | — |
+| M0 | Map screen place-picking (add / in-trip / cart badge) | app | ↩️ Reverted in `0d28e12` — map picking lives on step 2 | — |
 | M1 | Step 1 — Where & what (split out of PlanTripScreen) | app | ✅ Done, verified on device | — |
 | M2 | Step 2 — Pick places (list + map toggle, filtered) | app | ✅ Done, verified on device | — |
 | M3 | Step 3 — Arrange selected places | app | ✅ Done, verified on device | — |
@@ -30,11 +30,11 @@ Design artboards: Artifact `7h8Rp1Tm6gBQb6CUGWgYmo`.
 | M5 | Step chrome (progress, back/next, state, entry points) | app | ✅ Done (completed by M4's wiring) | — |
 | M6 | i18n en + mr sweep + device verification | app | ✅ Done, verified on device in both languages | — |
 
-**Total remaining on this plan: none — but the feature does not work with the
-AI switched on.** The happy path verified on api-test ran on the fake driver.
-With `ai_driver = claude` the generation fails (`day_too_thin`); see "The AI
-driver, switched on". Outside this plan: iOS verification and the guest-trip
-bug.
+**Total remaining on this plan: none.** The stepper walks end to end against
+api-test on the real model, pasted places included. The guest-trip bug is
+fixed and verified. What is left is not plan work but defects and gaps — see
+"Open items by severity", audited 2026-11-03, where items 1–5 are the ones a
+traveller will actually hit.
 
 > Keep this table the single source of truth for progress.
 
@@ -559,12 +559,146 @@ point). The model wrote prose for a place it knew only as a name and a
 coordinate — "looks over the rocky coast. Visit before the afternoon heat
 builds" — and titled the trip "Malvan and Nivti coast, two days".
 
-### ⚠️ It is nearly unreachable
+### The route it was verified through no longer exists
 
-The only route in is **Map → "View my trip" → "Add your own place"**. Taking
-the cart out of the drawer left this three taps deep behind a screen most
-travellers will never open. The feature works and almost nobody will find it.
-Step 2 of the stepper is the obvious place for a door.
+The walk above went **Map → "View my trip" → "Add your own place"**, and that
+route had already been removed by `0d28e12` earlier the same day: the revert
+took the cart badge and the way through to "My trip" off the district map. The
+build on the emulator still had them. What the walk proves is the flow itself
+— resolve, name, add, plan, badge — which is backend and `AddFromLinkScreen`
+and is unaffected. What it does not prove is that anyone can get there.
+
+`TripCartScreen` is now unreachable in source: that map bar was its only
+entry, and it still holds the days stepper and "Add more places".
+
+### A door on step 2 (2026-11-03)
+
+Step 3 got one in `5db5d34`, but step 3 is behind the 3-place minimum — a
+traveller whose one place is missing cannot reach the door that would add it.
+Step 2 is where the list is read and where a gap is noticed, so the same
+control now sits under that list: same dashed border, same
+`TRIP.ADD_OWN_TITLE`, one affordance learned once across step 2, step 3 and
+the cart.
+
+It is in `ListFooterComponent`, which FlatList renders on the empty and
+no-match states too — "Nothing here yet" and "No place here matches that name"
+are the two moments the traveller most needs somewhere else to go. The map
+view has no door; the toggle back to the list is one tap, and a FAB over the
+map would be a second affordance for the same thing.
+
+**Not verified on device.** Lint and a Babel compile pass, and the control is
+the one already shipped on step 3 — but the emulator would not boot: the Mac
+had 760 MB of 26 GB swap free and ~64 MB of RAM, so qemu sat at 0% CPU and
+never reached adb across three attempts. Worth a two-minute look on the next
+real run; there is nothing in it that can fail silently.
+
+**What the door still cannot fix:** nothing about the cart knows the pin
+exists. `present()` returns no `custom_stops`, so after "Added to your trip"
+step 2's counter does not move and no row appears — see item 1 of the open
+items below. The traveller's only confirmation is the one on the screen where
+they added it.
+
+---
+
+## Open items by severity (audited 2026-11-03)
+
+Audited against the code, not against this doc's history — each line below was
+read in the file named. Severity is "how likely is a traveller to hit it", not
+how hard it is to fix.
+
+### P1 — a traveller will hit this
+
+1. **A place you add yourself is invisible until the plan exists.**
+   `TripCartController::present()` returns neither `custom_stops` nor a count
+   of them, and `count` is `cart->contents()->count()`, which is favourites
+   rows only. So after "Added to your trip" nothing moves: no row on step 2,
+   step 3 or the review screen, and no change in the counter. The pin appears
+   for the first time inside the generated itinerary. Fix: present custom
+   stops as rows with negative ids and `custom: true` — the convention the
+   assembler already uses — and the three screens render them unchanged.
+   *~0.5d, both repos. This is what makes today's door only half a door.*
+
+2. **Custom stops do not count toward the 3-place minimum.**
+   `TripPlanner::planFromCart` gates on `$picked->count() < $minCart` where
+   `$picked` is DB sites only, and step 2's counter mirrors the same number.
+   Two real places plus two of your own reads as "add 1 more" and is refused
+   `cart_too_small`, although the planner would happily plan all four — it
+   concats the custom sites immediately afterwards. Fix falls out of 1.
+
+3. **A custom stop can never be removed.** There is no `removeCustomStop`
+   route and no UI for one. Paste the wrong pin and it is in that trip
+   permanently — and because the assembler treats every picked place as
+   mandatory (`picked_place_missing`), one bad pin can make a trip
+   permanently unplannable, spending and refunding a credit on each attempt.
+   *Endpoint + an X on the row, ~0.5d.*
+
+4. **No cap on `custom_stops`.** `addCustomStop` appends without a limit and
+   `customSites()` maps the whole array into mandatory picks. Twenty pasted
+   pins on a one-day trip is a guaranteed `day_too_thin`. Cap it in the
+   request (5 feels right for a day, 10 overall).
+
+5. **`day_too_thin` has no retry.** The one failure mode the real model
+   actually produces. The per-day minimum cannot be expressed in the schema —
+   Anthropic rejects `minItems` other than 0 or 1 — so it lives in the prompt
+   only, and the model sometimes ignores it. One retry stating the shortfall
+   ("day 2 has 2 stops and needs 4") would convert most of these. Today:
+   spend, refund, "that did not come out right". *~0.5d.*
+
+### P2 — wrong, visible, cheap
+
+6. **`TripCartScreen` is unreachable** (`0d28e12` took its only entry). The
+   days stepper and "Add more places" live on it. Delete it, or give it a
+   home. Product decision, not a bug.
+
+7. **`PlanTripScreen` is dead too** — registered in `StackNavigator` at the
+   name `SCREEN.PLAN_TRIP`, and nothing in `src/` navigates to it since the
+   two forms were merged.
+
+8. **The itinerary's stop categories are English-only, and nothing reads
+   them.** `ItineraryAssembler::rehydrate()` eager-loads
+   `categories:id,name,code` with no `mr_name`, then emits `'name' =>
+   $c->name`. That goes through Category's accessor, which returns the
+   Marathi name only when `mr_name` is loaded — it is not, so `null == ""` is
+   true and it always falls back to English. `CandidateFetcher` was fixed for
+   exactly this; the assembler was missed. **Latent, not visible:** no screen
+   in `src/` reads a stop's `categories`, so today this is dead payload
+   stored in every itinerary row. Fix the select when something first renders
+   it, or drop the field. *~20 min either way.*
+
+9. **YOURS badges vanish on a saved trip.** Pasted pins survive, via the
+   stored `custom` flag. Places the traveller picked themselves do not:
+   `pickedIds` in `ItineraryScreen` is built from the live cart, and the
+   stored itinerary records nothing about whose choice a stop was. Add
+   `'picked' => bool` to the stop payload. *~20 min.*
+
+10. **Centred text.** `ItineraryScreen`'s `stopNote`, and `TripCartScreen`'s
+    `rowTitle`, `rowMeta`, `headerTitle`, `headerMeta` and `sectionLabel` —
+    all inherit `GlobalText`'s `textAlign: 'center'` inside flex rows. The
+    cart ones only matter if item 6 keeps the screen. *~10 min.*
+
+11. **Step 3 overpromises.** `TRIP.STEP3_HINT` says "We plan around this
+    order", and the planner regroups geographically by day. The order is a
+    hint to the model, not a promise to the traveller. *Reword, ~5 min.*
+
+### P3 — untested, or hygiene
+
+12. **The AI spend controls have never been exercised.**
+    `daily_spend_ceiling` (₹50) and `rate_limit_per_day` (20) both have live
+    code paths — `SpendGuard` and a `Limit::perDay` in `AppServiceProvider` —
+    that no run has ever reached. A ceiling that refuses wrongly is worse
+    than no ceiling. Lower them temporarily and walk into both.
+
+13. **No axios timeout anywhere.** `CommonServices` configures global axios
+    and never sets one, so a dead backend hangs until the OS gives up (10–30s)
+    and reads as a frozen app. It has to be per-endpoint rather than global:
+    `planFromCart` legitimately takes ~11s against the real model.
+
+14. **iOS is unverified** for the whole stepper — deliberate while Android
+    ships, recorded so it is not mistaken for done.
+
+15. ~~**This doc's M0 row is stale.**~~ Fixed in this pass: the board now
+    says M0 was reverted. Map picking lives on step 2, which has its own
+    MapView.
 
 ---
 
@@ -682,6 +816,16 @@ Credits for the test user read **99999 free plans left**.
 ---
 
 ## Verification gotchas (these cost hours — read before testing on device)
+
+**An emulator that hangs at 0% CPU is the Mac out of memory, not a broken
+AVD.** `emulator -avd …` prints its usual Vulkan/GLDirectMem lines, a
+`crashpad_annotations["command_line"]` line, and then nothing; `adb devices`
+stays empty for ever and the qemu process sits at 0.0% CPU. Check
+`sysctl vm.swapusage` before touching the AVD — 760 MB free of 26 GB means
+there is no memory to boot into, and no amount of `-gpu swiftshader_indirect`
+or lock-file clearing will help. (`multiinstance.lock` left behind by a killed
+emulator is safe to delete; it was not the cause here.)
+
 
 1. **`adb exec-out screencap -p` WORKS.** Use it as the primary way to verify
    UI. Scale with `sips -Z 900 shot.png --out small.png`; the device is

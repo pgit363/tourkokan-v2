@@ -10,6 +10,11 @@
  * switching does not refetch, it draws the same places as markers, so a count
  * cannot differ between the two.
  *
+ * "Add your own place" sits under the list rather than beside the map
+ * toggle: a place missing from the list is noticed while reading the list, and
+ * the footer renders on the empty and no-match states too, which is exactly
+ * when the traveller most needs somewhere else to go.
+ *
  * The bar above the button is the point of the screen. `min_cart_places` is
  * an `ai_configs` row, so it is read from the server and never hardcoded, and
  * it is stated as progress — "1 of 3 minimum, add 2 more" — rather than left
@@ -36,6 +41,7 @@ import AddToTripButton from '../Components/Trip/AddToTripButton';
 import PlaceMarker from '../Components/Trip/PlaceMarker';
 import {StepFooter, StepHeader} from '../Components/Trip/StepChrome';
 import STRING from '../Services/Constants/STRINGS';
+import {navigateTo} from '../Services/CommonMethods';
 import {useInTrip, useTripCart, useTripPlaces, categoryNames} from '../Services/trip';
 
 /** Sindhudurg, for the map's opening frame when a place has no coordinates. */
@@ -290,9 +296,27 @@ const TripPickScreen = ({navigation}) => {
             />
           }
           ListFooterComponent={
-            truncated && !search ? (
-              <GlobalText style={s.empty} text={t('TRIP.STEP2_TRUNCATED')} />
-            ) : null
+            <>
+              {truncated && !search && (
+                <GlobalText style={s.empty} text={t('TRIP.STEP2_TRUNCATED')} />
+              )}
+              {/* The same control, in the same words, as step 3 and the cart:
+                  one affordance the traveller learns once. */}
+              <TouchableOpacity
+                style={s.addOwn}
+                accessibilityRole="button"
+                onPress={() =>
+                  navigateTo(navigation, t('SCREEN.ADD_FROM_LINK'), {
+                    tripId: cart.tripId,
+                  })
+                }>
+                <Ionicons name="link-outline" size={17} color={C.oceanMid} />
+                <GlobalText
+                  text={t('TRIP.ADD_OWN_TITLE')}
+                  style={s.addOwnTxt}
+                />
+              </TouchableOpacity>
+            </>
           }
         />
       )}
@@ -367,6 +391,19 @@ const s = StyleSheet.create({
     textAlign: 'center',
     paddingVertical: 26,
   },
+  addOwn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    marginTop: 4,
+    paddingVertical: 14,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderStyle: 'dashed',
+    borderColor: C.oceanMid,
+  },
+  addOwnTxt: {fontSize: 15, fontWeight: '600', color: C.oceanMid},
 
   mapWrap: {flex: 1},
   map: {flex: 1},
