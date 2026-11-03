@@ -742,6 +742,49 @@ carries `credits`, and that a `%20` in a pasted link resolves.
 
 ---
 
+### Verified on the deployed test server (2026-11-03)
+
+Everything above was re-checked against api-test after the backend was
+deployed, as a Marathi guest, by reading payloads back from the server rather
+than trusting a screen.
+
+Confirmed there: the cart carries `credits` and `unavailable`; pasted pins are
+cart rows with a uuid `key`; `removeCustomStop` works and is idempotent; the
+cap refuses the eleventh pin; a `%20` in a pasted link resolves; **26
+unverified taps against a daily limit of 20 were never throttled**, which is
+what makes the middleware-order inversion harmless; and a reorder containing
+an id that is not in the cart keeps the right order.
+
+The generation itself ran on the real model and came back as *"Malvan Coast
+Beaches: Two Days"*, with **day 2 built around the pasted pin**. The stored
+payload reads:
+
+```
+Day 1  Chivla Beach          picked=True   custom=False  cats=Beach/समुद्रकिनारा
+       Tarkarli Beach        picked=True   custom=False  cats=Beach/समुद्रकिनारा
+       Kolamb Beach          picked=False  custom=False  cats=Beach/समुद्रकिनारा
+Day 2  Nivti rocks viewpoint picked=True   custom=True   cats=(none)
+       Bhogwe Beach          picked=False  custom=False  cats=Beach/समुद्रकिनारा
+       Devbag Beach (Sangam) picked=False  custom=False  cats=Beach/समुद्रकिनारा
+```
+
+`picked` discriminates rather than being always on, the pin carries both
+flags, and every real site stores both category names.
+
+**One planner bug was found AFTER this feature was signed off**, by the
+wider i18n audit rather than by anything here: `MapLinkResolver::nearbyCovered`
+builds the "here is what we do cover" list shown when a pasted pin falls
+outside the district, and its select dropped `mr_name` — so a Marathi
+traveller being refused was offered English place names. Fixed in the backend
+sweep; it now reads `विजयदुर्ग किल्ला`, `विजयदुर्ग`.
+
+That class of bug has its own home now:
+**`tourkokan-backend/docs/i18n-marathi-columns.md`** — three translation
+mechanisms, the three shapes a thin select hides in, the recurrence history
+and the guards. Read it before touching a select that carries `name`.
+
+---
+
 ### Still open
 
 - **~35 possibly-orphaned `TRIP.*` translation keys.** Deliberately left: an
