@@ -601,8 +601,13 @@ const s = StyleSheet.create({
     backgroundColor: 'rgba(255,255,255,0.12)',
   },
   headerText: {flex: 1, minWidth: 0},
-  headerTitle: {fontSize: 17, fontWeight: '800', color: C.white},
-  headerMeta: {fontSize: 11.5, color: C.oceanFoam},
+  headerTitle: {
+    fontSize: 17,
+    fontWeight: '800',
+    color: C.white,
+    textAlign: 'left',
+  },
+  headerMeta: {fontSize: 11.5, color: C.oceanFoam, textAlign: 'left'},
 
   tabs: {flexDirection: 'row', gap: 6},
   tab: {
@@ -623,7 +628,13 @@ const s = StyleSheet.create({
     justifyContent: 'space-between',
     marginBottom: 12,
   },
-  theme: {flex: 1, fontSize: 13, fontWeight: '700', color: C.oceanMid},
+  theme: {
+    flex: 1,
+    fontSize: 13,
+    fontWeight: '700',
+    color: C.oceanMid,
+    textAlign: 'left',
+  },
   dayCount: {fontSize: 12, color: C.textLight},
 
   arrival: {
@@ -636,8 +647,18 @@ const s = StyleSheet.create({
     marginBottom: 10,
   },
   arrivalBody: {flex: 1},
-  arrivalTitle: {fontSize: 13.5, fontWeight: '700', color: C.oceanDeep},
-  arrivalBus: {fontSize: 12, color: C.oceanMid, marginTop: 2},
+  arrivalTitle: {
+    fontSize: 13.5,
+    fontWeight: '700',
+    color: C.oceanDeep,
+    textAlign: 'left',
+  },
+  arrivalBus: {
+    fontSize: 12,
+    color: C.oceanMid,
+    marginTop: 2,
+    textAlign: 'left',
+  },
 
   stop: {
     flexDirection: 'row',
@@ -667,7 +688,13 @@ const s = StyleSheet.create({
     borderRadius: 999,
   },
   yoursTxt: {fontSize: 10, fontWeight: '800', color: C.oceanMid},
-  stopNote: {fontSize: 12, color: C.textLight, marginTop: 3, lineHeight: 17},
+  stopNote: {
+    fontSize: 12,
+    color: C.textLight,
+    marginTop: 3,
+    lineHeight: 17,
+    textAlign: 'left',
+  },
   call: {
     width: 38,
     height: 38,
@@ -696,7 +723,13 @@ const s = StyleSheet.create({
     padding: 13,
     marginTop: 12,
   },
-  warningTxt: {flex: 1, fontSize: 12.5, color: '#6B5614', lineHeight: 18},
+  warningTxt: {
+    flex: 1,
+    fontSize: 12.5,
+    color: '#6B5614',
+    lineHeight: 18,
+    textAlign: 'left',
+  },
 
   footer: {
     padding: 16,

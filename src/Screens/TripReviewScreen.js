@@ -147,7 +147,10 @@ const TripReviewScreen = ({navigation, route}) => {
   }, [filters.category_codes, options]);
 
   const setDays = delta => {
-    const next = Math.min(14, Math.max(1, days + delta));
+    // ai_configs max_days, not a hardcoded 14: the backend trims anything
+    // over it when it plans, so offering more was offering something the
+    // server would quietly take away.
+    const next = Math.min(options?.days?.max ?? 7, Math.max(1, days + delta));
 
     if (next !== cart.days) {
       update({days: next}, navigation);

@@ -155,7 +155,13 @@ const s = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  headerTitle: {flex: 1, fontSize: 18, fontWeight: '700', color: C.white},
+  headerTitle: {
+    flex: 1,
+    fontSize: 18,
+    fontWeight: '700',
+    color: C.white,
+    textAlign: 'left',
+  },
   headerCurve: {
     position: 'absolute',
     left: 0,
@@ -174,11 +180,25 @@ const s = StyleSheet.create({
     color: C.oceanMid,
     textTransform: 'uppercase',
     letterSpacing: 0.6,
+    textAlign: 'left',
   },
   titleRow: {flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 6},
-  title: {flex: 1, fontSize: 24, fontWeight: '700', color: C.textDark, lineHeight: 30},
-  cats: {fontSize: 13.5, color: C.textMid, marginTop: 4},
-  verifiedNote: {fontSize: 11.5, color: C.oceanMid, marginTop: 4, fontWeight: '600'},
+  title: {
+    flex: 1,
+    fontSize: 24,
+    fontWeight: '700',
+    color: C.textDark,
+    lineHeight: 30,
+    textAlign: 'left',
+  },
+  cats: {fontSize: 13.5, color: C.textMid, marginTop: 4, textAlign: 'left'},
+  verifiedNote: {
+    fontSize: 11.5,
+    color: C.oceanMid,
+    marginTop: 4,
+    fontWeight: '600',
+    textAlign: 'left',
+  },
 
   card: {
     backgroundColor: C.white,
@@ -195,8 +215,9 @@ const s = StyleSheet.create({
     textTransform: 'uppercase',
     letterSpacing: 0.7,
     marginBottom: 6,
+    textAlign: 'left',
   },
-  why: {fontSize: 14, color: C.textDark, lineHeight: 21},
+  why: {fontSize: 14, color: C.textDark, lineHeight: 21, textAlign: 'left'},
 
   actions: {flexDirection: 'row', flexWrap: 'wrap', gap: 10, marginTop: 20},
   action: {
@@ -210,7 +231,13 @@ const s = StyleSheet.create({
     backgroundColor: C.white,
   },
   actionText: {fontSize: 13.5, fontWeight: '700'},
-  noContact: {fontSize: 12.5, color: C.textLight, marginTop: 16, lineHeight: 18},
+  noContact: {
+    fontSize: 12.5,
+    color: C.textLight,
+    marginTop: 16,
+    lineHeight: 18,
+    textAlign: 'left',
+  },
 });
 
 export default TripStopDetailScreen;

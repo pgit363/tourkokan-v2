@@ -330,7 +330,13 @@ const s = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  headerTitle: {flex: 1, fontSize: 18, fontWeight: '700', color: C.white},
+  headerTitle: {
+    flex: 1,
+    fontSize: 18,
+    fontWeight: '700',
+    color: C.white,
+    textAlign: 'left',
+  },
   headerCurve: {
     position: 'absolute',
     left: 0,
@@ -343,7 +349,13 @@ const s = StyleSheet.create({
   },
 
   body: {paddingHorizontal: 18, paddingTop: 16},
-  lead: {fontSize: 15, fontWeight: '700', color: C.textDark, marginBottom: 14},
+  lead: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: C.textDark,
+    marginBottom: 14,
+    textAlign: 'left',
+  },
   label: {
     fontSize: 10.5,
     fontWeight: '700',
@@ -352,6 +364,7 @@ const s = StyleSheet.create({
     letterSpacing: 0.7,
     marginTop: 14,
     marginBottom: 7,
+    textAlign: 'left',
   },
   input: {
     backgroundColor: C.white,
@@ -398,7 +411,7 @@ const s = StyleSheet.create({
     borderColor: 'rgba(178,58,46,0.22)',
     marginTop: 14,
   },
-  errorTxt: {flex: 1, fontSize: 12.5, color: '#B23A2E'},
+  errorTxt: {flex: 1, fontSize: 12.5, color: '#B23A2E', textAlign: 'left'},
 
   resultCard: {
     backgroundColor: C.white,
@@ -420,9 +433,19 @@ const s = StyleSheet.create({
   badgeTxt: {fontSize: 10, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.6},
   badgeTxtIn: {color: C.forestMid},
   badgeTxtOut: {color: '#B23A2E'},
-  resultName: {fontSize: 17, fontWeight: '700', color: C.textDark},
-  resultMeta: {fontSize: 12.5, color: C.textMid, marginTop: 3},
-  coords: {fontSize: 11.5, color: C.textLight, marginTop: 5},
+  resultName: {
+    fontSize: 17,
+    fontWeight: '700',
+    color: C.textDark,
+    textAlign: 'left',
+  },
+  resultMeta: {
+    fontSize: 12.5,
+    color: C.textMid,
+    marginTop: 3,
+    textAlign: 'left',
+  },
+  coords: {fontSize: 11.5, color: C.textLight, marginTop: 5, textAlign: 'left'},
 
   chips: {flexDirection: 'row', flexWrap: 'wrap', gap: 8},
   chip: {
@@ -437,7 +460,13 @@ const s = StyleSheet.create({
   chipTxt: {fontSize: 13, fontWeight: '600', color: C.textMid},
   chipTxtOn: {color: C.oceanDeep},
 
-  note: {fontSize: 12.5, color: C.textMid, lineHeight: 19, marginTop: 16},
+  note: {
+    fontSize: 12.5,
+    color: C.textMid,
+    lineHeight: 19,
+    marginTop: 16,
+    textAlign: 'left',
+  },
   sectionLabel: {
     fontSize: 10.5,
     fontWeight: '700',
@@ -446,6 +475,7 @@ const s = StyleSheet.create({
     letterSpacing: 0.7,
     marginTop: 18,
     marginBottom: 8,
+    textAlign: 'left',
   },
   nearbyRow: {
     flexDirection: 'row',
@@ -458,8 +488,18 @@ const s = StyleSheet.create({
     padding: 12,
     marginBottom: 8,
   },
-  nearbyName: {fontSize: 14, fontWeight: '700', color: C.textDark},
-  nearbyMeta: {fontSize: 11.5, color: C.textLight, marginTop: 2},
+  nearbyName: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: C.textDark,
+    textAlign: 'left',
+  },
+  nearbyMeta: {
+    fontSize: 11.5,
+    color: C.textLight,
+    marginTop: 2,
+    textAlign: 'left',
+  },
 
   savedBar: {
     flexDirection: 'row',
@@ -478,7 +518,12 @@ const s = StyleSheet.create({
     padding: 14,
     marginTop: 22,
   },
-  howBody: {fontSize: 12.5, color: C.textMid, lineHeight: 19},
+  howBody: {
+    fontSize: 12.5,
+    color: C.textMid,
+    lineHeight: 19,
+    textAlign: 'left',
+  },
 });
 
 export default AddFromLinkScreen;

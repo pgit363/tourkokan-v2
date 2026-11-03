@@ -153,8 +153,19 @@ const s = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  headerTitle: {fontSize: 19, fontWeight: '700', color: C.white},
-  headerSub: {fontSize: 12.5, color: C.oceanFoam, opacity: 0.9, marginTop: 1},
+  headerTitle: {
+    fontSize: 19,
+    fontWeight: '700',
+    color: C.white,
+    textAlign: 'left',
+  },
+  headerSub: {
+    fontSize: 12.5,
+    color: C.oceanFoam,
+    opacity: 0.9,
+    marginTop: 1,
+    textAlign: 'left',
+  },
   headerCurve: {
     position: 'absolute',
     left: 0,
@@ -178,6 +189,7 @@ const s = StyleSheet.create({
     letterSpacing: 0.7,
     marginBottom: 8,
     marginLeft: 2,
+    textAlign: 'left',
   },
   card: {
     backgroundColor: C.white,

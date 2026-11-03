@@ -269,8 +269,20 @@ const s = StyleSheet.create({
     flexShrink: 0,
   },
   headerTextWrap: {flex: 1},
-  headerTitle: {fontSize: 22, fontWeight: '700', color: C.white, letterSpacing: 0.2},
-  headerSub: {fontSize: 12.5, color: C.oceanFoam, opacity: 0.9, marginTop: 2},
+  headerTitle: {
+    fontSize: 22,
+    fontWeight: '700',
+    color: C.white,
+    letterSpacing: 0.2,
+    textAlign: 'left',
+  },
+  headerSub: {
+    fontSize: 12.5,
+    color: C.oceanFoam,
+    opacity: 0.9,
+    marginTop: 2,
+    textAlign: 'left',
+  },
   creditChip: {
     alignSelf: 'flex-start',
     marginTop: 12,
@@ -364,7 +376,7 @@ const s = StyleSheet.create({
     borderColor: 'rgba(178,58,46,0.22)',
     marginBottom: 12,
   },
-  errorText: {flex: 1, fontSize: 12.5, color: '#B23A2E'},
+  errorText: {flex: 1, fontSize: 12.5, color: '#B23A2E', textAlign: 'left'},
 
   footNote: {
     fontSize: 11.5,

@@ -64,9 +64,7 @@ import ProductAnalyticsScreen from '../Screens/Marketplace/ProductAnalyticsScree
 import SubscriptionScreen from '../Screens/Marketplace/SubscriptionScreen';
 import FavouritesScreen from '../Screens/Marketplace/FavouritesScreen';
 import MyEnquiriesScreen from '../Screens/Marketplace/MyEnquiriesScreen';
-import TripCartScreen from '../Screens/TripCartScreen';
 import ItineraryScreen from '../Screens/ItineraryScreen';
-import PlanTripScreen from '../Screens/PlanTripScreen';
 import TripWhereScreen from '../Screens/TripWhereScreen';
 import TripPickScreen from '../Screens/TripPickScreen';
 import TripArrangeScreen from '../Screens/TripArrangeScreen';
@@ -306,7 +304,6 @@ const StackNavigator = ({initialRoute}) => {
           <Stack.Screen name={t('SCREEN.SUBSCRIPTION')} component={SubscriptionScreen} />
           <Stack.Screen name={t('SCREEN.MARKET_FAVOURITES')} component={FavouritesScreen} />
           <Stack.Screen name={t('SCREEN.MY_ENQUIRIES')} component={MyEnquiriesScreen} />
-          <Stack.Screen name={t('SCREEN.TRIP_CART')} component={TripCartScreen} />
           <Stack.Screen name={t('SCREEN.MY_TRIPS')} component={MyTripsScreen} />
           <Stack.Screen name={t('SCREEN.STOP_DETAIL_TRIP')} component={TripStopDetailScreen} />
           <Stack.Screen name={t('SCREEN.TRIP_CONTACTS')} component={TripContactsScreen} />
@@ -329,10 +326,6 @@ const StackNavigator = ({initialRoute}) => {
           <Stack.Screen
             name={t('SCREEN.TRIP_REVIEW')}
             component={TripReviewScreen}
-          />
-          <Stack.Screen
-            name={t('SCREEN.PLAN_TRIP')}
-            component={PlanTripScreen}
           />
           <Stack.Screen
             name={t('SCREEN.ITINERARY')}

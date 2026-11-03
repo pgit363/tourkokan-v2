@@ -185,8 +185,19 @@ const s = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  headerTitle: {fontSize: 18, fontWeight: '700', color: C.white},
-  headerSub: {fontSize: 12, color: C.oceanFoam, opacity: 0.9, marginTop: 1},
+  headerTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: C.white,
+    textAlign: 'left',
+  },
+  headerSub: {
+    fontSize: 12,
+    color: C.oceanFoam,
+    opacity: 0.9,
+    marginTop: 1,
+    textAlign: 'left',
+  },
   headerCurve: {
     position: 'absolute',
     left: 0,
@@ -207,6 +218,7 @@ const s = StyleSheet.create({
     letterSpacing: 0.7,
     marginBottom: 9,
     marginLeft: 2,
+    textAlign: 'left',
   },
 
   card: {
@@ -250,15 +262,38 @@ const s = StyleSheet.create({
 
   runs: {fontSize: 11.5, color: C.textLight, marginTop: 10, textAlign: 'left'},
 
-  noBusTitle: {fontSize: 15, fontWeight: '700', color: C.textDark},
-  noBusBody: {fontSize: 13, color: C.textMid, marginTop: 5, lineHeight: 19},
+  noBusTitle: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: C.textDark,
+    textAlign: 'left',
+  },
+  noBusBody: {
+    fontSize: 13,
+    color: C.textMid,
+    marginTop: 5,
+    lineHeight: 19,
+    textAlign: 'left',
+  },
 
   roadCard: {backgroundColor: 'rgba(0,0,0,0.02)'},
   roadRow: {flexDirection: 'row', alignItems: 'center', gap: 11},
-  roadTitle: {fontSize: 14, fontWeight: '700', color: C.textDark},
-  roadSub: {fontSize: 12, color: C.textLight, marginTop: 2},
+  roadTitle: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: C.textDark,
+    textAlign: 'left',
+  },
+  roadSub: {fontSize: 12, color: C.textLight, marginTop: 2, textAlign: 'left'},
 
-  note: {fontSize: 11.5, color: C.textLight, lineHeight: 17, marginTop: 2, marginBottom: 10},
+  note: {
+    fontSize: 11.5,
+    color: C.textLight,
+    lineHeight: 17,
+    marginTop: 2,
+    marginBottom: 10,
+    textAlign: 'left',
+  },
 });
 
 export default TripLegScreen;

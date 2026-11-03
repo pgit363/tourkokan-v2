@@ -103,6 +103,11 @@ const TripWhereScreen = ({navigation}) => {
   }, [restored]);
 
   const maxTowns = options?.max_towns ?? 3;
+  // The backend caps the quote and the plan at ai_configs max_days, so a
+  // stepper that let someone pick 14 was offering a trip the server would
+  // trim without saying so. PlanTripScreen was the only screen that read
+  // this; it has gone, and the rule came here.
+  const maxDays = options?.days?.max ?? 7;
 
   const pointsForMode = useMemo(
     () =>
@@ -308,7 +313,8 @@ const TripWhereScreen = ({navigation}) => {
                 style={s.stepBtn}
                 accessibilityRole="button"
                 accessibilityLabel="+"
-                onPress={() => setDays(d => Math.min(14, d + 1))}>
+                disabled={days >= maxDays}
+                onPress={() => setDays(d => Math.min(maxDays, d + 1))}>
                 <GlobalText text="+" style={s.stepTxt} />
               </TouchableOpacity>
             </View>
@@ -334,6 +340,16 @@ const TripWhereScreen = ({navigation}) => {
               },
             ]}
           />
+          {stay === 'booked' && (
+            <View style={s.note}>
+              <Ionicons
+                name="information-circle-outline"
+                size={17}
+                color="#8A6A12"
+              />
+              <GlobalText text={t('TRIP.STAY_PICK_LATER')} style={s.noteTxt} />
+            </View>
+          )}
         </Section>
 
         <Section label={t('TRIP.ARRIVAL_LABEL')} hint={t('TRIP.ARRIVAL_HINT')}>
@@ -400,6 +416,20 @@ const TripWhereScreen = ({navigation}) => {
                   start: quote.arrival.earliest_start,
                 })}
               />
+            </View>
+          ) : null}
+
+          {/* The other answer. Only the good news was shown here, so a
+              traveller landing somewhere no bus serves was told nothing at
+              all — and then wondered why the first day looked thin. */}
+          {quote?.arrival && !quote.arrival.onward && arrivalPoint ? (
+            <View style={s.note}>
+              <Ionicons
+                name="information-circle-outline"
+                size={17}
+                color="#8A6A12"
+              />
+              <GlobalText text={t('TRIP.ARRIVAL_NO_BUS')} style={s.noteTxt} />
             </View>
           ) : null}
         </Section>
@@ -486,6 +516,22 @@ const s = StyleSheet.create({
     borderRadius: 10,
     backgroundColor: 'rgba(27,107,123,0.08)',
   },
+  note: {
+    flexDirection: 'row',
+    gap: 8,
+    marginTop: 10,
+    padding: 11,
+    borderRadius: 12,
+    backgroundColor: '#FDF6E3',
+  },
+  noteTxt: {
+    flex: 1,
+    fontSize: 12.5,
+    color: '#6B5614',
+    lineHeight: 18,
+    textAlign: 'left',
+  },
+
   connectionTxt: {flex: 1, fontSize: 12.5, color: C.textMid, textAlign: 'left'},
 
   screen: {flex: 1, backgroundColor: C.cream},

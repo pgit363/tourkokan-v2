@@ -201,8 +201,14 @@ const s = StyleSheet.create({
     letterSpacing: 0.8,
     color: C.textLight,
     marginBottom: 4,
+    textAlign: 'left',
   },
-  sectionHint: {fontSize: 12.5, color: C.textLight, marginBottom: 11},
+  sectionHint: {
+    fontSize: 12.5,
+    color: C.textLight,
+    marginBottom: 11,
+    textAlign: 'left',
+  },
 
   chip: {
     flexDirection: 'row',
@@ -235,9 +241,19 @@ const s = StyleSheet.create({
     borderColor: C.oceanMid,
     backgroundColor: 'rgba(27,107,123,0.06)',
   },
-  choiceTxt: {fontSize: 14.5, fontWeight: '700', color: C.textDark},
+  choiceTxt: {
+    fontSize: 14.5,
+    fontWeight: '700',
+    color: C.textDark,
+    textAlign: 'left',
+  },
   choiceTxtOn: {color: C.oceanMid},
-  choiceHint: {fontSize: 11.5, color: C.textLight, lineHeight: 16},
+  choiceHint: {
+    fontSize: 11.5,
+    color: C.textLight,
+    lineHeight: 16,
+    textAlign: 'left',
+  },
 
   header: {
     backgroundColor: C.oceanDeep,
@@ -254,8 +270,13 @@ const s = StyleSheet.create({
     backgroundColor: 'rgba(255,255,255,0.12)',
   },
   headerText: {flex: 1, minWidth: 0},
-  headerTitle: {fontSize: 17, fontWeight: '800', color: C.white},
-  headerCaption: {fontSize: 11.5, color: C.oceanFoam},
+  headerTitle: {
+    fontSize: 17,
+    fontWeight: '800',
+    color: C.white,
+    textAlign: 'left',
+  },
+  headerCaption: {fontSize: 11.5, color: C.oceanFoam, textAlign: 'left'},
 
   dots: {flexDirection: 'row', gap: 6, marginTop: 12},
   dot: {
