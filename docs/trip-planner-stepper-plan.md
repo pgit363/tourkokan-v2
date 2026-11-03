@@ -744,28 +744,20 @@ carries `credits`, and that a `%20` in a pasted link resolves.
 
 ### Still open
 
-- ~~**Nothing is verified on a device.**~~ Done twice. The emulator only
-  boots on this Mac **headless with `-memory 2048`** — the window and the
-  default RAM are what it cannot afford, and the symptom of trying is qemu at
-  0% CPU with no adb device. The installed build is `DEBUGGABLE`, so Metro
-  serves current JS and no gradle rebuild is needed for JS-only changes.
 - **~35 possibly-orphaned `TRIP.*` translation keys.** Deliberately left: an
   orphan scan flags 50, and at least fifteen are false positives, because
-  `KIND_*` and `SAMPLE_*` are reached through a variable. Any cleanup has to
-  resolve dynamic keys or it will break the add-from-link chips.
-- **`TripCart::count()` is dead code** and `contents()->count()` silently drops
-  a favourite whose site was since unapproved, soft-deleted, given a
-  `bus_stop_type` or stripped of coordinates — the same class of silent
-  disappearance as the custom-stop bug, with a different cause.
-- **`reorderCart` leaves gaps in `sort_order`** for any unmatched id. Harmless
-  today, since nothing reads it as a dense index.
-- **The thin category selects outside the planner are fixed** (`4fb0213`):
-  forty of them, across the site, route, gallery, landing-page,
-  vendor-onboard and contact controllers, were serving English to Marathi
-  readers. A structural test now fails naming any file that reintroduces one.
-- **Laravel inverts the middleware order `routes/api.php` documents.**
-  `throttle:trip` runs before `verified.email`, so an unverified guest's tap is
-  counted before it is refused. Harmless now that free refusals do not count.
+  `KIND_*` and `SAMPLE_*` are reached through a variable — the kind chips
+  rendered correctly on device, which is what those keys feed. Any cleanup
+  has to resolve dynamic keys first or it breaks the add-from-link screen.
+
+Everything else on this list is closed. The four latent items went in
+`d332d21`: a picked place that stops being plannable is now reported rather
+than vanishing, `TripCart::count()` has a job instead of being dead code,
+`sort_order` stays dense, and the middleware-order comment says what actually
+happens — with a test tapping five times into a limit of two to prove an
+unverified guest's refusals cost nothing. The forty thin category selects
+outside the planner went in `4fb0213`, with a structural test against a
+fourth recurrence.
 
 ---
 

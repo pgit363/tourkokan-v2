@@ -263,6 +263,23 @@ const TripReviewScreen = ({navigation, route}) => {
             {places.map((p, i) => (
               <PlaceRow key={String(p.id)} place={p} index={i} />
             ))}
+            {/* A place they ticked that has since been unapproved, removed,
+                retagged as a bus stop or lost its coordinates. It is gone
+                from the list either way; the point is to say so rather than
+                let the traveller wonder what happened to it. */}
+            {cart.unavailable > 0 && (
+              <View style={s.dropped}>
+                <Ionicons
+                  name="information-circle-outline"
+                  size={16}
+                  color="#8A6A12"
+                />
+                <GlobalText
+                  style={s.droppedTxt}
+                  text={t('TRIP.PLACES_UNAVAILABLE', {count: cart.unavailable})}
+                />
+              </View>
+            )}
           </Block>
         )}
 
@@ -370,6 +387,22 @@ const s = StyleSheet.create({
   positionTxt: {fontSize: 12.5, fontWeight: '800', color: C.oceanMid},
   placeBody: {flex: 1, minWidth: 0},
   placeName: {fontSize: 14.5, fontWeight: '700', color: C.textDark, textAlign: 'left'},
+  dropped: {
+    flexDirection: 'row',
+    gap: 7,
+    marginTop: 10,
+    padding: 10,
+    borderRadius: 10,
+    backgroundColor: '#FDF6E3',
+  },
+  droppedTxt: {
+    flex: 1,
+    fontSize: 12,
+    color: '#6B5614',
+    lineHeight: 17,
+    textAlign: 'left',
+  },
+
   placeCats: {fontSize: 12, color: C.textLight, marginTop: 1, textAlign: 'left'},
 
   free: {

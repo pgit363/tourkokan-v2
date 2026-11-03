@@ -1167,6 +1167,8 @@
     "STOPS_COUNT": "{{count}} stops",
     "YOURS": "YOURS",
     "OWN_PLACE_SHORT": "Your own place",
+    "PLACES_UNAVAILABLE": "{{count}} place you picked is not available any more, so it is not in this plan.",
+    "PLACES_UNAVAILABLE_plural": "{{count}} places you picked are not available any more, so they are not in this plan.",
     "BY_ROAD": "{{km}} km by road",
     "BUS_LEG": "ST bus {{depart}} · {{route}}",
     "SAVE_TRIP": "Save trip",

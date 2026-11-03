@@ -53,6 +53,8 @@ const initialState = {
   /** Seconds until a throttle lifts, and which throttle it was. */
   retryAfter: null,
   retryScope: null,
+  /** Picked places that are no longer plannable. Usually 0. */
+  unavailable: 0,
   /** Free plans left, as the server last reported them. */
   credits: null,
 
@@ -108,6 +110,10 @@ const trip = createSlice({
       if (d.credits != null) {
         state.credits = d.credits;
       }
+      // Places the traveller ticked that can no longer be planned around.
+      // Almost always 0; when it is not, a row has left the list and the
+      // screens say why instead of letting it vanish.
+      state.unavailable = d.unavailable ?? 0;
       state.pending = {};
       state.loading = false;
     },
