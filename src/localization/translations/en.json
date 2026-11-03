@@ -1263,6 +1263,8 @@
     "RATE_BODY": "You have planned a few trips very quickly. Try again in a few minutes — nothing has been lost.",
     "RATE_NOTE": "This limit protects the service for everyone. Your free plans are untouched.",
     "RATE_CTA": "Browse my saved trips",
+    "RATE_TOMORROW": "You can plan again tomorrow.",
+    "RATE_HOURS": "Try again in about {{hours}} hour(s).",
     "TIMEOUT_TITLE": "This is taking longer than usual",
     "TIMEOUT_BODY": "We stopped waiting, but your plan may have finished anyway. Have a look in My trips in a moment.",
     "TIMEOUT_NOTE": "If it is not there, try again — you will not be charged twice for the same trip.",

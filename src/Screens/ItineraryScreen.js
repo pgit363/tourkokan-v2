@@ -191,7 +191,7 @@ const Generating = () => {
 };
 
 /** One refusal, one action that fixes it. */
-const Problem = ({reason, retryAfter, onRetry, onEdit, navigation}) => {
+const Problem = ({reason, retryAfter, retryScope, onRetry, onEdit, navigation}) => {
   const {t} = useTranslation();
 
   /**
@@ -202,6 +202,28 @@ const Problem = ({reason, retryAfter, onRetry, onEdit, navigation}) => {
   const waitMins =
     retryAfter != null && retryAfter > 0 ? Math.ceil(retryAfter / 60) : null;
 
+  /**
+   * The wait, in a unit a person would use.
+   *
+   * A daily limit's Retry-After is up to 86400 seconds, and this used to be
+   * rendered as minutes — so the screen said "give it a minute" and then
+   * printed 1440 of them. Anything from an hour up is said in hours, and the
+   * daily limit says tomorrow, because that is what it means.
+   */
+  const wait = () => {
+    if (retryScope === 'day') {
+      return t('TRIP.RATE_TOMORROW');
+    }
+    if (waitMins == null) {
+      return null;
+    }
+    if (waitMins >= 60) {
+      return t('TRIP.RATE_HOURS', {hours: Math.ceil(waitMins / 60)});
+    }
+
+    return t('TRIP.BUS_DURATION', {mins: waitMins});
+  };
+
   const copy = {
     // 429 from Laravel's throttle, which answers before the controller runs.
     // The reassurance is the point: a traveller who has just been refused
@@ -209,9 +231,7 @@ const Problem = ({reason, retryAfter, onRetry, onEdit, navigation}) => {
     rate_limited: {
       icon: 'time-outline',
       title: t('TRIP.RATE_TITLE'),
-      body:
-        t('TRIP.RATE_BODY') +
-        (waitMins ? `\n\n${t('TRIP.BUS_DURATION', {mins: waitMins})}` : ''),
+      body: t('TRIP.RATE_BODY') + (wait() ? `\n\n${wait()}` : ''),
       cta: t('TRIP.RATE_CTA'),
       action: () => navigation.navigate(t('SCREEN.MY_TRIPS')),
       hint: t('TRIP.RATE_NOTE'),
@@ -316,6 +336,7 @@ const ItineraryScreen = ({navigation, route}) => {
     generating,
     error,
     retryAfter,
+    retryScope,
     credits,
     picked,
     generate,
@@ -412,6 +433,7 @@ const ItineraryScreen = ({navigation, route}) => {
         <Problem
           reason={error}
           retryAfter={retryAfter}
+          retryScope={retryScope}
           onRetry={run}
           onEdit={edit}
           navigation={navigation}

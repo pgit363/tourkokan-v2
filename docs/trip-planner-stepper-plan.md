@@ -32,9 +32,10 @@ Design artboards: Artifact `7h8Rp1Tm6gBQb6CUGWgYmo`.
 
 **Total remaining on this plan: none.** The stepper walks end to end against
 api-test on the real model, pasted places included. The guest-trip bug is
-fixed and verified. What is left is not plan work but defects and gaps — see
-"Open items by severity", audited 2026-11-03, where items 1–5 are the ones a
-traveller will actually hit.
+fixed and verified. The twenty defects and gaps the 2026-11-03 audit confirmed
+are all closed — see "Open items — worked through", which also records the five
+claims of mine that the audit overturned. What is left there is iOS, a device
+walk, and four latent items that nothing reaches today.
 
 > Keep this table the single source of truth for progress.
 
@@ -600,105 +601,126 @@ they added it.
 
 ---
 
-## Open items by severity (audited 2026-11-03)
+## Open items — worked through (2026-11-03)
 
-Audited against the code, not against this doc's history — each line below was
-read in the file named. Severity is "how likely is a traveller to hit it", not
-how hard it is to fix.
+Every item below was audited against the live code before it was touched, by
+eight read-only agents, one per cluster. **The audit overturned five of my own
+claims**, which is recorded here because the corrections are more useful than
+the list was:
 
-### P1 — a traveller will hit this
+| My claim | What the code said |
+|---|---|
+| `day_too_thin` has no retry | Already fixed by `e8b046b`/`2652d93` — the assembler tops up a short day. The claim was written before those landed. |
+| Remove a pin by its array index | Wrong and dangerous. `customSites()` filters coordinate-less entries BEFORE numbering, so the negative id is an index into the *filtered* list, and both renumber on every add. Index removal deletes a different place than the one tapped. It is keyed on a uuid. |
+| Nothing reads a stop's categories | `TripStopDetailScreen` and `TripContactsScreen` both do, through `categoryNames()`. So Marathi travellers were reading English category names, not dead payload. |
+| `daily_spend_ceiling` is untested | Twelve passing tests, five on the ceiling, correct comparison, correct timezone, and it has fired for real. The **rate limiter** was the untested half. |
+| `PlanTripScreen` is a clean delete | It was the only screen reading `max_days` from `ai_configs`, and the only one showing two notes the merged form drops. |
 
-1. **A place you add yourself is invisible until the plan exists.**
-   `TripCartController::present()` returns neither `custom_stops` nor a count
-   of them, and `count` is `cart->contents()->count()`, which is favourites
-   rows only. So after "Added to your trip" nothing moves: no row on step 2,
-   step 3 or the review screen, and no change in the counter. The pin appears
-   for the first time inside the generated itinerary. Fix: present custom
-   stops as rows with negative ids and `custom: true` — the convention the
-   assembler already uses — and the three screens render them unchanged.
-   *~0.5d, both repos. This is what makes today's door only half a door.*
+It also found four defects nobody had listed: the fake driver truncating
+required picks, the top-up being unable to measure a pasted pin, a first day
+emptied by a late arrival being handed over anyway, and a billed model failure
+being logged as free.
 
-2. **Custom stops do not count toward the 3-place minimum.**
-   `TripPlanner::planFromCart` gates on `$picked->count() < $minCart` where
-   `$picked` is DB sites only, and step 2's counter mirrors the same number.
-   Two real places plus two of your own reads as "add 1 more" and is refused
-   `cart_too_small`, although the planner would happily plan all four — it
-   concats the custom sites immediately afterwards. Fix falls out of 1.
+### Landed
 
-3. **A custom stop can never be removed.** There is no `removeCustomStop`
-   route and no UI for one. Paste the wrong pin and it is in that trip
-   permanently — and because the assembler treats every picked place as
-   mandatory (`picked_place_missing`), one bad pin can make a trip
-   permanently unplannable, spending and refunding a credit on each attempt.
-   *Endpoint + an X on the row, ~0.5d.*
+**Backend** — `479f818`, `9e3f0a9`, `a3f09c5`, `c6a4005`
 
-4. **No cap on `custom_stops`.** `addCustomStop` appends without a limit and
-   `customSites()` maps the whole array into mandatory picks. Twenty pasted
-   pins on a one-day trip is a guaranteed `day_too_thin`. Cap it in the
-   request (5 feels right for a day, 10 overall).
+1. ✅ **A pasted pin is a row in the cart.** `present()` emits them with
+   negative ids and `custom: true`, after the DB rows — the order
+   `planFromCart` concatenates them in, so the review screen lists what the
+   model is actually asked to plan. The flag lives in
+   `CandidateFetcher::present()`, so a browse row, a cart row and an itinerary
+   stop are one object to the app.
+2. ✅ **The gate moved with the presenter**, and had to: counting pins in
+   `can_plan` while `planFromCart` counted only favourites would have turned an
+   invisible stop into a Plan button that offers a trip and is then refused
+   `cart_too_small`. A cart of only pins can also anchor its own search now.
+3. ✅ **`trip/removeCustomStop`**, keyed on a uuid written at add time. Pins
+   stored before keys existed match on `added_at`. Idempotent.
+4. ✅ **`max_custom_stops` (10).** Every pin is a mandatory pick, so an
+   unbounded list was a trip that could never be planned.
+5. ✅ **`cart_too_big`** — more picks than `days × max_stops_per_day` is
+   refused before the call instead of spending a credit on an outcome that can
+   only be `picked_place_missing`.
+6. ✅ **The stored plan carries `picked`** per stop, so a trip reopened from My
+   Trips badges identically to a fresh one.
+7. ✅ **Category names in a stored plan.** The assembler was the last
+   `categories:id,name,code` in `app/Services/Trip` — the one `65d6a5e`
+   missed. Two bugs in one line: `$c->name` froze the *generating account's*
+   language into a stored payload, and with `mr_name` unselected the Marathi
+   branch could never fire anyway (`null == ""`), so everyone got English.
+8. ✅ **Three defects inside the top-up**: ids cut by the arrival time are
+   given back to the spare pool; a first day with nothing left is
+   `arrival_after_day_end` rather than an empty day; and the top-up can
+   measure a pin instead of falling through to "the first spare". The
+   required-pick guarantee now reads out of the finished plan rather than a
+   running tally.
+9. ✅ **The fake driver no longer drops picked places.** Its own comment
+   promised they all appear, then it sliced the combined list to capacity —
+   and since pins concatenate last, pins went first. `ai_driver` defaults to
+   `fake`, so the stand-in and the assembler disagreed on every dev machine.
+10. ✅ **The throttle counts spending, not taps.** `Limit::after()` skips the
+    refusals that never reach the model. It answers in our envelope with a
+    `scope`, and a `0` in `ai_configs` can no longer lock everyone out.
+11. ✅ **A billed failure records its bill.** A safety refusal, a missing text
+    block and non-JSON text all arrive as a billed HTTP 200 and all threw
+    before the usage was read, so each was logged `cost_inr = 0` — leaving the
+    daily ceiling blind to precisely the loop it exists to catch.
+12. ✅ **`q=lat,%20lng` resolves.** The patterns tolerated a literal space,
+    which the `url` rule rejects before it arrives, so the tolerance was
+    unreachable. Found by writing the tests.
 
-5. **`day_too_thin` has no retry.** The one failure mode the real model
-   actually produces. The per-day minimum cannot be expressed in the schema —
-   Anthropic rejects `minItems` other than 0 or 1 — so it lives in the prompt
-   only, and the model sometimes ignores it. One retry stating the shortfall
-   ("day 2 has 2 stops and needs 4") would convert most of these. Today:
-   spend, refund, "that did not come out right". *~0.5d.*
+**Mobile** — `5efd9e9`, `4dcfae5`
 
-### P2 — wrong, visible, cheap
+13. ✅ **The X beside a pasted place works.** It removes by key; there is no
+    add side, so for a pin the toggle only ever removes.
+14. ✅ **Pins are a fixed tail on step 3** — arrows disabled, swaps refused,
+    and only real site ids are sent to `reorder`. They carry a YOURS badge and
+    "Your own place" on the arrange and review screens.
+15. ✅ **Timeouts.** 15s default, 45s for planning, 60s for uploads, 20s for a
+    map link. A timeout says "your plan may have finished anyway — look in My
+    trips" instead of becoming `generation_failed`.
+16. ✅ **A throttle says the wait in a human unit** — "tomorrow" for a daily
+    limit, hours where it is hours, never 1440 minutes.
+17. ✅ **Centred text**, across `StepChrome` (which fixes four screens at
+    once) and six more files. Genuinely centred things are left alone.
+18. ✅ **Step 3's hint** no longer promises an order the planner regroups.
+19. ✅ **Both dead screens deleted**, after porting the `max_days` clamp and
+    the two dropped notes out of `PlanTripScreen`.
+20. ✅ **Adding a place dispatches the cart it gets back**, so the counter
+    moves at the moment of saving.
 
-6. **`TripCartScreen` is unreachable** (`0d28e12` took its only entry). The
-   days stepper and "Add more places" live on it. Delete it, or give it a
-   home. Product decision, not a bug.
+### Tests
 
-7. **`PlanTripScreen` is dead too** — registered in `StackNavigator` at the
-   name `SCREEN.PLAN_TRIP`, and nothing in `src/` navigates to it since the
-   two forms were merged.
+`TripCustomStopTest` (27) and `TripRateLimitTest` (5) — the custom-stop surface
+had **zero** coverage before this, and so did the limiter. Backend suite:
+**544 passing**, up from 524.
 
-8. **The itinerary's stop categories are English-only, and nothing reads
-   them.** `ItineraryAssembler::rehydrate()` eager-loads
-   `categories:id,name,code` with no `mr_name`, then emits `'name' =>
-   $c->name`. That goes through Category's accessor, which returns the
-   Marathi name only when `mr_name` is loaded — it is not, so `null == ""` is
-   true and it always falls back to English. `CandidateFetcher` was fixed for
-   exactly this; the assembler was missed. **Latent, not visible:** no screen
-   in `src/` reads a stop's `categories`, so today this is dead payload
-   stored in every itinerary row. Fix the select when something first renders
-   it, or drop the field. *~20 min either way.*
+They are hermetic: `Http::preventStrayRequests()` is on, because the first
+draft of the short-link test passed by quietly fetching google.com. Two fixes
+were mutation-checked by reverting them and confirming the test fails.
 
-9. **YOURS badges vanish on a saved trip.** Pasted pins survive, via the
-   stored `custom` flag. Places the traveller picked themselves do not:
-   `pickedIds` in `ItineraryScreen` is built from the live cart, and the
-   stored itinerary records nothing about whose choice a stop was. Add
-   `'picked' => bool` to the stop payload. *~20 min.*
+### Still open
 
-10. **Centred text.** `ItineraryScreen`'s `stopNote`, and `TripCartScreen`'s
-    `rowTitle`, `rowMeta`, `headerTitle`, `headerMeta` and `sectionLabel` —
-    all inherit `GlobalText`'s `textAlign: 'center'` inside flex rows. The
-    cart ones only matter if item 6 keeps the screen. *~10 min.*
-
-11. **Step 3 overpromises.** `TRIP.STEP3_HINT` says "We plan around this
-    order", and the planner regroups geographically by day. The order is a
-    hint to the model, not a promise to the traveller. *Reword, ~5 min.*
-
-### P3 — untested, or hygiene
-
-12. **The AI spend controls have never been exercised.**
-    `daily_spend_ceiling` (₹50) and `rate_limit_per_day` (20) both have live
-    code paths — `SpendGuard` and a `Limit::perDay` in `AppServiceProvider` —
-    that no run has ever reached. A ceiling that refuses wrongly is worse
-    than no ceiling. Lower them temporarily and walk into both.
-
-13. **No axios timeout anywhere.** `CommonServices` configures global axios
-    and never sets one, so a dead backend hangs until the OS gives up (10–30s)
-    and reads as a frozen app. It has to be per-endpoint rather than global:
-    `planFromCart` legitimately takes ~11s against the real model.
-
-14. **iOS is unverified** for the whole stepper — deliberate while Android
-    ships, recorded so it is not mistaken for done.
-
-15. ~~**This doc's M0 row is stale.**~~ Fixed in this pass: the board now
-    says M0 was reverted. Map picking lives on step 2, which has its own
-    MapView.
+- **iOS is unverified** for the whole stepper. Out of scope while Android
+  ships, recorded so it is not mistaken for done.
+- **Nothing is verified on a device.** The emulator would not boot — the Mac
+  had 760 MB of 26 GB swap free — so everything above is proven by the test
+  suite, by live calls against the local API on `:8002`, and by lint. The
+  stepper has not been walked by hand since these changes.
+- **~35 possibly-orphaned `TRIP.*` translation keys.** Deliberately left: an
+  orphan scan flags 50, and at least fifteen are false positives, because
+  `KIND_*` and `SAMPLE_*` are reached through a variable. Any cleanup has to
+  resolve dynamic keys or it will break the add-from-link chips.
+- **`TripCart::count()` is dead code** and `contents()->count()` silently drops
+  a favourite whose site was since unapproved, soft-deleted, given a
+  `bus_stop_type` or stripped of coordinates — the same class of silent
+  disappearance as the custom-stop bug, with a different cause.
+- **`reorderCart` leaves gaps in `sort_order`** for any unmatched id. Harmless
+  today, since nothing reads it as a dense index.
+- **Laravel inverts the middleware order `routes/api.php` documents.**
+  `throttle:trip` runs before `verified.email`, so an unverified guest's tap is
+  counted before it is refused. Harmless now that free refusals do not count.
 
 ---
 

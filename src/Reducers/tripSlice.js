@@ -50,6 +50,9 @@ const initialState = {
   generating: false,
   /** A refusal reason from the server, which the screen maps to copy. */
   error: null,
+  /** Seconds until a throttle lifts, and which throttle it was. */
+  retryAfter: null,
+  retryScope: null,
   /** Free plans left, as the server last reported them. */
   credits: null,
 
@@ -142,6 +145,9 @@ const trip = createSlice({
       // Seconds until the throttle lifts. Only a 429 carries one; every other
       // refusal clears it so a stale countdown cannot outlive its cause.
       state.retryAfter = action.payload?.retry_after ?? null;
+      // Which throttle it was — 'hour' or 'day'. A day expressed in minutes
+      // is 1440 of them, which is not something to say to anyone.
+      state.retryScope = action.payload?.scope ?? null;
       if (action.payload?.credits != null) {
         state.credits = action.payload.credits;
       }

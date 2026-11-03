@@ -203,6 +203,7 @@ export const useTripPlanner = () => {
     generating,
     error,
     retryAfter,
+    retryScope,
     credits,
     tripId,
     places,
@@ -243,10 +244,16 @@ export const useTripPlanner = () => {
         // before the controller runs, so there is no `reason` to read. Map it
         // here, carrying Retry-After so the screen can count down honestly.
         if (res?.status === 429) {
+          // The server answers a throttle in our own envelope now and says
+          // WHICH limit fired, so the screen can tell "in a few minutes" from
+          // "tomorrow" instead of printing a day as 1440 minutes. The
+          // header is still the fallback for an older backend.
+          const body = res?.data?.data || {};
           dispatch(
             generateFailed({
               reason: 'rate_limited',
-              retry_after: res?.retryAfter || null,
+              scope: body.scope || null,
+              retry_after: body.retry_after || res?.retryAfter || null,
             }),
           );
           return false;
@@ -282,6 +289,8 @@ export const useTripPlanner = () => {
     error,
     /** Seconds until a throttled traveller may plan again; null otherwise. */
     retryAfter,
+    /** Which throttle refused: 'hour' or 'day'. Null when it was neither. */
+    retryScope,
     credits,
     /** The places the traveller picked themselves, to badge in the plan. */
     picked: places,
