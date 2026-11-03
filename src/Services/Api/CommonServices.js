@@ -63,6 +63,27 @@ const handle401 = async navigation => {
   }
 };
 
+/**
+ * How long to wait before deciding nothing is coming.
+ *
+ * Axios ships NO default, so a wedged backend hung on the OS socket timeout —
+ * 10 to 30 seconds of a screen that looks frozen, with no way to tell it from
+ * a slow reply. One global value cannot work: planning a trip legitimately
+ * takes about eleven seconds against the real model, and cancelling a call the
+ * server is still going to finish would charge a credit for a plan nobody ever
+ * sees. So the slow calls name their own.
+ */
+export const TIMEOUT = {
+  DEFAULT: 15000,
+  // trip/planFromCart and trip/plan. Measured at ~11s; the server's own
+  // ceiling is lower than this, so the client never gives up first.
+  PLAN: 45000,
+  // Images over a Konkan mobile connection.
+  UPLOAD: 60000,
+  // trip/resolveMapLink — the backend allows Google 8s, plus our own hops.
+  MAP_LINK: 20000,
+};
+
 // Consistent failure shape so callers reading `res.data.*` never crash on a
 // network/server error (previously the raw axios Error was returned). Preserves
 // the server's error body (message/validation) when present.
@@ -78,14 +99,25 @@ const buildErrorResponse = err => {
     // can say how long the wait actually is instead of guessing "a few
     // minutes" — it is the only place the number exists.
     retryAfter: Number(err?.response?.headers?.['retry-after']) || null,
+    // A timeout is not a refusal, and a screen that says "that did not come
+    // out right" when the truth is "we stopped waiting" sends the traveller
+    // looking for a problem with their trip. Deliberately a sibling field and
+    // NOT a stub inside `data.data`: 95 places read res.data.data directly,
+    // many without checking success first, so inventing an object there would
+    // trade a null check for a missing-property crash.
+    timedOut: err?.code === 'ETIMEDOUT' || err?.code === 'ECONNABORTED',
     error: err,
   };
 };
 
-export const comnGet = async (url, apiToken, navigation) => {
+export const comnGet = async (url, apiToken, navigation, opts = {}) => {
   let myUrl = API_PATH + url;
   const config = {
     headers: {Authorization: `Bearer ${apiToken}`},
+    timeout: opts.timeout ?? TIMEOUT.DEFAULT,
+    // Without this a timeout is indistinguishable from a real abort: both
+    // arrive as ECONNABORTED.
+    transitional: {clarifyTimeoutError: true},
   };
   try {
     const res = await axios.get(myUrl, config);
@@ -96,12 +128,16 @@ export const comnGet = async (url, apiToken, navigation) => {
   }
 };
 
-export const comnPost = async (url, data, navigation) => {
+export const comnPost = async (url, data, navigation, opts = {}) => {
   const myUrl = API_PATH + url;
   const token = await AsyncStorage.getItem(STRING.STORAGE.ACCESS_TOKEN);
   const headers = {'Content-Type': 'application/json'};
   if (token) headers.Authorization = `Bearer ${token}`;
-  const config = {headers};
+  const config = {
+    headers,
+    timeout: opts.timeout ?? TIMEOUT.DEFAULT,
+    transitional: {clarifyTimeoutError: true},
+  };
 
   try {
     const res = await axios.post(myUrl, data, config);
@@ -114,12 +150,17 @@ export const comnPost = async (url, data, navigation) => {
   }
 };
 
-export const comnPostForm = async (url, formData, navigation) => {
+export const comnPostForm = async (url, formData, navigation, opts = {}) => {
   const myUrl = API_PATH + url;
   const token = await AsyncStorage.getItem(STRING.STORAGE.ACCESS_TOKEN);
   const headers = {'Content-Type': 'multipart/form-data'};
   if (token) headers.Authorization = `Bearer ${token}`;
-  const config = {headers};
+  const config = {
+    headers,
+    // An upload is slow by nature, so it starts from a longer leash.
+    timeout: opts.timeout ?? TIMEOUT.UPLOAD,
+    transitional: {clarifyTimeoutError: true},
+  };
   try {
     const res = await axios.post(myUrl, formData, config);
     return res;
@@ -129,12 +170,16 @@ export const comnPostForm = async (url, formData, navigation) => {
   }
 };
 
-export const comnPut = async (url, data, navigation) => {
+export const comnPut = async (url, data, navigation, opts = {}) => {
   const myUrl = API_PATH + url;
   const token = await AsyncStorage.getItem(STRING.STORAGE.ACCESS_TOKEN);
   const headers = {'Content-Type': 'application/json'};
   if (token) headers.Authorization = `Bearer ${token}`;
-  const config = {headers};
+  const config = {
+    headers,
+    timeout: opts.timeout ?? TIMEOUT.DEFAULT,
+    transitional: {clarifyTimeoutError: true},
+  };
   try {
     const res = await axios.put(myUrl, data, config);
     return res;
@@ -144,12 +189,16 @@ export const comnPut = async (url, data, navigation) => {
   }
 };
 
-export const comnDel = async (url, data, navigation) => {
+export const comnDel = async (url, data, navigation, opts = {}) => {
   const myUrl = API_PATH + url;
   const token = await AsyncStorage.getItem(STRING.STORAGE.ACCESS_TOKEN);
   const headers = {'Content-Type': 'application/json'};
   if (token) headers.Authorization = `Bearer ${token}`;
-  const config = {headers};
+  const config = {
+    headers,
+    timeout: opts.timeout ?? TIMEOUT.DEFAULT,
+    transitional: {clarifyTimeoutError: true},
+  };
   try {
     const res = await axios.delete(myUrl, {data, ...config});
     return res;

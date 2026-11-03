@@ -46,8 +46,14 @@ const ArrangeRow = ({
   disabled,
 }) => {
   const {t} = useTranslation();
-  const {pending, toggle} = useInTrip(place.id);
+  // A pasted place is removed by its key — its id is negative and has no row
+  // behind it, so the ordinary remove had nothing to delete.
+  const {pending, toggle} = useInTrip(place.id, place.custom ? place.key : null);
 
+  // Pasted places sit after the rest, in the order they were added, because
+  // that is the order the planner is given them in. Letting them be moved
+  // would show an arrangement the plan does not honour.
+  const fixed = !!place.custom;
   const first = index === 0;
   const last = index === total - 1;
 
@@ -58,38 +64,49 @@ const ArrangeRow = ({
       </View>
 
       <View style={s.body}>
-        <GlobalText text={place.name} style={s.name} />
-        {!!(place.categories || []).length && (
-          <GlobalText
-            style={s.cats}
-            text={categoryNames(place).slice(0, 2).join(' · ')}
-          />
+        <View style={s.nameRow}>
+          <GlobalText text={place.name} style={s.name} />
+          {fixed && (
+            <View style={s.own}>
+              <GlobalText text={t('TRIP.YOURS')} style={s.ownTxt} />
+            </View>
+          )}
+        </View>
+        {fixed ? (
+          <GlobalText style={s.cats} text={t('TRIP.OWN_PLACE_SHORT')} />
+        ) : (
+          !!(place.categories || []).length && (
+            <GlobalText
+              style={s.cats}
+              text={categoryNames(place).slice(0, 2).join(' · ')}
+            />
+          )
         )}
       </View>
 
       <View style={s.moves}>
         <TouchableOpacity
-          style={[s.move, (first || disabled) && s.moveOff]}
-          disabled={first || disabled}
+          style={[s.move, (first || disabled || fixed) && s.moveOff]}
+          disabled={first || disabled || fixed}
           onPress={() => onUp(index)}
           accessibilityRole="button"
           accessibilityLabel={t('TRIP.STEP3_UP', {place: place.name})}>
           <Ionicons
             name="chevron-up"
             size={18}
-            color={first || disabled ? C.textLight : C.oceanMid}
+            color={first || disabled || fixed ? C.textLight : C.oceanMid}
           />
         </TouchableOpacity>
         <TouchableOpacity
-          style={[s.move, (last || disabled) && s.moveOff]}
-          disabled={last || disabled}
+          style={[s.move, (last || disabled || fixed) && s.moveOff]}
+          disabled={last || disabled || fixed}
           onPress={() => onDown(index)}
           accessibilityRole="button"
           accessibilityLabel={t('TRIP.STEP3_DOWN', {place: place.name})}>
           <Ionicons
             name="chevron-down"
             size={18}
-            color={last || disabled ? C.textLight : C.oceanMid}
+            color={last || disabled || fixed ? C.textLight : C.oceanMid}
           />
         </TouchableOpacity>
       </View>
@@ -152,13 +169,20 @@ const TripArrangeScreen = ({navigation}) => {
         return;
       }
 
+      // Neither end of a swap may be a pasted place: they are a fixed tail.
+      if (order[from]?.custom || order[to]?.custom) {
+        return;
+      }
+
       const next = [...order];
       [next[from], next[to]] = [next[to], next[from]];
       setOrder(next);
       setSaving(true);
 
+      // Only the real site ids. A negative id matches no favourites row, and
+      // sending it burned a sort_order slot for nothing.
       reorder(
-        next.map(p => p.id),
+        next.filter(p => !p.custom).map(p => p.id),
         navigation,
       ).finally(() => setSaving(false));
     },
@@ -239,6 +263,15 @@ const TripArrangeScreen = ({navigation}) => {
 const s = StyleSheet.create({
   screen: {flex: 1, backgroundColor: C.cream},
   list: {padding: 16, gap: 8},
+
+  nameRow: {flexDirection: 'row', alignItems: 'center', gap: 6},
+  own: {
+    paddingHorizontal: 6,
+    paddingVertical: 1,
+    borderRadius: 4,
+    backgroundColor: C.oceanMid,
+  },
+  ownTxt: {fontSize: 9, fontWeight: '800', color: C.white, letterSpacing: 0.3},
 
   addOwn: {
     flexDirection: 'row',

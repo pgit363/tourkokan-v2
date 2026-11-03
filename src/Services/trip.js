@@ -21,6 +21,7 @@ import {
   planFromCart,
   planTrip,
   quoteTrip,
+  removeCustomStop,
   removeFromCart,
   reorderCart,
   tripQuestionSet,
@@ -137,7 +138,7 @@ export const useTripCart = () => {
  * flight is ignored rather than queued, which is what stops a double tap from
  * adding and immediately removing.
  */
-export const useInTrip = siteId => {
+export const useInTrip = (siteId, customKey = null) => {
   const dispatch = useDispatch();
   const inTrip = useSelector(selectInCart(siteId));
   const pending = useSelector(selectCartPending(siteId));
@@ -152,7 +153,13 @@ export const useInTrip = siteId => {
       dispatch(cartOpStarted(siteId));
 
       try {
-        const res = inTrip
+        // A pasted place has no row in `sites`, so removeFromCart had nothing
+        // to delete and its X was a button that did nothing. There is no
+        // "add" side to it either — it is created by addCustomStop, not
+        // ticked — so for these the toggle only ever removes.
+        const res = customKey
+          ? await removeCustomStop(tripId, customKey, navigation)
+          : inTrip
           ? await removeFromCart(siteId, tripId, navigation)
           : // No trip_id on the first tick: the server opens the cart, so
             // browsing never has to think about trips.
@@ -175,7 +182,7 @@ export const useInTrip = siteId => {
         dispatch(cartOpFailed(siteId));
       }
     },
-    [dispatch, inTrip, pending, siteId, tripId],
+    [customKey, dispatch, inTrip, pending, siteId, tripId],
   );
 
   return {inTrip, pending, toggle};
@@ -242,6 +249,15 @@ export const useTripPlanner = () => {
               retry_after: res?.retryAfter || null,
             }),
           );
+          return false;
+        }
+
+        // We stopped waiting — the server may well still be writing the
+        // plan. Distinct from a refusal on purpose: "that did not come out
+        // right" sends the traveller looking for a problem with their trip,
+        // when the honest answer is to look in My Trips in a moment.
+        if (res?.timedOut) {
+          dispatch(generateFailed({reason: 'timeout'}));
           return false;
         }
 

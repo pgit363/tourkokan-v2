@@ -219,6 +219,16 @@ const Problem = ({reason, retryAfter, onRetry, onEdit, navigation}) => {
     // Logged in but unverified. SCREEN.EMAIL takes the address and sends the
     // code; it is registered inside the logged-in group, which is where a
     // traveller seeing this already is.
+    // More places than the days can hold. The planner refuses before it
+    // spends anything, so there is nothing to reassure them about — just the
+    // two ways out.
+    cart_too_big: {
+      icon: 'remove-circle-outline',
+      title: t('TRIP.TOO_MANY_TITLE'),
+      body: t('TRIP.TOO_MANY_BODY'),
+      cta: t('TRIP.EDIT_PLACES'),
+      action: onEdit,
+    },
     verification_required: {
       icon: 'shield-outline',
       title: t('TRIP.VERIFY_TITLE'),
@@ -232,6 +242,17 @@ const Problem = ({reason, retryAfter, onRetry, onEdit, navigation}) => {
       body: t('TRIP.QUOTA_BODY'),
       cta: t('TRIP.EDIT_PLACES'),
       action: onEdit,
+    },
+    // We gave up waiting; the server may have finished anyway. Sending them
+    // to My Trips is the useful action, because the plan may already be
+    // sitting there — and the credit was spent either way.
+    timeout: {
+      icon: 'time-outline',
+      title: t('TRIP.TIMEOUT_TITLE'),
+      body: t('TRIP.TIMEOUT_BODY'),
+      cta: t('TRIP.RATE_CTA'),
+      action: () => navigation.navigate(t('SCREEN.MY_TRIPS')),
+      hint: t('TRIP.TIMEOUT_NOTE'),
     },
     cart_too_small: {
       icon: 'add-circle-outline',
@@ -322,9 +343,13 @@ const ItineraryScreen = ({navigation, route}) => {
   const [day, setDay] = useState(0);
 
   /**
-   * Ids the traveller ticked themselves, to badge inside the plan. Only the
-   * cart path has any: badging from the cart on a form-planned trip would mark
-   * places as "yours" that the traveller never chose for this trip.
+   * Ids the traveller ticked themselves, to badge inside the plan.
+   *
+   * A FALLBACK ONLY. The plan itself carries `picked` per stop now, which is
+   * what a saved trip has to rely on. This is kept for a build that runs
+   * against a backend without that field yet, and stays scoped to the cart
+   * path: badging from the cart on a form-planned trip would mark places as
+   * "yours" that the traveller never chose for this trip.
    */
   const pickedIds = useMemo(
     () => new Set(tripId ? (picked || []).map(p => p.id) : []),
@@ -476,10 +501,16 @@ const ItineraryScreen = ({navigation, route}) => {
           <View key={`${stop.site?.id}-${i}`}>
             <Stop
               stop={stop}
-              // A place the traveller pasted a map link for is theirs as
-              // surely as one they ticked — it just never entered the cart,
-              // so the id set cannot know about it. The server says so.
-              picked={pickedIds.has(stop.site?.id) || !!stop.site?.custom}
+              // The stored plan now says whose choice each stop was, which
+              // is the only thing a trip reopened from My Trips can go on —
+              // its cart is long gone, so reading the live one lost every
+              // badge. The cart stays last as a fallback, so an app update
+              // that lands ahead of the backend keeps the badges it has.
+              picked={
+                !!stop.site?.picked ||
+                !!stop.site?.custom ||
+                pickedIds.has(stop.site?.id)
+              }
               onOpen={() =>
                 navigateTo(navigation, t('SCREEN.STOP_DETAIL_TRIP'), {
                   stop,

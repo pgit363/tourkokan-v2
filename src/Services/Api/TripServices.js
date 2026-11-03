@@ -13,7 +13,7 @@
  * bind the Plan button to it rather than re-deriving the minimum in the app,
  * so the rule lives in one place and an admin can change it without a release.
  */
-import {comnPost} from './CommonServices';
+import {comnPost, TIMEOUT} from './CommonServices';
 
 // ── The cart ────────────────────────────────────────────────────────────────
 
@@ -66,7 +66,11 @@ export const updateCart = (trip_id, changes, navigation) =>
  *   cart_too_small        · generation_failed
  */
 export const planFromCart = (trip_id, navigation) =>
-  comnPost('v2/trip/planFromCart', {trip_id}, navigation);
+  // A real model call. Giving up at the default 15s would cancel a plan the
+  // server is still writing — and the credit is already spent by then.
+  comnPost('v2/trip/planFromCart', {trip_id}, navigation, {
+    timeout: TIMEOUT.PLAN,
+  });
 
 // ── The plan form ───────────────────────────────────────────────────────────
 
@@ -106,7 +110,8 @@ export const quoteTrip = (filters, navigation) =>
  *   town_not_found · not_enough_places
  */
 export const planTrip = (filters, navigation) =>
-  comnPost('v2/trip/plan', filters, navigation);
+  // Same real model call as planFromCart, same leash.
+  comnPost('v2/trip/plan', filters, navigation, {timeout: TIMEOUT.PLAN});
 
 /**
  * The traveller's saved trips, newest first.
@@ -134,7 +139,10 @@ export const getSavedTrip = (trip_id, navigation) =>
  * answered against the sites table, which the app does not have.
  */
 export const resolveMapLink = (url, navigation) =>
-  comnPost('v2/trip/resolveMapLink', {url}, navigation);
+  // The server follows the short link to Google and allows it 8s of its own.
+  comnPost('v2/trip/resolveMapLink', {url}, navigation, {
+    timeout: TIMEOUT.MAP_LINK,
+  });
 
 /**
  * Keep a place the traveller found themselves. Stored on the trip's
@@ -143,6 +151,17 @@ export const resolveMapLink = (url, navigation) =>
  */
 export const addCustomStop = (stop, navigation) =>
   comnPost('v2/trip/addCustomStop', stop, navigation);
+
+/**
+ * Take a pasted place back off the trip.
+ *
+ * Keyed on the `key` the cart row carries, never on its id: a pasted place's
+ * id is negative and renumbers whenever the list changes, so removing by id
+ * can take out a different place than the one tapped. Returns the whole cart,
+ * like every other cart endpoint.
+ */
+export const removeCustomStop = (tripId, key, navigation) =>
+  comnPost('v2/trip/removeCustomStop', {trip_id: tripId, key}, navigation);
 
 // ── The stepper ─────────────────────────────────────────────────────────────
 

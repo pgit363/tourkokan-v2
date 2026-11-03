@@ -38,7 +38,9 @@ import {useTranslation} from 'react-i18next';
 import GlobalText from '../Components/Customs/Text';
 import KeyboardSafe from '../Components/Common/KeyboardSafe';
 import {C} from '../Components/Marketplace/theme';
+import {useDispatch} from 'react-redux';
 import {resolveMapLink, addCustomStop} from '../Services/Api/TripServices';
+import {cartReceived} from '../Reducers/tripSlice';
 import {backPage} from '../Services/CommonMethods';
 
 const KINDS = [
@@ -63,6 +65,7 @@ const Chip = ({label, on, onPress}) => (
 const AddFromLinkScreen = ({navigation, route}) => {
   const {t} = useTranslation();
   const insets = useSafeAreaInsets();
+  const dispatch = useDispatch();
 
   const tripId = route?.params?.tripId;
 
@@ -115,6 +118,10 @@ const AddFromLinkScreen = ({navigation, route}) => {
 
     if (data?.success) {
       setSaved(true);
+      // addCustomStop returns the whole cart, like every other cart endpoint,
+      // so the counter and the new row move now rather than waiting for some
+      // other screen to refresh on focus.
+      dispatch(cartReceived(data.data));
     } else {
       setError(data?.message || t('ALERT.WENT_WRONG'));
     }

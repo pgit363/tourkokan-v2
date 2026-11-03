@@ -66,22 +66,32 @@ Block.propTypes = {
 };
 
 /** One place in the final order — a number and a name, nothing to tap. */
-const PlaceRow = ({place, index}) => (
-  <View style={s.place}>
-    <View style={s.position}>
-      <GlobalText text={String(index + 1)} style={s.positionTxt} />
+const PlaceRow = ({place, index}) => {
+  const {t} = useTranslation();
+
+  return (
+    <View style={s.place}>
+      <View style={s.position}>
+        <GlobalText text={String(index + 1)} style={s.positionTxt} />
+      </View>
+      <View style={s.placeBody}>
+        <GlobalText text={place.name} style={s.placeName} />
+        {/* A place they pasted has no categories to show, and saying nothing
+            about it would read as a row that failed to load. */}
+        {place.custom ? (
+          <GlobalText style={s.placeCats} text={t('TRIP.OWN_PLACE_SHORT')} />
+        ) : (
+          !!(place.categories || []).length && (
+            <GlobalText
+              style={s.placeCats}
+              text={categoryNames(place).slice(0, 2).join(' · ')}
+            />
+          )
+        )}
+      </View>
     </View>
-    <View style={s.placeBody}>
-      <GlobalText text={place.name} style={s.placeName} />
-      {!!(place.categories || []).length && (
-        <GlobalText
-          style={s.placeCats}
-          text={categoryNames(place).slice(0, 2).join(' · ')}
-        />
-      )}
-    </View>
-  </View>
-);
+  );
+};
 
 PlaceRow.propTypes = {
   place: PropTypes.object.isRequired,
