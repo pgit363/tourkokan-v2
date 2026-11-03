@@ -744,8 +744,6 @@ carries `credits`, and that a `%20` in a pasted link resolves.
 
 ### Still open
 
-- **iOS is unverified** for the whole stepper. Out of scope while Android
-  ships, recorded so it is not mistaken for done.
 - ~~**Nothing is verified on a device.**~~ Done twice. The emulator only
   boots on this Mac **headless with `-memory 2048`** — the window and the
   default RAM are what it cannot afford, and the symptom of trying is qemu at
@@ -761,6 +759,10 @@ carries `credits`, and that a `%20` in a pasted link resolves.
   disappearance as the custom-stop bug, with a different cause.
 - **`reorderCart` leaves gaps in `sort_order`** for any unmatched id. Harmless
   today, since nothing reads it as a dense index.
+- **The thin category selects outside the planner are fixed** (`4fb0213`):
+  forty of them, across the site, route, gallery, landing-page,
+  vendor-onboard and contact controllers, were serving English to Marathi
+  readers. A structural test now fails naming any file that reintroduces one.
 - **Laravel inverts the middleware order `routes/api.php` documents.**
   `throttle:trip` runs before `verified.email`, so an unverified guest's tap is
   counted before it is refused. Harmless now that free refusals do not count.
