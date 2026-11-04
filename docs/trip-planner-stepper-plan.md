@@ -29,13 +29,17 @@ Design artboards: Artifact `7h8Rp1Tm6gBQb6CUGWgYmo`.
 | M4 | Step 4 — Review → `planFromCart` | app | ✅ Done, verified on device | — |
 | M5 | Step chrome (progress, back/next, state, entry points) | app | ✅ Done (completed by M4's wiring) | — |
 | M6 | i18n en + mr sweep + device verification | app | ✅ Done, verified on device in both languages | — |
+| G1 | Who is going — `Pacing`, group in the prompt, group in both caches | backend | ✅ Done, verified on api-test | — |
+| G2 | Step 1 “Who is going” — counts, type chips, youngest-age bands | app | ✅ Done, verified on device | — |
 
 **Total remaining on this plan: none.** The stepper walks end to end against
 api-test on the real model, pasted places included. The guest-trip bug is
 fixed and verified. The twenty defects and gaps the 2026-11-03 audit confirmed
 are all closed — see "Open items — worked through", which also records the five
-claims of mine that the audit overturned. What is left there is iOS, a device
-walk, and four latent items that nothing reaches today.
+claims of mine that the audit overturned. The device walk happened, the four
+latent items landed in `d332d21`, and iOS is not a priority. What the planner
+has gained since is a second feature on top of the stepper — who is going, and
+how fast they can go — recorded under "Who is going" below.
 
 > Keep this table the single source of truth for progress.
 
@@ -804,6 +808,203 @@ fourth recurrence.
 
 ---
 
+## Who is going (2026-11-04)
+
+Testers asked for two things: **how many people** are going, and **what kind
+of trip** it is. The design note is `tourkokan-backend/docs/trip-group-and-type-design.md`
+(`c9ab1c8`); this records what was actually built and what it cost.
+
+The note's first finding is the one that shaped everything: **no site carries
+suitability data.** All 4,334 were checked — `speciality` on 1,660,
+`meta_data` on 1,662, `rules` on **zero**. Nothing about children,
+accessibility, difficulty or capacity. So trip type cannot filter candidates,
+and anything promising "family-friendly places" would be shipping the model's
+guesswork as a recommendation about where to take a four-year-old. Nothing of
+that sort was built.
+
+What the two answers *can* honestly change is the **shape of each day** and
+the **wording of the notes** — and that needed no new data.
+
+### Pacing had to become an object before it could vary
+
+`min_stops_per_day` and `max_stops_per_day` were read in **six independent
+places**, each calling `AiConfig::get` with its own default: the planner's
+capacity guard, its not-enough-places check, the assembler's thin-day
+rejection, the assembler's top-up ceiling, the prompt that *tells the model*
+the range, and the fake driver. Three enforce a number, one states it, one
+guards the gate — and nothing kept them in agreement.
+
+That is not theoretical. The fake driver already sliced its answer to
+`days × max_stops_per_day` while the assembler treated a dropped pick as
+fatal, so the stand-in produced plans its own validator rejected — wrong on
+every developer machine, because `ai_driver` defaults to `fake`.
+
+Make the number vary per trip and that class of bug multiplies: lower the
+prompt's ceiling for a family but not the assembler's and the setting
+silently does nothing; invert it and the assembler rejects the plan it asked
+for, *after* the credit is spent. So `app/Services/Trip/Pacing.php` resolves
+the range **once** per generation and hands it to everything that needs it.
+Six config reads became one. That refactor was worth doing even if group size
+had never shipped.
+
+The ceilings, lowest wins:
+
+| Group | max/day | Why |
+|---|---|---|
+| couple, friends, solo | 5 | today's default |
+| family, no young children | 4 | more coordination per stop |
+| a child at or under `pacing_young_child_age` (8) | 3 | naps, meals, patience |
+| 8 or more people | 3 | one bus, one lunch decision |
+
+The floor never moves from 2: below that it is not a day out, and the
+assembler's thin-day rule exists for good reason. Every number is an
+`ai_configs` key, so an admin moves them without a deploy — which matters
+because the backend runs Octane and a deploy is a reload and a wait.
+
+### Phase 1 — counts and type (`acea763`, app `8421252`)
+
+A "WHO IS GOING?" section on step 1, after the length, because the two
+together are what set the pace. Steppers for adults and children, defaulted to
+two adults so a traveller who ignores it is answering it correctly. Type chips
+are **served** by `questionSet`, never shipped in the app, exactly as the
+interests are — adding "pilgrimage" later is a config edit, not a release.
+
+**Solo is deliberately not a type.** It is one adult. Asking the same thing
+twice in one form is how the two answers end up contradicting each other.
+
+An unrecognised type changes nothing rather than 422-ing, the same habit that
+keeps `exists` off the category codes: a stale app sending a retired type
+should get the ordinary pace, not an error it cannot explain to anyone.
+
+### The two gaps the device walk found (`545c22c`)
+
+The walk is why this entry exists. A family generation came back with **5
+stops** instead of 4, and the planner's own log showed `input_filters` with no
+`group` at all.
+
+1. **The form path dropped it.** `resolveFilters()` *rebuilds* the filter
+   array from a fixed key list, and that array is the only thing the planner
+   ever sees. `group` and `trip_type` were not on the list, so they were
+   discarded between validation and use. The stepper escaped this because it
+   stores its filters whole — which is also why fifteen passing tests missed
+   it: they set filters directly on the model and never went through the form.
+2. **A second cache ignored the group.** `cacheKeyFor()` keys the *stored
+   answer* on codes, days, lat/lng, radius, stay and arrival — a different
+   cache from the prompt fingerprint that had already been fixed, and it
+   engages only when nothing has been picked, which is precisely the express
+   path. A family would have been handed the plan written for a couple,
+   silently, and only ever for whoever asked second.
+
+Both now carry the group, both are covered by mutation-checked tests. Either
+alone is insufficient.
+
+### Phase 2 of the ask — how old is the youngest (`8b4d005`, app `22f738e`)
+
+The form collected counts but no age, so the under-eight tier was reachable by
+the API and not by anyone using the app. It is asked now, once there is a
+child to ask about, as three chips: **Under 4 · 4 to 8 · 9 or older**.
+
+**The server draws the bands.** Not the usual config-without-a-release
+argument — the only boundary that changes a plan is `pacing_young_child_age`,
+and it is editable. Ship "6 to 9" in the app, have an admin move the threshold
+to 7, and one tap now means two different paces depending on which child in
+the band is yours. A band that straddles the threshold is a question with no
+answer. Built from the threshold, every band falls wholly on one side, and
+`test_no_age_band_straddles_the_pacing_threshold` checks that across nine
+threshold values by walking every age inside every band.
+
+Three details worth keeping:
+
+- **Each band sends its floor.** The number is a guess whichever end is taken;
+  the floor guesses towards more care. It also stores less than an exact age.
+- **No default.** Five would have paced a family of teenagers like a family of
+  toddlers off an answer nobody gave. Null until tapped, and tapping the
+  chosen band clears it again.
+- **An age with no children is ignored**, in `forFilters` and `groupFor`
+  alike. A stale age on a trip whose child came back off it would otherwise
+  pace two adults at a toddler's speed, and the model would be told about a
+  child who is not coming.
+
+The app owns the sentence, the server owns the numbers: `TRIP.AGE_UNDER`,
+`AGE_BETWEEN` and `AGE_OVER` interpolate them, so Marathi reads as Marathi
+rather than an English label with Marathi digits in it.
+
+### The validation gap this turned up
+
+`UpdateCartRequest` — the stepper's own save path, and the **only** validation
+on it, since `planFromCart` takes a `trip_id` and nothing else — had no rule
+for the group at all, although its own comment promised "the same shape the
+quote accepts". It would store `adults: 9999` from any client, and
+`TripPlanner` reads the stepper's filters and the form's through the same
+code.
+
+That was the **fourth** place this feature's filter shape is restated
+(`QuoteTripRequest`, `UpdateCartRequest`, `resolveFilters`, the app) and the
+second time one of them was found a field short. Both lists come from
+`CartRequest::groupRules()` now — stated once, prefixed for the nested path.
+
+### Verified on device (2026-11-04)
+
+Against the local backend, real taps, `adb exec-out screencap -p`:
+
+- Tapping **Under 4** stored `{"adults":2,"children":2,"youngest_age":0}` on
+  draft trip 36 → `Pacing` gives **max 3**. The 9-or-older chip gives 4.
+- Taking children back to **0** removes the whole age row from the screen and
+  the age from the stored filters, leaving `{"adults":2,"children":0}`.
+- The Phase 1 re-run after `545c22c`: the same express family generation that
+  gave 5 stops gave **4**, with `group={"adults":2,"children":2}
+  type="family"` in the log.
+
+**Not** verified locally: a fresh generation on the age bands. That backend
+logs `daily spend ceiling reached {ceiling: 0.0}` and `model unreachable`, so
+it cannot generate at all. The pacing chain was read off the stored filters
+instead.
+
+### Verified on the deployed test server (2026-11-04)
+
+A throwaway guest with the `okhttp` User-Agent (api-test's WAF 403s
+`Python-urllib`):
+
+- `questionSet` serves `ages` as `under 0–3 → 0`, `mid 4–8 → 4`,
+  `over 9+ → 9`. The key's presence is also the proof the new code is running
+  rather than an Octane worker holding the old one.
+- `updateCart` refuses `adults: 9999`, `children: -1` and `youngest_age: 40`,
+  and stores a real answer with the age intact. The first of those was
+  accepted before this change.
+- `quote` refuses the same age with the same message under
+  `group.youngest_age` rather than `filters.group.youngest_age` — one rule
+  list, two prefixes — and a valid family quote still returns `can_plan` with
+  60 candidates.
+- Marathi is intact on the controller that changed: देवगड · दोडामार्ग ·
+  कणकवली, and मंदिर · किल्ला · समुद्रकिनारा · धरण.
+
+**Not** verified there: a real generation. It needs a verified account, and
+the emulator was holding a local JWT. The arithmetic rests on 22 pacing tests
+(581 in the suite) and the device walk above.
+
+### Still open after this
+
+- **Does group composition travel into a shared trip?** `saved_trips.filters`
+  now holds how many children are coming and roughly how old the youngest is,
+  on a row carrying `share_token` and `is_public`. Bands made it a smaller
+  disclosure — "0" means *under four*, not a birthdate — but not zero. The
+  default should probably be that it is stripped on share. **Not decided.**
+- **The free-text channel is still dead.** `ItineraryPrompt::build()` takes
+  `?string $freeText` and emits `traveller_note`, injection-hardened and
+  documented, and nothing in `app/` passes it. One "anything else we should
+  know?" box is the cheapest version of this entire feature and would say what
+  people actually type rather than what we guessed they would tap.
+- **Category weighting by trip type** (~0.5d) — biasing `suggested` using
+  codes that already exist. A heuristic over category names, and it must be
+  labelled one; it is not evidence about suitability.
+- **Real suitability data** across 4,334 sites — a data project, not a code
+  change, and the only thing that would make a "family friendly" claim honest.
+- **A mobile build.** The backend is deployed and verified; `22f738e` is only
+  pushed. The testers who asked for this cannot see any of it until there is
+  a build.
+
+---
+
 ## B1 · `POST v2/trip/places`
 
 New browse endpoint. ~60 lines.
@@ -858,6 +1059,11 @@ So the step-1 answers survive to the plan. ~20 lines.
 ---
 
 ## Repo state at handoff (2026-11-02)
+
+> A snapshot of one morning, kept because it records what was in flight at the
+> time — **not** the current state. Both repos are committed and level with
+> `origin/test` as of 2026-11-04; the newest work is `22f738e` (app) and
+> `8b4d005` (backend), described under "Who is going" above.
 
 ### Mobile — `/Users/pranavkamble/Documents/tourkokan-v2`, branch `test`
 **Nothing committed.** 15 modified + 6 new screens in the working tree:
@@ -942,8 +1148,12 @@ emulator is safe to delete; it was not the cause here.)
    Restart with explicit DNS:
    `emulator -avd Pixel_9_Pro_XL -dns-server 8.8.8.8,8.8.4.4 -no-snapshot-load`.
    It returns on a **new serial**, so re-run `adb reverse tcp:8081 tcp:8081`.
-4. **There is no axios timeout** (`CommonServices`). A dead network hangs a
-   request for 10–30s before the OS gives up. Worth adding a timeout, separately.
+4. **Axios timeouts exist now** (`CommonServices.js:76`) — a `TIMEOUT` table,
+   because one number cannot serve a tap and a generation: 15s default, 45s
+   for `plan`, 60s for an upload, 20s to resolve a map link. Before them a
+   dead network hung a request for 10–30s on the OS socket timeout. A timed-out
+   call comes back with a `timedOut` flag, so a screen can say "that did not
+   come back" rather than "that failed".
 5. `npm install` needs `--legacy-peer-deps` (rneui vs safe-area-context v5).
 6. The API endpoint is baked from `@env` keyed on **`APP_ENV`**, not the gradle
    flavour. A release script that does not set `APP_ENV` ships the test API.
