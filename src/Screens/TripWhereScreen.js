@@ -55,6 +55,11 @@ const TripWhereScreen = ({navigation}) => {
   const [days, setDays] = useState(2);
   const [adults, setAdults] = useState(2);
   const [children, setChildren] = useState(0);
+  // The youngest child's age band, or null for "did not say". Never
+  // defaulted to a number: picking one for them would assert a fact they
+  // never gave, and a guess of five would pace a family of teenagers like a
+  // family of toddlers.
+  const [youngestAge, setYoungestAge] = useState(null);
   const [tripType, setTripType] = useState(null);
   const [stay, setStay] = useState('suggest');
   // Null until they say. The whole question is optional, and a trip planned
@@ -96,6 +101,7 @@ const TripWhereScreen = ({navigation}) => {
     setDays(cart.days || saved.days || 2);
     setAdults(saved.group?.adults ?? 2);
     setChildren(saved.group?.children ?? 0);
+    setYoungestAge(saved.group?.youngest_age ?? null);
     setTripType(saved.trip_type ?? null);
     if (saved.stay) {
       setStay(saved.stay);
@@ -123,6 +129,28 @@ const TripWhereScreen = ({navigation}) => {
     [options?.arrival?.points, arrivalMode],
   );
 
+  /**
+   * The words for a served age band.
+   *
+   * The server sends the numbers because they move with its own pacing
+   * threshold; the app owns the sentence they sit in, so Marathi reads as
+   * Marathi and not as an English label with Marathi digits in it.
+   */
+  const ageLabel = useCallback(
+    band => {
+      if (band.to === null || band.to === undefined) {
+        return t('TRIP.AGE_OVER', {age: band.from});
+      }
+
+      if (band.from === 0) {
+        return t('TRIP.AGE_UNDER', {age: band.to + 1});
+      }
+
+      return t('TRIP.AGE_BETWEEN', {from: band.from, to: band.to});
+    },
+    [t],
+  );
+
   const filters = useMemo(() => {
     const base = {
       town_site_ids: towns,
@@ -132,7 +160,16 @@ const TripWhereScreen = ({navigation}) => {
       radius_km: options?.radius_km ?? 40,
       // Who is going. Sent always, because two adults is a real answer and
       // not a missing one — the server paces the days from it.
-      group: {adults, children},
+      group: {
+        adults,
+        children,
+        // Only while there is a child for it to be the age of. The server
+        // ignores it either way, but sending it would leave a contradiction
+        // in the saved filters for every later screen to read back.
+        ...(children > 0 && youngestAge !== null
+          ? {youngest_age: youngestAge}
+          : {}),
+      },
     };
 
     if (tripType) {
@@ -159,6 +196,7 @@ const TripWhereScreen = ({navigation}) => {
     days,
     adults,
     children,
+    youngestAge,
     tripType,
     stay,
     arrivalMode,
@@ -399,10 +437,35 @@ const TripWhereScreen = ({navigation}) => {
             </View>
           </View>
 
+          {/* Asked only once there is a child to ask it about, and skippable
+              like the type is — tapping the chosen band clears it. The bands
+              are served because the one that changes a plan is the one
+              either side of the server's own pacing threshold, and that
+              number is editable. */}
+          {children > 0 && !!(options?.group?.ages || []).length && (
+            <>
+              <GlobalText text={t('TRIP.AGE_HINT')} style={s.subLabel} />
+              <View style={s.chips}>
+                {options.group.ages.map(band => (
+                  <Chip
+                    key={band.code}
+                    label={ageLabel(band)}
+                    on={youngestAge === band.value}
+                    onPress={() =>
+                      setYoungestAge(
+                        youngestAge === band.value ? null : band.value,
+                      )
+                    }
+                  />
+                ))}
+              </View>
+            </>
+          )}
+
           {/* Served by the backend, never shipped in the app: a type added
               in config must not need a release to appear. */}
           {!!(options?.group?.types || []).length && (
-            <View style={s.chips}>
+            <View style={[s.chips, s.chipsSpaced]}>
               {options.group.types.map(ty => (
                 <Chip
                   key={ty.code}
@@ -634,6 +697,13 @@ const s = StyleSheet.create({
   centered: {alignItems: 'center', justifyContent: 'center'},
   body: {padding: 16, paddingBottom: 8},
   chips: {flexDirection: 'row', flexWrap: 'wrap', gap: 8},
+  subLabel: {
+    fontSize: 12.5,
+    color: C.textLight,
+    marginTop: 12,
+    marginBottom: 8,
+    textAlign: 'left',
+  },
   hint: {fontSize: 12.5, color: C.textLight},
 });
 
