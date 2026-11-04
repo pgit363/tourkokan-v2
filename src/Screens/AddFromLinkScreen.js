@@ -72,7 +72,6 @@ const AddFromLinkScreen = ({navigation, route}) => {
   const [url, setUrl] = useState('');
   const [checking, setChecking] = useState(false);
   const [result, setResult] = useState(null);
-  const [name, setName] = useState('');
   const [kind, setKind] = useState(null);
   const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);
@@ -91,22 +90,35 @@ const AddFromLinkScreen = ({navigation, route}) => {
 
     if (data?.success) {
       setResult(data.data);
-      // Google's own label when it had one — the traveller can still rename.
-      setName(data.data?.name || '');
     } else {
       setError(data?.message || t('ALERT.WENT_WRONG'));
     }
   };
 
+  /**
+   * The place's name, as Google gave it.
+   *
+   * Not editable, and not a field: a pasted link already names the place, and
+   * asking the traveller to retype it was a step that could only make the
+   * answer worse. A `?q=lat,lng` link carries no label at all, so that case
+   * is named from the nearest town we recognise — the server requires a name
+   * and "Your place" tells nobody anything in a day's plan.
+   */
+  const placeName = () =>
+    result?.name?.trim() ||
+    (result?.nearest_town
+      ? t('TRIP.PLACE_NEAR', {town: result.nearest_town})
+      : t('TRIP.PLACE_UNNAMED'));
+
   const save = async () => {
-    if (!result?.inside || !name.trim()) return;
+    if (!result?.inside) return;
     setSaving(true);
     setError('');
 
     const res = await addCustomStop(
       {
         trip_id: tripId,
-        name: name.trim(),
+        name: placeName(),
         latitude: result.latitude,
         longitude: result.longitude,
         kind,
@@ -205,10 +217,7 @@ const AddFromLinkScreen = ({navigation, route}) => {
                 />
               </View>
 
-              <GlobalText
-                text={result.name || t('TRIP.PLACE_NAME_LABEL')}
-                style={s.resultName}
-              />
+              <GlobalText text={placeName()} style={s.resultName} />
               <GlobalText
                 style={s.resultMeta}
                 text={
@@ -227,15 +236,6 @@ const AddFromLinkScreen = ({navigation, route}) => {
           {/* ── Inside: let them name it, type it, keep it ── */}
           {result?.inside && !saved && (
             <>
-              <GlobalText text={t('TRIP.PLACE_NAME_LABEL')} style={s.label} />
-              <TextInput
-                style={s.input}
-                value={name}
-                onChangeText={setName}
-                placeholderTextColor={C.textLight}
-                maxLength={120}
-              />
-
               <GlobalText text={t('TRIP.WHAT_KIND')} style={s.label} />
               <View style={s.chips}>
                 {KINDS.map(k => (
@@ -252,7 +252,7 @@ const AddFromLinkScreen = ({navigation, route}) => {
               <GlobalText text={t('TRIP.OWN_PLACE_NOTE')} style={s.note} />
 
               <TouchableOpacity
-                style={[s.primary, (!name.trim() || saving) && s.primaryOff]}
+                style={[s.primary, saving && s.primaryOff]}
                 onPress={save}
                 activeOpacity={0.9}>
                 {saving ? (

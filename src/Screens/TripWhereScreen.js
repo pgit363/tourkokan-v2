@@ -53,6 +53,9 @@ const TripWhereScreen = ({navigation}) => {
   const [towns, setTowns] = useState([]);
   const [interests, setInterests] = useState([]);
   const [days, setDays] = useState(2);
+  const [adults, setAdults] = useState(2);
+  const [children, setChildren] = useState(0);
+  const [tripType, setTripType] = useState(null);
   const [stay, setStay] = useState('suggest');
   // Null until they say. The whole question is optional, and a trip planned
   // without it is the trip we were already planning.
@@ -91,6 +94,9 @@ const TripWhereScreen = ({navigation}) => {
       current.length ? current : saved.category_codes || [],
     );
     setDays(cart.days || saved.days || 2);
+    setAdults(saved.group?.adults ?? 2);
+    setChildren(saved.group?.children ?? 0);
+    setTripType(saved.trip_type ?? null);
     if (saved.stay) {
       setStay(saved.stay);
     }
@@ -124,7 +130,14 @@ const TripWhereScreen = ({navigation}) => {
       days,
       stay,
       radius_km: options?.radius_km ?? 40,
+      // Who is going. Sent always, because two adults is a real answer and
+      // not a missing one — the server paces the days from it.
+      group: {adults, children},
     };
+
+    if (tripType) {
+      base.trip_type = tripType;
+    }
 
     // Omitted entirely rather than sent half-filled: the server wants a point
     // for everything except driving, so an incomplete answer would be a
@@ -144,6 +157,9 @@ const TripWhereScreen = ({navigation}) => {
     towns,
     interests,
     days,
+    adults,
+    children,
+    tripType,
     stay,
     arrivalMode,
     arrivalPoint,
@@ -319,6 +335,86 @@ const TripWhereScreen = ({navigation}) => {
               </TouchableOpacity>
             </View>
           </View>
+        </Section>
+
+        {/* Who is going. Placed after the length because the two together
+            are what set the pace of each day, and defaulted to two adults so
+            a traveller who ignores it is answering it correctly. */}
+        <Section label={t('TRIP.WHO_LABEL')} hint={t('TRIP.WHO_HINT')}>
+          <View style={s.daysRow}>
+            <GlobalText
+              style={s.daysValue}
+              text={
+                adults === 1
+                  ? t('TRIP.ONE_ADULT')
+                  : t('TRIP.N_ADULTS', {count: adults})
+              }
+            />
+            <View style={s.stepper}>
+              <TouchableOpacity
+                style={s.stepBtn}
+                accessibilityRole="button"
+                accessibilityLabel="−"
+                disabled={adults <= 1}
+                onPress={() => setAdults(a => Math.max(1, a - 1))}>
+                <GlobalText text="−" style={s.stepTxt} />
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={s.stepBtn}
+                accessibilityRole="button"
+                accessibilityLabel="+"
+                disabled={adults >= 30}
+                onPress={() => setAdults(a => Math.min(30, a + 1))}>
+                <GlobalText text="+" style={s.stepTxt} />
+              </TouchableOpacity>
+            </View>
+          </View>
+
+          <View style={s.daysRow}>
+            <GlobalText
+              style={s.daysValue}
+              text={
+                children === 1
+                  ? t('TRIP.ONE_CHILD')
+                  : t('TRIP.N_CHILDREN', {count: children})
+              }
+            />
+            <View style={s.stepper}>
+              <TouchableOpacity
+                style={s.stepBtn}
+                accessibilityRole="button"
+                accessibilityLabel="−"
+                disabled={children <= 0}
+                onPress={() => setChildren(c => Math.max(0, c - 1))}>
+                <GlobalText text="−" style={s.stepTxt} />
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={s.stepBtn}
+                accessibilityRole="button"
+                accessibilityLabel="+"
+                disabled={children >= 20}
+                onPress={() => setChildren(c => Math.min(20, c + 1))}>
+                <GlobalText text="+" style={s.stepTxt} />
+              </TouchableOpacity>
+            </View>
+          </View>
+
+          {/* Served by the backend, never shipped in the app: a type added
+              in config must not need a release to appear. */}
+          {!!(options?.group?.types || []).length && (
+            <View style={s.chips}>
+              {options.group.types.map(ty => (
+                <Chip
+                  key={ty.code}
+                  label={t(`TRIP.TYPE_${ty.code.toUpperCase()}`, ty.name)}
+                  on={tripType === ty.code}
+                  onPress={() =>
+                    setTripType(tripType === ty.code ? null : ty.code)
+                  }
+                />
+              ))}
+            </View>
+          )}
         </Section>
 
         <Section label={t('TRIP.STAY_LABEL')}>
