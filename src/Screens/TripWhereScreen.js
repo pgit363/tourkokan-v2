@@ -61,6 +61,17 @@ const TripWhereScreen = ({navigation}) => {
   // family of toddlers.
   const [youngestAge, setYoungestAge] = useState(null);
   const [tripType, setTripType] = useState(null);
+  /**
+   * Anything else they want the plan to know.
+   *
+   * Deliberately NOT part of the `filters` memo below. That memo drives the
+   * quote, and the quote counts candidates from the towns, the interests and
+   * the radius — a sentence about a walking stick cannot change its answer.
+   * In the memo, every pause in typing would buy a round trip that tells the
+   * traveller nothing. It is merged in at save time instead, where it is
+   * actually read.
+   */
+  const [note, setNote] = useState('');
   const [stay, setStay] = useState('suggest');
   // Null until they say. The whole question is optional, and a trip planned
   // without it is the trip we were already planning.
@@ -103,6 +114,7 @@ const TripWhereScreen = ({navigation}) => {
     setChildren(saved.group?.children ?? 0);
     setYoungestAge(saved.group?.youngest_age ?? null);
     setTripType(saved.trip_type ?? null);
+    setNote(saved.traveller_note ?? '');
     if (saved.stay) {
       setStay(saved.stay);
     }
@@ -120,6 +132,7 @@ const TripWhereScreen = ({navigation}) => {
   // trim without saying so. PlanTripScreen was the only screen that read
   // this; it has gone, and the rule came here.
   const maxDays = options?.days?.max ?? 7;
+  const noteMax = options?.note?.max ?? 500;
 
   const pointsForMode = useMemo(
     () =>
@@ -256,7 +269,16 @@ const TripWhereScreen = ({navigation}) => {
     // `days` goes as its own field as well as inside the filters: the
     // planner reads the column, the prompt reads the filters, and they must
     // not drift apart.
-    const ok = await update({days, filters}, navigation);
+    // Sent as a string and never omitted, even when empty. The server merges
+    // the filters key by key and drops nulls before merging, so a key left
+    // out — or sent as null — leaves whatever was stored last time in place,
+    // and a note the traveller had just deleted would quietly survive into
+    // the plan. An empty string replaces it; the server reads blank as "no
+    // note" everywhere downstream.
+    const ok = await update(
+      {days, filters: {...filters, traveller_note: note.trim()}},
+      navigation,
+    );
     setSaving(false);
 
     if (ok) {
@@ -271,7 +293,7 @@ const TripWhereScreen = ({navigation}) => {
     // and nothing explains why — the traveller taps a button that looks
     // alive and gets silence, which is the one thing a footer must never do.
     setSaveFailed(true);
-  }, [update, days, filters, mode, navigation]);
+  }, [update, days, filters, note, mode, navigation]);
 
   /** What the footer says about the current answers. */
   const verdict = () => {
@@ -593,6 +615,41 @@ const TripWhereScreen = ({navigation}) => {
           ) : null}
         </Section>
 
+        {/* The last question about the trip, and the only open one. Placed
+            after everything we ask in boxes and chips, because it is for
+            whatever those could not hold — and before the mode choice,
+            which is not a question about the trip but about what happens
+            when the button is pressed.
+
+            Hidden entirely when the server says the box is off: an admin
+            can set the ceiling to zero during an abuse spike, and a field
+            that is drawn but refused on every submission is worse than no
+            field at all. */}
+        {options?.note?.available ? (
+          <Section label={t('TRIP.NOTE_LABEL')} hint={t('TRIP.NOTE_HINT')}>
+            <TextInput
+              style={s.noteInput}
+              value={note}
+              onChangeText={setNote}
+              placeholder={t('TRIP.NOTE_PLACEHOLDER')}
+              placeholderTextColor={C.textLight}
+              multiline
+              // Android puts multiline text in the vertical middle without
+              // this, so a one-line note floats in a four-line box.
+              textAlignVertical="top"
+              // The server's own ceiling, served rather than assumed, so the
+              // input cannot accept something the save would then refuse.
+              maxLength={noteMax}
+            />
+            {note.length > 0 && (
+              <GlobalText
+                style={s.noteCount}
+                text={`${note.length} / ${noteMax}`}
+              />
+            )}
+          </Section>
+        ) : null}
+
         {/*
           The question that used to be two buttons on the home card. Both
           answers are on screen with what they do, so the extra screens are
@@ -703,6 +760,27 @@ const s = StyleSheet.create({
     marginTop: 12,
     marginBottom: 8,
     textAlign: 'left',
+  },
+  noteInput: {
+    minHeight: 92,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: C.line,
+    backgroundColor: C.white,
+    color: C.textDark,
+    fontSize: 14,
+    lineHeight: 20,
+    textAlign: 'left',
+  },
+  // GlobalText centres by default, and a counter belongs under the corner
+  // of the box it counts.
+  noteCount: {
+    marginTop: 6,
+    fontSize: 11.5,
+    color: C.textLight,
+    textAlign: 'right',
   },
   hint: {fontSize: 12.5, color: C.textLight},
 });
