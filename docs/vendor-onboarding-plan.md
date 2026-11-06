@@ -24,6 +24,7 @@ Flow mockup: Artifact "Vendor Onboarding Flow".
 | M6 | Free-3-months subscription + `early_adopter` flag | backend + app | ✅ Done (verified on iOS sim) | — |
 | M7 | Vendor advertising placement/creative | app + web | ✅ Done (app verified on iOS sim, web builds) | — |
 | M8 | Rejected-state screen prominence (polish) | app | ✅ Done (verified on iOS sim) | — |
+| M9 | Vendor management moves off the app to the web dashboard (`/vendor/*`) | web + backend + app | 🟡 Web live on test; backend pushed but not deployed; app Phase 4 not started | Prod needs `GOOGLE_ALLOWED_AUDIENCES` set **before** the backend code — see go-live doc below |
 
 > Update the Status column as each module lands. Keep this table the single
 > source of truth for progress.
@@ -184,5 +185,6 @@ the right fix surface; MySubmissionsScreen keeps the reason + Edit path.
 3. ~~First-time-web semantics (M5)~~ — decided: 0 existing sites per user.
 4. Encrypted doc storage (M3): column encryption done; **ops task**: restrict public read on the S3 prefix `<env>/sites/docs/`.
 5. ~~Feature-flag system (M6)~~ — `early_adopter` in `vendor_subscriptions.meta_data`.
-6. Web Google button (M5): set `NEXT_PUBLIC_GOOGLE_WEB_CLIENT_ID` (same client id the app uses) — email auth works without it.
+6. ~~Web Google button (M5)~~ — done. `NEXT_PUBLIC_GOOGLE_WEB_CLIENT_ID` is set in `.env.production` / `.env.test`. Note the earlier claim here was wrong: the web needs a **client of its own** (`…9uv6encu2akkkh57hsbbmap8jtklvfnl`), not the app's — an Android OAuth client authorises by package name + SHA-1 and has no JavaScript origins, so reusing it in a browser fails with `origin_mismatch`. Each new origin (`localhost`, `test.tourkokan.com`, `tourkokan.com`) must be added to that client in Google Cloud Console.
 7. Admin panel UI for the verification queue (pendingVerifications / verifySiteRegistration) is not built yet — decisions work via API/Postman.
+8. **Prod go-live (M9)**: read `../../tourkokan-backend/docs/VENDOR_DASHBOARD_GO_LIVE.md` first. The backend's Google `aud` allow-list now lives in `.env` with **no code default**, so deploying the code to a server where `GOOGLE_ALLOWED_AUDIENCES` is unset kills Google sign-in on **web, Android and iOS** at once. Env var first, code second.
